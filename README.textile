@@ -1,0 +1,27 @@
+h1. Voxeo Labs Moho
+
+h2. Overview
+
+h2. How to Install
+
+p. Moho projects are built using Maven. To build it, simply follow these steps:
+
+* Verify that Maven has been installed in your box. you can do this by running the command <code>mvn --version</code> in a terminal. 
+* If Maven has been installed, it should print out your installed version of Maven. If not, please install Maven first, refer to "Maven site":http://maven.apache.org/index.html.
+* Now you can run Maven to build Moho projects. Run <code>mvn package</code> to build the project and package the jars.
+
+h2. How to Use
+
+p. Moho is designed to run on any platform that supports JSR 289 and JSR 309. "Voxeo Prism":http://voxeo.com/prism is recommended and has Moho included by default.
+
+p. To run Moho applications on "Voxeo Prism":http://voxeo.com/prism, simply deploy any Moho application package to Prism's app directory. Please note that unless you deploy a custom application router to "Voxeo Prism":http://voxeo.com/prism, only one Moho application can be deployed and run at any time.
+
+h2. License
+
+p. Moho is released under Apache 2 license. Please refer to "Apache 2.0 License":http://www.apache.org/licenses/LICENSE-2.0 for details.
+
+h2. About Voxeo Corporation
+
+p. Voxeo unlocks communications. We loathe the locks that make voice, SMS, instant messaging, Twitter, web chat, and mobile web unified communication and self-service applications difficult to create, manage, analyze, optimize and afford. Every day we work to unlock the neglected value of these communications solutions with open standards, disruptive innovation and a passion for problem solving--fueled by a company-wide obsession with customer success. We do so for more than 100,000 developers, 45,000 companies and half of the Fortune 100 from our headquarters in Orlando, Beijing, Cologne, and London. 
+
+p. Visit us or join our conversations on the web at "blogs.voxeo.com":http://blogs.voxeo.com or on Twitter "@voxeo":http://twitter.com/voxeo.
