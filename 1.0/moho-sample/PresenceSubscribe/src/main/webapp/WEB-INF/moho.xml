@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<application name="MohoSamplePresenceSubscribe" class="com.voxeo.moho.sample.PresenceSubscribe">
+  <!-- <parameter name="party1" value="sip:party1@address:port"/>
+  <parameter name="party2" value="sip:party1@address:port"/> -->
+</application>
