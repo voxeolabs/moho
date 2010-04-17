@@ -110,20 +110,51 @@
             </goals>
           </execution>
         </executions>        
-        <configuration>
-          <docfilessubdirs>true</docfilessubdirs> 
-          <!--Note: You must have the Graphviz binary in your PATH, or the UML images will not be generated. 
-          For more information about Graphviz, please refer to http://www.graphviz.org/  -->      
-          <doclet>org.umlgraph.doclet.UmlGraphDoc</doclet>
-          <docletArtifact>
-            <groupId>org.umlgraph</groupId>
-            <artifactId>doclet</artifactId>
-            <version>5.1</version>
-          </docletArtifact>
-          <additionalparam>-all</additionalparam>
-          <useStandardDocletOptions>true</useStandardDocletOptions>
-        </configuration>
       </plugin>      
     </plugins>
   </build>
+  
+  <profiles>
+    <profile>
+      <id>uml</id>
+      <activation>
+        <property>
+          <name>moho.javadoc.enableUml</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.6.1</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>        
+            <configuration>
+              <docfilessubdirs>true</docfilessubdirs> 
+              <!--Note: You must have the Graphviz binary in your PATH, or the UML images will not be generated. 
+              For more information about Graphviz, please refer to http://www.graphviz.org/  -->      
+              <doclet>org.umlgraph.doclet.UmlGraphDoc</doclet>
+              <docletArtifact>
+                <groupId>org.umlgraph</groupId>
+                <artifactId>doclet</artifactId>
+                <version>5.1</version>
+              </docletArtifact>
+              <additionalparam>-all</additionalparam>
+              <useStandardDocletOptions>true</useStandardDocletOptions>
+            </configuration>
+          </plugin>      
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
+  
 </project>
