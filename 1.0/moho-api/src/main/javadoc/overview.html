@@ -10,34 +10,32 @@
 It builds upon <a href="http://jcp.org/en/jsr/detail?id=289">SIP Servlet (JSR 289)</a> and 
 <a href="http://jcp.org/en/jsr/detail?id=309">Java Media Control (JSR 309)</a> APIs by
 providing an unified model for both call and media control while still exposing direct
-access the lower JSR 289/309 APIs.</p>
+access the underlying JSR 289/309 APIs.</p>
 
-<p>However, the object model is generic enough to allow implementation 
-on top of other protocol, such as <a href="http://xmpp.org/extensions/xep-0166.html">Jingle</a>, and
-other type of communication, such as Instant Messaging.</p>
+<p>The Moho object model is generic, making it easy to implement other communications protocols such as <a href="http://xmpp.org/extensions/xep-0166.html">Jingle</a> and
+even other types of communication, such as XMPP instant messaging.</p>
 
 <p><img src="resources/moho.jpg"/></p>
 
-<h2>Understanding call control model in Moho</h2>
+<h2>Understanding Moho's call control model</h2>
 <p>There are different models for calls and media control. Moho is designed for calls and media
 are controlled by a 3rd party server application, such as PBX, IVR, Conferencing, and Call Center applications. 
-Moho assumes all the calls have at least their signals controlled by Moho applications.
-In most cases, media should be controlled by Moho applications as well.</p>
-<p>In Moho, calls controlled the application can be categorized into the following three basic call models.</p>
+Moho assumes that it is controlling signalling for all calls and in most cases, Moho applications should control media, too.</p>
+<p>In Moho, calls controlled by the application can be categorized into three basic call models.</p>
 <ul>
 	<li>
-	<p>A call is connected to the server only, such as in typical IVR, as illustrated below.</p> 
+	<p>A call is connected to the server only, such as in typical IVR.</p> 
 	<p><img src="resources/single-leg.jpg"/></p>
-	<p>Please note both signal and media are connected to the server.</p>
+	<p>In this model both signal and media are connected to the server.</p>
 	</li><br/>
 	<li>
-	<p>A call is connected to another endpoint, such as in typical PBX, as illustrated below.</p>
+	<p>A call is connected to another endpoint, such as a PBX.</p>
 	<p><img src="resources/two-leg.jpg"/></p>
-	<p>Please note signal goes through the server. However media may or may not go through the server. 
-	In this case, the Moho application always acts a B2BUA.</p>
+	<p>While the signal goes through the server, media may or may not go through the server. 
+	In this case, the Moho application is a back-to-back user agent (B2BUA).</p>
 	</li><br/>
 	<li>
-	<p>Multiple calls are connected to a mixer, such as in typical Conference, as illustrated below.</p>
+	<p>Multiple calls are connected to a mixer as in a Conference.</p>
 	<p><img src="resources/multi-leg.jpg"/></p>
 	<p>Please note both signal and media are connected to the server.</p>
 	</li><br/>
@@ -48,17 +46,17 @@ In most cases, media should be controlled by Moho applications as well.</p>
 Once a {@link com.voxeo.moho.Call Call} is 
 in the {@link com.voxeo.moho.Call.State#INPROGRESS INPROGRESS} or {@link com.voxeo.moho.Call.State#CONNECTED CONNECTED} state, 
 {@link com.voxeo.moho.Call#getMediaService(boolean) getMediaService()} can be used to access the media services.
-In case the media streams are connected in {@link com.voxeo.moho.Participant.JoinType#DIRECT DIRECT} mode, 
-Moho will try to reinvite the media streams back to the media server into {@link com.voxeo.moho.Participant.JoinType#BRIDGE BRIDGE} mode.</p>
+If the media streams are connected in {@link com.voxeo.moho.Participant.JoinType#DIRECT DIRECT} mode, 
+Moho will try to reinvite the media streams back to the media server in {@link com.voxeo.moho.Participant.JoinType#BRIDGE BRIDGE} mode.</p>
 
-<p>The <code>MediaService.input(...)</code> provides control on both DTMF and speech recognition. 
-<code>MediaService.output(...)</code> provides control on both TTS and media playback. 
+<p><code>MediaService.input(...)</code> provides control on both DTMF and speech recognition. 
+<code>MediaService.output(...)</code> provides control for both TTS and media playback. 
 <code>MediaService.prompt(...)</code> allows the application to control both outputs and inputs at the same time. 
 <code>MediaService#record(...)</code> allows the application to record both inputs and outputs.</p>
 
-<p>Borrowing the concept from CCXML and JSR 309, Moho uses various join method to connect different call legs.</p>
+<p>Borrowing a concept from CCXML and JSR 309, Moho offers various join methods to connect different call legs.</p>
 <p>A {@link com.voxeo.moho.Participant Participant} can join with other {@link com.voxeo.moho.Participant Participant}s.</p>
-<p>Individual streams in {@link com.voxeo.moho.MultiStreamParticipant MultiStreamParticipant} can be joined by using JSR 309 {@link javax.media.mscontrol.join.Joinable Joinable} construt.</p>
+<p>Individual streams in {@link com.voxeo.moho.MultiStreamParticipant MultiStreamParticipant} can be joined by using the JSR 309 {@link javax.media.mscontrol.join.Joinable Joinable} construt.</p>
 <p>Moho also supports multiple joins with automatic join degradation.</p>
 
 <h2>Understanding the object model in Moho</h2>
@@ -74,7 +72,7 @@ Moho will try to reinvite the media streams back to the media server into {@link
 <p>Typically an inbound call results in an {@link com.voxeo.moho.event.InviteEvent InviteEvent} sent to the {@link com.voxeo.moho.Application Application}. 
 The application can decide to {@link com.voxeo.moho.event.InviteEvent#accept(Observer... observers) accept}, {@link com.voxeo.moho.event.InviteEvent#reject(com.voxeo.moho.event.SignalEvent.Reason) reject}, or
 {@link com.voxeo.moho.event.InviteEvent#redirect(com.voxeo.moho.Endpoint) redirect} the {@link com.voxeo.moho.event.InviteEvent InviteEvent}.</p>
-<p>Once the {@link com.voxeo.moho.event.InviteEvent InviteEvent} is accepted, a {@link com.voxeo.moho.Call Call} (leg) is formed. {@link com.voxeo.moho.event.Observer Observer}
+<p>Once the {@link com.voxeo.moho.event.InviteEvent InviteEvent} is accepted, a {@link com.voxeo.moho.Call Call} (leg) is formed. An {@link com.voxeo.moho.event.Observer Observer}
 can be added on the {@link com.voxeo.moho.Call Call} to continue monitor and control the leg. The application can further</p>
 <ul>
   <li>{@link com.voxeo.moho.Call#join() join} the {@link com.voxeo.moho.Call Call} with the media server.</li>
@@ -88,43 +86,43 @@ If the media is not going through the server, the Moho Framework will try to re-
 
 
 <h2>Understanding the programming model in Moho</h2>
-<p>The Moho programming model is a event-driven model. Moho has a coarse-grained event types to make the application focus on the business logic
-other than the lower level protocol. 
-It combines with a state-based event dispatching mechanism and one-thread-per-{@link com.voxeo.moho.event.EventSource event source} 
+<p>The Moho programming model is a event-driven model. Moho has a coarse-grained event types to allow the application focus on the business logic
+rather than the lower level protocol. 
+It adds a state-based event dispatching mechanism and one-thread-per-{@link com.voxeo.moho.event.EventSource event source} 
 (in most cases) to make the application much easier to write. </p>
 <p>There are two types of EventObject in Moho - SignalEvent and MediaEvent</p>
-<p>{@link com.voxeo.moho.event.SignalEvent SignalEvent} represents events from underlying signaling protocol, such as SIP BYE, REFER, INVITE, etc.</p>
+<p>{@link com.voxeo.moho.event.SignalEvent SignalEvent} represents events from the underlying signaling protocol, such as SIP BYE, REFER, INVITE, etc.</p>
 <p> {@link com.voxeo.moho.event.MediaEvent MediaEvent} represents the events from progress and status of the execution of media functions.</p>
-<p>Call controls can be performed on {@link com.voxeo.moho.event.SignalEvent SignalEvent}, such as {@link com.voxeo.moho.event.InviteEvent#accept(Observer... observers) accept}.
+<p>Call controls can be performed on a {@link com.voxeo.moho.event.SignalEvent SignalEvent}, such as {@link com.voxeo.moho.event.InviteEvent#accept(Observer... observers) accept}.
 Please note that most call control functions are modeled as synchronous methods for simplicity,
-given the fact that call control functions are finished within relative short time (e.g. max SIP timeout is about 32 seconds).</p>
-<p>However, the media control functions are modeled as asynchronous methods because media functions can be arbitrarily long.
-The result of any media function will be returned as {@link com.voxeo.moho.event.MediaEvent MediaEvents}.
+given the fact that call control functions are finished within relatively short period of time (e.g. max SIP timeout is about 32 seconds).</p>
+<p>Media control functions are modeled as asynchronous methods as media functions can be arbitrarily long.
+The results of any media function will be returned as {@link com.voxeo.moho.event.MediaEvent MediaEvents}.
 If an application wants to wait for a media function to complete before doing other actions.
 This can be easily achieved by {@link java.util.concurrent.Future#get() Future.get()} since a media function returns a {@link java.util.concurrent.Future Future} to allow call to query its status.</p>
-<p>Each {@link com.voxeo.moho.Call Call} is an {@link com.voxeo.moho.event.EventSource Event Source} that can generate both
-{@link com.voxeo.moho.event.SignalEvent SignalEvent} and {@link com.voxeo.moho.event.MediaEvent MediaEvent}. To get notified,
-the application has to add an {@link com.voxeo.moho.event.Observer Observer} or an {@link com.voxeo.util.EventListener EventListener} to the {@link com.voxeo.moho.Call Call}.</p>
+<p>Each {@link com.voxeo.moho.Call Call} is an {@link com.voxeo.moho.event.EventSource EventSource} that can generate both
+{@link com.voxeo.moho.event.SignalEvent SignalEvents} and {@link com.voxeo.moho.event.MediaEvent MediaEvents}. To get notified,
+the application should add an {@link com.voxeo.moho.event.Observer Observer} or an {@link com.voxeo.util.EventListener EventListener} to the {@link com.voxeo.moho.Call Call}.</p>
 <p>Event programming usually is associated with state management. The Moho framework supports application-defined state based event dispatching.
-Application can {@link com.voxeo.moho.event.EventSource#setApplicationState(String) setApplicationState} on each {@link com.voxeo.moho.event.EventSource EventSource}.
+Applications can {@link com.voxeo.moho.event.EventSource#setApplicationState(String) setApplicationState} on each {@link com.voxeo.moho.event.EventSource EventSource}.
 Concurrent states are also supported by call {@link com.voxeo.moho.event.EventSource#setApplicationState(String) setApplicationState}.
 The Moho framework will dispatch the event to the appropriate {@link com.voxeo.moho.event.Observer Observer} method based on its {@link com.voxeo.moho.State State} annotation.
 Please see {@link com.voxeo.moho.event.Observer Observer} for more information.</p>
 <p>Note that each {@link com.voxeo.moho.event.EventSource EventSource} mostly likely has system state driven by underlying protocols. But these should be separated from application states.
-From Moho point of view, application states are simply symbolic names, entirely managed by application.</p>
+From Moho's point of view, application states are simply symbolic names, entirely managed by the application.</p>
 
 <h2>Understanding the Moho Application Package</h2>
-<p>Moho Application Package (MAR) is a simply Web ARchive (WAR). A container supports loading MAR should scan MAR to find and load the implementation class of the {@link com.voxeo.moho.Application Application} interface.
-If multiple implementation classes exist, the implementation class can be designated by MAR's deployment descriptor (WEB-INF/moho.xml). 
+<p>Moho Application Package (MAR) is a Web ARchive (WAR). A container that supports loading MAR files will scan the MAR to find and load the implementation class of the {@link com.voxeo.moho.Application Application} interface.
+If multiple implementation classes exist, the implementation class can be designated by the MAR's deployment descriptor (WEB-INF/moho.xml). 
 <block><code><pre>
   &lt;application name=&quot;MohoApplicationName&quot; class=&quot;MohoApplicationClassName&quot;&gt;
     &lt;parameter name=&quot;pName&quot; value=&quot;pValue&quot;/&gt;
     ...
   &lt;/application&gt;
 </pre></code></block>
-Otherwise, a random implementation class is loaded.</p>
+If multiple implementation classes are present and a default implementation class is not specified, a random implementation class is loaded.</p>
 
-<p>If a JSR-289 container doesn't support loading MAR directly, Moho applications should be packaged as standard SAR with the following SIP deployment descriptor.</p>
+<p>If you use a JSR-289 container that doesn't support loading MAR files directly, Moho applications can be packaged as a standard SAR with the following SIP deployment descriptor:</p>
 <block><code><pre>
   &lt;servlet&gt;
     &lt;servlet-name&gt;MohoController&lt;/servlet-name&gt;
@@ -150,7 +148,6 @@ Otherwise, a random implementation class is loaded.</p>
 <li>{@link com.voxeo.moho.MediaService MediaService} is equivalent of MediaGroup in JSR 309.</li>
 <li>Mixer is equivalent of Mixer in JSR 309.</li>
 </ul>
-<p>In order to prevent lower level access from messing up the states in Moho, the lower level objects has to be accessed via some sort of proxy objects.
-Additional restrictions might have to be applied.</p>
+<p>In order to prevent lower level access from affecting Moho application states, the lower level objects must be accessed via a proxy object. There may be other issues with state that we have not found. We recommend using the underlying APIs sparingly. If any issues are found, post a question in the forum.</p>
 
 </body></html>
