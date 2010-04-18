@@ -13,6 +13,10 @@
       <id>sonatype-nexus-public</id>
       <url>http://oss.sonatype.org/content/groups/public</url>
     </repository>
+    <repository>
+      <id>sun-public</id>
+      <url>http://download.java.net/maven/2/</url>
+    </repository>
   </repositories>
 
   <properties>
