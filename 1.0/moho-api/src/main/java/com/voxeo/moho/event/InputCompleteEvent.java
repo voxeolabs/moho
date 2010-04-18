@@ -91,11 +91,11 @@ public class InputCompleteEvent extends MediaCompleteEvent {
     this._confidence = _confidence;
   }
 
-  public String get_nlsml() {
+  public String getNlsml() {
     return _nlsml;
   }
 
-  public void set_nlsml(final String _nlsml) {
+  public void setNlsml(final String _nlsml) {
     this._nlsml = _nlsml;
   }
 
@@ -105,6 +105,17 @@ public class InputCompleteEvent extends MediaCompleteEvent {
 
   public boolean hasMatch() {
     return successful;
+  }
+  
+  public String getValue() {
+    String retval = getConcept();
+    if (retval == null) {
+        retval = getInterpretation();
+    }
+    if (retval == null) {
+        retval = getUtterance();
+    }
+    return retval;
   }
 
 }

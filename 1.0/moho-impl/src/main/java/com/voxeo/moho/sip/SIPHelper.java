@@ -114,7 +114,6 @@ public class SIPHelper {
     return msg.getMethod().equalsIgnoreCase("BYE");
   }
 
-  @SuppressWarnings("unchecked")
   public static void forwardRequestByB2buaHelper(final SipServletRequest req, final Map<String, String> headers)
       throws IOException {
     final B2buaHelper b2b = req.getB2buaHelper();

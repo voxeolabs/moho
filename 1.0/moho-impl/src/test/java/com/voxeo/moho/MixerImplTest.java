@@ -79,6 +79,7 @@ public class MixerImplTest extends TestCase {
     super.tearDown();
   }
 
+  @SuppressWarnings("unchecked")
   public void testJoinAndUnjoin() {
     // prepare
     try {
@@ -157,6 +158,7 @@ public class MixerImplTest extends TestCase {
   /**
    * disconnect.
    */
+  @SuppressWarnings("unchecked")
   public void testDisconnect() {
     // prepare
     try {

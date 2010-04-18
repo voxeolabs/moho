@@ -27,5 +27,7 @@ public interface Prompt {
   Input getInput() throws MediaException;
 
   Output getOutput() throws MediaException;
+  
+  String getResult() throws MediaException;
 
 }

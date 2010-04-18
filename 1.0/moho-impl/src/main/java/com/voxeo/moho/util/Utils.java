@@ -22,6 +22,7 @@ import com.voxeo.utils.EventListener;
 
 public class Utils {
 
+  @SuppressWarnings("unchecked")
   public static Class getGenericType(final Object o) {
     for (Class clz = o.getClass(); clz != null && !clz.equals(Object.class); clz = clz.getSuperclass()) {
       for (final Type type : clz.getGenericInterfaces()) {

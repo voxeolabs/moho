@@ -8,7 +8,7 @@
   <parent>
     <groupId>com.voxeo.moho</groupId>
     <artifactId>moho-parent</artifactId>
-    <version>1.0</version>
+    <version>0.5</version>
   </parent>
 
   <scm>
@@ -28,6 +28,24 @@
       <artifactId>log4j</artifactId>
       <version>1.2.15</version>
       <scope>provided</scope>      
+      <exclusions>
+        <exclusion>
+          <groupId>javax.mail</groupId>
+          <artifactId>mail</artifactId>
+        </exclusion>
+        <exclusion>          
+          <groupId>javax.jms</groupId>
+          <artifactId>jms</artifactId>
+        </exclusion>
+        <exclusion>          
+          <groupId>com.sun.jdmk</groupId>
+          <artifactId>jmxtools</artifactId>
+        </exclusion>
+        <exclusion>          
+          <groupId>com.sun.jmx</groupId>
+          <artifactId>jmxri</artifactId>
+        </exclusion>
+      </exclusions>      
     </dependency>
     <dependency>
       <groupId>dom4j</groupId>
@@ -97,7 +115,7 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-api</artifactId>
-      <version>1.0</version>
+      <version>0.5</version>
     </dependency>
   </dependencies>
 

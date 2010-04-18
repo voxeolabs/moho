@@ -18,6 +18,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 import com.voxeo.moho.MediaException;
+import com.voxeo.moho.event.InputCompleteEvent;
 
 public class PromptImpl implements Prompt {
 
@@ -59,6 +60,22 @@ public class PromptImpl implements Prompt {
   @Override
   public Output getOutput() {
     return _output;
+  }
+
+  @Override
+  public String getResult() throws MediaException {
+    try {
+      InputCompleteEvent inputCompleteEvent = getInput().get();
+      if(inputCompleteEvent != null) {
+          return inputCompleteEvent.getValue();
+      }
+      else {
+          return null;
+      }
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
   }
 
 }

@@ -55,6 +55,7 @@ public class SIPController extends SipServlet {
   protected String _applicationClass = null;
 
   @Override
+  @SuppressWarnings("unchecked")
   public void init() {
     try {
       _applicationClass = getInitParameter("ApplicationClass");
