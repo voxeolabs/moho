@@ -1,6 +1,54 @@
 h1. Voxeo Labs Moho
 
+!http://dl.dropbox.com/u/25511/Voxeo/images/moho_vert_FULL%20COLOR.jpg!
+
 h2. Overview
+
+p. Moho is an open source Java framework for developing multi-channel communications applications. Today, building communications apps in Java requires that you write to several different standards and cobble together multiple technologies. Moho unifies real time communications under a single API, allowing developers to write better applications faster, with less code. Moho’s unified API for connecting to communications standards is shipping today with drivers for SIP Servlets and Media Control (JSR 289 and JSR 309) allowing developers to rapidly build SIP applications. The platform supports the creation of drivers for other protocols like XMPP, Jingle, SNMP, and other voice, IM, and SMS standards.
+
+p. Moho runs on any application server that supports SIP servlets, including "Voxeo Prism":http://www.voxeo.com/prism/, "Sailfin":https://sailfin.dev.java.net/, and "Mobicents":http://www.mobicents.org/. It features an asynchronous programming model and comes with many commonly-needed concepts for telephony applications built in, including conferencing, muting, answering machine detection, transcoding, and call queues.
+
+p. Building an IVR system can be as simple as answering the call and playing a prompt.
+
+<pre>
+   MediaService media;
+   ApplicationContext context;
+   CallableEndpoint salesEndpoint;
+
+   @State
+   public void start(final InviteEvent invite) throws Exception {
+     final Call call = invite.acceptCall(this);
+     call.join().get();
+     call.setApplicationState("main menu");
+     media = call.getMediaService(false);
+     salesEndpoint = (CallableEndpoint) context.getEndpoint("tel:18005551212");
+     media.prompt("Press 1 for sales or 2 for support", "1,2", 0);
+   }
+
+   @State("main menu")
+   public void mainMenu(final InputCompleteEvent event) {
+       switch (event.getCause()) {
+       case MATCH:
+           final Call call = (call) event.getSource();
+           if (event.getConcept().equals("1")) {
+               call.setApplicationState("sales");
+               media.prompt("Who would you like to speak with?", SALES_GUYS, 0);
+           }
+           else {
+               call.setApplicationState("support");
+               final Call outgoingCall = salesEndpoint.call(null, null, this);
+               call.join(
+                  outgoingCall, 
+                  JoinType.DIRECT, 
+                  Joinable.Direction.DUPLEX
+               );
+           }
+           break;
+       }
+   }
+</pre>
+
+p. The repository also includes a series of Moho code samples.
 
 h2. How to Install
 
