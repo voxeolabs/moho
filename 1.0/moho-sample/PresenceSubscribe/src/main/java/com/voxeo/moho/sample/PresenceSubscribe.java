@@ -64,6 +64,7 @@ public class PresenceSubscribe implements Application {
   public void handleNotify(final NotifyEvent notify) {
     if (notify.getEventType() == Subscription.Type.PRESENCE && notify.getResourceState().equalsIgnoreCase("open")) {
       final Subscription s = (Subscription) notify.source;
+      notify.accept();
       final Call call = (Call) s.getAttribute("call");
       final Endpoint address = s.getAddress();
       call.join((CallableEndpoint) address, JoinType.DIRECT, Joinable.Direction.DUPLEX);

@@ -745,7 +745,7 @@ public class GenericMediaServiceTest extends TestCase {
           will(returnValue(SignalDetectorEvent.RECEIVE_SIGNALS_COMPLETED));
 
           allowing(mediaEvent0).getQualifier();
-          will(returnValue(SignalDetectorEvent.PATTERN_MATCHING[1]));
+          will(returnValue(SignalDetectorEvent.PATTERN_MATCHING[0]));
 
           allowing(mediaEvent0).getSignalString();
           will(returnValue("123"));

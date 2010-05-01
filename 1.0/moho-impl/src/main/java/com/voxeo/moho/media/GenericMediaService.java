@@ -452,6 +452,7 @@ public class GenericMediaService implements MediaService {
         }
         InputCompleteEvent.Cause cause = InputCompleteEvent.Cause.UNKNOWN;
         final Qualifier q = e.getQualifier();
+        final String signal = e.getSignalString();
         if (q == SignalDetectorEvent.DURATION_EXCEEDED) {
           cause = InputCompleteEvent.Cause.MAX_TIMEOUT;
         }
@@ -467,8 +468,7 @@ public class GenericMediaService implements MediaService {
         else if (q == ResourceEvent.STOPPED) {
           cause = InputCompleteEvent.Cause.CANCEL;
         }
-        final String signal = e.getSignalString();
-        if (signal != null) {
+        else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED || patternMatched(e)) {
           cause = InputCompleteEvent.Cause.MATCH;
         }
         final InputCompleteEvent inputCompleteEvent = new InputCompleteEvent(_parent, cause);
@@ -485,6 +485,15 @@ public class GenericMediaService implements MediaService {
         }
       }
     }
+  }
+
+  private boolean patternMatched(SignalDetectorEvent event) {
+    for (Qualifier q : SignalDetectorEvent.PATTERN_MATCHING) {
+      if (event.getQualifier() == q)
+        return true;
+    }
+
+    return false;
   }
 
   protected class RecorderListener implements MediaEventListener<RecorderEvent> {
