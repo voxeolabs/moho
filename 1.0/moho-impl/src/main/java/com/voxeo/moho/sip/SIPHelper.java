@@ -85,6 +85,10 @@ public class SIPHelper {
         || res.getStatus() == SipServletResponse.SC_BUSY_EVERYWHERE;
   }
 
+  public static boolean isTimeout(final SipServletResponse res) {
+    return res.getStatus() == SipServletResponse.SC_REQUEST_TIMEOUT;
+  }
+
   public static boolean isRedirect(final SipServletResponse res) {
     return res.getStatus() >= 300 && res.getStatus() <= 399;
   }

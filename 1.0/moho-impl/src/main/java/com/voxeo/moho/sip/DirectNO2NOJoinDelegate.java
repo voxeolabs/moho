@@ -25,6 +25,7 @@ import javax.servlet.sip.SipServletResponse;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.RedirectException;
 import com.voxeo.moho.RejectException;
+import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.sip.SIPCall.State;
 
@@ -69,6 +70,9 @@ public class DirectNO2NOJoinDelegate extends JoinDelegate {
           }
           else if (SIPHelper.isRedirect(res)) {
             e = new RedirectException(res.getHeader("Contact"));
+          }
+          else if (SIPHelper.isTimeout(res)) {
+            e = new TimeoutException();
           }
           else {
             e = new RejectException();

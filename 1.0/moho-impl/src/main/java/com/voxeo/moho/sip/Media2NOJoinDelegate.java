@@ -23,6 +23,7 @@ import com.voxeo.moho.BusyException;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.RedirectException;
 import com.voxeo.moho.RejectException;
+import com.voxeo.moho.TimeoutException;
 
 public class Media2NOJoinDelegate extends JoinDelegate {
 
@@ -78,6 +79,9 @@ public class Media2NOJoinDelegate extends JoinDelegate {
         }
         else if (SIPHelper.isRedirect(res)) {
           e = new RedirectException(res.getHeader("Contact"));
+        }
+        else if (SIPHelper.isTimeout(res)) {
+          e = new TimeoutException();
         }
         else {
           e = new RejectException();
