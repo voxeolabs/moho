@@ -14,13 +14,15 @@
 
 package com.voxeo.moho.media.output;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLEncoder;
+
+import org.apache.log4j.Logger;
 
 public class AudioURLResource extends AudibleResource {
+
+  private static final Logger LOG = Logger.getLogger(AudioURLResource.class);
 
   protected URL _url;
 
@@ -67,14 +69,11 @@ public class AudioURLResource extends AudibleResource {
       _uri = _url.toURI();
     }
     catch (final URISyntaxException e) {
-      try {
-        _uri = URI.create("data:"
-            + URLEncoder.encode("application/ssml+xml," + "<?xml version=\"1.0\"?>" + "<speak>" + "<voice>"
-                + getAlternative() + "</voice>" + "</speak>", "UTF-8"));
+      LOG.error("Exception when convert url to URI", e);
+      if (getAlternative() != null) {
+        _uri = getAlternative().toURI();
       }
-      catch (final UnsupportedEncodingException e1) {
-        // ignore -- shounldn't happen
-      }
+
     }
   }
 }

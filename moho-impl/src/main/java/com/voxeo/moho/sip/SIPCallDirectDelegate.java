@@ -78,6 +78,9 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
         }
       }
       catch (IOException e) {
+        LOG.error("IOException when sending back ACK.", e);
+        call.setHoldState(HoldState.None);
+        call.setDeafState(HoldState.None);
         call.fail();
       }
       finally {
@@ -89,15 +92,10 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
       // send ACK.
       try {
         res.createAck().send();
-      }
-      catch (IOException e1) {
-        call.fail();
-      }
 
-      // send the received SDP to peer.
-      final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
-      synchronized (peer) {
-        try {
+        // send the received SDP to peer.
+        final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
+        synchronized (peer) {
           if (call.getMuteState() == HoldState.Muting) {
             peer.setDeafState(HoldState.Deafing);
           }
@@ -110,11 +108,13 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
           reInvite.setContent(res.getRawContent(), "application/sdp");
           reInvite.send();
 
-          try {
-            peer.wait();
-          }
-          catch (InterruptedException e) {
-            // ignore ??
+          while (peer.getDeafState() != HoldState.Deafed && peer.getDeafState() != HoldState.None) {
+            try {
+              peer.wait();
+            }
+            catch (InterruptedException e) {
+              LOG.warn("InterruptedException when wait make peer deaf, the peer's DeafState " + peer.getDeafState());
+            }
           }
 
           // set call deaf state
@@ -127,12 +127,14 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
             call.setMuteState(HoldState.None);
           }
         }
-        catch (IOException e) {
-          // ignore
-        }
-        finally {
-          call.notify();
-        }
+      }
+      catch (IOException e1) {
+        LOG.error("IOException", e1);
+        call.setMuteState(HoldState.None);
+        call.fail();
+      }
+      finally {
+        call.notify();
       }
     }
     else {

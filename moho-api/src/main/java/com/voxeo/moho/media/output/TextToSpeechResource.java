@@ -19,7 +19,11 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Locale;
 
+import org.apache.log4j.Logger;
+
 public class TextToSpeechResource extends AudibleResource {
+
+  private static final Logger LOG = Logger.getLogger(TextToSpeechResource.class);
 
   protected String _text;
 
@@ -48,7 +52,7 @@ public class TextToSpeechResource extends AudibleResource {
               + "</voice>" + "</speak>", "UTF-8"));
     }
     catch (final UnsupportedEncodingException e) {
-      // ignore
+      LOG.error("Exception when create URI from text", e);
     }
   }
 

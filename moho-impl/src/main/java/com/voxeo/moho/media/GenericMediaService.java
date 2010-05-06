@@ -42,6 +42,8 @@ import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.resource.RTC;
 import javax.media.mscontrol.resource.ResourceEvent;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.event.EventSource;
@@ -66,6 +68,8 @@ import com.voxeo.moho.media.record.RecordCommand;
 
 public class GenericMediaService implements MediaService {
 
+  private static final Logger LOG = Logger.getLogger(GenericMediaService.class);
+
   protected EventSource _parent;
 
   protected MediaSession _session;
@@ -89,21 +93,25 @@ public class GenericMediaService implements MediaService {
       _generator = _group.getSignalGenerator();
     }
     catch (final MsControlException e) {
+      LOG.warn("", e);
     }
     try {
       _recorder = _group.getRecorder();
     }
     catch (final MsControlException e) {
+      LOG.warn("", e);
     }
     try {
       _detector = _group.getSignalDetector();
     }
     catch (final MsControlException e) {
+      LOG.warn("", e);
     }
     try {
       _player = _group.getPlayer();
     }
-    catch (final MsControlException e3) {
+    catch (final MsControlException e) {
+      LOG.warn("", e);
     }
   }
 

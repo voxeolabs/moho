@@ -29,10 +29,14 @@ import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.spi.Driver;
 import javax.media.mscontrol.spi.DriverManager;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
 
 public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer {
+
+  private static final Logger LOG = Logger.getLogger(MixerImpl.class);
 
   protected MixerEndpoint _address;
 
@@ -117,13 +121,13 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       _mixer.release();
     }
     catch (final Exception e) {
-      ;
+      LOG.warn("Exception when release mixer", e);
     }
     try {
       _media.release();
     }
     catch (final Exception e) {
-      ;
+      LOG.warn("Exception when release mediaSession", e);
     }
     _media = null;
   }
@@ -204,7 +208,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         _mixer.unjoin((Joinable) p.getMediaObject());
       }
       catch (final Exception e) {
-        ;
+        LOG.warn("", e);
       }
     }
     p.unjoin(this);

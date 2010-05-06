@@ -214,7 +214,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
               ((SignalEvent) event).accept();
             }
             catch (final SignalException e) {
-              ;
+              LOG.warn("", e);
             }
           }
         }
@@ -336,7 +336,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
         _network.unjoin((Joinable) p.getMediaObject());
       }
       catch (final Exception e) {
-        ;
+        LOG.warn("", e);
       }
     }
     p.unjoin(this);
@@ -450,7 +450,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
       req.createResponse(SipServletResponse.SC_OK).send();
     }
     catch (final Exception e) {
-      ;
+      LOG.warn("", e);
     }
     if (isTerminated()) {
       LOG.debug(this + " is already terminated.");
@@ -600,16 +600,16 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           _invite.createResponse(SipServletResponse.SC_DECLINE).send();
         }
       }
-      catch (final Throwable t) {
-        // ignore
+      catch (final IOException t) {
+        LOG.warn("IOException when disconnecting call", t);
       }
     }
     else if (isAnswered(old)) {
       try {
         _signal.createRequest("BYE").send();
       }
-      catch (final Throwable t) {
-        // ignore
+      catch (final IOException t) {
+        LOG.warn("IOException when disconnecting call", t);
       }
     }
   }
@@ -623,7 +623,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           peer.disconnect();
         }
         catch (final Throwable t) {
-          ;
+          LOG.warn("", t);
         }
       }
       _peers.clear();
@@ -740,7 +740,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
         _network.release();
       }
       catch (final Throwable t) {
-        // ignore
+        LOG.warn("Exception when releasing networkconnection", t);
       }
       _network = null;
     }
@@ -749,7 +749,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
         _media.release();
       }
       catch (final Throwable t) {
-        // ignore
+        LOG.warn("Exception when releasing media object", t);
       }
       _media = null;
     }
@@ -769,12 +769,13 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
       }
     }
     catch (final Throwable t) {
+      LOG.error(t);
       if (msg instanceof SipServletRequest) {
         try {
           ((SipServletRequest) msg).createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR).send();
         }
         catch (final IOException e1) {
-          // ignore
+          LOG.warn("Exception when sending error response ", e1);
         }
       }
       throw new MediaException(t);
@@ -1048,12 +1049,15 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
       setHoldState(HoldState.Holding);
       _callDelegate.hold(this);
 
-      try {
-        this.wait();
+      while (getHoldState() != HoldState.Held && getHoldState() != HoldState.None) {
+        try {
+          this.wait();
+        }
+        catch (final InterruptedException e) {
+          LOG.warn("InterruptedException when wait hold, the HoldState " + getHoldState());
+        }
       }
-      catch (final InterruptedException e) {
-        // ignore??
-      }
+
     }
     catch (final MsControlException e) {
       setHoldState(HoldState.None);
@@ -1095,12 +1099,15 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
       setMuteState(HoldState.Muting);
       _callDelegate.mute(this);
 
-      try {
-        this.wait();
+      while (getMuteState() != HoldState.Muted && getMuteState() != HoldState.None) {
+        try {
+          this.wait();
+        }
+        catch (final InterruptedException e) {
+          LOG.warn("InterruptedException when wait mute, the MuteState " + getMuteState());
+        }
       }
-      catch (final InterruptedException e) {
-        // ignore??
-      }
+
     }
     catch (final IOException e) {
       setMuteState(HoldState.None);
@@ -1133,12 +1140,15 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
 
       _callDelegate.unhold(this);
 
-      try {
-        this.wait();
+      while (getHoldState() != HoldState.None) {
+        try {
+          this.wait();
+        }
+        catch (final InterruptedException e) {
+          LOG.warn("InterruptedException when wait unhold, the HoldState " + getHoldState());
+        }
       }
-      catch (final InterruptedException e) {
-        // ignore??
-      }
+
     }
     catch (final MsControlException e) {
       setHoldState(oldHoldState);
@@ -1175,11 +1185,13 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
 
       _callDelegate.unmute(this);
 
-      try {
-        this.wait();
-      }
-      catch (final InterruptedException e) {
-        // ignore??
+      while (getMuteState() != HoldState.None) {
+        try {
+          this.wait();
+        }
+        catch (final InterruptedException e) {
+          LOG.warn("InterruptedException when wait unmute, the MuteState " + getMuteState());
+        }
       }
     }
     catch (final IOException e) {

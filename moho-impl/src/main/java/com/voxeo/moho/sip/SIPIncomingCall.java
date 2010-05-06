@@ -111,13 +111,14 @@ public class SIPIncomingCall extends SIPCallImpl {
           res.sendReliably();
         }
         catch (final Rel100Exception e) {
+          LOG.warn("", e);
           res.send();
         }
         setSIPCallState(State.PROGRESSED);
         this.notifyAll();
       }
       catch (final IOException e) {
-        ;
+        LOG.warn("", e);
       }
     }
     super.onEvent(event);

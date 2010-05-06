@@ -25,11 +25,15 @@ import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.ApplicationEventSource;
 
 public class SIPRegisterEventImpl extends SIPRegisterEvent {
+
+  private static final Logger LOG = Logger.getLogger(SIPRegisterEventImpl.class);
 
   public SIPRegisterEventImpl(final ApplicationEventSource source, final SipServletRequest req) {
     super(source, req);
@@ -48,7 +52,7 @@ public class SIPRegisterEventImpl extends SIPRegisterEvent {
       headers = _req.getAddressHeaders("Contact");
     }
     catch (ServletParseException e) {
-      e.printStackTrace();
+      LOG.error("", e);
     }
     while (headers.hasNext()) {
       retval.add(_ctx.getEndpoint(headers.next().getURI().toString()));

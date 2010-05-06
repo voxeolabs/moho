@@ -24,11 +24,15 @@ import javax.sdp.SdpException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPCallImpl.HoldState;
 
 public class SIPCallMediaDelegate extends SIPCallDelegate {
+
+  private static final Logger LOG = Logger.getLogger(SIPCallMediaDelegate.class);
 
   protected SipServletRequest _req;
 
@@ -48,6 +52,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
       call.notifyAll();
     }
     catch (final Exception e) {
+      LOG.error("Exception", e);
       call.fail();
     }
   }
@@ -80,12 +85,13 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
         || res.getRequest().getAttribute(SIPCallDelegate.SIPCALL_UNHOLD_REQUEST) != null) {
       try {
         _res.createAck().send();
+        call.holdResp();
       }
       catch (IOException e) {
+        LOG.error("IOException when sending ACK", e);
+        call.setHoldState(HoldState.None);
+        call.notify();
         call.fail();
-      }
-      finally {
-        call.holdResp();
       }
     }
     else {
@@ -108,6 +114,8 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
           }
         }
         catch (IOException e) {
+          LOG.error("IOException when sending ACK", e);
+          call.setHoldState(HoldState.None);
           call.fail();
         }
         finally {
@@ -127,6 +135,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
             res.send();
           }
           catch (final Exception e) {
+            LOG.error("", e);
             call.fail();
           }
         }

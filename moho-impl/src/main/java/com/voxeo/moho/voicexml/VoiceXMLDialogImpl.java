@@ -33,6 +33,8 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.vxml.VxmlDialog;
 import javax.media.mscontrol.vxml.VxmlDialogEvent;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.ExecutionContext;
@@ -47,6 +49,8 @@ import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
 
 public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer {
+
+  private static final Logger LOG = Logger.getLogger(VoiceXMLDialogImpl.class);
 
   protected enum DialogState {
     IDLE, PREPARING, PREPARED, STARTED
@@ -136,19 +140,19 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
       _dialog.terminate(true);
     }
     catch (final Exception e) {
-      ;
+      LOG.warn("Exception when terminate VxmlDialog", e);
     }
     try {
       _dialog.release();
     }
     catch (final Exception e) {
-      ;
+      LOG.warn("Exception when release VxmlDialog", e);
     }
     try {
       _media.release();
     }
     catch (final Exception e) {
-      ;
+      LOG.warn("Exception when release MediaSession", e);
     }
     _media = null;
   }
@@ -227,7 +231,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
           _dialog.unjoin((Joinable) p.getMediaObject());
         }
         catch (final Exception e) {
-          ;
+          LOG.warn("", e);
         }
       }
     }
@@ -254,7 +258,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
           _lock.wait();
         }
         catch (final InterruptedException e) {
-          ;
+          // ignore
         }
       }
       if (_state == DialogState.IDLE) {
@@ -289,7 +293,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
           _lock.wait();
         }
         catch (final InterruptedException e) {
-          ;
+          // ignore
         }
       }
     }

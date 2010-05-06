@@ -25,6 +25,8 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipURI;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
@@ -36,6 +38,8 @@ import com.voxeo.moho.util.SessionUtils;
 import com.voxeo.utils.EventListener;
 
 public class SIPReferEventImpl extends SIPReferEvent {
+
+  private static final Logger LOG = Logger.getLogger(SIPReferEventImpl.class);
 
   protected SIPReferEventImpl(final EventSource source, final SipServletRequest req) {
     super(source, req);
@@ -152,19 +156,20 @@ public class SIPReferEventImpl extends SIPReferEvent {
     // add Referred-By header and Replaces header.
     final Map<String, String> reqHeaders = new HashMap<String, String>();
     reqHeaders.put("Referred-By", ((SIPEndpoint) getReferredBy()).getSipAddress().toString());
-    String replaces = null;
-    try {
-      final SipURI sipURI = (SipURI) _req.getAddressHeader("Refer-To").getURI();
-      replaces = sipURI.getHeader("replaces");
-      if (replaces != null) {
-        // TODO if there is replaces header in the sip uri, means it's a
-        // attended transfer. can't process this case now. just process it as
-        // there is no replaces header. i.e. as unattended transfer.
-      }
-    }
-    catch (final ServletParseException e) {
-      // ignore
-    }
+    // String replaces = null;
+    // try {
+    // final SipURI sipURI = (SipURI)
+    // _req.getAddressHeader("Refer-To").getURI();
+    // replaces = sipURI.getHeader("replaces");
+    // if (replaces != null) {
+    // // TODO if there is replaces header in the sip uri, means it's a
+    // // attended transfer. can't process this case now. just process it as
+    // // there is no replaces header. i.e. as unattended transfer.
+    // }
+    // }
+    // catch (final ServletParseException e) {
+    // // ignore
+    // }
     if (headers != null) {
       reqHeaders.putAll(headers);
     }
@@ -194,8 +199,8 @@ public class SIPReferEventImpl extends SIPReferEvent {
       notify.setContent(content, "message/sipfrag");
       notify.send();
     }
-    catch (final Throwable t) {
-      // ignore
+    catch (final IOException t) {
+      LOG.error("IOException when sending notify message.", t);
     }
   }
 }

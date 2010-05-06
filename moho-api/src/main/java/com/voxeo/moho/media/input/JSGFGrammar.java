@@ -18,7 +18,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 
+import org.apache.log4j.Logger;
+
 public class JSGFGrammar extends Grammar {
+
+  private static final Logger LOG = Logger.getLogger(JSGFGrammar.class);
 
   public JSGFGrammar(final String text) {
     super(text);
@@ -31,6 +35,7 @@ public class JSGFGrammar extends Grammar {
       return URI.create("data:" + URLEncoder.encode("application/x-jsgf," + toText(), "UTF-8"));
     }
     catch (final UnsupportedEncodingException e) {
+      LOG.warn("", e);
       return URI.create("data:" + URLEncoder.encode("application/x-jsgf," + toText()));
     }
   }

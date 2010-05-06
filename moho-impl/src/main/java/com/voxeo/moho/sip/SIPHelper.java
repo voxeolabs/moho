@@ -28,7 +28,11 @@ import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 import javax.servlet.sip.UAMode;
 
+import org.apache.log4j.Logger;
+
 public class SIPHelper {
+
+  private static final Logger LOG = Logger.getLogger(SIPHelper.class);
 
   private static final String LINKED_MESSAGE = "linked.message";
 
@@ -52,6 +56,7 @@ public class SIPHelper {
       return msg.getRawContent();
     }
     catch (final IOException e) {
+      LOG.warn("", e);
       return null;
     }
   }
@@ -183,7 +188,7 @@ public class SIPHelper {
       }
     }
     catch (final IOException e) {
-      // ignore
+      LOG.warn("IOException when sending error response ", e);
     }
   }
 
