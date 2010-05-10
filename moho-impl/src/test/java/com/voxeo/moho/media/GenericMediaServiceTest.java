@@ -219,7 +219,7 @@ public class GenericMediaServiceTest extends TestCase {
                 }
               });
               th.start();
-              // th.join();
+              th.join();
               return null;
             }
           });
@@ -689,7 +689,7 @@ public class GenericMediaServiceTest extends TestCase {
                 }
               });
               th.start();
-              // th.join();
+              th.join();
               return null;
             }
           });
@@ -782,7 +782,7 @@ public class GenericMediaServiceTest extends TestCase {
                 }
               });
               th.start();
-              // th.join();
+              th.join();
               return null;
             }
 
