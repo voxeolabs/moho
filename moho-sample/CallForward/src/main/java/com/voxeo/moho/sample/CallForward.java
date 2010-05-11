@@ -18,8 +18,10 @@ import javax.media.mscontrol.join.Joinable;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
+import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.State;
+import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.sip.SIPEndpoint;
@@ -28,7 +30,9 @@ public class CallForward implements Application {
 
   ApplicationContext _ctx;
 
-  SIPEndpoint _target;
+  SIPEndpoint _busyTarget;
+
+  SIPEndpoint _timeoutTarget;
 
   @Override
   public void destroy() {
@@ -38,7 +42,8 @@ public class CallForward implements Application {
   @Override
   public void init(final ApplicationContext ctx) {
     _ctx = ctx;
-    _target = (SIPEndpoint) _ctx.getEndpoint(ctx.getParameter("target"));
+    _busyTarget = (SIPEndpoint) _ctx.getEndpoint(ctx.getParameter("target1"));
+    _timeoutTarget = (SIPEndpoint) _ctx.getEndpoint(ctx.getParameter("target2"));
   }
 
   @State
@@ -48,7 +53,15 @@ public class CallForward implements Application {
       call.join(e.getInvitee(), JoinType.DIRECT, Joinable.Direction.DUPLEX).get();
     }
     catch (final Exception ex) {
-      call.join(_target, JoinType.DIRECT, Joinable.Direction.DUPLEX);
+      if (ex.getCause() instanceof BusyException) {
+        call.join(_busyTarget, JoinType.DIRECT, Joinable.Direction.DUPLEX);
+      }
+      else if (ex.getCause() instanceof TimeoutException) {
+        call.join(_timeoutTarget, JoinType.DIRECT, Joinable.Direction.DUPLEX);
+      }
+      else {
+        ex.printStackTrace();
+      }
     }
   }
 }
