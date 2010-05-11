@@ -16,6 +16,8 @@ package com.voxeo.moho.media.input;
 
 import java.net.URL;
 
+import javax.media.mscontrol.Parameters;
+import javax.media.mscontrol.resource.RTC;
 import javax.media.mscontrol.resource.Resource;
 
 public class InputCommand {
@@ -44,6 +46,10 @@ public class InputCommand {
 
   protected boolean _buffering = true;
 
+  protected Parameters _parameters;
+
+  protected RTC[] _rtcs;
+
   /**
    * if true, every DTMF (or word?) received generate a
    */
@@ -68,7 +74,7 @@ public class InputCommand {
   }
 
   public void setBuffering(final boolean buffering) {
-    this._buffering = buffering;
+    _buffering = buffering;
   }
 
   public int getSignalNumber() {
@@ -137,5 +143,21 @@ public class InputCommand {
 
   public boolean isSupervised() {
     return _supervised;
+  }
+
+  public Parameters getParameters() {
+    return _parameters;
+  }
+
+  public void setParameters(Parameters parameters) {
+    _parameters = parameters;
+  }
+
+  public RTC[] getRtcs() {
+    return _rtcs;
+  }
+
+  public void setRtcs(RTC[] rtcs) {
+    _rtcs = rtcs;
   }
 }
