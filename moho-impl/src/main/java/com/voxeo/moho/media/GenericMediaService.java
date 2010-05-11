@@ -164,6 +164,17 @@ public class GenericMediaService implements MediaService {
     if (output != null) {
       final Parameters params = _group.createParameters();
       final List<RTC> rtcs = new ArrayList<RTC>();
+
+      if (output.getParameters() != null) {
+        params.putAll(output.getParameters());
+      }
+
+      if (output.getRtcs() != null) {
+        for (RTC rtc : output.getRtcs()) {
+          rtcs.add(rtc);
+        }
+      }
+
       switch (output.getBehavior()) {
         case QUEUE:
           params.put(Player.BEHAVIOUR_IF_BUSY, Player.QUEUE_IF_BUSY);
@@ -308,13 +319,25 @@ public class GenericMediaService implements MediaService {
   protected Input detectSignal(final InputCommand cmd) throws MediaException {
     if (cmd.isRecord()) {
       try {
-        _recorder.record(cmd.getRecordURL().toURI(), RTC.NO_RTC, Parameters.NO_PARAMETER);
+        _recorder.record(cmd.getRecordURL().toURI(), cmd.getRtcs() != null ? cmd.getRtcs() : RTC.NO_RTC, cmd
+            .getParameters() != null ? cmd.getParameters() : Parameters.NO_PARAMETER);
       }
       catch (final Exception e) {
         throw new MediaException(e);
       }
     }
     final Parameters params = _group.createParameters();
+    if (cmd.getParameters() != null) {
+      params.putAll(cmd.getParameters());
+    }
+
+    final List<RTC> rtcs = new ArrayList<RTC>();
+    if (cmd.getRtcs() != null) {
+      for (RTC rtc : cmd.getRtcs()) {
+        rtcs.add(rtc);
+      }
+    }
+
     params.put(SignalDetector.BUFFERING, cmd.isBuffering());
     params.put(SignalDetector.MAX_DURATION, cmd.getMaxTimeout());
     params.put(SignalDetector.INITIAL_TIMEOUT, cmd.getInitialTimeout());
@@ -367,7 +390,7 @@ public class GenericMediaService implements MediaService {
     final InputImpl in = new InputImpl(_group);
     _detector.addListener(new DetectorListener(in, cmd));
     try {
-      _detector.receiveSignals(cmd.getSignalNumber(), patternKeys, RTC.NO_RTC, params);
+      _detector.receiveSignals(cmd.getSignalNumber(), patternKeys, rtcs.toArray(new RTC[] {}), params);
     }
     catch (final MsControlException e) {
       throw new MediaException(e);

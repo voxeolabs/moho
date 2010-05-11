@@ -763,8 +763,19 @@ public class GenericMediaServiceTest extends TestCase {
           allowing(group).createParameters();
           will(returnValue(new MockParameters()));
 
-          oneOf(signalDetector).receiveSignals(with(equal(-1)), with(any(Parameter[].class)), with(equal(RTC.NO_RTC)),
-              with(any(Parameters.class)));
+          oneOf(signalDetector).receiveSignals(with(equal(-1)), with(any(Parameter[].class)),
+              with(new TypeSafeMatcher<RTC[]>() {
+                @Override
+                public boolean matchesSafely(final RTC[] item) {
+                  signalDetector.setRtcs(item);
+                  return true;
+                }
+
+                @Override
+                public void describeTo(final Description description) {
+                }
+
+              }), with(any(Parameters.class)));
           will(new Action() {
             @Override
             public void describeTo(final Description description) {

@@ -34,6 +34,12 @@ public class MockSignalDetector implements SignalDetector {
 
   public MockMediaSession session;
 
+  private RTC[] rtcs;
+
+  final public void setRtcs(RTC[] rtcs) {
+    this.rtcs = rtcs;
+  }
+
   @Override
   public void flushBuffer() throws MsControlException {
 

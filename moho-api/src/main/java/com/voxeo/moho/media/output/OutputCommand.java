@@ -14,9 +14,11 @@
 
 package com.voxeo.moho.media.output;
 
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.Value;
 import javax.media.mscontrol.mediagroup.CodecConstants;
 import javax.media.mscontrol.mediagroup.FileFormatConstants;
+import javax.media.mscontrol.resource.RTC;
 import javax.media.mscontrol.resource.Resource;
 
 public class OutputCommand {
@@ -81,6 +83,10 @@ public class OutputCommand {
    */
   protected boolean _startInPausedMode = false;
 
+  protected Parameters _parameters;
+
+  protected RTC[] _rtcs;
+
   public OutputCommand(final AudibleResource resource) {
     _resources = new AudibleResource[] {resource};
   }
@@ -110,7 +116,7 @@ public class OutputCommand {
   }
 
   public void setBargein(final boolean bargein) {
-    this._bargein = bargein;
+    _bargein = bargein;
   }
 
   public int getTimeout() {
@@ -118,7 +124,7 @@ public class OutputCommand {
   }
 
   public void setTimeout(final int timeout) {
-    this._timeout = timeout;
+    _timeout = timeout;
   }
 
   public int getOffset() {
@@ -126,7 +132,7 @@ public class OutputCommand {
   }
 
   public void setOffset(final int offset) {
-    this._offset = offset;
+    _offset = offset;
   }
 
   public int getVolumeUnit() {
@@ -142,7 +148,7 @@ public class OutputCommand {
   }
 
   public void setCodec(final Value codec) {
-    this._codec = codec;
+    _codec = codec;
   }
 
   public Value getFormat() {
@@ -166,7 +172,7 @@ public class OutputCommand {
   }
 
   public void setJumpPlaylistIncrement(int jumpPlaylistIncrement) {
-    this._jumpPlaylistIncrement = jumpPlaylistIncrement;
+    _jumpPlaylistIncrement = jumpPlaylistIncrement;
   }
 
   public int getJumpTime() {
@@ -174,7 +180,7 @@ public class OutputCommand {
   }
 
   public void setJumpTime(int jumpTime) {
-    this._jumpTime = jumpTime;
+    _jumpTime = jumpTime;
   }
 
   public boolean isStartInPausedMode() {
@@ -182,6 +188,22 @@ public class OutputCommand {
   }
 
   public void setStartInPausedMode(boolean startInPausedMode) {
-    this._startInPausedMode = startInPausedMode;
+    _startInPausedMode = startInPausedMode;
+  }
+
+  public Parameters getParameters() {
+    return _parameters;
+  }
+
+  public void setParameters(Parameters parameters) {
+    _parameters = parameters;
+  }
+
+  public RTC[] getRtcs() {
+    return _rtcs;
+  }
+
+  public void setRtcs(RTC[] rtcs) {
+    _rtcs = rtcs;
   }
 }
