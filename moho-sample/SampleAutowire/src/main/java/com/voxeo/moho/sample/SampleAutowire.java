@@ -14,8 +14,6 @@
 
 package com.voxeo.moho.sample;
 
-import javax.annotation.Resource;
-
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
@@ -38,7 +36,6 @@ public class SampleAutowire implements Application {
   public void destroy() {
   }
 
-  @Resource
   private GameServer game;
 
   @State
@@ -107,7 +104,7 @@ public class SampleAutowire implements Application {
     @Override
     public void move(final Direction direction) {
       _media.output("You will move to " + direction);
-      
+
       _media.input(new DigitInputCommand());
     }
 

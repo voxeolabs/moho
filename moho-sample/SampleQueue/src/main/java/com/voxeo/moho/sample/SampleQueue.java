@@ -16,8 +16,6 @@ package com.voxeo.moho.sample;
 
 import java.util.concurrent.BlockingQueue;
 
-import javax.annotation.Resource;
-
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
@@ -40,7 +38,6 @@ public class SampleQueue implements Application {
   public void destroy() {
   }
 
-  @Resource
   private GameServer game;
 
   @State
