@@ -61,7 +61,7 @@ public class MidCallRecord implements Application {
       case MATCH:
         URL media = null;
         try {
-          media = new URL(_mediaLocation + System.getProperty("file.separator") + "_" + new Date().getTime()
+          media = new URL(_mediaLocation + System.getProperty("file.separator") + new Date().getTime()
               + "_recording.au");
 
           Recording recording = ((Call) evt.getSource()).getMediaService().record(media);
