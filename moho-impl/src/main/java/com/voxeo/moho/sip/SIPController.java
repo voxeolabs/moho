@@ -75,7 +75,13 @@ public class SIPController extends SipServlet {
       _sdpFactory = (SdpFactory) getServletContext().getAttribute("javax.servlet.sdp.SdpFactory");
 
       if (_sdpFactory == null) {
-        _sdpFactory = SdpFactory.getInstance();
+        try {
+          _sdpFactory = SdpFactory.getInstance();
+        }
+        catch (Throwable t) {
+          log.warn("Unable to get SdpFactory, some function, such as call hold unhold mute unmute, is unavailable:");
+        }
+
       }
 
       final Properties p = new Properties();
