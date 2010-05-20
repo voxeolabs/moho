@@ -14,10 +14,7 @@
 
 package com.voxeo.moho.sip;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlFactory;
@@ -28,6 +25,7 @@ import javax.media.mscontrol.networkconnection.SdpPortManager;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.sdp.SdpFactory;
 import javax.servlet.sip.Address;
+import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServletRequest;
 
@@ -45,23 +43,11 @@ import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.ExecutionContext;
-import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.DisconnectEvent;
 import com.voxeo.moho.event.EventState;
-import com.voxeo.moho.sip.JoinDelegate;
-import com.voxeo.moho.sip.SIPCall;
-import com.voxeo.moho.sip.SIPCallDelegate;
-import com.voxeo.moho.sip.SIPCallImpl;
-import com.voxeo.moho.sip.SIPDisconnectEventImpl;
-import com.voxeo.moho.sip.SIPIncomingCall;
-import com.voxeo.moho.sip.SIPInviteEvent;
-import com.voxeo.moho.sip.SIPNotifyEventImpl;
-import com.voxeo.moho.sip.SIPOutgoingCall;
-import com.voxeo.moho.sip.SIPReInviteEventImpl;
-import com.voxeo.moho.sip.SIPSuccessEventImpl;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
@@ -87,6 +73,8 @@ public class SIPIncomingCallTest extends TestCase {
   SipFactory sipFactory = mockery.mock(SipFactory.class);
 
   SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
+
+  SipApplicationSession appSession = mockery.mock(SipApplicationSession.class);
 
   MockSipSession session = mockery.mock(MockSipSession.class);
 
@@ -125,6 +113,9 @@ public class SIPIncomingCallTest extends TestCase {
 
         allowing(session).getRemoteParty();
         will(returnValue(fromAddr));
+
+        allowing(session).getApplicationSession();
+        will(returnValue(appSession));
 
         allowing(network).getSdpPortManager();
         will(returnValue(sdpManager));
@@ -1278,7 +1269,7 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(outgoingCall).isTerminated();
           will(returnValue(false));
 
-          oneOf(outgoingCall).call(null);
+          oneOf(outgoingCall).call(null, appSession);
           will(new Action() {
             @Override
             public void describeTo(Description description) {
@@ -1661,7 +1652,7 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(outgoingCall).isTerminated();
           will(returnValue(false));
 
-          oneOf(outgoingCall).call(null);
+          oneOf(outgoingCall).call(null, appSession);
           will(new Action() {
             @Override
             public void describeTo(Description description) {

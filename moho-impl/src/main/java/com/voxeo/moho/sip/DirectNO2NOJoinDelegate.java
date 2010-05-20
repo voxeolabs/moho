@@ -61,7 +61,7 @@ public class DirectNO2NOJoinDelegate extends JoinDelegate {
       if (_call2.equals(call)) {
         if (SIPHelper.isSuccessResponse(res)) {
           _response = res;
-          _call1.call(res.getRawContent());
+          _call1.call(res.getRawContent(), _call2.getSipSession().getApplicationSession());
         }
         else if (SIPHelper.isErrorResponse(res)) {
           Exception e = null;

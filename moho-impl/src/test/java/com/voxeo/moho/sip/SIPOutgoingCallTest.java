@@ -20,7 +20,6 @@ import java.util.Map;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.MsControlFactory;
-import javax.media.mscontrol.join.JoinException;
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
@@ -44,17 +43,12 @@ import org.jmock.States;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Test;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.sip.JoinDelegate;
-import com.voxeo.moho.sip.SIPCall;
-import com.voxeo.moho.sip.SIPCallDelegate;
-import com.voxeo.moho.sip.SIPCallImpl;
-import com.voxeo.moho.sip.SIPEndpoint;
-import com.voxeo.moho.sip.SIPOutgoingCall;
 import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
@@ -82,6 +76,8 @@ public class SIPOutgoingCallTest extends TestCase {
   SipFactory sipFactory = mockery.mock(SipFactory.class);
 
   SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
+
+  SipApplicationSession appSession = mockery.mock(SipApplicationSession.class);
 
   MockSipSession session = mockery.mock(MockSipSession.class);
 
@@ -122,6 +118,9 @@ public class SIPOutgoingCallTest extends TestCase {
         allowing(session).getRemoteParty();
         will(returnValue(toAddr));
 
+        allowing(session).getApplicationSession();
+        will(returnValue(appSession));
+
         allowing(network).getSdpPortManager();
         will(returnValue(sdpManager));
       }
@@ -130,27 +129,10 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-
           allowing(from).getSipAddress();
           will(returnValue(fromAddr));
           allowing(to).getSipAddress();
           will(returnValue(toAddr));
-        }
-      });
-    }
-    catch (Exception ex) {
-      ex.printStackTrace();
-    }
-
-    final SipApplicationSession appSession = mockery.mock(SipApplicationSession.class);
-    // create outgoingcall expectations.
-    try {
-      mockery.checking(new Expectations() {
-        {
-          oneOf(sipFactory).createApplicationSession();
-          will(returnValue(appSession));
-          oneOf(sipFactory).createRequest(appSession, "INVITE", fromAddr, toAddr);
-          will(returnValue(initInviteReq));
         }
       });
     }
@@ -164,6 +146,7 @@ public class SIPOutgoingCallTest extends TestCase {
   /**
    * send req IOException
    */
+  @Test
   public void testJoinWithSIPIOException() {
     joinExceptionWithSIPExpectations("testJoin");
 
@@ -220,6 +203,23 @@ public class SIPOutgoingCallTest extends TestCase {
 
           oneOf(sdpManager).generateSdpOffer();
           will(new MockMediaServerSdpPortManagerEventAction(sipcall, sdpPortManagerEvent));
+
+          final SipApplicationSession createdAppSession = mockery
+              .mock(SipApplicationSession.class, "createdAppSession");
+          // create outgoingcall expectations.
+          try {
+            mockery.checking(new Expectations() {
+              {
+                oneOf(sipFactory).createApplicationSession();
+                will(returnValue(createdAppSession));
+                oneOf(sipFactory).createRequest(createdAppSession, "INVITE", fromAddr, toAddr);
+                will(returnValue(initInviteReq));
+              }
+            });
+          }
+          catch (Exception ex) {
+            ex.printStackTrace();
+          }
         }
       });
     }
@@ -339,6 +339,23 @@ public class SIPOutgoingCallTest extends TestCase {
 
           oneOf(sdpManager).generateSdpOffer();
           will(new MockMediaServerSdpPortManagerEventAction(sipcall, sdpPortManagerEvent));
+
+          final SipApplicationSession createdAppSession = mockery
+              .mock(SipApplicationSession.class, "createdAppSession");
+          // create outgoingcall expectations.
+          try {
+            mockery.checking(new Expectations() {
+              {
+                oneOf(sipFactory).createApplicationSession();
+                will(returnValue(createdAppSession));
+                oneOf(sipFactory).createRequest(createdAppSession, "INVITE", fromAddr, toAddr);
+                will(returnValue(initInviteReq));
+              }
+            });
+          }
+          catch (Exception ex) {
+            ex.printStackTrace();
+          }
         }
       });
     }
@@ -493,6 +510,23 @@ public class SIPOutgoingCallTest extends TestCase {
 
           oneOf(sdpManager).generateSdpOffer();
           will(new MockMediaServerSdpPortManagerEventAction(sipcall, sdpPortManagerEvent));
+
+          final SipApplicationSession createdAppSession = mockery
+              .mock(SipApplicationSession.class, "createdAppSession");
+          // create outgoingcall expectations.
+          try {
+            mockery.checking(new Expectations() {
+              {
+                oneOf(sipFactory).createApplicationSession();
+                will(returnValue(createdAppSession));
+                oneOf(sipFactory).createRequest(createdAppSession, "INVITE", fromAddr, toAddr);
+                will(returnValue(initInviteReq));
+              }
+            });
+          }
+          catch (Exception ex) {
+            ex.printStackTrace();
+          }
         }
       });
     }
@@ -620,6 +654,23 @@ public class SIPOutgoingCallTest extends TestCase {
 
           oneOf(sdpManager).generateSdpOffer();
           will(new MockMediaServerSdpPortManagerEventAction(sipcall, sdpPortManagerEvent));
+
+          final SipApplicationSession createdAppSession = mockery
+              .mock(SipApplicationSession.class, "createdAppSession");
+          // create outgoingcall expectations.
+          try {
+            mockery.checking(new Expectations() {
+              {
+                oneOf(sipFactory).createApplicationSession();
+                will(returnValue(createdAppSession));
+                oneOf(sipFactory).createRequest(createdAppSession, "INVITE", fromAddr, toAddr);
+                will(returnValue(initInviteReq));
+              }
+            });
+          }
+          catch (Exception ex) {
+            ex.printStackTrace();
+          }
         }
       });
     }
@@ -811,10 +862,10 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(initInviteReq).createCancel();
-          will(returnValue(cancelReq));
-
-          oneOf(cancelReq).send();
+          // oneOf(initInviteReq).createCancel();
+          // will(returnValue(cancelReq));
+          //
+          // oneOf(cancelReq).send();
         }
       });
     }
@@ -893,6 +944,23 @@ public class SIPOutgoingCallTest extends TestCase {
 
           oneOf(sdpManager).generateSdpOffer();
           will(new MockMediaServerSdpPortManagerEventAction(sipcall, sdpPortManagerEvent));
+
+          final SipApplicationSession createdAppSession = mockery
+              .mock(SipApplicationSession.class, "createdAppSession");
+          // create outgoingcall expectations.
+          try {
+            mockery.checking(new Expectations() {
+              {
+                oneOf(sipFactory).createApplicationSession();
+                will(returnValue(createdAppSession));
+                oneOf(sipFactory).createRequest(createdAppSession, "INVITE", fromAddr, toAddr);
+                will(returnValue(initInviteReq));
+              }
+            });
+          }
+          catch (Exception ex) {
+            ex.printStackTrace();
+          }
         }
       });
     }
@@ -1425,6 +1493,9 @@ public class SIPOutgoingCallTest extends TestCase {
     sipInviteAck.setMethod("ACK");
 
     // mock moho SIPOutgoingCall
+    final SipSession outgoingSession = mockery.mock(SipSession.class, "outgoingCallSession");
+    final SipApplicationSession outgoingAppSession = mockery.mock(SipApplicationSession.class,
+        "outgoingCallApplicationSession");
     final SIPOutgoingCall outgoingCall = mockery.mock(SIPOutgoingCall.class, mockObjectNamePrefix + "outgoingCall");
 
     final MockSipServletRequest outgoingCallInviteReq = mockery.mock(MockSipServletRequest.class, mockObjectNamePrefix
@@ -1476,6 +1547,24 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).getSipInitnalRequest();
           will(returnValue(outgoingCallInviteReq));
+
+          allowing(outgoingCall).getSipSession();
+          will(returnValue(outgoingSession));
+
+          allowing(outgoingSession).getApplicationSession();
+          will(returnValue(outgoingAppSession));
+
+          try {
+            mockery.checking(new Expectations() {
+              {
+                oneOf(sipFactory).createRequest(outgoingAppSession, "INVITE", fromAddr, toAddr);
+                will(returnValue(initInviteReq));
+              }
+            });
+          }
+          catch (Exception ex) {
+            ex.printStackTrace();
+          }
 
           oneOf(outgoingCall).call(null);
           will(new Action() {
@@ -1579,7 +1668,7 @@ public class SIPOutgoingCallTest extends TestCase {
    */
   public void testJoinOutgoingCallDirectWithSIPIOException() {
 
-    SIPOutgoingCall outgoingCall = joinOutgoingCallDirectExpectationsWithSIPIOException("testJoinOutgoingCallDirect");
+    SIPOutgoingCall outgoingCall = joinOutgoingCallDirectExpectationsWithSIPIOException("testJoinOutgoingCallDirectWithSIPIOException");
 
     // execute
     try {
@@ -1617,6 +1706,8 @@ public class SIPOutgoingCallTest extends TestCase {
     sipInviteAck.setMethod("ACK");
 
     // mock moho SIPOutgoingCall
+    final SipSession outgoingSession = mockery.mock(SipSession.class, "outgoingSipSession");
+    final SipApplicationSession outgoingAppSession = mockery.mock(SipApplicationSession.class, "outgoingAppSession");
     final SIPOutgoingCall outgoingCall = mockery.mock(SIPOutgoingCall.class, mockObjectNamePrefix + "outgoingCall");
 
     final MockSipServletRequest outgoingCallInviteReq = mockery.mock(MockSipServletRequest.class, mockObjectNamePrefix
@@ -1668,6 +1759,24 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).getSipInitnalRequest();
           will(returnValue(outgoingCallInviteReq));
+
+          allowing(outgoingCall).getSipSession();
+          will(returnValue(outgoingSession));
+
+          allowing(outgoingSession).getApplicationSession();
+          will(returnValue(outgoingAppSession));
+
+          try {
+            mockery.checking(new Expectations() {
+              {
+                oneOf(sipFactory).createRequest(outgoingAppSession, "INVITE", fromAddr, toAddr);
+                will(returnValue(initInviteReq));
+              }
+            });
+          }
+          catch (Exception ex) {
+            ex.printStackTrace();
+          }
 
           oneOf(outgoingCall).call(null);
           will(new Action() {
@@ -1792,7 +1901,7 @@ public class SIPOutgoingCallTest extends TestCase {
 
     joinExpectations("testJoinOutgoingCallDirectAfterJoin");
 
-    SIPOutgoingCall outgoingCall = joinAnsweredOutgoingCallDirectAfterJoinExpectations("testJoinOutgoingCallDirectAfterJoin");
+    SIPOutgoingCall outgoingCall = joinAnsweredOutgoingCallDirectAfterJoinExpectations("testJoinAnsweredOutgoingCallDirectAfterJoin");
 
     // execute
     try {
@@ -1836,6 +1945,8 @@ public class SIPOutgoingCallTest extends TestCase {
     sipReInviteAck.setMethod("ACK");
 
     // mock moho SIPOutgoingCall
+    final SipSession outgoingSession = mockery.mock(SipSession.class, "outgoingSipSession");
+    final SipApplicationSession outgoingAppSession = mockery.mock(SipApplicationSession.class, "outgoingAppSession");
     final SIPOutgoingCall outgoingCall = mockery.mock(SIPOutgoingCall.class, mockObjectNamePrefix + "outgoingCall");
 
     final MockSipServletRequest outgoingCallInviteReq = mockery.mock(MockSipServletRequest.class, mockObjectNamePrefix
@@ -1895,6 +2006,12 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).getRemoteSdp();
           will(returnValue(outgoingCallRespSDP));
+
+          allowing(outgoingCall).getSipSession();
+          will(returnValue(outgoingSession));
+
+          allowing(outgoingSession).getApplicationSession();
+          will(returnValue(outgoingAppSession));
 
           oneOf(outgoingCall).call(null);
           will(new Action() {
@@ -2000,7 +2117,7 @@ public class SIPOutgoingCallTest extends TestCase {
    */
   public void testJoinAnsweredOutgoingCallDirect() {
 
-    SIPOutgoingCall outgoingCall = joinAnsweredOutgoingCallDirectExpectations("testJoinOutgoingCallDirectAfterJoin");
+    SIPOutgoingCall outgoingCall = joinAnsweredOutgoingCallDirectExpectations("testJoinAnsweredOutgoingCallDirect");
 
     // execute
     try {
@@ -2039,7 +2156,8 @@ public class SIPOutgoingCallTest extends TestCase {
 
     // mock moho SIPOutgoingCall
     final SipSession outgoingCallSession = mockery.mock(SipSession.class, mockObjectNamePrefix + "outgoingCallSession");
-
+    final SipApplicationSession outgoingAppSession = mockery.mock(SipApplicationSession.class, mockObjectNamePrefix
+        + "outgoingCallAppSession");
     final SIPOutgoingCall outgoingCall = mockery.mock(SIPOutgoingCall.class, mockObjectNamePrefix + "outgoingCall");
 
     final byte[] originOutgoingCallRespSDP = new byte[10];
@@ -2092,6 +2210,21 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).getSipSession();
           will(returnValue(outgoingCallSession));
+
+          allowing(outgoingCallSession).getApplicationSession();
+          will(returnValue(outgoingAppSession));
+
+          try {
+            mockery.checking(new Expectations() {
+              {
+                oneOf(sipFactory).createRequest(outgoingAppSession, "INVITE", fromAddr, toAddr);
+                will(returnValue(initInviteReq));
+              }
+            });
+          }
+          catch (Exception ex) {
+            ex.printStackTrace();
+          }
 
           allowing(outgoingCall).getRemoteSdp();
           will(returnValue(originOutgoingCallRespSDP));

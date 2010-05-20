@@ -196,7 +196,7 @@ public class SIPReferEventImpl extends SIPReferEvent {
       final SipServletRequest notify = _req.getSession().createRequest("NOTIFY");
       notify.addHeader("Event", "refer");
       notify.addHeader("Subscription-State", state);
-      notify.setContent(content, "message/sipfrag");
+      notify.setContent(content.getBytes("UTF-8"), "message/sipfrag");
       notify.send();
     }
     catch (final IOException t) {

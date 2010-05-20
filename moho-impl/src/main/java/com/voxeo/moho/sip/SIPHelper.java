@@ -21,6 +21,7 @@ import javax.media.mscontrol.MediaErr;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.B2buaHelper;
+import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
@@ -37,8 +38,8 @@ public class SIPHelper {
   private static final String LINKED_MESSAGE = "linked.message";
 
   public static SipServletRequest createSipInitnalRequest(final SipFactory factory, final String method,
-      final Address from, final Address to, final Map<String, String> headers) {
-    final SipServletRequest req = factory.createRequest(factory.createApplicationSession(), method, from, to);
+      final Address from, final Address to, final Map<String, String> headers, SipApplicationSession applicationSession) {
+    final SipServletRequest req = factory.createRequest(applicationSession != null? applicationSession:factory.createApplicationSession(), method, from, to);
     SIPHelper.addHeaders(req, headers);
     return req;
   }

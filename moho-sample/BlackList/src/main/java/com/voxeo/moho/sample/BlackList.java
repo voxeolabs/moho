@@ -89,6 +89,6 @@ public class BlackList implements Application {
     final Call call = inv.acceptCall();
     call.join().get();
     call.getMediaService().output(_prompt).get();
-    call.join(callee, JoinType.DIRECT, Joinable.Direction.DUPLEX);
+    call.join(callee, JoinType.DIRECT, Joinable.Direction.DUPLEX).get();
   }
 }

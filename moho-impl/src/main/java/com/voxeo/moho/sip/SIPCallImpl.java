@@ -109,6 +109,12 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     _cstate = SIPCall.State.INVITING;
   }
 
+  protected SIPCallImpl(final ExecutionContext context) {
+    super(context);
+    context.addCall(this);
+    _cstate = SIPCall.State.INVITING;
+  }
+
   @Override
   public int hashCode() {
     return "SIPCall".hashCode() + getSipSession().hashCode();

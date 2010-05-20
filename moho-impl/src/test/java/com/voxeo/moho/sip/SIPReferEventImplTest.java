@@ -35,9 +35,6 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.sip.SIPCallImpl;
-import com.voxeo.moho.sip.SIPEndpoint;
-import com.voxeo.moho.sip.SIPReferEventImpl;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
 import com.voxeo.moho.sip.fake.MockAddress;
 import com.voxeo.moho.sip.fake.MockServletContext;
@@ -121,6 +118,7 @@ public class SIPReferEventImplTest extends TestCase {
     final SIPCallImpl call = mockery.mock(SIPCallImpl.class, "call");
 
     final SIPCallImpl peerCall = mockery.mock(SIPCallImpl.class, "peerCall");
+    final MockSipSession peerSession = mockery.mock(MockSipSession.class, "peerSipSession");
 
     final MockSipServletResponse referResp = mockery.mock(MockSipServletResponse.class, "referResp");
     referResp.setStatus(200);
@@ -151,6 +149,12 @@ public class SIPReferEventImplTest extends TestCase {
           allowing(peerCall).getAddress();
           will(returnValue(peerEnd));
 
+          allowing(peerCall).getSipSession();
+          will(returnValue(peerSession));
+
+          allowing(peerSession).getApplicationSession();
+          will(returnValue(appSession));
+
           // send response.
           oneOf(referReq).createResponse(SipServletResponse.SC_ACCEPTED);
           will(new Action() {
@@ -172,13 +176,6 @@ public class SIPReferEventImplTest extends TestCase {
           // create new call
           allowing(newSession).getRemoteParty();
           will(returnValue(referedAddr));
-
-          oneOf(sipFactory).createApplicationSession();
-          will(returnValue(appSession));
-
-          oneOf(sipFactory).createRequest(with(same(appSession)), with(equal("INVITE")), with(equal(peerAddr)),
-              with(equal(referedAddr)));
-          will(returnValue(newInviteReq));
 
           allowing(newInviteReq).addHeader(with(any(String.class)), with(any(String.class)));
 

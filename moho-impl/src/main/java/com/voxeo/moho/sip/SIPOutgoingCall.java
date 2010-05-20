@@ -18,30 +18,28 @@ import java.io.IOException;
 import java.util.Map;
 
 import javax.media.mscontrol.join.Joinable.Direction;
+import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.util.SessionUtils;
 
 public class SIPOutgoingCall extends SIPCallImpl {
 
-  // private static final Logger LOG = Logger.getLogger(SIPOutgoingCall.class);
+  protected SIPEndpoint _from;
+
+  protected SipApplicationSession _appSession;
+
+  protected Map<String, String> _headers;
 
   protected SIPOutgoingCall(final ExecutionContext context, final SIPEndpoint from, final SIPEndpoint to,
       final Map<String, String> headers) {
-    this(context, SIPHelper.createSipInitnalRequest(context.getSipFactory(), "INVITE", from.getSipAddress(), to
-        .getSipAddress(), headers));
-  }
-
-  protected SIPOutgoingCall(final ExecutionContext context, final SipServletRequest req) {
-    super(context, req);
-    try {
-      _signal.setHandler(((ApplicationContextImpl) getApplicationContext()).getController());
-    }
-    catch (final Exception e) {
-      throw new SignalException(e);
-    }
+    super(context);
+    _address = to;
+    _from = from;
+    _headers = headers;
   }
 
   @Override
@@ -108,6 +106,9 @@ public class SIPOutgoingCall extends SIPCallImpl {
 
   protected synchronized void call(final byte[] sdp) throws IOException {
     if (isNoAnswered()) {
+      if (_invite == null) {
+        createRequest();
+      }
       if (sdp != null) {
         _invite.setContent(sdp, "application/sdp");
       }
@@ -122,4 +123,40 @@ public class SIPOutgoingCall extends SIPCallImpl {
     }
   }
 
+  /**
+   * create INVITE request and send
+   * 
+   * @param sdp
+   *          sdp used in INVITE request.
+   * @param appSession
+   *          applicationSession that used to create INVITE request.
+   * @throws IOException
+   */
+  protected synchronized void call(final byte[] sdp, SipApplicationSession appSession) throws IOException {
+    if (_appSession == null) {
+      _appSession = appSession;
+    }
+
+    call(sdp);
+  }
+
+  private void createRequest() {
+    _invite = SIPHelper.createSipInitnalRequest(_context.getSipFactory(), "INVITE", _from.getSipAddress(), _address
+        .getSipAddress(), _headers, _appSession);
+
+    _signal = _invite.getSession();
+
+    if (_appSession == null) {
+      _appSession = _signal.getApplicationSession();
+    }
+
+    SessionUtils.setEventSource(_signal, this);
+
+    try {
+      _signal.setHandler(((ApplicationContextImpl) getApplicationContext()).getController());
+    }
+    catch (final Exception e) {
+      throw new SignalException(e);
+    }
+  }
 }

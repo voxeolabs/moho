@@ -48,7 +48,7 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
   @Override
   protected void doJoin() throws MsControlException, IOException {
     doDisengage(_call1, JoinType.DIRECT);
-    _call2.call(null);
+    _call2.call(null, _call1.getSipSession().getApplicationSession());
   }
 
   @Override
