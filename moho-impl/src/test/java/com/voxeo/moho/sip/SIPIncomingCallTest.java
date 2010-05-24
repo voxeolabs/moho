@@ -48,6 +48,7 @@ import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.DisconnectEvent;
 import com.voxeo.moho.event.EventState;
+import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
@@ -79,6 +80,8 @@ public class SIPIncomingCallTest extends TestCase {
   MockSipSession session = mockery.mock(MockSipSession.class);
 
   MockSipServletRequest initInviteReq = mockery.mock(MockSipServletRequest.class);
+  
+  MockServletContext servletContext = mockery.mock(MockServletContext.class);
 
   // Moho
   TestApp app;
@@ -104,6 +107,7 @@ public class SIPIncomingCallTest extends TestCase {
     initInviteReq.setSession(session);
     initInviteReq.setMethod("INVITE");
     initInviteReq.setIsInitial(true);
+    session.setServletContext(servletContext);
 
     // common Expectations.
     mockery.checking(new Expectations() {
@@ -1181,7 +1185,7 @@ public class SIPIncomingCallTest extends TestCase {
   public void testJoinOutgoingCallDirectInitReqNoSDP() {
     sipcall = new SIPIncomingCall(appContext, initInviteEvent);
 
-    SIPOutgoingCall outgoingCall = joinOutgoingCallDirectInitReqNoSDPExpectations("testJoinOutgoingCallDirect");
+    SIPOutgoingCall outgoingCall = joinOutgoingCallDirectInitReqNoSDPExpectations("testJoinOutgoingCallDirectInitReqNoSDP");
 
     // execute
     try {
@@ -1269,7 +1273,7 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(outgoingCall).isTerminated();
           will(returnValue(false));
 
-          oneOf(outgoingCall).call(null, appSession);
+          oneOf(outgoingCall).call(null, appSession, null);
           will(new Action() {
             @Override
             public void describeTo(Description description) {
@@ -1381,7 +1385,7 @@ public class SIPIncomingCallTest extends TestCase {
   public void testJoinAnsweredOutgoingCallDirectInitReqNoSDP() {
     sipcall = new SIPIncomingCall(appContext, initInviteEvent);
 
-    SIPOutgoingCall outgoingCall = joinAnsweredOutgoingCallDirectInitReqNoSDPExpectations("testJoinOutgoingCallDirect");
+    SIPOutgoingCall outgoingCall = joinAnsweredOutgoingCallDirectInitReqNoSDPExpectations("testJoinAnsweredOutgoingCallDirectInitReqNoSDP");
 
     // execute
     try {

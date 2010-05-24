@@ -38,6 +38,7 @@ import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
+import javax.servlet.sip.SipSessionsUtil;
 
 import org.apache.log4j.Logger;
 
@@ -99,9 +100,37 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
 
   protected boolean _operationInProcess;
 
+  protected String _replacesHeader;
+
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
     _invite = req;
+
+    // process Replaces header.
+    SipSessionsUtil sessionUtil = (SipSessionsUtil) _invite.getSession().getServletContext().getAttribute(
+        "javax.servlet.sip.SipSessionsUtil");
+    if (sessionUtil != null) {
+      SipSession peerSession = sessionUtil.getCorrespondingSipSession(_invite.getSession(), "Replaces");
+      if (peerSession != null) {
+        SIPCallImpl call = (SIPCallImpl) SessionUtils.getParticipant(peerSession);
+        SipSession replacedSession = ((SIPCallImpl) call.getLastPeer()).getSipSession();
+
+        String callId = replacedSession.getCallId();
+        String toTag = replacedSession.getRemoteParty().getParameter("tag");
+        String fromTag = replacedSession.getLocalParty().getParameter("tag");
+
+        // the format
+        // Replaces: call-id;to-tag=7743;from-tag=6472
+        StringBuilder sb = new StringBuilder();
+        sb.append(callId);
+        sb.append(";to-tag=");
+        sb.append(toTag);
+        sb.append(";from-tag=");
+        sb.append(fromTag);
+        _replacesHeader = sb.toString();
+      }
+    }
+
     _signal = req.getSession();
     _address = new SIPEndpointImpl((ApplicationContextImpl) getApplicationContext(), _signal.getRemoteParty());
     SessionUtils.setEventSource(_signal, this);
@@ -135,6 +164,12 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   public String toString() {
     return new StringBuilder().append(SIPCallImpl.class.getSimpleName()).append("[").append(_signal).append(",")
         .append(_cstate).append("]").toString();
+  }
+
+  public String useReplacesHeader() {
+    String ret = _replacesHeader;
+    _replacesHeader = null;
+    return ret;
   }
 
   @Override
@@ -403,6 +438,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   @Override
   public Joint join(final Participant other, final JoinType type, final Direction direction) {
     checkState();
+
     return new JointImpl(_context.getExecutor(), new JoinWorker() {
       @Override
       public JoinCompleteEvent call() throws Exception {

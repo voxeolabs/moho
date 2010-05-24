@@ -32,6 +32,9 @@ public class MockServletContext implements ServletContext {
 
   @Override
   final public Object getAttribute(String arg0) {
+    if (_attributes == null) {
+      _attributes = new HashMap<String, Object>();
+    }
     return _attributes.get(arg0);
   }
 
@@ -147,6 +150,9 @@ public class MockServletContext implements ServletContext {
 
   @Override
   final public void removeAttribute(String arg0) {
+    if (_attributes == null) {
+      _attributes = new HashMap<String, Object>();
+    }
     _attributes.remove(arg0);
   }
 

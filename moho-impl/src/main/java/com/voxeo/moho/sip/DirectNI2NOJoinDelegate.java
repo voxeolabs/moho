@@ -47,7 +47,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws MsControlException, IOException {
-    _call2.call(_call1.getRemoteSdp(), _call1.getSipSession().getApplicationSession());
+    _call2.call(_call1.getRemoteSdp(), _call1.getSipSession().getApplicationSession(), _call1.useReplacesHeader());
   }
 
   @Override

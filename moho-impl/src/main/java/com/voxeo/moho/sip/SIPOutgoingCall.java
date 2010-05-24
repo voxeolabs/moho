@@ -15,6 +15,7 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -135,6 +136,31 @@ public class SIPOutgoingCall extends SIPCallImpl {
   protected synchronized void call(final byte[] sdp, SipApplicationSession appSession) throws IOException {
     if (_appSession == null) {
       _appSession = appSession;
+    }
+
+    call(sdp);
+  }
+
+  /**
+   * create INVITE request and send
+   * 
+   * @param sdp
+   *          sdp used in INVITE request.
+   * @param appSession
+   *          applicationSession that used to create INVITE request.
+   * @throws IOException
+   */
+  protected synchronized void call(final byte[] sdp, SipApplicationSession appSession, String replacesHeader)
+      throws IOException {
+    if (_appSession == null) {
+      _appSession = appSession;
+    }
+
+    if (replacesHeader != null) {
+      if (_headers == null) {
+        _headers = new HashMap<String, String>();
+      }
+      _headers.put("Replaces", replacesHeader);
     }
 
     call(sdp);

@@ -34,6 +34,7 @@ import com.voxeo.moho.MediaException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.EventState;
 import com.voxeo.moho.util.SessionUtils;
 import com.voxeo.utils.EventListener;
 
@@ -49,7 +50,7 @@ public class SIPReferEventImpl extends SIPReferEvent {
   public CallableEndpoint getReferee() {
     try {
       final SipURI sipURI = (SipURI) _req.getAddressHeader("Refer-To").getURI().clone();
-      sipURI.removeHeader("replaces");
+      // sipURI.removeHeader("replaces");
       return new SIPEndpointImpl(SessionUtils.getContext(_req), SessionUtils.getContext(_req).getSipFactory()
           .createAddress(sipURI.toString()));
     }
@@ -94,6 +95,9 @@ public class SIPReferEventImpl extends SIPReferEvent {
     SIPHelper.addHeaders(req, headers);
     SIPHelper.copyContent(_req, req);
     SIPHelper.linkSIPMessage(_req, req);
+
+    req.addHeader("Refer-To", _req.getHeader("Refer-To"));
+    req.addHeader("Referred-By", _req.getHeader("Referred-By"));
     try {
       req.send();
     }
@@ -148,6 +152,27 @@ public class SIPReferEventImpl extends SIPReferEvent {
 
   private SIPCallImpl transfer(final SIPCallImpl call, final JoinType type, final Direction direction,
       final Map<String, String> headers) throws IOException, SignalException, MediaException {
+    String replaces = null;
+    try {
+      final SipURI sipURI = (SipURI) _req.getAddressHeader("Refer-To").getURI();
+      replaces = sipURI.getHeader("replaces");
+      if (replaces != null) {
+        // if there is replaces header in the sip URI, means it's a
+        // attended transfer. can't accept the request in the server now. just
+        // forward the request to the peer.
+        LOG.warn("This is Attended Transfer request, can't be accepted, forward it, will return null!");
+        final Call peer = call.getLastPeer();
+        if (peer != null) {
+          this.setState(EventState.InitialEventState.INITIAL);
+          this.forwardTo(peer);
+          return null;
+        }
+      }
+    }
+    catch (final ServletParseException e) {
+      LOG.error("Parse error", e);
+    }
+
     final SipServletResponse res = _req.createResponse(SipServletResponse.SC_ACCEPTED);
     sendNotify("SIP/2.0 100 Trying", "active;expires=180");
     SIPHelper.addHeaders(res, headers);
@@ -156,20 +181,7 @@ public class SIPReferEventImpl extends SIPReferEvent {
     // add Referred-By header and Replaces header.
     final Map<String, String> reqHeaders = new HashMap<String, String>();
     reqHeaders.put("Referred-By", ((SIPEndpoint) getReferredBy()).getSipAddress().toString());
-    // String replaces = null;
-    // try {
-    // final SipURI sipURI = (SipURI)
-    // _req.getAddressHeader("Refer-To").getURI();
-    // replaces = sipURI.getHeader("replaces");
-    // if (replaces != null) {
-    // // TODO if there is replaces header in the sip uri, means it's a
-    // // attended transfer. can't process this case now. just process it as
-    // // there is no replaces header. i.e. as unattended transfer.
-    // }
-    // }
-    // catch (final ServletParseException e) {
-    // // ignore
-    // }
+
     if (headers != null) {
       reqHeaders.putAll(headers);
     }
