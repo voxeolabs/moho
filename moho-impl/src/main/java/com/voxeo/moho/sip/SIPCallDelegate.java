@@ -22,6 +22,7 @@ import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.sdp.MediaDescription;
 import javax.sdp.SdpException;
+import javax.sdp.SdpFactory;
 import javax.sdp.SessionDescription;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -54,7 +55,7 @@ public abstract class SIPCallDelegate {
     throw new UnsupportedOperationException();
   }
 
-  protected void hold(final SIPCallImpl call) throws MsControlException, IOException, SdpException {
+  protected void hold(final SIPCallImpl call, boolean send) throws MsControlException, IOException, SdpException {
     throw new UnsupportedOperationException();
   }
 
@@ -72,8 +73,8 @@ public abstract class SIPCallDelegate {
 
   protected SessionDescription createSendonlySDP(final SIPCallImpl call, final byte[] sdpByte)
       throws UnsupportedEncodingException, SdpException {
-    SessionDescription sd = ((ExecutionContext) call.getApplicationContext()).getSdpFactory().createSessionDescription(
-        new String(sdpByte, "iso8859-1"));
+    SdpFactory sdpFactory = ((ExecutionContext) call.getApplicationContext()).getSdpFactory();
+    SessionDescription sd = sdpFactory.createSessionDescription(new String(sdpByte, "iso8859-1"));
 
     sd.removeAttribute("sendrecv");
     sd.removeAttribute("recvonly");
@@ -98,6 +99,22 @@ public abstract class SIPCallDelegate {
     md.removeAttribute("sendonly");
     md.removeAttribute("recvonly");
     md.setAttribute("sendrecv", null);
+
+    return sd;
+  }
+
+  protected SessionDescription createRecvonlySDP(final SIPCallImpl call, final byte[] sdpByte)
+      throws UnsupportedEncodingException, SdpException {
+    SdpFactory sdpFactory = ((ExecutionContext) call.getApplicationContext()).getSdpFactory();
+    SessionDescription sd = sdpFactory.createSessionDescription(new String(sdpByte, "iso8859-1"));
+
+    sd.removeAttribute("sendrecv");
+    sd.removeAttribute("sendonly");
+
+    MediaDescription md = ((MediaDescription) sd.getMediaDescriptions(false).get(0));
+    md.removeAttribute("sendrecv");
+    md.removeAttribute("sendonly");
+    md.setAttribute("recvonly", null);
 
     return sd;
   }

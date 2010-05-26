@@ -146,7 +146,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
 
   @Override
   public int hashCode() {
-    return "SIPCall".hashCode() + getSipSession().hashCode();
+    return "SIPCall".hashCode() + getId().hashCode();
   }
 
   @Override
@@ -157,7 +157,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     if (this == o) {
       return true;
     }
-    return this.getSipSession().equals(((SIPCall) o).getSipSession());
+    return this.getId().equals(((SIPCall) o).getId());
   }
 
   @Override
@@ -1074,6 +1074,13 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
    */
   @Override
   public synchronized void hold() {
+    hold(false);
+  }
+
+  /**
+   * send a sendonly SDP and stop to send media data to this endpoint
+   */
+  public synchronized void hold(boolean send) {
     if (this.getSIPCallState() != State.ANSWERED) {
       throw new IllegalStateException("call have not been answered");
     }
@@ -1089,7 +1096,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
 
     try {
       setHoldState(HoldState.Holding);
-      _callDelegate.hold(this);
+      _callDelegate.hold(this, send);
 
       while (getHoldState() != HoldState.Held && getHoldState() != HoldState.None) {
         try {
@@ -1112,6 +1119,10 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     catch (final SdpException e) {
       setHoldState(HoldState.None);
       throw new SignalException("exception when holding", e);
+    }
+    catch (final Throwable t) {
+      setHoldState(HoldState.None);
+      LOG.error("Error when holding", t);
     }
     finally {
       _operationInProcess = false;
@@ -1159,6 +1170,10 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
       setMuteState(HoldState.None);
       throw new SignalException("exception when muting", e);
     }
+    catch (final Throwable t) {
+      setHoldState(HoldState.None);
+      LOG.error("Error when mute", t);
+    }
     finally {
       _operationInProcess = false;
     }
@@ -1204,6 +1219,10 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
       setHoldState(oldHoldState);
       throw new SignalException("exception when unholding", e);
     }
+    catch (final Throwable t) {
+      setHoldState(HoldState.None);
+      LOG.error("Error when unhold", t);
+    }
     finally {
       _operationInProcess = false;
     }
@@ -1243,6 +1262,10 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     catch (final SdpException e) {
       setMuteState(oldMuteState);
       throw new SignalException("exception when unmuting", e);
+    }
+    catch (final Throwable t) {
+      setHoldState(HoldState.None);
+      LOG.error("Error when unmute", t);
     }
     finally {
       _operationInProcess = false;

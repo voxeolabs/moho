@@ -2160,6 +2160,8 @@ public class SIPOutgoingCallTest extends TestCase {
         + "outgoingCallAppSession");
     final SIPOutgoingCall outgoingCall = mockery.mock(SIPOutgoingCall.class, mockObjectNamePrefix + "outgoingCall");
 
+    final String outgoingCallId = "testoutgoingCall";
+
     final byte[] originOutgoingCallRespSDP = new byte[10];
 
     final MockSipServletRequest outgoingCallInviteReq = mockery.mock(MockSipServletRequest.class, mockObjectNamePrefix
@@ -2197,6 +2199,9 @@ public class SIPOutgoingCallTest extends TestCase {
           allowing(outgoingCall).isNoAnswered();
           will(returnValue(true));
           when(outgoingCallStates.is("outgoingCallInit"));
+
+          allowing(outgoingCall).getId();
+          will(returnValue(outgoingCallId));
 
           allowing(outgoingCall).isTerminated();
           will(returnValue(false));

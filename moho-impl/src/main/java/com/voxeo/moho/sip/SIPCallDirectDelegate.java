@@ -160,7 +160,7 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
   }
 
   @Override
-  protected void hold(SIPCallImpl call) throws MsControlException, IOException, SdpException {
+  protected void hold(SIPCallImpl call, boolean send) throws MsControlException, IOException, SdpException {
     final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
 
     SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");

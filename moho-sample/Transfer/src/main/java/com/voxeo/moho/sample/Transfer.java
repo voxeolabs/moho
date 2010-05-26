@@ -26,9 +26,12 @@ import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.event.ReferEvent;
 
 /**
- * Transfer: unattended example. consume REFER request, use 3PCC signaling. this
- * function can also be implemented by just forwarding the refer request to the
- * peer. using ReferEvent.
+ * Transfer: support unattended transfer and attended transfer. for unattended
+ * transfer: when accepting the ReferEvent, Moho consume REFER request, use 3PCC
+ * signaling. for attended transfer: when accepting the ReferEvent, Moho just
+ * forward the refer request to the peer. Note that if the application doesn't
+ * take any action, such as accept, forward, reject, on the event, Moho will
+ * accept it.
  */
 public class Transfer implements Application {
 

@@ -18,10 +18,16 @@ import java.util.Map;
 
 import javax.servlet.sip.SipServletRequest;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.EventSource;
 
 public class SIPReInviteEventImpl extends SIPReInviteEvent {
+
+  private static final Logger LOG = Logger.getLogger(SIPReInviteEventImpl.class);
+
+  protected Boolean isHold;
 
   protected SIPReInviteEventImpl(final EventSource source, final SipServletRequest req) {
     super(source, req);
@@ -40,4 +46,25 @@ public class SIPReInviteEventImpl extends SIPReInviteEvent {
     }
   }
 
+  @Override
+  public boolean isHold() {
+    if (isHold == null) {
+      try {
+        final byte[] content = SIPHelper.getRawContentWOException(_req);
+        if (content != null) {
+          String sdp = new String(content, "iso8859-1");
+          // TODO improve the parse.
+          if (sdp.indexOf("sendonly") > 0) {
+            isHold = Boolean.TRUE;
+            return isHold;
+          }
+        }
+      }
+      catch (Exception ex) {
+        LOG.error("", ex);
+      }
+      isHold = false;
+    }
+    return isHold;
+  }
 }

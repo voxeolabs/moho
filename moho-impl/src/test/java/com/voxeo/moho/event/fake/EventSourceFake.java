@@ -17,6 +17,7 @@ package com.voxeo.moho.event.fake;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Future;
 
 import com.voxeo.moho.ApplicationContext;
@@ -29,6 +30,8 @@ import com.voxeo.utils.EventListener;
 public class EventSourceFake implements EventSource {
 
   private List<MediaEvent> receivedEvents;
+
+  private String id = UUID.randomUUID().toString();
 
   final public List<MediaEvent> getReceivedEvents() {
     return receivedEvents;
@@ -109,8 +112,7 @@ public class EventSourceFake implements EventSource {
 
   @Override
   public String getId() {
-
-    return null;
+    return id;
   }
 
   @Override

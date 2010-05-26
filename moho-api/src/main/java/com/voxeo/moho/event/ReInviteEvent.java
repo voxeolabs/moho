@@ -21,4 +21,6 @@ public abstract class ReInviteEvent extends SignalEvent {
   protected ReInviteEvent(final EventSource source) {
     super(source);
   }
+
+  public abstract boolean isHold();
 }

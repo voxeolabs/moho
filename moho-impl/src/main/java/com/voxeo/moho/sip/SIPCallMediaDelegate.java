@@ -63,6 +63,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
     _req = req;
     _isWaiting = true;
     call.processSDPOffer(req);
+
     while (call.isAnswered() & _isWaiting) {
       try {
         call.wait();
@@ -73,6 +74,18 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
     }
     if (call.getSIPCallState() != State.ANSWERED) {
       throw new SignalException("Call state error: " + call);
+    }
+
+    // if it is a hold request, hold peer.
+    SIPCallImpl peerCall = (SIPCallImpl) call.getLastPeer();
+    if (peerCall != null) {
+      String sdp = new String(call.getRemoteSdp(), "iso8859-1");
+      if (sdp.indexOf("sendonly") > 0) {
+        peerCall.hold(true);
+      }
+      else if (sdp.indexOf("sendrecv") > 0) {
+        peerCall.unhold();
+      }
     }
   }
 
@@ -149,9 +162,10 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   }
 
   @Override
-  protected void hold(SIPCallImpl call) throws MsControlException, IOException, SdpException {
+  protected void hold(SIPCallImpl call, boolean send) throws MsControlException, IOException, SdpException {
     ((NetworkConnection) call.getMediaObject()).getSdpPortManager().processSdpOffer(
-        createSendonlySDP(call, call.getRemoteSdp()).toString().getBytes());
+        send ? createRecvonlySDP(call, call.getRemoteSdp()).toString().getBytes() : createSendonlySDP(call,
+            call.getRemoteSdp()).toString().getBytes());
 
     SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
     reInvite.setAttribute(SIPCallDelegate.SIPCALL_HOLD_REQUEST, "true");
