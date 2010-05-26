@@ -80,7 +80,7 @@ public class SIPIncomingCallTest extends TestCase {
   MockSipSession session = mockery.mock(MockSipSession.class);
 
   MockSipServletRequest initInviteReq = mockery.mock(MockSipServletRequest.class);
-  
+
   MockServletContext servletContext = mockery.mock(MockServletContext.class);
 
   // Moho
@@ -128,33 +128,6 @@ public class SIPIncomingCallTest extends TestCase {
 
     app = new TestApp();
     invoked = false;
-  }
-
-  /**
-   * test addObserver() and dispatch event. not supervised.
-   */
-  public void testAddObserverAndDispatchEvent() {
-
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
-
-    // prepare
-    final DisconnectEvent disconnectEvent = mockery.mock(DisconnectEvent.class);
-
-    mockery.checking(new Expectations() {
-      {
-        oneOf(disconnectEvent).accept();
-        oneOf(disconnectEvent).getState();
-        will(returnValue(EventState.InitialEventState.INITIAL));
-      }
-    });
-
-    // execute test.
-    sipcall.addObserver(app);
-    Future<DisconnectEvent> future = sipcall.dispatch(disconnectEvent);
-
-    // verify result
-    assert (future == null);
-    mockery.assertIsSatisfied();
   }
 
   /**
@@ -2969,7 +2942,7 @@ public class SIPIncomingCallTest extends TestCase {
     try {
       sipcall.join().get();
       assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
-      sipcall.dispatch(new SIPDisconnectEventImpl(sipcall, byeReq));
+      sipcall.dispatch(new SIPDisconnectEventImpl(sipcall, byeReq)).get();
     }
     catch (Exception ex) {
       ex.printStackTrace();
@@ -3065,7 +3038,7 @@ public class SIPIncomingCallTest extends TestCase {
 
       assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
 
-      sipcall.dispatch(new SIPReInviteEventImpl(sipcall, reInviteReq));
+      sipcall.dispatch(new SIPReInviteEventImpl(sipcall, reInviteReq)).get();
     }
     catch (Exception ex) {
       ex.printStackTrace();

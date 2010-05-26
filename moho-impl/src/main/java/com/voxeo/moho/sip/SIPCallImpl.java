@@ -58,7 +58,6 @@ import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.event.EventState;
-import com.voxeo.moho.event.ForwardableEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.SignalEvent;
 import com.voxeo.moho.util.SessionUtils;
@@ -260,33 +259,13 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           }
         }
       };
-      if (isSupervised() || event instanceof ForwardableEvent) {
-        retval = super.dispatch(event, acceptor);
-      }
-      else {
-        acceptor.run();
-      }
-
-      // if (retval == null) {
-      // runnable.run();
+      // if (isSupervised() || event instanceof ForwardableEvent) {
+      // retval = super.dispatch(event, acceptor);
       // }
       // else {
-      // final Future<T> task = retval;
-      // final Thread t = new Thread(new Runnable() {
-      // @Override
-      // public void run() {
-      // try {
-      // task.get();
+      // acceptor.run();
       // }
-      // catch (final Throwable t) {
-      // ;
-      // }
-      // runnable.run();
-      // }
-      // });
-      // t.setDaemon(true);
-      // t.start();
-      // }
+      retval = super.dispatch(event, acceptor);
     }
     return retval;
   }
