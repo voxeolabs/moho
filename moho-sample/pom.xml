@@ -24,7 +24,8 @@
     <module>PresenceSubscribe</module>
     <module>SampleAutowire</module>
     <module>SampleQueue</module>
-    <module>Transfer</module>        
+    <module>Transfer</module>   
+    <module>MusicOnHold</module>     
   </modules>
   
   <scm>
