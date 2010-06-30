@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.media.mscontrol.join.Joinable.Direction;
+import javax.servlet.ServletException;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -27,12 +28,15 @@ import javax.servlet.sip.SipURI;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.Subscription.Type;
+import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.EventState;
 import com.voxeo.moho.util.SessionUtils;
@@ -114,7 +118,41 @@ public class SIPReferEventImpl extends SIPReferEvent {
   @Override
   public void forwardTo(final Endpoint endpoint, final Map<String, String> headers) throws SignalException,
       IllegalStateException {
-    throw new UnsupportedOperationException();
+    if (source instanceof ApplicationEventSource && endpoint instanceof SIPEndpoint) {
+      ApplicationEventSource es = (ApplicationEventSource) source;
+      ApplicationContextImpl appContext = (ApplicationContextImpl) es.getApplicationContext();
+
+      SipServletRequest req = appContext.getSipFactory().createRequest(_req.getApplicationSession(), "REFER",
+          _req.getFrom(), ((SIPEndpoint) endpoint).getSipAddress());
+      SIPHelper.addHeaders(req, headers);
+      req.addHeader("Refer-To", _req.getHeader("Refer-To"));
+      req.addHeader("Referred-By", _req.getHeader("Referred-By"));
+      SIPHelper.copyContent(_req, req);
+      SIPHelper.linkSIPMessage(_req, req);
+
+      try {
+        // set the event source.
+        final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(appContext, Type.REFER, 180, new SIPEndpointImpl(
+            appContext, _req.getFrom()), endpoint);
+        //TODO should set event listener or observer.
+        SipSession outSession = req.getSession();
+        outSession.setHandler(appContext.getController());
+        SessionUtils.setEventSource(outSession, retval);
+
+        req.send();
+      }
+      catch (IOException e) {
+        LOG.error("", e);
+        throw new SignalException("", e);
+      }
+      catch (ServletException e) {
+        LOG.error("", e);
+        throw new SignalException("", e);
+      }
+    }
+    else {
+      throw new UnsupportedOperationException();
+    }
   }
 
   @Override

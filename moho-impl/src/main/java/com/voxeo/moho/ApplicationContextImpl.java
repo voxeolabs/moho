@@ -26,10 +26,13 @@ import javax.media.mscontrol.MsControlFactory;
 import javax.sdp.SdpFactory;
 import javax.servlet.sip.SipFactory;
 
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.conference.ConferenceMangerImpl;
 import com.voxeo.moho.media.GenericMediaServiceFactory;
 import com.voxeo.moho.sip.SIPEndpointImpl;
+import com.voxeo.moho.text.imified.ImifiedEndpointImpl;
 import com.voxeo.moho.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.voicexml.VoiceXMLEndpointImpl;
 
@@ -52,6 +55,10 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
   protected Map<String, Call> _calls;
 
   protected Map<String, String> _parameters;
+
+  protected String _imifiedApiURL;
+
+  protected DefaultHttpClient _httpClient;
 
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipFactory sip,
       final SdpFactory sdp, final String controller) {
@@ -86,6 +93,9 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
       else if (addr.startsWith("file://") || addr.startsWith("http://") || addr.startsWith("https://")
           || addr.startsWith("ftp://")) {
         return new VoiceXMLEndpointImpl(this, addr);
+      }
+      else if (addr.startsWith("im:")) {
+        return new ImifiedEndpointImpl(this, addr.substring(addr.indexOf(":") + 1));
       }
       else {
         throw new IllegalArgumentException("Unsupported format: " + addr);
@@ -160,6 +170,22 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
   @Override
   public MediaServiceFactory getMediaServiceFactory() {
     return _msFactory;
+  }
+
+  public String getImifiedApiURL() {
+    return _imifiedApiURL;
+  }
+
+  public void setImifiedApiURL(String imifiedApiURL) {
+    this._imifiedApiURL = imifiedApiURL;
+  }
+
+  public DefaultHttpClient getHttpClient() {
+    return _httpClient;
+  }
+
+  public void setHttpClient(DefaultHttpClient httpClient) {
+    _httpClient = httpClient;
   }
 
 }

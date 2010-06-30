@@ -25,7 +25,8 @@
     <module>SampleAutowire</module>
     <module>SampleQueue</module>
     <module>Transfer</module>   
-    <module>MusicOnHold</module>     
+    <module>MusicOnHold</module>  
+	<module>Echo</module>   
   </modules>
   
   <scm>

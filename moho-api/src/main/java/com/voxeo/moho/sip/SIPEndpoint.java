@@ -18,8 +18,9 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.SipURI;
 
 import com.voxeo.moho.CallableEndpoint;
+import com.voxeo.moho.TextableEndpoint;
 
-public interface SIPEndpoint extends CallableEndpoint {
+public interface SIPEndpoint extends CallableEndpoint, TextableEndpoint {
 
   SipURI getSipURI() throws IllegalArgumentException;
 

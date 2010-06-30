@@ -52,7 +52,6 @@ public class SIPSubscriptionImpl extends DispatchableEventSource implements SIPS
     _uri = uri;
     _type = type;
     _expiration = expiration;
-    subscribe(from, to, uri, expiration);
   }
 
   public SipSession getSipSession() {
@@ -92,6 +91,10 @@ public class SIPSubscriptionImpl extends DispatchableEventSource implements SIPS
     else {
       subscribe(_from, _to, _uri, _expiration);
     }
+  }
+
+  public void subscribe() {
+    subscribe(_from, _to, _uri, _expiration);
   }
 
   private void subscribe(final Endpoint from, final Endpoint to, final Endpoint uri, final int expiration) {

@@ -17,6 +17,7 @@ package com.voxeo.moho.sip;
 import java.util.Map;
 
 import javax.servlet.sip.Address;
+import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
 
@@ -25,6 +26,7 @@ import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription;
+import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.Subscription.Type;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.utils.EventListener;
@@ -100,7 +102,8 @@ public class SIPEndpointImpl implements SIPEndpoint {
   @Override
   public Subscription subscribe(final Endpoint caller, final Type type, final int expiration,
       final EventListener<?>... listeners) throws SignalException {
-    final SIPSubscription retval = new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
+    final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
+    retval.subscribe();
     retval.addListeners(listeners);
     return retval;
   }
@@ -108,9 +111,25 @@ public class SIPEndpointImpl implements SIPEndpoint {
   @Override
   public Subscription subscribe(final Endpoint caller, final Type type, final int expiration,
       final Observer... observers) {
-    final SIPSubscription retval = new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
+    final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
+    retval.subscribe();
     retval.addObservers(observers);
     return retval;
+  }
+
+  @Override
+  public void sendText(TextableEndpoint from, String text) {
+    // TODO improve
+    final SipServletRequest req = _ctx.getSipFactory().createRequest(_ctx.getSipFactory().createApplicationSession(),
+        "MESSAGE", ((SIPEndpoint) from).getSipAddress(), _address);
+
+    try {
+      req.setContent(text, "text/plain");
+      req.send();
+    }
+    catch (Exception ex) {
+      throw new SignalException(ex);
+    }
   }
 
 }

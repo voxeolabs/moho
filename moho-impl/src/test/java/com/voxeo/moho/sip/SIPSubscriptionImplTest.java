@@ -144,6 +144,7 @@ public class SIPSubscriptionImplTest extends TestCase {
 
     // execute
     SIPSubscriptionImpl subscription = new SIPSubscriptionImpl(appContext, Type.DIALOG, 1000, from, to, reqEnd);
+    subscription.subscribe();
 
     assertTrue(subscription.getType() == Type.DIALOG.name());
     assertTrue(subscribeReq.getExpires() == 1000);

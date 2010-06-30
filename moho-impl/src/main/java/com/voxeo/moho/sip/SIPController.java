@@ -36,6 +36,7 @@ import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.text.sip.SIPTextEventImpl;
 import com.voxeo.moho.util.SessionUtils;
 
 public class SIPController extends SipServlet {
@@ -243,6 +244,10 @@ public class SIPController extends SipServlet {
     if (source != null) {
       source.dispatch(new SIPReferEventImpl(source, req));
     }
+    else {
+      final SIPReferEventImpl ev = new SIPReferEventImpl(_app, req);
+      _app.dispatch(ev);
+    }
   }
 
   @Override
@@ -285,7 +290,12 @@ public class SIPController extends SipServlet {
 
   @Override
   protected void doMessage(final SipServletRequest req) throws ServletException, IOException {
-    doOthers(req);
+    req.createResponse(200).send();
+
+    if (req.getContentType() != null
+        && (req.getContentType().equalsIgnoreCase("text/plain") || req.getContentType().equalsIgnoreCase("text/html"))) {
+      _app.dispatch(new SIPTextEventImpl(_app, req));
+    }
   }
 
   protected void doOthers(final SipServletRequest req) {
