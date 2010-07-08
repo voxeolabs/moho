@@ -16,8 +16,13 @@ package com.voxeo.moho.event;
 
 public abstract class ErrorEvent extends SignalEvent {
 
+  public enum ErrorType {
+    BUSY, DECLINE, TIMEOUT, OTHER
+  }
+
   protected ErrorEvent(final EventSource source) {
     super(source);
   }
 
+  public abstract ErrorType getErrorType();
 }

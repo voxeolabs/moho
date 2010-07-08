@@ -21,8 +21,8 @@ import javax.media.mscontrol.join.Joinable.Direction;
 /**
  * <p>
  * A call is a leg of communication from an Endpoint to the Moho application.
- * The leg must have signal controlled by the Moho application, optionally
- * media as well.
+ * The leg must have signal controlled by the Moho application, optionally media
+ * as well.
  * </p>
  * <p>
  * A call is an {@link com.voxeo.moho.event.EventSource EventSource} that
@@ -36,6 +36,9 @@ import javax.media.mscontrol.join.Joinable.Direction;
  */
 public interface Call extends MultiStreamParticipant {
   public enum State {
+    /** the Call object is initialized **/
+    INITIALIZED,
+
     /** call is accepted with early media */
     INPROGRESS,
 
@@ -124,8 +127,8 @@ public interface Call extends MultiStreamParticipant {
    * return the media service attached to the call
    * 
    * @param reinvite
-   *          whether Moho Framework should automatically re-invites the call
-   *          to {@link Participant.JoinType#BRIDGE Bridge} mode if the call is
+   *          whether Moho Framework should automatically re-invites the call to
+   *          {@link Participant.JoinType#BRIDGE Bridge} mode if the call is
    *          currently joined in {@link Participant.JoinType#DIRECT Direct}
    *          mode.
    * @throws MediaException

@@ -32,4 +32,20 @@ public abstract class SIPErrorEvent extends ErrorEvent {
     return _res;
   }
 
+  @Override
+  public ErrorType getErrorType() {
+    switch (_res.getStatus()) {
+      case SipServletResponse.SC_BUSY_HERE:
+      case SipServletResponse.SC_BUSY_EVERYWHERE:
+        return ErrorType.BUSY;
+
+      case SipServletResponse.SC_REQUEST_TIMEOUT:
+        return ErrorType.TIMEOUT;
+
+      case SipServletResponse.SC_DECLINE:
+        return ErrorType.DECLINE;
+      default:
+        return ErrorType.OTHER;
+    }
+  }
 }

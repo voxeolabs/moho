@@ -113,6 +113,7 @@ public class SIPOutgoingCall extends SIPCallImpl {
       if (sdp != null) {
         _invite.setContent(sdp, "application/sdp");
       }
+      setSIPCallState(SIPCall.State.INVITING);
       _invite.send();
     }
     else if (isAnswered()) {

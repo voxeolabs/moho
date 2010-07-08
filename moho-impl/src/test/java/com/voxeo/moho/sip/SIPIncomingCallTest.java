@@ -2942,6 +2942,7 @@ public class SIPIncomingCallTest extends TestCase {
     try {
       sipcall.join().get();
       assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
+      sipcall.setSupervised(true);
       sipcall.dispatch(new SIPDisconnectEventImpl(sipcall, byeReq)).get();
     }
     catch (Exception ex) {
@@ -3037,7 +3038,7 @@ public class SIPIncomingCallTest extends TestCase {
       sipcall.join().get();
 
       assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
-
+      sipcall.setSupervised(true);
       sipcall.dispatch(new SIPReInviteEventImpl(sipcall, reInviteReq)).get();
     }
     catch (Exception ex) {

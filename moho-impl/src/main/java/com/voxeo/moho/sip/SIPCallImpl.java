@@ -58,6 +58,7 @@ import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.event.EventState;
+import com.voxeo.moho.event.ForwardableEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.SignalEvent;
 import com.voxeo.moho.util.SessionUtils;
@@ -140,7 +141,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   protected SIPCallImpl(final ExecutionContext context) {
     super(context);
     context.addCall(this);
-    _cstate = SIPCall.State.INVITING;
+    _cstate = SIPCall.State.INITIALIZED;
   }
 
   @Override
@@ -174,6 +175,8 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   @Override
   public Call.State getCallState() {
     switch (_cstate) {
+      case INITIALIZED:
+        return Call.State.INITIALIZED;
       case PROGRESSING:
       case PROGRESSED:
         return Call.State.INPROGRESS;
@@ -259,13 +262,13 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           }
         }
       };
-      // if (isSupervised() || event instanceof ForwardableEvent) {
+      if (isSupervised() || event instanceof ForwardableEvent) {
+        retval = super.dispatch(event, acceptor);
+      }
+      else {
+        acceptor.run();
+      }
       // retval = super.dispatch(event, acceptor);
-      // }
-      // else {
-      // acceptor.run();
-      // }
-      retval = super.dispatch(event, acceptor);
     }
     return retval;
   }
@@ -579,8 +582,8 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   }
 
   protected boolean isNoAnswered(final SIPCall.State state) {
-    return state == SIPCall.State.INVITING || state == SIPCall.State.RINGING || state == SIPCall.State.ANSWERING
-        || state == SIPCall.State.PROGRESSING || state == SIPCall.State.PROGRESSED;
+    return state == SIPCall.State.INITIALIZED || state == SIPCall.State.INVITING || state == SIPCall.State.RINGING
+        || state == SIPCall.State.ANSWERING || state == SIPCall.State.PROGRESSING || state == SIPCall.State.PROGRESSED;
   }
 
   protected synchronized boolean isAnswered() {
