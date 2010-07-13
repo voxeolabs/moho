@@ -27,8 +27,6 @@ public class RecordCommand {
 
   protected URL _recordURL = null;
 
-  protected boolean bargine;// SIGDET_STOPRECORD
-
   /**
    * APPEND Indicates that recording should append to the end of an existing TVM
    * rather than overwrite it. Default: Boolean.FALSE.
@@ -80,13 +78,13 @@ public class RecordCommand {
    * MAX_DURATION Positive Integer indicating the maximum duration (in
    * milliseconds) for a record. Default: Resource.FOR_EVER
    */
-  protected int _maxDuration;
+  protected long _maxDuration;
 
   /**
    * MIN_DURATION Integer indicating minimum duration (in milliseconds) that
    * constitutes a valid recording. Default: 0
    */
-  protected int _minDuration;
+  protected long _minDuration;
 
   /**
    * PROMPT Indicates a prompt to be played before the recording starts.
@@ -97,7 +95,7 @@ public class RecordCommand {
    * SIGNAL_TRUNCATION_ON Boolean indicating whether signal(DTMF) truncation is
    * enabled.Default: Boolean.TRUE
    */
-  protected boolean _signalTruncationOn;
+  protected boolean _signalTruncationOn = true;
 
   /**
    * SILENCE_TERMINATION_ON Boolean indicating if a silence will terminate the
@@ -115,7 +113,7 @@ public class RecordCommand {
    * START_BEEP Boolean indicating whether subsequent record will be preceded
    * with a beep. Default: Boolean.TRUE
    */
-  protected boolean _startBeep;
+  protected boolean _startBeep = true;
 
   /**
    * START_IN_PAUSED_MODE Boolean indicating whether subsequent record will
@@ -145,10 +143,39 @@ public class RecordCommand {
 
   /**
    * BARGE_IN_ENABLED Controls whether the caller can start speaking before
-   * prompts have ended.
+   * prompts have ended. Value is a Boolean. Default: Boolean.TRUE
    */
-  protected boolean _promptBargeIn;
-  
+  protected boolean _promptBargeIn = true;
+
+  /**
+   * Controls how long the recognizer should wait after the end of the prompt
+   * for the caller to speak before sending a Recorder event (COMPLETED,
+   * INITIAL_TIMEOUT_EXPIRED, null, NO_ERROR).
+   */
+  protected long _initialTimeout;
+
+  /**
+   * Controls the length of a period of silence after callers have spoken to
+   * conclude they finished.
+   */
+  protected long _finalTimeout;
+
+  public long getInitialTimeout() {
+    return _initialTimeout;
+  }
+
+  public void setInitialTimeout(long initialTimeout) {
+    this._initialTimeout = initialTimeout;
+  }
+
+  public long getFinalTimeout() {
+    return _finalTimeout;
+  }
+
+  public void setFinalTimeout(long finalTimeout) {
+    this._finalTimeout = finalTimeout;
+  }
+
   public boolean isPromptBargeIn() {
     return _promptBargeIn;
   }
@@ -230,19 +257,19 @@ public class RecordCommand {
     this._fileFormat = fileFormat;
   }
 
-  public int getMaxDuration() {
+  public long getMaxDuration() {
     return _maxDuration;
   }
 
-  public void setMaxDuration(int maxDuration) {
+  public void setMaxDuration(long maxDuration) {
     this._maxDuration = maxDuration;
   }
 
-  public int getMinDuration() {
+  public long getMinDuration() {
     return _minDuration;
   }
 
-  public void setMinDuration(int minDuration) {
+  public void setMinDuration(long minDuration) {
     this._minDuration = minDuration;
   }
 
@@ -316,13 +343,5 @@ public class RecordCommand {
 
   public void setVideoMaxBitRate(int videoMaxBitRate) {
     this.videoMaxBitRate = videoMaxBitRate;
-  }
-
-  public boolean isBargine() {
-    return bargine;
-  }
-
-  public void setBargine(boolean bargine) {
-    this.bargine = bargine;
   }
 }

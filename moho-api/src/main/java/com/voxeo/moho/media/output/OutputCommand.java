@@ -88,7 +88,9 @@ public class OutputCommand {
   protected RTC[] _rtcs;
 
   public OutputCommand(final AudibleResource resource) {
-    _resources = new AudibleResource[] {resource};
+    if (resource != null) {
+      _resources = new AudibleResource[] {resource};
+    }
   }
 
   public OutputCommand(final AudibleResource[] resources) {

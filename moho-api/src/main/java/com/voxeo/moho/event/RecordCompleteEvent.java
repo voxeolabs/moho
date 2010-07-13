@@ -24,12 +24,25 @@ public class RecordCompleteEvent extends MediaCompleteEvent {
 
   protected Cause _cause;
 
-  public RecordCompleteEvent(final EventSource source, final Cause cause) {
+  protected long _duration;
+
+  public RecordCompleteEvent(final EventSource source, final Cause cause, long duration) {
     super(source);
     _cause = cause;
+    _duration = duration;
   }
 
   public Cause getCause() {
     return _cause;
+  }
+
+  /**
+   * Returns the length of the recording, in milliseconds. This length does not
+   * include any omitted silence.
+   * 
+   * @return the length of the recording, in milliseconds.
+   */
+  public long getDuration() {
+    return _duration;
   }
 }

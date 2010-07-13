@@ -34,11 +34,11 @@ public class InputCommand {
 
   protected Type _type = Type.ANY;
 
-  protected int _initialTimeout = Resource.FOREVER;
+  protected long _initialTimeout = Resource.FOREVER;
 
-  protected int _interSigTimeout = Resource.FOREVER;
+  protected long _interSigTimeout = Resource.FOREVER;
 
-  protected int _maxTimeout = Resource.FOREVER;
+  protected long _maxTimeout = Resource.FOREVER;
 
   protected boolean _record = false;
 
@@ -49,6 +49,8 @@ public class InputCommand {
   protected Parameters _parameters;
 
   protected RTC[] _rtcs;
+
+  protected String _terminateChar;
 
   /**
    * if true, every DTMF (or word?) received generate a
@@ -61,11 +63,19 @@ public class InputCommand {
     }
   }
 
-  public int getInterSigTimeout() {
+  public String getTerminateChar() {
+    return _terminateChar;
+  }
+
+  public void setTerminateChar(char terminateChar) {
+    this._terminateChar = String.valueOf(terminateChar);
+  }
+
+  public long getInterSigTimeout() {
     return _interSigTimeout;
   }
 
-  public void setInterSigTimeout(final int time) {
+  public void setInterSigTimeout(final long time) {
     _interSigTimeout = time;
   }
 
@@ -121,19 +131,19 @@ public class InputCommand {
     _type = type;
   }
 
-  public int getInitialTimeout() {
+  public long getInitialTimeout() {
     return _initialTimeout;
   }
 
-  public void setInitialTimeout(final int time) {
+  public void setInitialTimeout(final long time) {
     _initialTimeout = time;
   }
 
-  public int getMaxTimeout() {
+  public long getMaxTimeout() {
     return _maxTimeout;
   }
 
-  public void setMaxTimeout(final int time) {
+  public void setMaxTimeout(final long time) {
     _maxTimeout = time;
   }
 
@@ -160,4 +170,5 @@ public class InputCommand {
   public void setRtcs(RTC[] rtcs) {
     _rtcs = rtcs;
   }
+
 }

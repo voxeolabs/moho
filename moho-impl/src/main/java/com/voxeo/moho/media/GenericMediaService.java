@@ -161,7 +161,7 @@ public class GenericMediaService implements MediaService {
   @Override
   public Prompt prompt(final OutputCommand output, final InputCommand input, final int repeat) throws MediaException {
     final PromptImpl retval = new PromptImpl();
-    if (output != null) {
+    if (output != null && output.getAudibleResources() != null && output.getAudibleResources().length > 0) {
       final Parameters params = _group.createParameters();
       final List<RTC> rtcs = new ArrayList<RTC>();
 
@@ -187,7 +187,8 @@ public class GenericMediaService implements MediaService {
           break;
       }
       if (output.isBargein()) {
-        rtcs.add(MediaGroup.SIGDET_STOPPLAY);
+        // rtcs.add(MediaGroup.SIGDET_STOPPLAY);
+        rtcs.add(new RTC(SignalDetector.DETECTION_OF_ONE_SIGNAL, Player.STOP_ALL));
       }
       params.put(Player.MAX_DURATION, output.getTimeout());
       params.put(Player.START_OFFSET, output.getOffset());
@@ -206,13 +207,23 @@ public class GenericMediaService implements MediaService {
       for (final MediaResource r : reses) {
         uris.add(r.toURI());
       }
-      final OutputImpl out = new OutputImpl(_group);
+
       try {
-        _player.addListener(new PlayerListener(out, input == null ? null : retval));
-        _player.play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
-        retval.setOutput(out.prepare());
         if (input != null) {
+          if (uris.size() > 0) {
+            params.put(SignalDetector.PROMPT, uris.toArray(new URI[] {}));
+          }
+          input.setParameters(params);
+          input.setRtcs(rtcs.toArray(new RTC[] {}));
+
           retval.inputGetReady(new SignalDetectorWorker(input));
+          retval.inputGetSet();
+        }
+        else {
+          final OutputImpl out = new OutputImpl(_group);
+          _player.addListener(new PlayerListener(out, input == null ? null : retval));
+          _player.play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
+          retval.setOutput(out.prepare());
         }
       }
       catch (final MsControlException e) {
@@ -244,12 +255,16 @@ public class GenericMediaService implements MediaService {
     final RecordingImpl retval = new RecordingImpl(_group);
     try {
       final List<RTC> rtcs = new ArrayList<RTC>();
-      if (command.isBargine()) {
-        rtcs.add(MediaGroup.SIGDET_STOPRECORD);
-      }
+
       final Parameters params = _group.createParameters();
+      if (!command.isSignalTruncationOn()) {
+        params.put(Recorder.SIGNAL_TRUNCATION_ON, Boolean.FALSE);
+      }
       if (command.isAppend()) {
         params.put(Recorder.APPEND, Boolean.TRUE);
+      }
+      if (!command.isPromptBargeIn()) {
+        params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.FALSE);
       }
       if (command.getAudioClockRate() > 0) {
         params.put(Recorder.AUDIO_CLOCKRATE, command.getAudioClockRate());
@@ -272,6 +287,12 @@ public class GenericMediaService implements MediaService {
           params.put(Recorder.BEEP_LENGTH, command.getBeepLength());
         }
       }
+      else {
+        params.put(Recorder.START_BEEP, Boolean.FALSE);
+      }
+      if (command.isStartInPausedMode()) {
+        params.put(Recorder.START_IN_PAUSED_MODE, Boolean.TRUE);
+      }
       if (command.getFileFormat() != null) {
         params.put(Recorder.FILE_FORMAT, command.getFileFormat());
       }
@@ -284,6 +305,10 @@ public class GenericMediaService implements MediaService {
       if (command.getPrompt() != null) {
         params.put(Recorder.PROMPT, command.getPrompt());
       }
+      if (command.isSilenceTerminationOn()) {
+        params.put(Recorder.SILENCE_TERMINATION_ON, Boolean.TRUE);
+      }
+
       if (command.getSpeechDetectionMode() != null) {
         switch (command.getSpeechDetectionMode()) {
           case DETECTOR_INACTIVE:
@@ -296,6 +321,19 @@ public class GenericMediaService implements MediaService {
             params.put(Recorder.SPEECH_DETECTION_MODE, Recorder.DETECT_ALL_OCCURRENCES);
         }
       }
+
+      if (command.getInitialTimeout() > 0 || command.getFinalTimeout() > 0) {
+        // params.put(Recorder.SPEECH_DETECTION_MODE,
+        // Recorder.DETECT_ALL_OCCURRENCES);
+        if (command.getInitialTimeout() > 0) {
+          params.put(SpeechDetectorConstants.INITIAL_TIMEOUT, command.getInitialTimeout());
+        }
+        if (command.getFinalTimeout() > 0) {
+          params.put(Recorder.SILENCE_TERMINATION_ON, Boolean.TRUE);
+          params.put(SpeechDetectorConstants.FINAL_TIMEOUT, command.getFinalTimeout());
+        }
+      }
+
       if (command.getVideoCODEC() != null) {
         params.put(Recorder.VIDEO_CODEC, command.getVideoCODEC());
       }
@@ -373,10 +411,17 @@ public class GenericMediaService implements MediaService {
 
       final Parameters patternParams = _group.createParameters();
       patternKeys = new Parameter[patterns.size()];
-      for (int i = 0; i < patterns.size(); i++) {
+      int i = 0;
+      for (; i < patterns.size(); i++) {
         final Object o = patterns.get(i);
         patternKeys[i] = SignalDetector.PATTERN[i];
         patternParams.put(SignalDetector.PATTERN[i], o);
+      }
+
+      // process terminate char.
+      if (cmd.getTerminateChar() != null) {
+        patternParams.put(SignalDetector.PATTERN[i], cmd.getTerminateChar());
+        rtcs.add(new RTC(SignalDetector.PATTERN_MATCH[i], SignalDetector.STOP));
       }
       if (patterns.size() > 0) {
         _group.setParameters(patternParams);
@@ -502,6 +547,9 @@ public class GenericMediaService implements MediaService {
         else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED || patternMatched(e)) {
           cause = InputCompleteEvent.Cause.MATCH;
         }
+        else if (_cmd.getTerminateChar() != null && e.getQualifier() == SignalDetectorEvent.RTC_TRIGGERED) {
+          cause = InputCompleteEvent.Cause.CANCEL;
+        }
         final InputCompleteEvent inputCompleteEvent = new InputCompleteEvent(_parent, cause);
         inputCompleteEvent.setUtterance(signal);
         inputCompleteEvent.setConcept(signal);
@@ -554,7 +602,7 @@ public class GenericMediaService implements MediaService {
         else if (q == ResourceEvent.STOPPED) {
           cause = RecordCompleteEvent.Cause.CANCEL;
         }
-        final RecordCompleteEvent recordCompleteEvent = new RecordCompleteEvent(_parent, cause);
+        final RecordCompleteEvent recordCompleteEvent = new RecordCompleteEvent(_parent, cause, e.getDuration());
         _recording.done(recordCompleteEvent);
         _parent.dispatch(recordCompleteEvent);
       }
