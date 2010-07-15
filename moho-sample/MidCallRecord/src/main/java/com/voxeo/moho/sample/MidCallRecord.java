@@ -29,6 +29,7 @@ import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.media.Recording;
+import com.voxeo.moho.media.record.RecordCommand;
 
 public class MidCallRecord implements Application {
 
@@ -64,7 +65,10 @@ public class MidCallRecord implements Application {
           media = new URL(_mediaLocation + System.getProperty("file.separator") + new Date().getTime()
               + "_recording.au");
 
-          Recording recording = ((Call) evt.getSource()).getMediaService().record(media);
+          RecordCommand command = new RecordCommand(media);
+          command.setInitialTimeout(20 * 1000);
+          command.setFinalTimeout(60 * 1000);
+          Recording recording = ((Call) evt.getSource()).getMediaService().record(command);
           evt.getSource().setAttribute("Recording", recording);
           evt.getSource().setApplicationState("waitStop");
 
