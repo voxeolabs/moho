@@ -648,7 +648,9 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     if (isNoAnswered(old)) {
       try {
         if (this instanceof SIPOutgoingCall) {
-          _invite.createCancel().send();
+          if (_invite != null) {
+            _invite.createCancel().send();
+          }
         }
         else {
           _invite.createResponse(SipServletResponse.SC_DECLINE).send();
