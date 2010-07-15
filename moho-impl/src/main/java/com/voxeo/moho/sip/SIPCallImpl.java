@@ -1,14 +1,11 @@
 /**
- * Copyright 2010 Voxeo Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License.
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
+ * Copyright 2010 Voxeo Corporation Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -43,8 +40,11 @@ import javax.servlet.sip.SipSessionsUtil;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ApplicationContextImpl;
+import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
+import com.voxeo.moho.CanceledException;
+import com.voxeo.moho.DisconnectedException;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.JoinWorker;
@@ -55,12 +55,17 @@ import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
+import com.voxeo.moho.RedirectException;
+import com.voxeo.moho.RejectException;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.TimeoutException;
+import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.event.EventState;
 import com.voxeo.moho.event.ForwardableEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.SignalEvent;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.util.SessionUtils;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
@@ -107,21 +112,21 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     _invite = req;
 
     // process Replaces header.
-    SipSessionsUtil sessionUtil = (SipSessionsUtil) _invite.getSession().getServletContext().getAttribute(
+    final SipSessionsUtil sessionUtil = (SipSessionsUtil) _invite.getSession().getServletContext().getAttribute(
         "javax.servlet.sip.SipSessionsUtil");
     if (sessionUtil != null) {
-      SipSession peerSession = sessionUtil.getCorrespondingSipSession(_invite.getSession(), "Replaces");
+      final SipSession peerSession = sessionUtil.getCorrespondingSipSession(_invite.getSession(), "Replaces");
       if (peerSession != null) {
-        SIPCallImpl call = (SIPCallImpl) SessionUtils.getParticipant(peerSession);
-        SipSession replacedSession = ((SIPCallImpl) call.getLastPeer()).getSipSession();
+        final SIPCallImpl call = (SIPCallImpl) SessionUtils.getParticipant(peerSession);
+        final SipSession replacedSession = ((SIPCallImpl) call.getLastPeer()).getSipSession();
 
-        String callId = replacedSession.getCallId();
-        String toTag = replacedSession.getRemoteParty().getParameter("tag");
-        String fromTag = replacedSession.getLocalParty().getParameter("tag");
+        final String callId = replacedSession.getCallId();
+        final String toTag = replacedSession.getRemoteParty().getParameter("tag");
+        final String fromTag = replacedSession.getLocalParty().getParameter("tag");
 
         // the format
         // Replaces: call-id;to-tag=7743;from-tag=6472
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append(callId);
         sb.append(";to-tag=");
         sb.append(toTag);
@@ -167,7 +172,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   }
 
   public String useReplacesHeader() {
-    String ret = _replacesHeader;
+    final String ret = _replacesHeader;
     _replacesHeader = null;
     return ret;
   }
@@ -206,7 +211,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     if (_network == null) {
       if (reinvite) {
         try {
-          this.join();
+          this.join().get();
         }
         catch (final Exception e) {
           throw new MediaException(e);
@@ -394,8 +399,19 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     return new JointImpl(_context.getExecutor(), new JoinWorker() {
       @Override
       public JoinCompleteEvent call() throws Exception {
-        doJoin(direction);
-        return new JoinCompleteEvent(SIPCallImpl.this, null);
+        JoinCompleteEvent event = null;
+        try {
+          doJoin(direction);
+          event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.JOINED);
+        }
+        catch (final Exception e) {
+          event = handleJoinException(e);
+          throw e;
+        }
+        finally {
+          SIPCallImpl.this.dispatch(event);
+        }
+        return event;
       }
 
       @Override
@@ -413,7 +429,6 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
    */
   protected void joinWithoutCheckOperation(final Direction direction) throws Exception {
     checkState();
-
     doJoinWithoutCheckOperation(direction);
   }
 
@@ -424,13 +439,25 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     return new JointImpl(_context.getExecutor(), new JoinWorker() {
       @Override
       public JoinCompleteEvent call() throws Exception {
-        if (other instanceof SIPCallImpl) {
-          doJoin((SIPCallImpl) other, type, direction);
+        JoinCompleteEvent event = null;
+        try {
+          if (other instanceof SIPCallImpl) {
+            doJoin((SIPCallImpl) other, type, direction);
+          }
+          else {
+            doJoin(other, type, direction);
+          }
+          event = new JoinCompleteEvent(SIPCallImpl.this, other, Cause.JOINED);
         }
-        else {
-          doJoin(other, type, direction);
+        catch (final Exception e) {
+          event = handleJoinException(e);
+          throw e;
         }
-        return new JoinCompleteEvent(SIPCallImpl.this, other);
+        finally {
+          SIPCallImpl.this.dispatch(event);
+          // other.dispatch(event);
+        }
+        return event;
       }
 
       @Override
@@ -479,6 +506,9 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     if (isTerminated()) {
       LOG.debug(this + " is already terminated.");
       return;
+    }
+    if (_joinDelegate != null) {
+      _joinDelegate.setException(new DisconnectedException());
     }
     this.setSIPCallState(State.DISCONNECTED);
     terminate();
@@ -658,8 +688,8 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     else {
       this.notifyAll();
     }
-    _joinDelegate = null;
     _callDelegate = null;
+    this.dispatch(new CallCompleteEvent(this));
   }
 
   protected SipServletRequest getSipInitnalRequest() {
@@ -853,10 +883,17 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           // ignore
         }
       }
-      if (_joinDelegate != null && _joinDelegate.getException() != null) {
-        final Exception e = _joinDelegate.getException();
-        _joinDelegate.setException(null);
-        throw e;
+      if (_joinDelegate != null) {
+        if (_joinDelegate.getException() != null) {
+          final Exception e = _joinDelegate.getException();
+          _joinDelegate.setException(null);
+          throw e;
+        }
+        if (_joinDelegate.getError() != null) {
+          final Exception e = _joinDelegate.getError();
+          _joinDelegate.setError(null);
+          throw e;
+        }
       }
       if (!this.isAnswered()) {
         throw new IllegalStateException(this + " is no answered.");
@@ -889,10 +926,17 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           // ignore
         }
       }
-      if (_joinDelegate != null && _joinDelegate.getException() != null) {
-        final Exception e = _joinDelegate.getException();
-        _joinDelegate.setException(null);
-        throw e;
+      if (_joinDelegate != null) {
+        if (_joinDelegate.getException() != null) {
+          final Exception e = _joinDelegate.getException();
+          _joinDelegate.setException(null);
+          throw e;
+        }
+        if (_joinDelegate.getError() != null) {
+          final Exception e = _joinDelegate.getError();
+          _joinDelegate.setError(null);
+          throw e;
+        }
       }
       if (!this.isAnswered()) {
         throw new IllegalStateException(this + " is no answered.");
@@ -931,10 +975,17 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           }
         }
       }
-      if (_joinDelegate != null && _joinDelegate.getException() != null) {
-        final Exception e = _joinDelegate.getException();
-        _joinDelegate.setException(null);
-        throw e;
+      if (_joinDelegate != null) {
+        if (_joinDelegate.getException() != null) {
+          final Exception e = _joinDelegate.getException();
+          _joinDelegate.setException(null);
+          throw e;
+        }
+        if (_joinDelegate.getError() != null) {
+          final Exception e = _joinDelegate.getError();
+          _joinDelegate.setError(null);
+          throw e;
+        }
       }
       if (!this.isAnswered() || !other.isAnswered()) {
         throw new IllegalStateException(this + " is no answered.");
@@ -955,7 +1006,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   }
 
   protected synchronized void doJoin(final Participant other, final JoinType type, final Direction direction)
-      throws MsControlException {
+      throws Exception {
     if (!(other.getMediaObject() instanceof Joinable)) {
       throw new IllegalArgumentException("MediaObject is't joinable.");
     }
@@ -965,7 +1016,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     }
     unlinkDirectlyPeer();
     if (_network == null) {
-      this.join();
+      this.join().get();
     }
     ((Joinable) other.getMediaObject()).join(direction, _network);
     _joinees.add(other, type, direction);
@@ -1062,7 +1113,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   /**
    * send a sendonly SDP and stop to send media data to this endpoint
    */
-  public synchronized void hold(boolean send) {
+  public synchronized void hold(final boolean send) {
     if (this.getSIPCallState() != State.ANSWERED) {
       throw new IllegalStateException("call have not been answered");
     }
@@ -1252,5 +1303,31 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     finally {
       _operationInProcess = false;
     }
+  }
+
+  private JoinCompleteEvent handleJoinException(final Exception e) {
+    JoinCompleteEvent event = null;
+    if (e instanceof BusyException) {
+      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.BUSY, e);
+    }
+    else if (e instanceof TimeoutException) {
+      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.TIMEOUT, e);
+    }
+    else if (e instanceof RedirectException) {
+      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.REDIRECT, e);
+    }
+    else if (e instanceof RejectException) {
+      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.REJECT, e);
+    }
+    else if (e instanceof CanceledException) {
+      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.CANCELED, e);
+    }
+    else if (e instanceof DisconnectedException) {
+      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.DISCONNECTED, e);
+    }
+    else {
+      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.ERROR, e);
+    }
+    return event;
   }
 }

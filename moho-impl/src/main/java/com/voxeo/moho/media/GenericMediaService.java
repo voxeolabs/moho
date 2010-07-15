@@ -189,6 +189,7 @@ public class GenericMediaService implements MediaService {
       if (output.isBargein()) {
         // rtcs.add(MediaGroup.SIGDET_STOPPLAY);
         rtcs.add(new RTC(SignalDetector.DETECTION_OF_ONE_SIGNAL, Player.STOP_ALL));
+        params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
       }
       params.put(Player.MAX_DURATION, output.getTimeout());
       params.put(Player.START_OFFSET, output.getOffset());
