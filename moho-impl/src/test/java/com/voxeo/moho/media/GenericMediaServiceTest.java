@@ -179,7 +179,7 @@ public class GenericMediaServiceTest extends TestCase {
 
           allowing(mediaEvent1).getQualifier();
           will(returnValue(RecorderEvent.SILENCE));
-          
+
           allowing(mediaEvent1).getDuration();
           will(returnValue(10));
         }
@@ -315,7 +315,7 @@ public class GenericMediaServiceTest extends TestCase {
 
           allowing(mediaEvent3).getQualifier();
           will(returnValue(RecorderEvent.STOPPED));
-          
+
           allowing(mediaEvent3).getDuration();
           will(returnValue(10));
         }
@@ -825,7 +825,7 @@ public class GenericMediaServiceTest extends TestCase {
     // verify the result.
     assertTrue(event != null);
     assertTrue(event.getCause() == InputCompleteEvent.Cause.MATCH);
-    assertTrue(group.settedParameters.get(SignalDetector.PATTERN[0]).equals("123"));
+    assertTrue(group.settedParameters.get(SignalDetector.PATTERN[0]) instanceof URI);
     mockery.assertIsSatisfied();
   }
 }

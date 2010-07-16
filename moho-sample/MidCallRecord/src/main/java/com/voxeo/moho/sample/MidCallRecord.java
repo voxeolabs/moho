@@ -26,6 +26,7 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.DisconnectEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.media.Recording;
@@ -49,11 +50,31 @@ public class MidCallRecord implements Application {
 
   @State
   public void handleInvite(final InviteEvent event) throws Exception {
-    final Call call = event.acceptCall(this);
-    call.join(event.getInvitee(), JoinType.BRIDGE, Direction.DUPLEX).get();
-    final MediaService mg = call.getMediaService(true);
-    call.setApplicationState("waitForInput");
+    final Call partyA = event.acceptCall(this);
+    partyA.setSupervised(true);
+
+    // Call partyB = event.getInvitee().call(event.getInvitor(), null, this);
+    // partyB.setSupervised(true);
+    //
+    // partyA.join(partyB, JoinType.BRIDGE, Direction.DUPLEX).get();
+
+    partyA.join(event.getInvitee(), JoinType.BRIDGE, Direction.DUPLEX).get();
+
+    final MediaService mg = partyA.getMediaService(true);
+    partyA.setApplicationState("waitForInput");
     mg.input("**");
+  }
+
+  @State
+  public void handleDisconnect(final DisconnectEvent event) {
+    if (event.source instanceof Call) {
+      Call call = (Call) event.source;
+
+      Call peer = call.getPeers()[0];
+      peer.unjoin(call);
+
+      peer.getMediaService().output("Hello, The peer disconnect.");
+    }
   }
 
   @State("waitForInput")
