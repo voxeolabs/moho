@@ -14,7 +14,9 @@
 
 package com.voxeo.moho.event;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
@@ -43,6 +45,10 @@ public class EventDispatcher {
   private Executor executor = SynchronousExecutor.get();
 
   private Lock lifecycleLock = new ReentrantLock();
+
+  private Queue<FutureTask<?>> _queue = new LinkedList<FutureTask<?>>();
+
+  private boolean processorRunning = false;
 
   public EventDispatcher() {
   }
@@ -214,8 +220,38 @@ public class EventDispatcher {
       }
     }, event);
 
-    executor.execute(task);
+    synchronized (_queue) {
+      boolean excuteProcessor = false;
+      _queue.offer(task);
+
+      if (!processorRunning) {
+        processorRunning = true;
+        excuteProcessor = true;
+      }
+
+      if (excuteProcessor) {
+        executor.execute(new TaskProcessor());
+      }
+    }
+
     return task;
+  }
+
+  private class TaskProcessor implements Runnable {
+    public void run() {
+      while (true) {
+        FutureTask<?> task = null;
+        synchronized (_queue) {
+          task = _queue.poll();
+          if (task == null) {
+            processorRunning = false;
+            break;
+          }
+        }
+
+        task.run();
+      }
+    }
   }
 
   public void setExecutor(final Executor executor) {

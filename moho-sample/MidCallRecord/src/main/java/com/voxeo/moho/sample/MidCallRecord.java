@@ -53,12 +53,12 @@ public class MidCallRecord implements Application {
     final Call partyA = event.acceptCall(this);
     partyA.setSupervised(true);
 
-    // Call partyB = event.getInvitee().call(event.getInvitor(), null, this);
-    // partyB.setSupervised(true);
-    //
-    // partyA.join(partyB, JoinType.BRIDGE, Direction.DUPLEX).get();
+    Call partyB = event.getInvitee().call(event.getInvitor(), null, this);
+    partyB.setSupervised(true);
 
-    partyA.join(event.getInvitee(), JoinType.BRIDGE, Direction.DUPLEX).get();
+    partyA.join(partyB, JoinType.BRIDGE, Direction.DUPLEX).get();
+
+    // partyA.join(event.getInvitee(), JoinType.BRIDGE, Direction.DUPLEX).get();
 
     final MediaService mg = partyA.getMediaService(true);
     partyA.setApplicationState("waitForInput");

@@ -18,13 +18,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.AttributeStoreImpl;
 import com.voxeo.moho.ExecutionContext;
-import com.voxeo.moho.util.Utils.DaemonThreadFactory;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
 
@@ -47,8 +45,8 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
   protected ConcurrentHashMap<Observer, AutowiredEventListener> _observers = new ConcurrentHashMap<Observer, AutowiredEventListener>();
 
   public DispatchableEventSource(final ExecutionContext applicationContext) {
-    _dispatcher.setExecutor(getThreadPool());
     _context = applicationContext;
+    _dispatcher.setExecutor(getThreadPool());
     _id = UUID.randomUUID().toString(); // TODO: better one?
   }
 
@@ -158,7 +156,7 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
   }
 
   protected Executor getThreadPool() {
-    return Executors.newSingleThreadExecutor(new DaemonThreadFactory());
+    return _context.getExecutor();
   }
 
 }
