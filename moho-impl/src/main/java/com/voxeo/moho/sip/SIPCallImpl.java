@@ -410,6 +410,9 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
         }
         finally {
           SIPCallImpl.this.dispatch(event);
+          if (isTerminated()) {
+            SIPCallImpl.this.dispatch(new CallCompleteEvent(SIPCallImpl.this));
+          }
         }
         return event;
       }
@@ -455,6 +458,9 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
         }
         finally {
           SIPCallImpl.this.dispatch(event);
+          if (isTerminated()) {
+            SIPCallImpl.this.dispatch(new CallCompleteEvent(SIPCallImpl.this));
+          }
           // other.dispatch(event);
         }
         return event;
@@ -689,9 +695,9 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     }
     else {
       this.notifyAll();
+      this.dispatch(new CallCompleteEvent(this));
     }
     _callDelegate = null;
-    this.dispatch(new CallCompleteEvent(this));
   }
 
   protected SipServletRequest getSipInitnalRequest() {
