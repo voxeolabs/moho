@@ -56,8 +56,7 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-api</artifactId>
-      <version>0.5</version>
-      <scope>provided</scope>       
+      <version>0.5</version>   
     </dependency> 
   </dependencies>
     

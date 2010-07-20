@@ -65,6 +65,7 @@ import com.voxeo.moho.media.output.AudioURLResource;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
+import com.voxeo.mscontrol.VoxeoParameter;
 
 public class GenericMediaService implements MediaService {
 
@@ -421,9 +422,9 @@ public class GenericMediaService implements MediaService {
 
       // process terminate char.
       if (cmd.getTerminateChar() != null) {
-        patternParams.put(SignalDetector.PATTERN[i], cmd.getTerminateChar());
-        rtcs.add(new RTC(SignalDetector.PATTERN_MATCH[i], SignalDetector.STOP));
+        patternParams.put(VoxeoParameter.DTMF_TERM_CHAR, cmd.getTerminateChar());
       }
+
       if (patterns.size() > 0) {
         _group.setParameters(patternParams);
       }
@@ -552,8 +553,10 @@ public class GenericMediaService implements MediaService {
           cause = InputCompleteEvent.Cause.CANCEL;
         }
         final InputCompleteEvent inputCompleteEvent = new InputCompleteEvent(_parent, cause);
-        inputCompleteEvent.setUtterance(signal);
         inputCompleteEvent.setConcept(signal);
+        if(e instanceof SpeechRecognitionEvent){
+          inputCompleteEvent.setUtterance(((SpeechRecognitionEvent) e).getUserInput());
+        }
         _input.done(inputCompleteEvent);
         if (_cmd.isSupervised()) {
           _parent.dispatch(inputCompleteEvent);

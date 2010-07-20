@@ -106,14 +106,14 @@ public class InputCompleteEvent extends MediaCompleteEvent {
   public boolean hasMatch() {
     return successful;
   }
-  
+
   public String getValue() {
     String retval = getConcept();
     if (retval == null) {
-        retval = getInterpretation();
+      retval = getUtterance();
     }
     if (retval == null) {
-        retval = getUtterance();
+      retval = getInterpretation();
     }
     return retval;
   }
