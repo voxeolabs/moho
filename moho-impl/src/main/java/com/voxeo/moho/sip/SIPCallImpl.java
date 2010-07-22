@@ -223,12 +223,16 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     }
 
     try {
+      Direction direction = Direction.DUPLEX;
+      if (_joinees.getJoinees().length > 0) {
+        direction = Direction.RECV;
+      }
       if (_service == null) {
         _service = _context.getMediaServiceFactory().create(this, _media);
-        _service.getMediaGroup().join(Direction.DUPLEX, _network);
+        _service.getMediaGroup().join(direction, _network);
       }
       else if (reinvite) {
-        _service.getMediaGroup().join(Direction.DUPLEX, _network);
+        _service.getMediaGroup().join(direction, _network);
       }
     }
     catch (final Exception e) {
