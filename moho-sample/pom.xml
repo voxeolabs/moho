@@ -58,6 +58,11 @@
       <artifactId>moho-api</artifactId>
       <version>0.5</version>   
     </dependency> 
+    <dependency>
+      <groupId>com.voxeo.moho</groupId>
+      <artifactId>moho-impl</artifactId>
+      <version>0.5</version>   
+    </dependency>
   </dependencies>
     
 </project>

@@ -44,6 +44,7 @@ import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.MediaResourceDisconnectEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 
 public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer {
@@ -153,6 +154,8 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
       LOG.warn("Exception when release MediaSession", e);
     }
     _media = null;
+
+    this.dispatch(new MediaResourceDisconnectEvent(this));
   }
 
   @Override

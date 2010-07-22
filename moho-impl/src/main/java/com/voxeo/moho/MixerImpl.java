@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.MediaResourceDisconnectEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 
 public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer {
@@ -128,6 +129,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       LOG.warn("Exception when release mediaSession", e);
     }
     _media = null;
+    
+    this.dispatch(new MediaResourceDisconnectEvent(this));
   }
 
   @Override
