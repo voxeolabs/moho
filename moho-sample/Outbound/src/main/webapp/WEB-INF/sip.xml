@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sip-app>
+  <app-name>MohoSampleOutbound</app-name>
+
+  <servlet>
+    <servlet-name>Controller</servlet-name>
+    <servlet-class>com.voxeo.moho.sip.SIPController</servlet-class>
+    <init-param>
+      <param-name>ApplicationClass</param-name>
+      <param-value>com.voxeo.moho.sample.Outbound</param-value>
+    </init-param>
+    <init-param>
+      <param-name>party1</param-name>
+      <param-value>sip:party1@address:port
+      </param-value>
+    </init-param>
+    <init-param>
+      <param-name>party2</param-name>
+      <param-value>party2@address:port
+      </param-value>
+    </init-param>
+    <init-param>
+      <param-name>time</param-name>
+      <param-value>10000
+      </param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-selection>
+    <main-servlet>Controller</main-servlet>
+  </servlet-selection>
+</sip-app>

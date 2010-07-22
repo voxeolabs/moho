@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sip-app>
+  <app-name>MohoSampleBlackList</app-name>
+
+  <servlet>
+    <servlet-name>Controller</servlet-name>
+    <servlet-class>com.voxeo.moho.sip.SIPController</servlet-class>
+    <init-param>
+      <param-name>ApplicationClass</param-name>
+      <param-value>com.voxeo.moho.sample.BlackList</param-value>
+    </init-param>
+    <init-param>
+      <param-name>BlackList</param-name>
+      <param-value>blacklist.file
+      </param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-selection>
+    <main-servlet>Controller</main-servlet>
+  </servlet-selection>
+</sip-app>
