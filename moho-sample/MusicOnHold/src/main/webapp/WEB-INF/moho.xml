@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<application name="MohoSampleMusicOnHold" class="com.voxeo.moho.sample.MusicOnHold">
-  <parameter name="MediaLocation" value="ftp://ftpserver/media/ring.mp3" />
-</application>

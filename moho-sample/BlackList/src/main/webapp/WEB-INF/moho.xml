@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<application name="MohoSampleBlackList" class="com.voxeo.moho.sample.BlackList">
-   <!-- <parameter name="BlackList" value="blacklist.file" />  -->
-</application>

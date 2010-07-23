@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<application name="MohoSampleMidCallRecord" class="com.voxeo.moho.sample.MidCallRecord">
-  <!--<parameter name="MediaLocation" value="ftp://ftpserver/media"/> -->
-</application>

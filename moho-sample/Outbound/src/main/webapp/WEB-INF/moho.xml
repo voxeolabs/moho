@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<application name="MohoSampleOutbound" class="com.voxeo.moho.sample.Outbound">
-  <!-- <parameter name="party1" value="sip:party1@address:port"/>
-  <parameter name="party2" value="sip:party2@address:port"/>
-  <parameter name="time" value="10000"/> -->   
-</application>

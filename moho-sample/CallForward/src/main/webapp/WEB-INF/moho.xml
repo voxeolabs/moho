@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<application name="MohoSampleCallForward" class="com.voxeo.moho.sample.CallForward">
-  <!-- <parameter name="target" value="sip:target@address:port"/> -->
-</application>
