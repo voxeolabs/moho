@@ -14,8 +14,8 @@
 
 package com.voxeo.moho.sample;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -62,7 +62,7 @@ public class MidCallRecord implements Application {
 
     final MediaService mg = partyA.getMediaService(true);
     partyA.setApplicationState("waitForInput");
-    mg.input("**");
+    mg.input("* *");
   }
 
   @State
@@ -81,9 +81,9 @@ public class MidCallRecord implements Application {
   public void inputComplete(final InputCompleteEvent evt) {
     switch (evt.getCause()) {
       case MATCH:
-        URL media = null;
+        URI media = null;
         try {
-          media = new URL(_mediaLocation + System.getProperty("file.separator") + new Date().getTime()
+          media = new URI(_mediaLocation + System.getProperty("file.separator") + new Date().getTime()
               + "_recording.au");
 
           RecordCommand command = new RecordCommand(media);
@@ -96,8 +96,8 @@ public class MidCallRecord implements Application {
           MediaService mg = ((Call) evt.getSource()).getMediaService();
           mg.input("1");
         }
-        catch (MalformedURLException e) {
-          System.out.print("can't record, MalformedURLException, please configure MediaLocation parameter correctly.");
+        catch (URISyntaxException e) {
+          System.out.print("can't record, URISyntaxException, please configure MediaLocation parameter correctly.");
         }
     }
   }

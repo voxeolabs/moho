@@ -14,8 +14,8 @@
 
 package com.voxeo.moho.sample;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.media.mscontrol.join.Joinable;
 
@@ -30,7 +30,7 @@ import com.voxeo.moho.event.ReInviteEvent;
 
 public class MusicOnHold implements Application {
 
-  URL _media;
+  URI _media;
 
   @Override
   public void destroy() {
@@ -44,9 +44,9 @@ public class MusicOnHold implements Application {
       if (mediaLocation == null) {
         throw new IllegalArgumentException();
       }
-      _media = new URL(mediaLocation);
+      _media = new URI(mediaLocation);
     }
-    catch (final MalformedURLException e) {
+    catch (final URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }

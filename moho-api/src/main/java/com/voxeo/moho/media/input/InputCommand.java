@@ -14,7 +14,7 @@
 
 package com.voxeo.moho.media.input;
 
-import java.net.URL;
+import java.net.URI;
 
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.resource.RTC;
@@ -42,7 +42,7 @@ public class InputCommand {
 
   protected boolean _record = false;
 
-  protected URL _recordURL = null;
+  protected URI _recordURI = null;
 
   protected boolean _buffering = true;
 
@@ -111,12 +111,12 @@ public class InputCommand {
     _record = flag;
   }
 
-  public URL getRecordURL() {
-    return _recordURL;
+  public URI getRecordURI() {
+    return _recordURI;
   }
 
-  public void setRecordURL(final URL url) {
-    _recordURL = url;
+  public void setRecordURI(final URI uri) {
+    _recordURI = uri;
   }
 
   public void setConfidence(final float confidence) {

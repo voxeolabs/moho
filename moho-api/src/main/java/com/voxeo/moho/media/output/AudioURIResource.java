@@ -15,16 +15,8 @@
 package com.voxeo.moho.media.output;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
-import org.apache.log4j.Logger;
-
-public class AudioURLResource extends AudibleResource {
-
-  private static final Logger LOG = Logger.getLogger(AudioURLResource.class);
-
-  protected URL _url;
+public class AudioURIResource extends AudibleResource {
 
   protected URI _uri;
 
@@ -32,27 +24,22 @@ public class AudioURLResource extends AudibleResource {
 
   protected TextToSpeechResource _alternative;
 
-  public AudioURLResource(final URL url, final String type) {
-    setMedia(url, type);
-  }
-
-  public URL getMedia() {
-    return _url;
+  public AudioURIResource(final URI uri, final String type) {
+    _uri = uri;
+    _type = type;
   }
 
   public String getType() {
     return _type;
   }
 
-  public void setMedia(final URL url, final String type) {
-    _url = url;
+  public void setMedia(final URI uri, final String type) {
+    _uri = uri;
     _type = type;
-    makeURI();
   }
 
   public void setAlternative(final TextToSpeechResource text) {
     _alternative = text;
-    makeURI();
   }
 
   public TextToSpeechResource getAlternative() {
@@ -61,19 +48,9 @@ public class AudioURLResource extends AudibleResource {
 
   @Override
   public URI toURI() {
-    return _uri;
-  }
-
-  protected void makeURI() {
-    try {
-      _uri = _url.toURI();
+    if (_uri != null) {
+      return _uri;
     }
-    catch (final URISyntaxException e) {
-      LOG.error("Exception when convert url to URI", e);
-      if (getAlternative() != null) {
-        _uri = getAlternative().toURI();
-      }
-
-    }
+    return getAlternative().toURI();
   }
 }

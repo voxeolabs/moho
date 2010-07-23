@@ -16,7 +16,7 @@ package com.voxeo.moho.media;
 
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
+import java.net.URISyntaxException;
 
 import javax.media.mscontrol.Configuration;
 import javax.media.mscontrol.MediaEventListener;
@@ -150,10 +150,10 @@ public class GenericMediaServiceTest extends TestCase {
   /**
    * @throws MalformedURLException
    */
-  public void testRecordURLComplete() throws MalformedURLException {
+  public void testRecordURLComplete() throws URISyntaxException {
 
     // prepare
-    final URL url = new URL("http://TEST");
+    final URI url = new URI("http://TEST");
 
     // mock record start event.
     final RecorderEvent mediaEvent0 = mockery.mock(RecorderEvent.class, "mediaEvent0");
@@ -193,7 +193,7 @@ public class GenericMediaServiceTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(recorder).record(url.toURI(), null, null);
+          oneOf(recorder).record(url, null, null);
           will(new Action() {
             @Override
             public void describeTo(final Description description) {
@@ -261,10 +261,10 @@ public class GenericMediaServiceTest extends TestCase {
   /**
    * @throws MalformedURLException
    */
-  public void testRecordURL() throws MalformedURLException {
+  public void testRecordURL() throws URISyntaxException {
 
     // prepare.
-    final URL url = new URL("http://TEST");
+    final URI uri = new URI("http://TEST");
 
     // mock record start event.
     final RecorderEvent mediaEvent0 = mockery.mock(RecorderEvent.class, "mediaEvent0");
@@ -329,7 +329,7 @@ public class GenericMediaServiceTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(recorder).record(url.toURI(), null, null);
+          oneOf(recorder).record(uri, null, null);
           will(new Action() {
             @Override
             public void describeTo(final Description description) {
@@ -434,7 +434,7 @@ public class GenericMediaServiceTest extends TestCase {
     RecordCompleteEvent event = null;
     // execute
     try {
-      recording = service.record(url);
+      recording = service.record(uri);
 
       recording.pause();
       recording.resume();

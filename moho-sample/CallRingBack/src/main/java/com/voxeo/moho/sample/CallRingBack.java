@@ -14,8 +14,8 @@
 
 package com.voxeo.moho.sample;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.mediagroup.MediaGroup;
@@ -27,12 +27,12 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.InviteEvent;
-import com.voxeo.moho.media.output.AudioURLResource;
+import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
 
 public class CallRingBack implements Application {
 
-  URL _media;
+  URI _media;
 
   @Override
   public void destroy() {
@@ -46,9 +46,9 @@ public class CallRingBack implements Application {
       if (mediaLocation == null) {
         throw new IllegalArgumentException();
       }
-      _media = new URL(mediaLocation);
+      _media = new URI(mediaLocation);
     }
-    catch (final MalformedURLException e) {
+    catch (final URISyntaxException e) {
       throw new RuntimeException(e);
     }
   }
@@ -58,7 +58,7 @@ public class CallRingBack implements Application {
     final Call call = e.acceptCallWithEarlyMedia(this);
 
     // set RTC, if the user press any button, stop the play.
-    OutputCommand outcommand = new OutputCommand(new AudioURLResource(_media, null));
+    OutputCommand outcommand = new OutputCommand(new AudioURIResource(_media, null));
     RTC[] rtcs = new RTC[] {MediaGroup.SIGDET_STOPPLAY};
     outcommand.setRtcs(rtcs);
 

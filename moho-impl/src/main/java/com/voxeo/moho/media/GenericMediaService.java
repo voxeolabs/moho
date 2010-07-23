@@ -61,7 +61,7 @@ import com.voxeo.moho.media.input.Grammar;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.input.InputCommand.Type;
-import com.voxeo.moho.media.output.AudioURLResource;
+import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
@@ -136,7 +136,7 @@ public class GenericMediaService implements MediaService {
   }
 
   @Override
-  public Output output(final URL media) throws MediaException {
+  public Output output(final URI media) throws MediaException {
     return prompt(media, null, 0).getOutput();
   }
 
@@ -153,8 +153,8 @@ public class GenericMediaService implements MediaService {
   }
 
   @Override
-  public Prompt prompt(final URL media, final String grammar, final int repeat) throws MediaException {
-    final OutputCommand output = media == null ? null : new OutputCommand(new AudioURLResource(media, null));
+  public Prompt prompt(final URI media, final String grammar, final int repeat) throws MediaException {
+    final OutputCommand output = media == null ? null : new OutputCommand(new AudioURIResource(media, null));
     final InputCommand input = grammar == null ? null : new InputCommand(new SimpleGrammar(grammar));
     return prompt(output, input, repeat);
   }
@@ -239,11 +239,11 @@ public class GenericMediaService implements MediaService {
   }
 
   @Override
-  public Recording record(final URL recording) throws MediaException {
+  public Recording record(final URI recording) throws MediaException {
     final RecordingImpl retval = new RecordingImpl(_group);
     try {
       _recorder.addListener(new RecorderListener(retval));
-      _recorder.record(recording.toURI(), RTC.NO_RTC, Parameters.NO_PARAMETER);
+      _recorder.record(recording, RTC.NO_RTC, Parameters.NO_PARAMETER);
       retval.prepare();
       return retval;
     }
@@ -347,7 +347,7 @@ public class GenericMediaService implements MediaService {
       }
 
       _recorder.addListener(new RecorderListener(retval));
-      _recorder.record(command.getRecordURL().toURI(), rtcs.toArray(new RTC[] {}), params);
+      _recorder.record(command.getRecordURI(), rtcs.toArray(new RTC[] {}), params);
       retval.prepare();
       return retval;
     }
@@ -359,7 +359,7 @@ public class GenericMediaService implements MediaService {
   protected Input detectSignal(final InputCommand cmd) throws MediaException {
     if (cmd.isRecord()) {
       try {
-        _recorder.record(cmd.getRecordURL().toURI(), cmd.getRtcs() != null ? cmd.getRtcs() : RTC.NO_RTC, cmd
+        _recorder.record(cmd.getRecordURI(), cmd.getRtcs() != null ? cmd.getRtcs() : RTC.NO_RTC, cmd
             .getParameters() != null ? cmd.getParameters() : Parameters.NO_PARAMETER);
       }
       catch (final Exception e) {

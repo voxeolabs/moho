@@ -14,7 +14,7 @@
 
 package com.voxeo.moho;
 
-import java.net.URL;
+import java.net.URI;
 
 import javax.media.mscontrol.mediagroup.MediaGroup;
 
@@ -50,7 +50,7 @@ public interface MediaService {
    * Render and output the resource to the call to which this service is
    * attached. If the current media channel is audio, the resource will be
    * rendered into audio based on the neogiated codec. If the current media
-   * channel is instant messaging, URL itself will be sent.
+   * channel is instant messaging, URI itself will be sent.
    * 
    * @param media
    *          the resource to be rendered and output.
@@ -58,7 +58,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Output output(URL media);
+  Output output(URI media);
 
   /**
    * Render and output content based on the {@link OutputCommand OutputCommand}
@@ -104,7 +104,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Prompt prompt(URL media, String grammar, int repeat);
+  Prompt prompt(URI media, String grammar, int repeat);
 
   /**
    * Equivalent of {@link #output(OutputCommand) output(output)} and
@@ -151,12 +151,12 @@ public interface MediaService {
    * records the call from the call to which this service is attached.
    * 
    * @param recording
-   *          the URL where to save the recording
+   *          the URI where to save the recording
    * @return an recording {@link java.util.concurrent.Future Future}.
    * @throws MediaException
    *           when there is media server error.
    */
-  Recording record(URL recording);
+  Recording record(URI recording);
 
   /**
    * records the call from the call to which this service is attached.

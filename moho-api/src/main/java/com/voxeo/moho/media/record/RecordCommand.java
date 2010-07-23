@@ -15,7 +15,6 @@
 package com.voxeo.moho.media.record;
 
 import java.net.URI;
-import java.net.URL;
 
 import javax.media.mscontrol.Value;
 
@@ -25,7 +24,7 @@ public class RecordCommand {
     DETECTOR_INACTIVE, DETECT_FIRST_OCCURRENCE, DETECT_ALL_OCCURRENCES
   }
 
-  protected URL _recordURL = null;
+  protected URI _recordURI = null;
 
   /**
    * APPEND Indicates that recording should append to the end of an existing TVM
@@ -184,13 +183,13 @@ public class RecordCommand {
     this._promptBargeIn = promptBargeIn;
   }
 
-  public RecordCommand(URL recordurl) {
+  public RecordCommand(URI recorduri) {
     super();
-    _recordURL = recordurl;
+    _recordURI = recorduri;
   }
 
-  public URL getRecordURL() {
-    return _recordURL;
+  public URI getRecordURI() {
+    return _recordURI;
   }
 
   public boolean isAppend() {
