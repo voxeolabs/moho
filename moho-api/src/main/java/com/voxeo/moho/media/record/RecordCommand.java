@@ -18,6 +18,8 @@ import java.net.URI;
 
 import javax.media.mscontrol.Value;
 
+import com.voxeo.moho.media.output.OutputCommand;
+
 public class RecordCommand {
 
   public enum SpeechDetectionMode {
@@ -88,7 +90,7 @@ public class RecordCommand {
   /**
    * PROMPT Indicates a prompt to be played before the recording starts.
    */
-  protected URI[] _prompt;
+  protected OutputCommand _prompt;
 
   /**
    * SIGNAL_TRUNCATION_ON Boolean indicating whether signal(DTMF) truncation is
@@ -141,12 +143,6 @@ public class RecordCommand {
   protected int videoMaxBitRate;
 
   /**
-   * BARGE_IN_ENABLED Controls whether the caller can start speaking before
-   * prompts have ended. Value is a Boolean. Default: Boolean.TRUE
-   */
-  protected boolean _promptBargeIn = true;
-
-  /**
    * Controls how long the recognizer should wait after the end of the prompt
    * for the caller to speak before sending a Recorder event (COMPLETED,
    * INITIAL_TIMEOUT_EXPIRED, null, NO_ERROR).
@@ -173,14 +169,6 @@ public class RecordCommand {
 
   public void setFinalTimeout(long finalTimeout) {
     this._finalTimeout = finalTimeout;
-  }
-
-  public boolean isPromptBargeIn() {
-    return _promptBargeIn;
-  }
-
-  public void setPromptBargeIn(boolean promptBargeIn) {
-    this._promptBargeIn = promptBargeIn;
   }
 
   public RecordCommand(URI recorduri) {
@@ -272,11 +260,11 @@ public class RecordCommand {
     this._minDuration = minDuration;
   }
 
-  public URI[] getPrompt() {
+  public OutputCommand getPrompt() {
     return _prompt;
   }
 
-  public void setPrompt(URI[] prompt) {
+  public void setPrompt(OutputCommand prompt) {
     this._prompt = prompt;
   }
 

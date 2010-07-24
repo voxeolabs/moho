@@ -31,7 +31,7 @@ public class OutputCommand {
 
   protected BehaviorIfBusy _behavior = BehaviorIfBusy.QUEUE;
 
-  protected boolean _bargein = false;
+  protected boolean _bargein = true;
 
   /**
    * MAX_DURATION

@@ -61,6 +61,7 @@ import com.voxeo.moho.media.input.Grammar;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.input.InputCommand.Type;
+import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
@@ -265,9 +266,6 @@ public class GenericMediaService implements MediaService {
       if (command.isAppend()) {
         params.put(Recorder.APPEND, Boolean.TRUE);
       }
-      if (!command.isPromptBargeIn()) {
-        params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.FALSE);
-      }
       if (command.getAudioClockRate() > 0) {
         params.put(Recorder.AUDIO_CLOCKRATE, command.getAudioClockRate());
       }
@@ -305,7 +303,19 @@ public class GenericMediaService implements MediaService {
         params.put(Recorder.MIN_DURATION, command.getMinDuration());
       }
       if (command.getPrompt() != null) {
-        params.put(Recorder.PROMPT, command.getPrompt());
+        AudibleResource[] resources = command.getPrompt().getAudibleResources();
+        if (resources.length > 0) {
+          URI[] uris = new URI[resources.length];
+
+          for (int i = 0; i < resources.length; i++) {
+            uris[i] = resources[i].toURI();
+          }
+          params.put(Recorder.PROMPT, uris);
+        }
+
+        if (command.getPrompt().isBargein()) {
+          params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
+        }
       }
       if (command.isSilenceTerminationOn()) {
         params.put(Recorder.SILENCE_TERMINATION_ON, Boolean.TRUE);
@@ -359,8 +369,8 @@ public class GenericMediaService implements MediaService {
   protected Input detectSignal(final InputCommand cmd) throws MediaException {
     if (cmd.isRecord()) {
       try {
-        _recorder.record(cmd.getRecordURI(), cmd.getRtcs() != null ? cmd.getRtcs() : RTC.NO_RTC, cmd
-            .getParameters() != null ? cmd.getParameters() : Parameters.NO_PARAMETER);
+        _recorder.record(cmd.getRecordURI(), cmd.getRtcs() != null ? cmd.getRtcs() : RTC.NO_RTC,
+            cmd.getParameters() != null ? cmd.getParameters() : Parameters.NO_PARAMETER);
       }
       catch (final Exception e) {
         throw new MediaException(e);
@@ -554,7 +564,7 @@ public class GenericMediaService implements MediaService {
         }
         final InputCompleteEvent inputCompleteEvent = new InputCompleteEvent(_parent, cause);
         inputCompleteEvent.setConcept(signal);
-        if(e instanceof SpeechRecognitionEvent){
+        if (e instanceof SpeechRecognitionEvent) {
           inputCompleteEvent.setUtterance(((SpeechRecognitionEvent) e).getUserInput());
         }
         _input.done(inputCompleteEvent);

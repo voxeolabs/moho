@@ -89,7 +89,7 @@ public class SIPController extends SipServlet {
       _mscFactory = driver.getFactory(p);
 
       final ApplicationContextImpl ctx = new ApplicationContextImpl(app, _mscFactory, _sipFacory, _sdpFactory,
-          getServletConfig().getServletName());
+          getServletConfig().getServletName(), this.getServletContext());
 
       final Enumeration e = getInitParameterNames();
       while (e.hasMoreElements()) {

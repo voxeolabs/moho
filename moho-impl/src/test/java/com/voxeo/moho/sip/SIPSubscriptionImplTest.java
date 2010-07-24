@@ -34,8 +34,6 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Subscription.Type;
-import com.voxeo.moho.sip.SIPEndpoint;
-import com.voxeo.moho.sip.SIPSubscriptionImpl;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipSession;
@@ -64,7 +62,7 @@ public class SIPSubscriptionImplTest extends TestCase {
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test");
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null);
 
   SIPEndpoint from = mockery.mock(SIPEndpoint.class, "from");;
 

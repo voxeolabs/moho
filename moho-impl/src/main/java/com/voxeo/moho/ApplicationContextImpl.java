@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.media.mscontrol.MsControlFactory;
 import javax.sdp.SdpFactory;
+import javax.servlet.ServletContext;
 import javax.servlet.sip.SipFactory;
 
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -60,8 +61,10 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
 
   protected DefaultHttpClient _httpClient;
 
+  protected ServletContext _servletContext;
+
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipFactory sip,
-      final SdpFactory sdp, final String controller) {
+      final SdpFactory sdp, final String controller, final ServletContext servletContext) {
     _application = app;
     _mcFactory = mc;
     _sipFactory = sip;
@@ -71,6 +74,7 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     _calls = new ConcurrentHashMap<String, Call>();
     _msFactory = new GenericMediaServiceFactory();
     _parameters = new ConcurrentHashMap<String, String>();
+    _servletContext = servletContext;
   }
 
   @Override
@@ -186,6 +190,11 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
 
   public void setHttpClient(DefaultHttpClient httpClient) {
     _httpClient = httpClient;
+  }
+
+  @Override
+  public ServletContext getServletContext() {
+    return _servletContext;
   }
 
 }

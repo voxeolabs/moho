@@ -31,12 +31,6 @@ import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
 
-import com.voxeo.moho.Application;
-import com.voxeo.moho.ApplicationContextImpl;
-import com.voxeo.moho.Call;
-import com.voxeo.moho.ExecutionContext;
-import com.voxeo.moho.MixerEndpoint;
-import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.DisconnectEvent;
 import com.voxeo.moho.media.fake.MockMediaSession;
@@ -65,7 +59,7 @@ public class MixerImplTest extends TestCase {
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test");
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null);
 
   MixerEndpoint address;
 

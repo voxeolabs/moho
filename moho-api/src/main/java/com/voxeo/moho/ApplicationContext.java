@@ -14,6 +14,8 @@
 
 package com.voxeo.moho;
 
+import javax.servlet.ServletContext;
+
 import com.voxeo.moho.conference.ConferenceManager;
 
 /**
@@ -42,5 +44,7 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
   ConferenceManager getConferenceManager();
 
   MediaServiceFactory getMediaServiceFactory();
+
+  ServletContext getServletContext();
 
 }
