@@ -1,11 +1,12 @@
 package com.voxeo.moho.sample;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.servlet.sip.SipServletRequest;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
@@ -26,6 +27,7 @@ import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
+import com.voxeo.moho.sip.SIPInviteEvent;
 
 public class DefaultTestApp implements Application {
 
@@ -53,6 +55,14 @@ public class DefaultTestApp implements Application {
   @State
   public void handleInvite(final InviteEvent inv) {
     final Call call = inv.acceptCall(this);
+
+    try {
+      SipServletRequest req = ((SIPInviteEvent) inv).getSipRequest();
+      call.setAttribute("RemoteContact", req.getAddressHeader("Contact").getURI());
+    }
+    catch (Exception ex) {
+      ex.printStackTrace();
+    }
 
     try {
       call.join().get();
@@ -88,18 +98,25 @@ public class DefaultTestApp implements Application {
         if (evt.getValue().equals("1") || evt.getValue().equalsIgnoreCase("one")) {
           call.setApplicationState("ttsTest");
 
-          if (addresses.get(call.getAddress().getURI()) != null) {
-            try {
-              ((TextableEndpoint) _ctx.getEndpoint(addresses.get(call.getAddress().getURI().toLowerCase()).getURI()))
-                  .sendText((TextableEndpoint) call.getAddress(),
-                      "Please type your message. Type exit, quit or bye to return to the main menu.");
+          try {
+            TextableEndpoint endpoint = null;
+            if (addresses.get(call.getAddress().getURI().toLowerCase()) != null) {
+              endpoint = (TextableEndpoint) addresses.get(call.getAddress().getURI().toLowerCase());
             }
-            catch (IOException e) {
-              call.disconnect();
-              calls.remove(call);
-              e.printStackTrace();
+            else {
+              endpoint = (TextableEndpoint) _ctx.getEndpoint(((javax.servlet.sip.URI) call
+                  .getAttribute("RemoteContact")).toString());
             }
+
+            endpoint.sendText((TextableEndpoint) call.getAddress(),
+                "Please type your message. Type exit, quit or bye to return to the main menu.");
           }
+          catch (Exception e) {
+            call.disconnect();
+            calls.remove(call);
+            e.printStackTrace();
+          }
+
         }
         else {
           call.setApplicationState("recordTest");
