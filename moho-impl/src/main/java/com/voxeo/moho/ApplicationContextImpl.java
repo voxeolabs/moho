@@ -63,6 +63,10 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
 
   protected ServletContext _servletContext;
 
+  //TODO configrable.
+  protected ThreadPoolExecutor _executor = new ThreadPoolExecutor(40, Integer.MAX_VALUE, 30, TimeUnit.SECONDS,
+      new SynchronousQueue<Runnable>(), new DaemonThreadFactory());
+
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipFactory sip,
       final SdpFactory sdp, final String controller, final ServletContext servletContext) {
     _application = app;
@@ -127,10 +131,7 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
 
   @Override
   public Executor getExecutor() {
-    // TODO
-    final ThreadPoolExecutor retval = new ThreadPoolExecutor(20, Integer.MAX_VALUE, 30, TimeUnit.SECONDS,
-        new SynchronousQueue<Runnable>(), new DaemonThreadFactory());
-    return retval;
+    return _executor;
   }
 
   @Override
@@ -197,4 +198,8 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     return _servletContext;
   }
 
+  public void destroy() {
+    getApplication().destroy();
+    _executor.shutdown();
+  }
 }

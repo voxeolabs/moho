@@ -14,6 +14,7 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.State;
 import com.voxeo.moho.TextableEndpoint;
+import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.event.RegisterEvent;
@@ -186,6 +187,12 @@ public class DefaultTestApp implements Application {
       calls.remove(call);
       ex.printStackTrace();
     }
+  }
+  
+  @State
+  public void handleComplete(final CallCompleteEvent e) {
+    calls.remove(((Call) e.source).getAddress().getURI().toLowerCase());
+    addresses.remove(((Call) e.source).getAddress().getURI().toLowerCase());
   }
 
   @Override

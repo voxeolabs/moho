@@ -112,7 +112,7 @@ public class SIPController extends SipServlet {
   @Override
   public void destroy() {
     try {
-      _app.getApplicationContext().getApplication().destroy();
+      ((ApplicationContextImpl) _app.getApplicationContext()).destroy();
     }
     catch (final Throwable t) {
       log.error("Unable to dispose Moho:", t);
