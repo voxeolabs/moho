@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.media.mscontrol.Configuration;
 import javax.media.mscontrol.MsControlFactory;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
@@ -43,11 +44,6 @@ import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.conference.ConferenceImpl;
-import com.voxeo.moho.conference.ConferenceManager;
-import com.voxeo.moho.conference.ConferenceMangerImpl;
-import com.voxeo.moho.conference.ConferencePasswordNoMatchException;
-import com.voxeo.moho.conference.SimpleConferenceController;
 import com.voxeo.moho.event.DisconnectEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.Observer;
@@ -110,7 +106,7 @@ public class ConferenceTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)));
+          oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
         }
       });
@@ -127,7 +123,7 @@ public class ConferenceTest extends TestCase {
     SimpleConferenceController controller = new SimpleConferenceController(promptCommand, passCommand, 3, exitCommand,
         exitAnnouncement);
     ConferenceManager manager = new ConferenceMangerImpl(appContext);
-    mohoConference = (ConferenceImpl) manager.createConference(address, null, "test", 10, controller);
+    mohoConference = (ConferenceImpl) manager.createConference(address, null, "test", 10, controller, null);
 
     // verify the creation result.
     assertTrue(mohoConference.getId().equals("test"));
@@ -234,7 +230,7 @@ public class ConferenceTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)));
+          oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
         }
       });
@@ -251,7 +247,7 @@ public class ConferenceTest extends TestCase {
     SimpleConferenceController controller = new SimpleConferenceController(promptCommand, passCommand, 3, exitCommand,
         exitAnnouncement);
     ConferenceManager manager = new ConferenceMangerImpl(appContext);
-    mohoConference = (ConferenceImpl) manager.createConference(address, null, "test", 10, controller);
+    mohoConference = (ConferenceImpl) manager.createConference(address, null, "test", 10, controller, null);
 
     // verify the creation result.
     assertTrue(mohoConference.getId().equals("test"));

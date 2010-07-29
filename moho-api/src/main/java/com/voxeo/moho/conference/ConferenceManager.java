@@ -17,6 +17,8 @@ package com.voxeo.moho.conference;
 import java.util.Map;
 import java.util.Set;
 
+import javax.media.mscontrol.Parameters;
+
 import com.voxeo.moho.MixerEndpoint;
 
 /**
@@ -25,12 +27,12 @@ import com.voxeo.moho.MixerEndpoint;
  */
 public interface ConferenceManager {
 
-  Conference createConference(String id, int seats);
+  Conference createConference(String id, int seats, Parameters parameters);
 
-  Conference createConference(String id, int seats, ConferenceController controller);
+  Conference createConference(String id, int seats, ConferenceController controller, Parameters parameters);
 
   Conference createConference(MixerEndpoint mxier, Map<Object, Object> mixerParams, String id, int seats,
-      ConferenceController controller);
+      ConferenceController controller, Parameters parameters);
 
   Conference getConference(String id);
 

@@ -62,6 +62,6 @@ public class MixerEndpointImpl implements MixerEndpoint {
 
   @Override
   public Mixer create(final Map<Object, Object> params) throws MediaException {
-    return new MixerImpl(_context, this, params);
+    return new MixerImpl(_context, this, params, null);
   }
 }

@@ -18,6 +18,7 @@ import javax.media.mscontrol.MediaObject;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.MsControlFactory;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -47,7 +48,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   protected JoineeData _joinees = new JoineeData();
 
-  protected MixerImpl(final ExecutionContext context, final MixerEndpoint address, final Map<Object, Object> params) {
+  protected MixerImpl(final ExecutionContext context, final MixerEndpoint address, final Map<Object, Object> params,
+      Parameters parameters) {
     super(context);
     try {
       MsControlFactory mf = null;
@@ -68,7 +70,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         mf = driver.getFactory(props);
       }
       _media = mf.createMediaSession();
-      _mixer = _media.createMediaMixer(MediaMixer.AUDIO);
+      _mixer = _media.createMediaMixer(MediaMixer.AUDIO, parameters);
       _address = address;
     }
     catch (final Exception e) {
@@ -129,7 +131,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       LOG.warn("Exception when release mediaSession", e);
     }
     _media = null;
-    
+
     this.dispatch(new MediaResourceDisconnectEvent(this));
   }
 

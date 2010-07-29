@@ -52,7 +52,7 @@ public class ConferenceRoom implements Application {
   @State
   public void handleInvite(final InviteEvent inv) {
     final Call call = inv.acceptCall();
-    final Conference conf = _manager.createConference(inv.getInvitee().getName(), Integer.MAX_VALUE, _controller);
+    final Conference conf = _manager.createConference(inv.getInvitee().getName(), Integer.MAX_VALUE, _controller, null);
     try {
       conf.join(call, JoinType.BRIDGE, Direction.DUPLEX).get();
     }

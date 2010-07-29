@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.media.mscontrol.Parameters;
+
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.MixerEndpoint;
 
@@ -33,23 +35,24 @@ public class ConferenceMangerImpl implements ConferenceManager {
   }
 
   @Override
-  public Conference createConference(final String id, final int seats) {
-    return this.createConference(id, seats, new SimpleConferenceController());
+  public Conference createConference(final String id, final int seats, Parameters parameters) {
+    return this.createConference(id, seats, new SimpleConferenceController(), parameters);
   }
 
   @Override
-  public Conference createConference(final String id, final int seats, final ConferenceController controller) {
+  public Conference createConference(final String id, final int seats, final ConferenceController controller,
+      Parameters parameters) {
     return this.createConference((MixerEndpoint) _context.getEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT), null, id,
-        seats, controller);
+        seats, controller, parameters);
   }
 
   @Override
   public Conference createConference(final MixerEndpoint mxier, final Map<Object, Object> mixerParams, final String id,
-      final int seats, final ConferenceController controller) {
+      final int seats, final ConferenceController controller, Parameters parameters) {
     synchronized (_conferences) {
       Conference retval = getConference(id);
       if (retval == null) {
-        retval = new ConferenceImpl(_context, mxier, mixerParams, id, seats, controller);
+        retval = new ConferenceImpl(_context, mxier, mixerParams, id, seats, controller, parameters);
         _conferences.put(id, retval);
       }
       return retval;

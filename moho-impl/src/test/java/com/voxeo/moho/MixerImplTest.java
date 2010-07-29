@@ -16,6 +16,7 @@ package com.voxeo.moho;
 
 import javax.media.mscontrol.Configuration;
 import javax.media.mscontrol.MsControlFactory;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
@@ -83,7 +84,7 @@ public class MixerImplTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)));
+          oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
         }
       });
@@ -162,7 +163,7 @@ public class MixerImplTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)));
+          oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
 
           // release.

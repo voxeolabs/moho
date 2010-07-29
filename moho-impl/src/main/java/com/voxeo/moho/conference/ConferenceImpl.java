@@ -16,6 +16,7 @@ package com.voxeo.moho.conference;
 
 import java.util.Map;
 
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
@@ -42,8 +43,9 @@ public class ConferenceImpl extends MixerImpl implements Conference {
   protected ConferenceController _controller;
 
   protected ConferenceImpl(final ExecutionContext context, final MixerEndpoint address,
-      final Map<Object, Object> params, final String id, final int seats, final ConferenceController controller) {
-    super(context, address, params);
+      final Map<Object, Object> params, final String id, final int seats, final ConferenceController controller,
+      Parameters parameters) {
+    super(context, address, params, parameters);
     _id = id;
     _maxSeats = seats;
     _controller = controller;
