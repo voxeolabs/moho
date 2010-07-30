@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.AttributeStoreImpl;
+import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
@@ -157,6 +158,11 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
 
   protected Executor getThreadPool() {
     return _context.getExecutor();
+  }
+
+  @Override
+  public void addExceptionHandler(ExceptionHandler... handlers) {
+    _dispatcher.addExceptionHandler(handlers);
   }
 
 }

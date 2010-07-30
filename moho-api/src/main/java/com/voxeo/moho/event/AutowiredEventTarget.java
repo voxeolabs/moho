@@ -14,6 +14,7 @@
 
 package com.voxeo.moho.event;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -93,7 +94,7 @@ class AutowiredEventTarget {
     return _listener;
   }
 
-  boolean invoke(final Event<? extends EventSource> event) {
+  boolean invoke(final Event<? extends EventSource> event) throws Exception {
     for (final Map.Entry<String, String> entry : _definedStates.entrySet()) {
       final String defined = entry.getValue();
       if (defined != ANY_STATE) {
@@ -110,6 +111,10 @@ class AutowiredEventTarget {
       }
       catch (final Exception e) {
         log.error("", e);
+        if (e instanceof InvocationTargetException
+            && ((InvocationTargetException) e).getTargetException() instanceof Exception) {
+          throw (Exception) ((InvocationTargetException) e).getTargetException();
+        }
       }
       finally {
         _method.setAccessible(accessible);
@@ -121,6 +126,7 @@ class AutowiredEventTarget {
       }
       catch (final Exception e) {
         log.error("", e);
+        throw e;
       }
     }
     return true;

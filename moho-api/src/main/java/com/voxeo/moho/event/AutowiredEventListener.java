@@ -112,25 +112,20 @@ public class AutowiredEventListener implements EventListener<Event<EventSource>>
   }
 
   @SuppressWarnings("unchecked")
-  public void onEvent(final Event<EventSource> event) {
-    try {
-      Class<? extends Event<EventSource>> clz = (Class<? extends Event<EventSource>>) event.getClass();
-      do {
-        final List<AutowiredEventTarget> targets = _listeners.get(clz);
-        if (targets != null) {
-          for (final AutowiredEventTarget target : targets) {
-            if (target.invoke(event)) {
-              break;
-            }
+  public void onEvent(final Event<EventSource> event) throws Exception {
+    Class<? extends Event<EventSource>> clz = (Class<? extends Event<EventSource>>) event.getClass();
+    do {
+      final List<AutowiredEventTarget> targets = _listeners.get(clz);
+      if (targets != null) {
+        for (final AutowiredEventTarget target : targets) {
+          if (target.invoke(event)) {
+            break;
           }
         }
-        clz = (Class<? extends Event<EventSource>>) clz.getSuperclass();
       }
-      while (clz != null && !clz.equals(Object.class));
+      clz = (Class<? extends Event<EventSource>>) clz.getSuperclass();
     }
-    catch (final Throwable t) {
-      log.error("", t);
-    }
+    while (clz != null && !clz.equals(Object.class));
   }
 
   public Object getTarget() {

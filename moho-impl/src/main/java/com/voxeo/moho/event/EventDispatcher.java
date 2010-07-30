@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.utils.EnumEvent;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
@@ -49,6 +50,8 @@ public class EventDispatcher {
   private Queue<FutureTask<?>> _queue = new LinkedList<FutureTask<?>>();
 
   private boolean processorRunning = false;
+
+  private List<ExceptionHandler> exceptionHandlers = new CopyOnWriteArrayList<ExceptionHandler>();
 
   public EventDispatcher() {
   }
@@ -192,23 +195,45 @@ public class EventDispatcher {
           log.trace("Firing event :" + event);
         }
         Class<? extends Event> clazz = event.getClass();
-        do {
+        out: do {
           final List<Object> list = clazzListeners.get(clazz);
           if (list != null) {
             for (final Object listener : list) {
-              ((EventListener<T>) listener).onEvent(event);
+              try {
+                ((EventListener<T>) listener).onEvent(event);
+              }
+              catch (Exception ex) {
+                log.warn("Catched exception when dispatching event, invoking exception handlers num:"
+                    + exceptionHandlers.size());
+                for (final ExceptionHandler handler : exceptionHandlers) {
+                  if (!handler.handle(ex)) {
+                    break out;
+                  }
+                }
+              }
             }
           }
           clazz = (Class<? extends Event>) clazz.getSuperclass();
         }
         while (narrowType && !clazz.equals(Object.class));
 
-        if (event instanceof EnumEvent) {
+        out: if (event instanceof EnumEvent) {
           final EnumEvent<S, ? extends Enum<?>> enumEvent = (EnumEvent<S, ? extends Enum<?>>) event;
           final List<Object> list = enumListeners.get(enumEvent.type);
           if (list != null) {
             for (final Object listener : list) {
-              ((EventListener<T>) listener).onEvent(event);
+              try {
+                ((EventListener<T>) listener).onEvent(event);
+              }
+              catch (Exception ex) {
+                log.warn("Catched exception when dispatching event, invoking exception handlers num:"
+                    + exceptionHandlers.size());
+                for (final ExceptionHandler handler : exceptionHandlers) {
+                  if (!handler.handle(ex)) {
+                    break out;
+                  }
+                }
+              }
             }
           }
         }
@@ -256,5 +281,11 @@ public class EventDispatcher {
 
   public void setExecutor(final Executor executor) {
     this.executor = executor;
+  }
+
+  public void addExceptionHandler(ExceptionHandler... handlers) {
+    for (final ExceptionHandler e : handlers) {
+      exceptionHandlers.add(e);
+    }
   }
 }

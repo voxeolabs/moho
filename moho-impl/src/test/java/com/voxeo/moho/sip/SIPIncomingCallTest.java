@@ -11,6 +11,7 @@
 
 package com.voxeo.moho.sip;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Future;
 
 import javax.media.mscontrol.MediaSession;
@@ -39,6 +40,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
+import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.State;
@@ -166,6 +168,74 @@ public class SIPIncomingCallTest extends TestCase {
 
     assertTrue(invoked);
     mockery.assertIsSatisfied();
+  }
+
+  /**
+   * test addObserver() and dispatch event. Supervised
+   */
+  public void testExceptionHandler() {
+
+    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    MyExceptionHandler handler = new MyExceptionHandler();
+    sipcall.addExceptionHandler(handler);
+    // prepare
+    final DisconnectEvent disconnectEvent = mockery.mock(DisconnectEvent.class);
+
+    sipcall.setSupervised(true);
+    mockery.checking(new Expectations() {
+      {
+
+        oneOf(disconnectEvent).accept();
+
+        oneOf(disconnectEvent).getState();
+        will(returnValue(EventState.InitialEventState.INITIAL));
+      }
+    });
+
+    // execute test.
+
+    sipcall.addObserver(new ThrowExceptionApp());
+    final Future<DisconnectEvent> future = sipcall.dispatch(disconnectEvent);
+
+    // verify result
+    assert future != null;
+    try {
+      future.get();
+    }
+    catch (final Exception ex) {
+      ex.printStackTrace();
+      fail(ex.getMessage());
+    }
+
+    assertTrue(handler.ex.getMessage().equalsIgnoreCase("test exception"));
+    mockery.assertIsSatisfied();
+  }
+
+  class MyExceptionHandler implements ExceptionHandler {
+    Exception ex;
+
+    @Override
+    public boolean handle(Exception e) {
+      ex = e;
+      return false;
+    }
+  }
+
+  class ThrowExceptionApp implements Application {
+    @State
+    public void handleDisconnect(final DisconnectEvent event) throws Exception {
+      throw new Exception("test exception");
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+
+    @Override
+    public void init(final ApplicationContext ctx) {
+
+    }
   }
 
   class TestApp implements Application {

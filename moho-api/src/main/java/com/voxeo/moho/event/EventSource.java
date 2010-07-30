@@ -18,6 +18,7 @@ import java.util.concurrent.Future;
 
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.AttributeStore;
+import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
 import com.voxeo.utils.Identifiable;
@@ -25,11 +26,10 @@ import com.voxeo.utils.Identifiable;
 /**
  * <p>
  * An EventSource is an object that can generate {@link com.voxeo.util.Event
- * Event} in Moho. Applications can set application defined state on
- * EventSource by calling {@link #setApplicationState(String)
- * setApplicationState(String)} for single state or
- * {@link #setApplicationState(String,String) setApplicationState(String)} for
- * multiple concurrent states.
+ * Event} in Moho. Applications can set application defined state on EventSource
+ * by calling {@link #setApplicationState(String) setApplicationState(String)}
+ * for single state or {@link #setApplicationState(String,String)
+ * setApplicationState(String)} for multiple concurrent states.
  * </p>
  * <p>
  * Please note certain EventSources, such as {@link com.voxeo.moho.Call Call},
@@ -175,4 +175,11 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
    */
   <S, T extends Event<S>> Future<T> dispatch(T event, Runnable afterExec);
 
+  /**
+   * register an Exception listener with the EventSource
+   * 
+   * @param handlers
+   *          the ExceptionHandler
+   */
+  void addExceptionHandler(ExceptionHandler... handlers);
 }

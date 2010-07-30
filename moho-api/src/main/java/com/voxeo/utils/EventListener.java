@@ -15,5 +15,5 @@
 package com.voxeo.utils;
 
 public interface EventListener<E extends Event<?>> {
-    void onEvent(E event);
+    void onEvent(E event) throws Exception;
 }
