@@ -164,7 +164,7 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
    *          the event to be dispatched.
    * @return a @{link java.util.concurrent.Future} for the dispatching.
    */
-  <S, T extends Event<S>> Future<T> dispatch(T event);
+  <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event);
 
   /**
    * Dispatch an event to this event source.
@@ -173,7 +173,7 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
    *          the event to be dispatched.
    * @return a @{link java.util.concurrent.Future} for the dispatching.
    */
-  <S, T extends Event<S>> Future<T> dispatch(T event, Runnable afterExec);
+  <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event, Runnable afterExec);
 
   /**
    * register an Exception listener with the EventSource

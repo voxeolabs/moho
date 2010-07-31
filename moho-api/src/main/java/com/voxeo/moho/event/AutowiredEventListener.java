@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.log4j.Logger;
-
 import com.voxeo.moho.State;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
@@ -60,8 +58,6 @@ import com.voxeo.utils.EventListener;
  * @author wchen
  */
 public class AutowiredEventListener implements EventListener<Event<EventSource>> {
-
-  private static final Logger log = Logger.getLogger(AutowiredEventListener.class);
 
   protected Object _target;
 
