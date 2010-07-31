@@ -414,6 +414,9 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           throw e;
         }
         finally {
+          if (event.getCause() != Cause.JOINED) {
+            SIPCallImpl.this.disconnect(true);
+          }
           SIPCallImpl.this.dispatch(event);
           if (isTerminated()) {
             SIPCallImpl.this.dispatch(new CallCompleteEvent(SIPCallImpl.this));
@@ -462,6 +465,9 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           throw e;
         }
         finally {
+          if (event.getCause() != Cause.JOINED) {
+            ((SIPCallImpl) other).disconnect(true);
+          }
           SIPCallImpl.this.dispatch(event);
           if (isTerminated()) {
             SIPCallImpl.this.dispatch(new CallCompleteEvent(SIPCallImpl.this));
@@ -658,12 +664,12 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     terminate();
     if (isNoAnswered(old)) {
       try {
-        if (this instanceof SIPOutgoingCall) {
+        if (this instanceof SIPOutgoingCall && !failed) {
           if (_invite != null) {
             _invite.createCancel().send();
           }
         }
-        else {
+        else if (this instanceof SIPIncomingCall) {
           _invite.createResponse(SipServletResponse.SC_DECLINE).send();
         }
       }
@@ -671,7 +677,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
         LOG.warn("IOException when disconnecting call", t);
       }
     }
-    else if (isAnswered(old)) {
+    else if (isAnswered(old) && !failed) {
       try {
         _signal.createRequest("BYE").send();
       }
