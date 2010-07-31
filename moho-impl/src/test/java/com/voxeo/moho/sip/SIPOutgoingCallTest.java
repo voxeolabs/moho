@@ -255,10 +255,10 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(initInviteReq).createCancel();
-          will(returnValue(cancelReq));
-
-          oneOf(cancelReq).send();
+//          oneOf(initInviteReq).createCancel();
+//          will(returnValue(cancelReq));
+//
+//          oneOf(cancelReq).send();
         }
       });
     }
@@ -429,10 +429,10 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(session).createRequest("BYE");
-          will(returnValue(byeReq));
-
-          oneOf(byeReq).send();
+//          oneOf(session).createRequest("BYE");
+//          will(returnValue(byeReq));
+//
+//          oneOf(byeReq).send();
         }
       });
     }
@@ -470,8 +470,8 @@ public class SIPOutgoingCallTest extends TestCase {
     }
 
     // verify result
-    // assertTrue(sipcall.getSIPCallState() == State.FAILED);
-    // assertTrue(sipcall.getMediaObject() == null);
+    assertTrue(sipcall.getSIPCallState() == State.FAILED);
+    assertTrue(sipcall.getMediaObject() == null);
     mockery.assertIsSatisfied();
   }
 
@@ -585,9 +585,9 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          // oneOf(mediaSession).release();
-          //
-          // oneOf(network).release();
+           oneOf(mediaSession).release();
+          
+           oneOf(network).release();
         }
       });
     }
@@ -747,10 +747,10 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(session).createRequest("BYE");
-          will(returnValue(byeReq));
-
-          oneOf(byeReq).send();
+//          oneOf(session).createRequest("BYE");
+//          will(returnValue(byeReq));
+//
+//          oneOf(byeReq).send();
         }
       });
     }
@@ -1878,10 +1878,10 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(initInviteReq).createCancel();
-          will(returnValue(sipcallCancelReq));
-
-          oneOf(sipcallCancelReq).send();
+//          oneOf(initInviteReq).createCancel();
+//          will(returnValue(sipcallCancelReq));
+//
+//          oneOf(sipcallCancelReq).send();
 
           oneOf(outgoingCall).fail();
         }
