@@ -66,7 +66,6 @@ import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.util.NLSMLParser;
-import com.voxeo.mscontrol.VoxeoParameter;
 
 public class GenericMediaService implements MediaService {
 
@@ -217,7 +216,19 @@ public class GenericMediaService implements MediaService {
           if (uris.size() > 0) {
             params.put(SignalDetector.PROMPT, uris.toArray(new URI[] {}));
           }
-          input.setParameters(params);
+          if (input.getParameters() != null) {
+            input.getParameters().putAll(params);
+          }
+          else {
+            input.setParameters(params);
+          }
+
+          if (input.getRtcs() != null && input.getRtcs().length > 0) {
+            RTC[] inputRTCs = input.getRtcs();
+            for (RTC rtc : inputRTCs) {
+              rtcs.add(rtc);
+            }
+          }
           input.setRtcs(rtcs.toArray(new RTC[] {}));
 
           retval.inputGetReady(new SignalDetectorWorker(input));
@@ -430,10 +441,12 @@ public class GenericMediaService implements MediaService {
         patternParams.put(SignalDetector.PATTERN[i], o);
       }
 
-      // process terminate char.
-      if (cmd.getTerminateChar() != null) {
-        patternParams.put(VoxeoParameter.DTMF_TERM_CHAR, cmd.getTerminateChar());
-      }
+      // process terminate char. Remove , application transfer this parameter
+      // instead.
+      // if (cmd.getTerminateChar() != null) {
+      // patternParams.put(VoxeoParameter.DTMF_TERM_CHAR,
+      // cmd.getTerminateChar());
+      // }
 
       if (patterns.size() > 0) {
         _group.setParameters(patternParams);
@@ -558,7 +571,7 @@ public class GenericMediaService implements MediaService {
         else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED || patternMatched(e)) {
           cause = InputCompleteEvent.Cause.MATCH;
         }
-        else if (_cmd.getTerminateChar() != null && e.getQualifier() == ResourceEvent.RTC_TRIGGERED) {
+        else if (e.getQualifier() == ResourceEvent.RTC_TRIGGERED) {
           cause = InputCompleteEvent.Cause.CANCEL;
         }
         final InputCompleteEvent inputCompleteEvent = new InputCompleteEvent(_parent, cause);

@@ -44,8 +44,6 @@ public class InputCommand {
 
   protected RTC[] _rtcs;
 
-  protected String _terminateChar;
-
   /**
    * if true, every DTMF (or word?) received generate a
    */
@@ -55,14 +53,6 @@ public class InputCommand {
     if (grammars != null && grammars.length > 0) {
       _grammars = grammars;
     }
-  }
-
-  public String getTerminateChar() {
-    return _terminateChar;
-  }
-
-  public void setTerminateChar(char terminateChar) {
-    this._terminateChar = String.valueOf(terminateChar);
   }
 
   public long getInterSigTimeout() {
