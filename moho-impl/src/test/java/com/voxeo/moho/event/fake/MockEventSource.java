@@ -56,7 +56,7 @@ public class MockEventSource implements EventSource {
   }
 
   @Override
-  final public <S, T extends Event<S>> Future<T> dispatch(T event) {
+  final public <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event) {
     return this.dispatch(event, null);
   }
 
@@ -132,7 +132,7 @@ public class MockEventSource implements EventSource {
   }
 
   @Override
-  final public <S, T extends Event<S>> Future<T> dispatch(T event, Runnable r) {
+  final public <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event, Runnable r) {
     if (receivedEvents == null) {
       receivedEvents = new ArrayList<MediaEvent>();
     }

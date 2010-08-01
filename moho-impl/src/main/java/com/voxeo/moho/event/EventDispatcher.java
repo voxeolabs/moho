@@ -178,15 +178,15 @@ public class EventDispatcher {
     }
   }
 
-  public <S, T extends Event<S>> Future<T> fire(final T event) {
+  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event) {
     return fire(event, false);
   }
 
-  public <S, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType) {
+  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType) {
     return fire(event, narrowType, null);
   }
 
-  public <S, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType, final Runnable afterExec) {
+  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType, final Runnable afterExec) {
 
     final FutureTask<T> task = new FutureTask<T>(new Runnable() {
       @SuppressWarnings("unchecked")
@@ -203,10 +203,9 @@ public class EventDispatcher {
                 ((EventListener<T>) listener).onEvent(event);
               }
               catch (Exception ex) {
-                log.warn("Catched exception when dispatching event, invoking exception handlers num:"
-                    + exceptionHandlers.size());
+                log.warn("Uncaught exception in event handler");
                 for (final ExceptionHandler handler : exceptionHandlers) {
-                  if (!handler.handle(ex)) {
+                  if (!handler.handle(ex, event)) {
                     break out;
                   }
                 }
@@ -226,10 +225,9 @@ public class EventDispatcher {
                 ((EventListener<T>) listener).onEvent(event);
               }
               catch (Exception ex) {
-                log.warn("Catched exception when dispatching event, invoking exception handlers num:"
-                    + exceptionHandlers.size());
+                log.warn("Uncaught exception in event handler");
                 for (final ExceptionHandler handler : exceptionHandlers) {
-                  if (!handler.handle(ex)) {
+                  if (!handler.handle(ex, event)) {
                     break out;
                   }
                 }

@@ -61,6 +61,7 @@ import com.voxeo.moho.SignalException;
 import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.EventState;
 import com.voxeo.moho.event.ForwardableEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
@@ -252,7 +253,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   }
 
   @Override
-  public <S, T extends Event<S>> Future<T> dispatch(final T event) {
+  public <S extends EventSource, T extends Event<S>> Future<T> dispatch(final T event) {
     Future<T> retval = null;
     if (!(event instanceof SignalEvent)) {
       retval = super.dispatch(event);

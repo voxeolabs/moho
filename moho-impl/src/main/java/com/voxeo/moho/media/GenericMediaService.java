@@ -11,7 +11,6 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-
 package com.voxeo.moho.media;
 
 import java.net.MalformedURLException;
@@ -19,6 +18,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import javax.media.mscontrol.EventType;
@@ -66,6 +66,7 @@ import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
+import com.voxeo.moho.util.NLSMLParser;
 import com.voxeo.mscontrol.VoxeoParameter;
 
 public class GenericMediaService implements MediaService {
@@ -172,7 +173,7 @@ public class GenericMediaService implements MediaService {
       }
 
       if (output.getRtcs() != null) {
-        for (RTC rtc : output.getRtcs()) {
+        for (final RTC rtc : output.getRtcs()) {
           rtcs.add(rtc);
         }
       }
@@ -304,9 +305,9 @@ public class GenericMediaService implements MediaService {
         params.put(Recorder.MIN_DURATION, command.getMinDuration());
       }
       if (command.getPrompt() != null) {
-        AudibleResource[] resources = command.getPrompt().getAudibleResources();
+        final AudibleResource[] resources = command.getPrompt().getAudibleResources();
         if (resources.length > 0) {
-          URI[] uris = new URI[resources.length];
+          final URI[] uris = new URI[resources.length];
 
           for (int i = 0; i < resources.length; i++) {
             uris[i] = resources[i].toURI();
@@ -384,7 +385,7 @@ public class GenericMediaService implements MediaService {
 
     final List<RTC> rtcs = new ArrayList<RTC>();
     if (cmd.getRtcs() != null) {
-      for (RTC rtc : cmd.getRtcs()) {
+      for (final RTC rtc : cmd.getRtcs()) {
         rtcs.add(rtc);
       }
     }
@@ -541,7 +542,6 @@ public class GenericMediaService implements MediaService {
         }
         InputCompleteEvent.Cause cause = InputCompleteEvent.Cause.UNKNOWN;
         final Qualifier q = e.getQualifier();
-        final String signal = e.getSignalString();
         if (q == SignalDetectorEvent.DURATION_EXCEEDED) {
           cause = InputCompleteEvent.Cause.MAX_TIMEOUT;
         }
@@ -560,13 +560,34 @@ public class GenericMediaService implements MediaService {
         else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED || patternMatched(e)) {
           cause = InputCompleteEvent.Cause.MATCH;
         }
-        else if (_cmd.getTerminateChar() != null && e.getQualifier() == SignalDetectorEvent.RTC_TRIGGERED) {
+        else if (_cmd.getTerminateChar() != null && e.getQualifier() == ResourceEvent.RTC_TRIGGERED) {
           cause = InputCompleteEvent.Cause.CANCEL;
         }
         final InputCompleteEvent inputCompleteEvent = new InputCompleteEvent(_parent, cause);
-        inputCompleteEvent.setConcept(signal);
         if (e instanceof SpeechRecognitionEvent) {
-          inputCompleteEvent.setUtterance(((SpeechRecognitionEvent) e).getUserInput());
+          final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
+          inputCompleteEvent.setUtterance(se.getUserInput());
+          try {
+            inputCompleteEvent.setNlsml(se.getSemanticResult().getPath());
+            final List<Map<String, String>> nlsml = NLSMLParser.parse(inputCompleteEvent.getNlsml());
+            for (final Map<String, String> reco : nlsml) {
+              final String conf = reco.get("_confidence");
+              if (conf != null) {
+                inputCompleteEvent.setConfidence(Float.parseFloat(conf));
+              }
+              final String interpretation = reco.get("_interpretation");
+              if (interpretation != null) {
+                inputCompleteEvent.setInterpretation(interpretation);
+              }
+            }
+          }
+          catch (final Exception e1) {
+            LOG.warn("No NLSML", e1);
+          }
+        }
+        else {
+          inputCompleteEvent.setConcept(e.getSignalString());
+          inputCompleteEvent.setConfidence(1.0F);
         }
         _input.done(inputCompleteEvent);
         if (_cmd.isSupervised()) {
@@ -581,10 +602,11 @@ public class GenericMediaService implements MediaService {
     }
   }
 
-  private boolean patternMatched(SignalDetectorEvent event) {
-    for (Qualifier q : SignalDetectorEvent.PATTERN_MATCHING) {
-      if (event.getQualifier() == q)
+  private boolean patternMatched(final SignalDetectorEvent event) {
+    for (final Qualifier q : SignalDetectorEvent.PATTERN_MATCHING) {
+      if (event.getQualifier() == q) {
         return true;
+      }
     }
 
     return false;

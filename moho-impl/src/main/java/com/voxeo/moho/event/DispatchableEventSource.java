@@ -115,12 +115,12 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
   }
 
   @Override
-  public <S, T extends Event<S>> Future<T> dispatch(final T event) {
+  public <S extends EventSource, T extends Event<S>> Future<T> dispatch(final T event) {
     return _dispatcher.fire(event, true, null);
   }
 
   @Override
-  public <S, T extends Event<S>> Future<T> dispatch(final T event, final Runnable afterExec) {
+  public <S extends EventSource, T extends Event<S>> Future<T> dispatch(final T event, final Runnable afterExec) {
     return _dispatcher.fire(event, true, afterExec);
   }
 

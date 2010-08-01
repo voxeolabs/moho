@@ -11,7 +11,6 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-
 package com.voxeo.moho.event;
 
 public class InputCompleteEvent extends MediaCompleteEvent {
@@ -63,32 +62,32 @@ public class InputCompleteEvent extends MediaCompleteEvent {
     return _concept;
   }
 
-  public void setConcept(final String _concept) {
-    this._concept = _concept;
+  public void setConcept(final String concept) {
+    this._concept = concept;
   }
 
   public String getInterpretation() {
     return _interpretation;
   }
 
-  public void setInterpretation(final String _interpretation) {
-    this._interpretation = _interpretation;
+  public void setInterpretation(final String interpretation) {
+    this._interpretation = interpretation;
   }
 
   public String getUtterance() {
     return _utterance;
   }
 
-  public void setUtterance(final String _utterance) {
-    this._utterance = _utterance;
+  public void setUtterance(final String utterance) {
+    this._utterance = utterance;
   }
 
   public float getConfidence() {
     return _confidence;
   }
 
-  public void setConfidence(final float _confidence) {
-    this._confidence = _confidence;
+  public void setConfidence(final float confidence) {
+    this._confidence = confidence;
   }
 
   public String getNlsml() {
