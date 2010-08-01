@@ -22,17 +22,11 @@ import javax.media.mscontrol.resource.Resource;
 
 public class InputCommand {
 
-  public enum Type {
-    DTMF, SPEECH, ANY
-  }
-
   protected int _signalNumber = -1;
 
   protected Grammar[] _grammars = new Grammar[0];
 
   protected float _confidence = 0.5f;
-
-  protected Type _type = Type.ANY;
 
   protected long _initialTimeout = Resource.FOREVER;
 
@@ -121,14 +115,6 @@ public class InputCommand {
 
   public void setConfidence(final float confidence) {
     _confidence = confidence;
-  }
-
-  public Type getType() {
-    return _type;
-  }
-
-  public void setType(final Type type) {
-    _type = type;
   }
 
   public long getInitialTimeout() {

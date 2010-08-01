@@ -60,7 +60,6 @@ import com.voxeo.moho.event.OutputCompleteEvent.Cause;
 import com.voxeo.moho.media.input.Grammar;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.input.SimpleGrammar;
-import com.voxeo.moho.media.input.InputCommand.Type;
 import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
@@ -394,9 +393,8 @@ public class GenericMediaService implements MediaService {
     params.put(SignalDetector.MAX_DURATION, cmd.getMaxTimeout());
     params.put(SignalDetector.INITIAL_TIMEOUT, cmd.getInitialTimeout());
     params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterSigTimeout());
-    if (cmd.getType() != Type.DTMF) {
-      params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getConfidence());
-    }
+
+    params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getConfidence());
 
     Parameter[] patternKeys = null;
 
