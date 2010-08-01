@@ -1,14 +1,11 @@
 /**
- * Copyright 2010 Voxeo Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License.
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
+ * Copyright 2010 Voxeo Corporation Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -63,32 +60,32 @@ public class InputCompleteEvent extends MediaCompleteEvent {
     return _concept;
   }
 
-  public void setConcept(final String _concept) {
-    this._concept = _concept;
+  public void setConcept(final String concept) {
+    this._concept = concept;
   }
 
   public String getInterpretation() {
     return _interpretation;
   }
 
-  public void setInterpretation(final String _interpretation) {
-    this._interpretation = _interpretation;
+  public void setInterpretation(final String interpretation) {
+    this._interpretation = interpretation;
   }
 
   public String getUtterance() {
     return _utterance;
   }
 
-  public void setUtterance(final String _utterance) {
-    this._utterance = _utterance;
+  public void setUtterance(final String utterance) {
+    this._utterance = utterance;
   }
 
   public float getConfidence() {
     return _confidence;
   }
 
-  public void setConfidence(final float _confidence) {
-    this._confidence = _confidence;
+  public void setConfidence(final float confidence) {
+    this._confidence = confidence;
   }
 
   public String getNlsml() {
