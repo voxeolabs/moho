@@ -26,7 +26,7 @@ public class InputCommand {
 
   protected Grammar[] _grammars = new Grammar[0];
 
-  protected float _confidence = 0.5f;
+  protected float _sensitive = 0.5f;
 
   protected long _initialTimeout = Resource.FOREVER;
 
@@ -94,7 +94,7 @@ public class InputCommand {
   }
 
   public float getConfidence() {
-    return _confidence;
+    return _sensitive;
   }
 
   public boolean isRecord() {
@@ -113,8 +113,8 @@ public class InputCommand {
     _recordURI = uri;
   }
 
-  public void setConfidence(final float confidence) {
-    _confidence = confidence;
+  public void setSensitive(final float sensitive) {
+    _sensitive = sensitive;
   }
 
   public long getInitialTimeout() {
