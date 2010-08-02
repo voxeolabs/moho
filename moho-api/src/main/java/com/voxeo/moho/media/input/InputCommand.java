@@ -22,17 +22,11 @@ import javax.media.mscontrol.resource.Resource;
 
 public class InputCommand {
 
-  public enum Type {
-    DTMF, SPEECH, ANY
-  }
-
   protected int _signalNumber = -1;
 
   protected Grammar[] _grammars = new Grammar[0];
 
-  protected float _confidence = 0.5f;
-
-  protected Type _type = Type.ANY;
+  protected float _sensitive = 0.5f;
 
   protected long _initialTimeout = Resource.FOREVER;
 
@@ -50,8 +44,6 @@ public class InputCommand {
 
   protected RTC[] _rtcs;
 
-  protected String _terminateChar;
-
   /**
    * if true, every DTMF (or word?) received generate a
    */
@@ -61,14 +53,6 @@ public class InputCommand {
     if (grammars != null && grammars.length > 0) {
       _grammars = grammars;
     }
-  }
-
-  public String getTerminateChar() {
-    return _terminateChar;
-  }
-
-  public void setTerminateChar(char terminateChar) {
-    this._terminateChar = String.valueOf(terminateChar);
   }
 
   public long getInterSigTimeout() {
@@ -100,7 +84,7 @@ public class InputCommand {
   }
 
   public float getConfidence() {
-    return _confidence;
+    return _sensitive;
   }
 
   public boolean isRecord() {
@@ -119,16 +103,8 @@ public class InputCommand {
     _recordURI = uri;
   }
 
-  public void setConfidence(final float confidence) {
-    _confidence = confidence;
-  }
-
-  public Type getType() {
-    return _type;
-  }
-
-  public void setType(final Type type) {
-    _type = type;
+  public void setSensitive(final float sensitive) {
+    _sensitive = sensitive;
   }
 
   public long getInitialTimeout() {
