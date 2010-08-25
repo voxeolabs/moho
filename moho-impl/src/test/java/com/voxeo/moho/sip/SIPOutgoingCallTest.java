@@ -20,6 +20,7 @@ import java.util.Map;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.MsControlFactory;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
@@ -49,6 +50,7 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
@@ -123,6 +125,14 @@ public class SIPOutgoingCallTest extends TestCase {
 
         allowing(network).getSdpPortManager();
         will(returnValue(sdpManager));
+
+        allowing(mediaSession).createParameters();
+        will(returnValue(new MockParameters()));
+
+        allowing(mediaSession).setParameters(with(any(MockParameters.class)));
+
+        allowing(session).getCallId();
+        will(returnValue("test"));
       }
     });
 
@@ -196,7 +206,7 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(NetworkConnection.BASIC);
+          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -255,10 +265,10 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-//          oneOf(initInviteReq).createCancel();
-//          will(returnValue(cancelReq));
-//
-//          oneOf(cancelReq).send();
+          // oneOf(initInviteReq).createCancel();
+          // will(returnValue(cancelReq));
+          //
+          // oneOf(cancelReq).send();
         }
       });
     }
@@ -332,7 +342,7 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(NetworkConnection.BASIC);
+          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -429,10 +439,10 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-//          oneOf(session).createRequest("BYE");
-//          will(returnValue(byeReq));
-//
-//          oneOf(byeReq).send();
+          // oneOf(session).createRequest("BYE");
+          // will(returnValue(byeReq));
+          //
+          // oneOf(byeReq).send();
         }
       });
     }
@@ -503,7 +513,7 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(NetworkConnection.BASIC);
+          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -585,9 +595,9 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-           oneOf(mediaSession).release();
-          
-           oneOf(network).release();
+          oneOf(mediaSession).release();
+
+          oneOf(network).release();
         }
       });
     }
@@ -647,7 +657,7 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(NetworkConnection.BASIC);
+          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -747,10 +757,10 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-//          oneOf(session).createRequest("BYE");
-//          will(returnValue(byeReq));
-//
-//          oneOf(byeReq).send();
+          // oneOf(session).createRequest("BYE");
+          // will(returnValue(byeReq));
+          //
+          // oneOf(byeReq).send();
         }
       });
     }
@@ -828,7 +838,7 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(NetworkConnection.BASIC);
+          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -937,7 +947,7 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(NetworkConnection.BASIC);
+          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -1878,10 +1888,10 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-//          oneOf(initInviteReq).createCancel();
-//          will(returnValue(sipcallCancelReq));
-//
-//          oneOf(sipcallCancelReq).send();
+          // oneOf(initInviteReq).createCancel();
+          // will(returnValue(sipcallCancelReq));
+          //
+          // oneOf(sipcallCancelReq).send();
 
           oneOf(outgoingCall).fail();
         }

@@ -11,11 +11,11 @@
 
 package com.voxeo.moho.sip;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Future;
 
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlFactory;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
@@ -48,6 +48,7 @@ import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.DisconnectEvent;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.EventState;
+import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
@@ -124,6 +125,14 @@ public class SIPIncomingCallTest extends TestCase {
 
         allowing(network).getSdpPortManager();
         will(returnValue(sdpManager));
+
+        allowing(mediaSession).createParameters();
+        will(returnValue(new MockParameters()));
+
+        allowing(mediaSession).setParameters(with(any(MockParameters.class)));
+
+        allowing(session).getCallId();
+        will(returnValue("test"));
       }
     });
 
@@ -218,8 +227,8 @@ public class SIPIncomingCallTest extends TestCase {
 
     @Override
     public boolean handle(Exception ex, Event<? extends EventSource> event) {
-        this.ex = ex;
-        return false;
+      this.ex = ex;
+      return false;
     }
   }
 
@@ -313,7 +322,7 @@ public class SIPIncomingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(NetworkConnection.BASIC);
+          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -425,7 +434,7 @@ public class SIPIncomingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(NetworkConnection.BASIC);
+          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);

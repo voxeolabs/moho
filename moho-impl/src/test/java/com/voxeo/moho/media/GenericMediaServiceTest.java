@@ -144,7 +144,7 @@ public class GenericMediaServiceTest extends TestCase {
     });
 
     // create mediaservice
-    service = (GenericMediaService) new GenericMediaServiceFactory().create(parent, session);
+    service = (GenericMediaService) new GenericMediaServiceFactory().create(parent, session, null);
   }
 
   /**

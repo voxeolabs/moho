@@ -24,6 +24,7 @@ import javax.media.mscontrol.MediaObject;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.MsControlFactory;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -229,7 +230,18 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
         direction = Direction.RECV;
       }
       if (_service == null) {
-        _service = _context.getMediaServiceFactory().create(this, _media);
+        Parameters params = null;
+        if (getSipSession() != null) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Set mg id with call id :" + getSipSession().getCallId());
+          }
+
+          params = _media.createParameters();
+          params.put(MediaObject.MEDIAOBJECT_ID, "MG-" + getSipSession().getCallId());
+          _media.setParameters(params);
+        }
+
+        _service = _context.getMediaServiceFactory().create(this, _media, params);
         _service.getMediaGroup().join(direction, _network);
       }
       else if (reinvite) {
@@ -796,10 +808,32 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   protected synchronized void createNetworkConnection() throws MsControlException {
     if (_media == null) {
       final MsControlFactory mf = _context.getMSFactory();
+
       _media = mf.createMediaSession();
+      if (getSipSession() != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Set ms id with call id :" + getSipSession().getCallId());
+        }
+
+        Parameters params = _media.createParameters();
+
+        params.put(MediaObject.MEDIAOBJECT_ID, "MS-" + getSipSession().getCallId());
+        _media.setParameters(params);
+      }
     }
     if (_network == null) {
-      _network = _media.createNetworkConnection(NetworkConnection.BASIC);
+      Parameters params = null;
+      if (getSipSession() != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Set nc id with call id :" + getSipSession().getCallId());
+        }
+
+        params = _media.createParameters();
+
+        params.put(MediaObject.MEDIAOBJECT_ID, "NC-" + getSipSession().getCallId());
+        _media.setParameters(params);
+      }
+      _network = _media.createNetworkConnection(NetworkConnection.BASIC, params);
       _network.getSdpPortManager().addListener(this);
     }
   }

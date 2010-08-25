@@ -15,11 +15,12 @@
 package com.voxeo.moho;
 
 import javax.media.mscontrol.MediaSession;
+import javax.media.mscontrol.Parameters;
 
 import com.voxeo.moho.event.EventSource;
 
 public interface MediaServiceFactory {
 
-  MediaService create(final EventSource parent, final MediaSession session);
+  MediaService create(final EventSource parent, final MediaSession session, Parameters params);
 
 }

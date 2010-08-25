@@ -14,10 +14,10 @@
 
 package com.voxeo.moho.sip;
 
-import javax.media.mscontrol.Configuration;
 import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlFactory;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.sdp.SdpFactory;
@@ -40,8 +40,8 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Call.State;
 import com.voxeo.moho.event.Observer;
+import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.media.fake.MockSdpPortManager;
-import com.voxeo.moho.sip.SIPInviteEventImpl;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
 import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
@@ -105,6 +105,14 @@ public class SIPInviteEventImplTest extends TestCase {
 
           oneOf(inviteReq).getTo();
           will(returnValue(toAddr));
+
+          allowing(mediaSession).createParameters();
+          will(returnValue(new MockParameters()));
+
+          allowing(mediaSession).setParameters(with(any(MockParameters.class)));
+
+          allowing(session).getCallId();
+          will(returnValue("test"));
         }
       });
     }
@@ -182,7 +190,7 @@ public class SIPInviteEventImplTest extends TestCase {
         oneOf(msFactory).createMediaSession();
         will(returnValue(mediaSession));
 
-        oneOf(mediaSession).createNetworkConnection(with(any(Configuration.class)));
+        oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
         will(returnValue(network));
 
         allowing(network).getSdpPortManager();

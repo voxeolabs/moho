@@ -91,12 +91,6 @@ public class GenericMediaService implements MediaService {
     _parent = parent;
     _group = group;
     try {
-      _generator = _group.getSignalGenerator();
-    }
-    catch (final MsControlException e) {
-      LOG.warn("", e);
-    }
-    try {
       _recorder = _group.getRecorder();
     }
     catch (final MsControlException e) {
@@ -110,6 +104,12 @@ public class GenericMediaService implements MediaService {
     }
     try {
       _player = _group.getPlayer();
+    }
+    catch (final MsControlException e) {
+      LOG.warn("", e);
+    }
+    try {
+      _generator = _group.getSignalGenerator();
     }
     catch (final MsControlException e) {
       LOG.warn("", e);

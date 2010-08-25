@@ -53,7 +53,7 @@ public class SIPController extends SipServlet {
   protected String _applicationClass = null;
 
   @SuppressWarnings("unchecked")
-@Override
+  @Override
   public void init() {
     try {
       _applicationClass = getInitParameter("ApplicationClass");
@@ -78,15 +78,18 @@ public class SIPController extends SipServlet {
 
       final Properties p = new Properties();
       final Driver driver = DriverManager.getDrivers().next();
-      for (final PropertyInfo info : driver.getFactoryPropertyInfo()) {
-        String value = getInitParameter(info.name);
-        if (value == null) {
-          value = info.defaultValue;
-        }
-        if (value != null) {
-          p.setProperty(info.name, value);
+      if (driver.getFactoryPropertyInfo() != null) {
+        for (final PropertyInfo info : driver.getFactoryPropertyInfo()) {
+          String value = getInitParameter(info.name);
+          if (value == null) {
+            value = info.defaultValue;
+          }
+          if (value != null) {
+            p.setProperty(info.name, value);
+          }
         }
       }
+
       _mscFactory = driver.getFactory(p);
 
       final ApplicationContextImpl ctx = new ApplicationContextImpl(app, _mscFactory, _sipFacory, _sdpFactory,

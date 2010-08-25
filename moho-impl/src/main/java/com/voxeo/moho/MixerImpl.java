@@ -105,7 +105,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     checkState();
     if (_service == null) {
       try {
-        _service = _context.getMediaServiceFactory().create(this, _media);
+        _service = _context.getMediaServiceFactory().create(this, _media, null);
         _service.getMediaGroup().join(Direction.DUPLEX, _mixer);
         return _service;
       }

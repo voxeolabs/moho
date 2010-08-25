@@ -16,6 +16,7 @@ package com.voxeo.moho.media;
 
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlException;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 
 import com.voxeo.moho.MediaException;
@@ -26,18 +27,18 @@ import com.voxeo.moho.event.EventSource;
 public class GenericMediaServiceFactory implements MediaServiceFactory {
 
   @Override
-  public MediaService create(final EventSource parent, final MediaSession session) {
+  public MediaService create(final EventSource parent, final MediaSession session, Parameters params) {
     MediaGroup group = null;
     try {
-      group = session.createMediaGroup(MediaGroup.PLAYER_RECORDER_SIGNALDETECTOR_SIGNALGENERATOR);
+      group = session.createMediaGroup(MediaGroup.PLAYER_RECORDER_SIGNALDETECTOR_SIGNALGENERATOR, params);
     }
     catch (final MsControlException e1) {
       try {
-        group = session.createMediaGroup(MediaGroup.PLAYER_RECORDER_SIGNALDETECTOR);
+        group = session.createMediaGroup(MediaGroup.PLAYER_RECORDER_SIGNALDETECTOR, params);
       }
       catch (final MsControlException e2) {
         try {
-          group = session.createMediaGroup(MediaGroup.PLAYER);
+          group = session.createMediaGroup(MediaGroup.PLAYER, params);
         }
         catch (final MsControlException e3) {
           throw new MediaException(e3);
