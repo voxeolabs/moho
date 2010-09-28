@@ -154,6 +154,8 @@ public class RecordCommand {
    * conclude they finished.
    */
   protected long _finalTimeout;
+  
+  protected String _finishOnKey;
 
   public long getInitialTimeout() {
     return _initialTimeout;
@@ -331,4 +333,13 @@ public class RecordCommand {
   public void setVideoMaxBitRate(int videoMaxBitRate) {
     this.videoMaxBitRate = videoMaxBitRate;
   }
+
+  public String getFinishOnKey() {
+    return _finishOnKey;
+  }
+
+  public void setFinishOnKey(String finishOnKey) {
+    _finishOnKey = finishOnKey;
+  }
+  
 }

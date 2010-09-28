@@ -124,9 +124,16 @@ public class SIPIncomingCall extends SIPCallImpl {
 
   protected synchronized void doCancel() {
     if (isTerminated()) {
-      LOG.debug(this + " is already terminated.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Receiving Cancel, but is already terminated. callID:"
+            + (getSipSession() != null ? getSipSession().getCallId() : ""));
+      }
     }
     else if (isNoAnswered()) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Receiving Cancel, not answered. terminating, callID"
+            + (getSipSession() != null ? getSipSession().getCallId() : ""));
+      }
       if (_joinDelegate != null) {
         _joinDelegate.setException(new CanceledException());
       }
@@ -134,7 +141,12 @@ public class SIPIncomingCall extends SIPCallImpl {
       terminate();
     }
     else {
-      LOG.debug(this + " is already answered.");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Receiving Cancel, but is already answered. terminating, callID"
+            + (getSipSession() != null ? getSipSession().getCallId() : ""));
+      }
+      this.setSIPCallState(State.DISCONNECTED);
+      terminate();
     }
   }
 

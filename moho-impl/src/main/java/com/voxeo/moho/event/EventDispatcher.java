@@ -31,7 +31,6 @@ import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.utils.EnumEvent;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
-import com.voxeo.utils.SynchronousExecutor;
 
 public class EventDispatcher {
 
@@ -43,7 +42,9 @@ public class EventDispatcher {
 
   private ConcurrentHashMap<Object, List<Object>> lifecycleObjectMap = new ConcurrentHashMap<Object, List<Object>>();
 
-  private Executor executor = SynchronousExecutor.get();
+  private Executor executor = null;
+
+  private boolean needOrder = true;
 
   private Lock lifecycleLock = new ReentrantLock();
 
@@ -186,7 +187,8 @@ public class EventDispatcher {
     return fire(event, narrowType, null);
   }
 
-  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType, final Runnable afterExec) {
+  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType,
+      final Runnable afterExec) {
 
     final FutureTask<T> task = new FutureTask<T>(new Runnable() {
       @SuppressWarnings("unchecked")
@@ -243,18 +245,23 @@ public class EventDispatcher {
       }
     }, event);
 
-    synchronized (_queue) {
-      boolean excuteProcessor = false;
-      _queue.offer(task);
+    if (needOrder) {
+      synchronized (_queue) {
+        boolean excuteProcessor = false;
+        _queue.offer(task);
 
-      if (!processorRunning) {
-        processorRunning = true;
-        excuteProcessor = true;
-      }
+        if (!processorRunning) {
+          processorRunning = true;
+          excuteProcessor = true;
+        }
 
-      if (excuteProcessor) {
-        executor.execute(new TaskProcessor());
+        if (excuteProcessor) {
+          executor.execute(new TaskProcessor());
+        }
       }
+    }
+    else {
+      executor.execute(task);
     }
 
     return task;
@@ -272,13 +279,19 @@ public class EventDispatcher {
           }
         }
 
-        task.run();
+        try {
+          task.run();
+        }
+        catch (Throwable t) {
+          log.error("Throwable when processing task.", t);
+        }
       }
     }
   }
 
-  public void setExecutor(final Executor executor) {
+  public void setExecutor(final Executor executor, boolean order) {
     this.executor = executor;
+    this.needOrder = order;
   }
 
   public void addExceptionHandler(ExceptionHandler... handlers) {

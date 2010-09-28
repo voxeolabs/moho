@@ -46,8 +46,12 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
   protected ConcurrentHashMap<Observer, AutowiredEventListener> _observers = new ConcurrentHashMap<Observer, AutowiredEventListener>();
 
   public DispatchableEventSource(final ExecutionContext applicationContext) {
+    this(applicationContext, true);
+  }
+
+  public DispatchableEventSource(final ExecutionContext applicationContext, boolean orderedDispatch) {
     _context = applicationContext;
-    _dispatcher.setExecutor(getThreadPool());
+    _dispatcher.setExecutor(getThreadPool(), orderedDispatch);
     _id = UUID.randomUUID().toString(); // TODO: better one?
   }
 

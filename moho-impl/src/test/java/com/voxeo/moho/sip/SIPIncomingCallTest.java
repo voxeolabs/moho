@@ -89,7 +89,7 @@ public class SIPIncomingCallTest extends TestCase {
   TestApp app;
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
 
   SIPInviteEvent initInviteEvent = mockery.mock(SIPInviteEvent.class);
 
@@ -322,7 +322,8 @@ public class SIPIncomingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
+          oneOf(mediaSession)
+              .createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -434,7 +435,8 @@ public class SIPIncomingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
+          oneOf(mediaSession)
+              .createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -3009,6 +3011,13 @@ public class SIPIncomingCallTest extends TestCase {
           });
 
           oneOf(byeResp).send();
+        }
+      });
+
+      mockery.checking(new Expectations() {
+        {
+          oneOf(network).release();
+          oneOf(mediaSession).release();
         }
       });
     }

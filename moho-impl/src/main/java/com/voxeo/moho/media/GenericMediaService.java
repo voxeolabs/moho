@@ -28,6 +28,7 @@ import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.Parameter;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.Qualifier;
+import javax.media.mscontrol.UnsupportedException;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Player;
 import javax.media.mscontrol.mediagroup.PlayerEvent;
@@ -44,6 +45,7 @@ import javax.media.mscontrol.resource.ResourceEvent;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.event.EventSource;
@@ -66,6 +68,7 @@ import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.util.NLSMLParser;
+import com.voxeo.mscontrol.VoxeoParameter;
 
 public class GenericMediaService implements MediaService {
 
@@ -87,33 +90,100 @@ public class GenericMediaService implements MediaService {
 
   protected SignalGenerator _generator = null;
 
+  protected ExecutionContext _context;
+
   protected GenericMediaService(final EventSource parent, final MediaGroup group) {
     _parent = parent;
     _group = group;
-    try {
-      _recorder = _group.getRecorder();
+    _context = (ExecutionContext) _parent.getApplicationContext();
+  }
+
+  protected synchronized Player getPlayer() {
+    if (_player == null) {
+      try {
+        _player = _group.getPlayer();
+      }
+      catch (UnsupportedException ex) {
+        LOG.debug("", ex);
+        throw new UnsupportedOperationException("player is not supported by " + _group);
+      }
+      catch (MsControlException e) {
+        LOG.error("", e);
+        throw new MediaException(e);
+      }
+
+      if (_player == null) {
+        throw new UnsupportedOperationException("Can't get Player.");
+      }
     }
-    catch (final MsControlException e) {
-      LOG.warn("", e);
+
+    return _player;
+  }
+
+  protected synchronized Recorder getRecorder() {
+    if (_recorder == null) {
+      try {
+        _recorder = _group.getRecorder();
+      }
+      catch (UnsupportedException ex) {
+        LOG.debug("", ex);
+        throw new UnsupportedOperationException("Recorder is not supported by " + _group);
+      }
+      catch (MsControlException e) {
+        LOG.error("", e);
+        throw new MediaException(e);
+      }
+
+      if (_recorder == null) {
+        throw new UnsupportedOperationException("Can't get Recorder.");
+      }
     }
-    try {
-      _detector = _group.getSignalDetector();
+
+    return _recorder;
+  }
+
+  protected synchronized SignalDetector getSignalDetector() {
+    if (_detector == null) {
+      try {
+        _detector = _group.getSignalDetector();
+      }
+      catch (UnsupportedException ex) {
+        LOG.debug("", ex);
+        throw new UnsupportedOperationException("SignalDetector is not supported by " + _group);
+      }
+      catch (MsControlException e) {
+        LOG.error("", e);
+        throw new MediaException(e);
+      }
+
+      if (_detector == null) {
+        throw new UnsupportedOperationException("Can't get SignalDetector.");
+      }
     }
-    catch (final MsControlException e) {
-      LOG.warn("", e);
+
+    return _detector;
+  }
+
+  protected synchronized SignalGenerator getSignalGenerator() {
+    if (_generator == null) {
+      try {
+        _generator = _group.getSignalGenerator();
+      }
+      catch (UnsupportedException ex) {
+        LOG.debug("", ex);
+        throw new UnsupportedOperationException("SignalGenerator is not supported by " + _group);
+      }
+      catch (MsControlException e) {
+        LOG.error("", e);
+        throw new MediaException(e);
+      }
+
+      if (_generator == null) {
+        throw new UnsupportedOperationException("Can't get SignalGenerator.");
+      }
     }
-    try {
-      _player = _group.getPlayer();
-    }
-    catch (final MsControlException e) {
-      LOG.warn("", e);
-    }
-    try {
-      _generator = _group.getSignalGenerator();
-    }
-    catch (final MsControlException e) {
-      LOG.warn("", e);
-    }
+
+    return _generator;
   }
 
   public MediaGroup getMediaGroup() {
@@ -161,7 +231,7 @@ public class GenericMediaService implements MediaService {
 
   @Override
   public Prompt prompt(final OutputCommand output, final InputCommand input, final int repeat) throws MediaException {
-    final PromptImpl retval = new PromptImpl();
+    final PromptImpl retval = new PromptImpl(_context);
     if (output != null && output.getAudibleResources() != null && output.getAudibleResources().length > 0) {
       final Parameters params = _group.createParameters();
       final List<RTC> rtcs = new ArrayList<RTC>();
@@ -235,9 +305,9 @@ public class GenericMediaService implements MediaService {
           retval.inputGetSet();
         }
         else {
-          final OutputImpl out = new OutputImpl(_group);
-          _player.addListener(new PlayerListener(out, input == null ? null : retval));
-          _player.play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
+          final OutputImpl out = new OutputImpl(_group, _context);
+          getPlayer().addListener(new PlayerListener(out, input == null ? null : retval));
+          getPlayer().play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
           retval.setOutput(out.prepare());
         }
       }
@@ -253,10 +323,10 @@ public class GenericMediaService implements MediaService {
 
   @Override
   public Recording record(final URI recording) throws MediaException {
-    final RecordingImpl retval = new RecordingImpl(_group);
+    final RecordingImpl retval = new RecordingImpl(_group, _context);
     try {
-      _recorder.addListener(new RecorderListener(retval));
-      _recorder.record(recording, RTC.NO_RTC, Parameters.NO_PARAMETER);
+      getRecorder().addListener(new RecorderListener(retval));
+      getRecorder().record(recording, RTC.NO_RTC, Parameters.NO_PARAMETER);
       retval.prepare();
       return retval;
     }
@@ -267,7 +337,7 @@ public class GenericMediaService implements MediaService {
 
   @Override
   public Recording record(final RecordCommand command) throws MediaException {
-    final RecordingImpl retval = new RecordingImpl(_group);
+    final RecordingImpl retval = new RecordingImpl(_group, _context);
     try {
       final List<RTC> rtcs = new ArrayList<RTC>();
 
@@ -368,8 +438,14 @@ public class GenericMediaService implements MediaService {
         params.put(Recorder.VIDEO_MAX_BITRATE, command.getVideoMaxBitRate());
       }
 
-      _recorder.addListener(new RecorderListener(retval));
-      _recorder.record(command.getRecordURI(), rtcs.toArray(new RTC[] {}), params);
+      if (command.getFinishOnKey() != null) {
+        params.put(VoxeoParameter.VOXEO_INPUT_MODE, "dtmf");
+        params.put(SignalDetector.PATTERN[0], command.getFinishOnKey());
+        rtcs.add(new RTC(SignalDetector.PATTERN_MATCH[0], Recorder.STOP));
+      }
+
+      getRecorder().addListener(new RecorderListener(retval));
+      getRecorder().record(command.getRecordURI(), rtcs.toArray(new RTC[] {}), params);
       retval.prepare();
       return retval;
     }
@@ -381,7 +457,7 @@ public class GenericMediaService implements MediaService {
   protected Input detectSignal(final InputCommand cmd) throws MediaException {
     if (cmd.isRecord()) {
       try {
-        _recorder.record(cmd.getRecordURI(), cmd.getRtcs() != null ? cmd.getRtcs() : RTC.NO_RTC,
+        getRecorder().record(cmd.getRecordURI(), cmd.getRtcs() != null ? cmd.getRtcs() : RTC.NO_RTC,
             cmd.getParameters() != null ? cmd.getParameters() : Parameters.NO_PARAMETER);
       }
       catch (final Exception e) {
@@ -457,10 +533,10 @@ public class GenericMediaService implements MediaService {
       throw new MediaException("No pattern");
     }
 
-    final InputImpl in = new InputImpl(_group);
-    _detector.addListener(new DetectorListener(in, cmd));
+    final InputImpl in = new InputImpl(_group, _context);
+    getSignalDetector().addListener(new DetectorListener(in, cmd));
     try {
-      _detector.receiveSignals(cmd.getSignalNumber(), patternKeys, rtcs.toArray(new RTC[] {}), params);
+      getSignalDetector().receiveSignals(cmd.getSignalNumber(), patternKeys, rtcs.toArray(new RTC[] {}), params);
     }
     catch (final MsControlException e) {
       throw new MediaException(e);
@@ -499,7 +575,7 @@ public class GenericMediaService implements MediaService {
     public void onEvent(final PlayerEvent e) {
       final EventType t = e.getEventType();
       if (t == PlayerEvent.PLAY_COMPLETED) {
-        _player.removeListener(this);
+        getPlayer().removeListener(this);
         OutputCompleteEvent.Cause cause = Cause.UNKNOWN;
         final Qualifier q = e.getQualifier();
         if (q == PlayerEvent.END_OF_PLAY_LIST) {
@@ -547,9 +623,9 @@ public class GenericMediaService implements MediaService {
     public void onEvent(final SignalDetectorEvent e) {
       final EventType t = e.getEventType();
       if (t == SignalDetectorEvent.RECEIVE_SIGNALS_COMPLETED) {
-        _detector.removeListener(this);
+        getSignalDetector().removeListener(this);
         if (_cmd.isRecord()) {
-          _recorder.stop();
+          getRecorder().stop();
         }
         InputCompleteEvent.Cause cause = InputCompleteEvent.Cause.UNKNOWN;
         final Qualifier q = e.getQualifier();
@@ -635,7 +711,7 @@ public class GenericMediaService implements MediaService {
     public void onEvent(final RecorderEvent e) {
       final EventType t = e.getEventType();
       if (t == RecorderEvent.RECORD_COMPLETED) {
-        _recorder.removeListener(this);
+        getRecorder().removeListener(this);
         RecordCompleteEvent.Cause cause = RecordCompleteEvent.Cause.UNKNOWN;
         final Qualifier q = e.getQualifier();
         if (q == RecorderEvent.DURATION_EXCEEDED) {

@@ -65,9 +65,13 @@ public class SessionUtils {
   public static EventSource getEventSource(final SipServletMessage message) {
     return getEventSource(message.getSession());
   }
-  
+
   public static void setEventSource(final SipSession session, EventSource source) {
-      session.setAttribute(SESSION_EVENTSOURCE, source);
+    session.setAttribute(SESSION_EVENTSOURCE, source);
+  }
+
+  public static void removeEventSource(final SipSession session) {
+    session.removeAttribute(SESSION_EVENTSOURCE);
   }
 
 }

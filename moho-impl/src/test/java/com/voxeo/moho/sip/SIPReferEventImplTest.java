@@ -68,7 +68,7 @@ public class SIPReferEventImplTest extends TestCase {
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
 
   SIPEndpoint referedEnd = mockery.mock(SIPEndpoint.class, "referedEnd");
 

@@ -63,12 +63,10 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
 
   protected ServletContext _servletContext;
 
-  //TODO configrable.
-  protected ThreadPoolExecutor _executor = new ThreadPoolExecutor(40, Integer.MAX_VALUE, 30, TimeUnit.SECONDS,
-      new SynchronousQueue<Runnable>(), new DaemonThreadFactory());
+  protected ThreadPoolExecutor _executor;
 
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipFactory sip,
-      final SdpFactory sdp, final String controller, final ServletContext servletContext) {
+      final SdpFactory sdp, final String controller, final ServletContext servletContext, int threadPoolSize) {
     _application = app;
     _mcFactory = mc;
     _sipFactory = sip;
@@ -79,6 +77,9 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     _msFactory = new GenericMediaServiceFactory();
     _parameters = new ConcurrentHashMap<String, String>();
     _servletContext = servletContext;
+
+    _executor = new ThreadPoolExecutor(threadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
+        new SynchronousQueue<Runnable>(), new DaemonThreadFactory("MohoContext"));
   }
 
   @Override

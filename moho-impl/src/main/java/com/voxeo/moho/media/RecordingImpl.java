@@ -23,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Recorder;
 
+import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.event.RecordCompleteEvent;
 
 public class RecordingImpl implements Recording {
@@ -35,8 +36,13 @@ public class RecordingImpl implements Recording {
 
   protected Object _lock = new Object();
 
-  protected RecordingImpl(final MediaGroup group) {
+  protected ExecutionContext _context;
+
+  protected boolean _startedFuture = false;
+
+  protected RecordingImpl(final MediaGroup group, ExecutionContext context) {
     _group = group;
+    _context = context;
   }
 
   protected void prepare() {
@@ -50,9 +56,7 @@ public class RecordingImpl implements Recording {
         }
         return _event;
       }
-
     });
-    new Thread(_future).start();
   }
 
   protected void done(final RecordCompleteEvent event) {
@@ -79,28 +83,49 @@ public class RecordingImpl implements Recording {
 
   @Override
   public boolean cancel(final boolean mayInterruptIfRunning) {
+    startFuture();
     return _future.cancel(mayInterruptIfRunning);
   }
 
   @Override
   public RecordCompleteEvent get() throws InterruptedException, ExecutionException {
+    if (_event != null) {
+      return _event;
+    }
+    else {
+      startFuture();
+    }
     return _future.get();
   }
 
   @Override
   public RecordCompleteEvent get(final long timeout, final TimeUnit unit) throws InterruptedException,
       ExecutionException, TimeoutException {
+    startFuture();
     return _future.get(timeout, unit);
   }
 
   @Override
   public boolean isCancelled() {
+    startFuture();
     return _future.isCancelled();
   }
 
   @Override
   public boolean isDone() {
+    startFuture();
     return _future.isDone();
   }
 
+  private synchronized void startFuture() {
+    if (!_startedFuture) {
+      if (_context != null) {
+        _context.getExecutor().execute(_future);
+      }
+      else {
+        new Thread(_future).start();
+      }
+      _startedFuture = true;
+    }
+  }
 }

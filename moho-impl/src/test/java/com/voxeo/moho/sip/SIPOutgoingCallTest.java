@@ -89,7 +89,7 @@ public class SIPOutgoingCallTest extends TestCase {
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
 
   SIPEndpoint from = mockery.mock(SIPEndpoint.class, "from");;
 

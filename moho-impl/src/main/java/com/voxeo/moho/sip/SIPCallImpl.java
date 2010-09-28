@@ -663,7 +663,9 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
 
   protected synchronized void disconnect(final boolean failed) {
     if (isTerminated()) {
-      LOG.debug(this + " is already terminated.");
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(this + " is already terminated.");
+      }
       return;
     }
     final SIPCall.State old = getSIPCallState();
@@ -700,6 +702,8 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
   }
 
   protected synchronized void terminate() {
+    _context.removeCall(getId());
+
     destroyNetworkConnection();
     _joinees.clear();
     synchronized (_peers) {
@@ -714,13 +718,22 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
       _peers.clear();
     }
     if (_joinDelegate != null && _joinDelegate.getCondition() != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("terminating call. Notifying joinDelegate conditaion. callID:"
+            + (getSipSession() != null ? getSipSession().getCallId() : ""));
+      }
       _joinDelegate.getCondition().notifyAll();
     }
     else {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("terminating call. Notifying this. callID:"
+            + (getSipSession() != null ? getSipSession().getCallId() : ""));
+      }
       this.notifyAll();
       this.dispatch(new CallCompleteEvent(this));
     }
     _callDelegate = null;
+
   }
 
   protected SipServletRequest getSipInitnalRequest() {
@@ -930,7 +943,13 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
       _joinDelegate.doJoin();
       while (!this.isTerminated() && _joinDelegate.isWaiting()) {
         try {
-          this.wait();
+          if (LOG.isDebugEnabled()) {
+            LOG
+                .debug("Start wait joinDelegate. CallID:"
+                    + (getSipSession() != null ? getSipSession().getCallId() : ""));
+          }
+
+          this.wait(1000 * 30);
         }
         catch (final InterruptedException e) {
           // ignore

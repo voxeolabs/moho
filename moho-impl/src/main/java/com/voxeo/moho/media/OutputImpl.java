@@ -24,6 +24,7 @@ import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Player;
 
+import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.event.OutputCompleteEvent;
 
 public class OutputImpl implements Output {
@@ -36,8 +37,13 @@ public class OutputImpl implements Output {
 
   protected Object _lock = new Object();
 
-  protected OutputImpl(final MediaGroup group) {
+  protected ExecutionContext _context;
+
+  protected boolean _startedFuture = false;
+
+  protected OutputImpl(final MediaGroup group, ExecutionContext context) {
     _group = group;
+    _context = context;
   }
 
   protected Output prepare() {
@@ -53,7 +59,7 @@ public class OutputImpl implements Output {
       }
 
     });
-    new Thread(_future).start();
+
     return this;
   }
 
@@ -143,28 +149,44 @@ public class OutputImpl implements Output {
 
   @Override
   public boolean cancel(final boolean mayInterruptIfRunning) {
+    startFuture();
     return _future.cancel(mayInterruptIfRunning);
   }
 
   @Override
   public OutputCompleteEvent get() throws InterruptedException, ExecutionException {
+    startFuture();
     return _future.get();
   }
 
   @Override
   public OutputCompleteEvent get(final long timeout, final TimeUnit unit) throws InterruptedException,
       ExecutionException, TimeoutException {
+    startFuture();
     return _future.get(timeout, unit);
   }
 
   @Override
   public boolean isCancelled() {
+    startFuture();
     return _future.isCancelled();
   }
 
   @Override
   public boolean isDone() {
+    startFuture();
     return _future.isDone();
   }
 
+  private synchronized void startFuture() {
+    if (!_startedFuture) {
+      if (_context != null) {
+        _context.getExecutor().execute(_future);
+      }
+      else {
+        new Thread(_future).start();
+      }
+      _startedFuture = true;
+    }
+  }
 }

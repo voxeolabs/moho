@@ -42,10 +42,15 @@ public class Utils {
   }
 
   public static class DaemonThreadFactory implements ThreadFactory {
+    private ThreadGroup group;
+
+    public DaemonThreadFactory(String groupName) {
+      group = new ThreadGroup(groupName);
+    }
 
     @Override
     public Thread newThread(final Runnable r) {
-      final Thread t = new Thread(r);
+      final Thread t = new Thread(group, r);
       t.setDaemon(true);
       return t;
     }

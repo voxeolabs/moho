@@ -14,33 +14,19 @@
 
 package com.voxeo.moho.event;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ExecutionContext;
-import com.voxeo.moho.util.Utils.DaemonThreadFactory;
 import com.voxeo.utils.EventListener;
 
 public class ApplicationEventSource extends DispatchableEventSource {
 
   public ApplicationEventSource(final ExecutionContext context, final Application application) {
-    super(context);
+    super(context, false);
     if (application instanceof EventListener<?>) {
       addListener((EventListener<?>) application);
     }
     else {
       addObserver(application);
     }
-
-  }
-
-  @Override
-  protected Executor getThreadPool() {
-    final ThreadPoolExecutor retval = new ThreadPoolExecutor(10, Integer.MAX_VALUE, 30, TimeUnit.SECONDS,
-        new SynchronousQueue<Runnable>(), new DaemonThreadFactory());
-    return retval;
   }
 }

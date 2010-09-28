@@ -60,6 +60,7 @@ public class SIPController extends SipServlet {
       if (_applicationClass == null) {
         throw new IllegalArgumentException("Cannot found moho application class.");
       }
+      log.info("Moho using applicationClass:" + _applicationClass);
       Class clz = null;
       try {
         clz = this.getClass().getClassLoader().loadClass(_applicationClass);
@@ -76,6 +77,8 @@ public class SIPController extends SipServlet {
         log.warn("Unable to get SdpFactory, some function, such as call hold unhold mute unmute, is unavailable:");
       }
 
+      // msctrl.min.threadpool , msctrl.max.threadpool used to set thread pool
+      // size of 309
       final Properties p = new Properties();
       final Driver driver = DriverManager.getDrivers().next();
       if (driver.getFactoryPropertyInfo() != null) {
@@ -85,6 +88,7 @@ public class SIPController extends SipServlet {
             value = info.defaultValue;
           }
           if (value != null) {
+            log.info("Moho using property for msFactory:" + info.name + ":" + value);
             p.setProperty(info.name, value);
           }
         }
@@ -92,8 +96,15 @@ public class SIPController extends SipServlet {
 
       _mscFactory = driver.getFactory(p);
 
+      int eventDispatcherThreadPoolSize = 50;
+      String eventDipatcherThreadPoolSizePara = getInitParameter("eventDispatcherThreadPoolSize");
+      if (eventDipatcherThreadPoolSizePara != null) {
+        eventDispatcherThreadPoolSize = Integer.valueOf(eventDipatcherThreadPoolSizePara);
+      }
+      log.info("Moho using eventDipatcherThreadPoolSize:" + eventDispatcherThreadPoolSize);
+
       final ApplicationContextImpl ctx = new ApplicationContextImpl(app, _mscFactory, _sipFacory, _sdpFactory,
-          getServletConfig().getServletName(), this.getServletContext());
+          getServletConfig().getServletName(), this.getServletContext(), eventDispatcherThreadPoolSize);
 
       final Enumeration e = getInitParameterNames();
       while (e.hasMoreElements()) {
