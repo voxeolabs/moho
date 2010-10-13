@@ -68,7 +68,6 @@ import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.util.NLSMLParser;
-import com.voxeo.mscontrol.VoxeoParameter;
 
 public class GenericMediaService implements MediaService {
 
@@ -439,7 +438,6 @@ public class GenericMediaService implements MediaService {
       }
 
       if (command.getFinishOnKey() != null) {
-        params.put(VoxeoParameter.VOXEO_INPUT_MODE, "dtmf");
         params.put(SignalDetector.PATTERN[0], command.getFinishOnKey());
         rtcs.add(new RTC(SignalDetector.PATTERN_MATCH[0], Recorder.STOP));
       }

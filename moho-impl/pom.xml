@@ -122,27 +122,6 @@
       <artifactId>httpclient</artifactId>
       <version>4.0</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore</artifactId>
-      <version>4.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>com.springsource.org.apache.commons.logging</artifactId>
-      <version>1.1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>com.springsource.org.apache.commons.codec</artifactId>
-      <version>1.3.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.voxeo</groupId>
-      <artifactId>mscontrol-spi</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 
   <reporting>

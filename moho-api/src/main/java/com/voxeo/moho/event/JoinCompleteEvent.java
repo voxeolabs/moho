@@ -43,6 +43,7 @@ public class JoinCompleteEvent extends Event<EventSource> {
     super(source);
     _participant = p;
     _cause = cause;
+    _exception = e;
   }
 
   public EventSource getSource() {
