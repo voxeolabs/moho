@@ -57,7 +57,7 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
         e = new BusyException();
       }
       else if (SIPHelper.isRedirect(res)) {
-        e = new RedirectException(res.getHeader("Contact"));
+        e = new RedirectException(res.getHeaders("Contact"));
       }
       else if (SIPHelper.isTimeout(res)) {
         e = new TimeoutException();
