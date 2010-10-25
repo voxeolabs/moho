@@ -35,7 +35,7 @@ public class RedirectException extends SignalException {
 
   public String getTarget() {
     if (_targets.size() > 0) {
-      _targets.get(0);
+      return _targets.get(0);
     }
     return null;
   }
