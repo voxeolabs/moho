@@ -652,22 +652,25 @@ public class GenericMediaService implements MediaService {
         if (e instanceof SpeechRecognitionEvent) {
           final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
           inputCompleteEvent.setUtterance(se.getUserInput());
-          try {
-            inputCompleteEvent.setNlsml(se.getSemanticResult().getPath());
-            final List<Map<String, String>> nlsml = NLSMLParser.parse(inputCompleteEvent.getNlsml());
-            for (final Map<String, String> reco : nlsml) {
-              final String conf = reco.get("_confidence");
-              if (conf != null) {
-                inputCompleteEvent.setConfidence(Float.parseFloat(conf));
-              }
-              final String interpretation = reco.get("_interpretation");
-              if (interpretation != null) {
-                inputCompleteEvent.setInterpretation(interpretation);
+          final URL semanticResult = se.getSemanticResult();
+          if (semanticResult != null && "application/x-nlsml".equalsIgnoreCase(semanticResult.getHost())) {
+            try {
+              inputCompleteEvent.setNlsml(semanticResult.getPath());
+              final List<Map<String, String>> nlsml = NLSMLParser.parse(inputCompleteEvent.getNlsml());
+              for (final Map<String, String> reco : nlsml) {
+                final String conf = reco.get("_confidence");
+                if (conf != null) {
+                  inputCompleteEvent.setConfidence(Float.parseFloat(conf));
+                }
+                final String interpretation = reco.get("_interpretation");
+                if (interpretation != null) {
+                  inputCompleteEvent.setInterpretation(interpretation);
+                }
               }
             }
-          }
-          catch (final Exception e1) {
-            LOG.warn("No NLSML", e1);
+            catch (final Exception e1) {
+              LOG.warn("No NLSML", e1);
+            }
           }
         }
         else {
