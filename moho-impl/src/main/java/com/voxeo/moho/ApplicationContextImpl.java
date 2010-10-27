@@ -66,7 +66,7 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
   protected ThreadPoolExecutor _executor;
 
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipFactory sip,
-      final SdpFactory sdp, final String controller, final ServletContext servletContext, int threadPoolSize) {
+      final SdpFactory sdp, final String controller, final ServletContext servletContext, final int threadPoolSize) {
     _application = app;
     _mcFactory = mc;
     _sipFactory = sip;
@@ -93,7 +93,7 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
       throw new IllegalArgumentException("argument is null");
     }
     try {
-      if (addr.startsWith("sip:") || addr.startsWith("sips:")) {
+      if (addr.startsWith("sip:") || addr.startsWith("sips:") || addr.startsWith("<sip:") || addr.startsWith("<sips:")) {
         return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
       }
       else if (addr.startsWith("mscontrol://")) {
@@ -182,7 +182,7 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     return _imifiedApiURL;
   }
 
-  public void setImifiedApiURL(String imifiedApiURL) {
+  public void setImifiedApiURL(final String imifiedApiURL) {
     this._imifiedApiURL = imifiedApiURL;
   }
 
@@ -190,7 +190,7 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     return _httpClient;
   }
 
-  public void setHttpClient(DefaultHttpClient httpClient) {
+  public void setHttpClient(final DefaultHttpClient httpClient) {
     _httpClient = httpClient;
   }
 
