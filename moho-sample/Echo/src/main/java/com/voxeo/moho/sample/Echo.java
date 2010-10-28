@@ -23,19 +23,19 @@ public class Echo implements Application {
 
   }
 
-  public void init(ApplicationContext ctx) {
+  public void init(final ApplicationContext ctx) {
     _ctx = ctx;
   }
 
   @State()
   public void register(final RegisterEvent ev) throws SignalException {
     if (ev.getExpiration() > 0) {
-      for (Endpoint contact : ev.getContacts()) {
+      for (final Endpoint contact : ev.getContacts()) {
         addresses.put(ev.getEndpoint().getURI().toLowerCase(), contact);
       }
     }
     else {
-      for (Endpoint contact : ev.getContacts()) {
+      for (final Endpoint contact : ev.getContacts()) {
         addresses.remove(ev.getEndpoint().getURI().toLowerCase());
       }
     }
@@ -45,27 +45,28 @@ public class Echo implements Application {
 
   @State
   public void handleText(final TextEvent e) {
-    String message = e.getText();
+    final String message = e.getText();
+    final String type = e.getTextType();
     if (e.getDestination() instanceof ImifiedEndpoint) {
-      ImifiedEndpoint ie = (ImifiedEndpoint) e.getDestination();
+      final ImifiedEndpoint ie = (ImifiedEndpoint) e.getDestination();
 
       ie.setImifiedUserName("zxpzlp@hotmail.com");
       ie.setImifiedPasswd("wzhu");
       try {
-        e.getSource().sendText(ie, message);
+        e.getSource().sendText(ie, message, type);
       }
-      catch (Exception ex) {
+      catch (final Exception ex) {
         ex.printStackTrace();
       }
     }
     else {
       try {
-        if (addresses.get(e.getSource().getURI().toLowerCase()) != null)
-
+        if (addresses.get(e.getSource().getURI().toLowerCase()) != null) {
           ((TextableEndpoint) _ctx.getEndpoint(addresses.get(e.getSource().getURI().toLowerCase()).getURI())).sendText(
-              e.getDestination(), message);
+              e.getDestination(), message, type);
+        }
       }
-      catch (Exception ex) {
+      catch (final Exception ex) {
         ex.printStackTrace();
       }
 

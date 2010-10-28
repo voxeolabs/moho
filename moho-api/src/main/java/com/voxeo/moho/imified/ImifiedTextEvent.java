@@ -25,8 +25,9 @@ public abstract class ImifiedTextEvent extends TextEvent {
 
   protected String _to;
 
-  public ImifiedTextEvent(EventSource source, String channel, String botkey, String userkey, String user,
-      String network, String msg, String step, String to, Map<String, String> historyValues) {
+  public ImifiedTextEvent(final EventSource source, final String channel, final String botkey, final String userkey,
+      final String user, final String network, final String msg, final String step, final String to,
+      final Map<String, String> historyValues) {
     super(source);
     _channel = channel;
     _botkey = botkey;
@@ -42,6 +43,11 @@ public abstract class ImifiedTextEvent extends TextEvent {
   @Override
   public String getText() {
     return _msg;
+  }
+
+  @Override
+  public String getTextType() {
+    return null;
   }
 
   public Map<String, String> getHistory() {

@@ -11,6 +11,8 @@ public abstract class TextEvent extends Event<EventSource> implements Acceptable
 
   public abstract String getText();
 
+  public abstract String getTextType();
+
   public abstract TextableEndpoint getSource();
 
   public abstract TextableEndpoint getDestination();

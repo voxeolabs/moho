@@ -14,6 +14,7 @@
 
 package com.voxeo.moho.sip;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.sip.Address;
@@ -118,18 +119,21 @@ public class SIPEndpointImpl implements SIPEndpoint {
   }
 
   @Override
-  public void sendText(TextableEndpoint from, String text) {
+  public void sendText(final TextableEndpoint from, final String text) throws IOException {
+    sendText(from, text, null);
+  }
+
+  @Override
+  public void sendText(final TextableEndpoint from, final String text, final String type) throws IOException {
     // TODO improve
     final SipServletRequest req = _ctx.getSipFactory().createRequest(_ctx.getSipFactory().createApplicationSession(),
         "MESSAGE", ((SIPEndpoint) from).getSipAddress(), _address);
-
     try {
-      req.setContent(text, "text/plain");
+      req.setContent(text, type == null ? "text/plain" : type);
       req.send();
     }
-    catch (Exception ex) {
+    catch (final Exception ex) {
       throw new SignalException(ex);
     }
   }
-
 }

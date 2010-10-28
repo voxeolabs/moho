@@ -9,15 +9,16 @@ import com.voxeo.moho.imified.ImifiedTextEvent;
 
 public class IMifiedTextEventImpl extends ImifiedTextEvent {
 
-  public IMifiedTextEventImpl(EventSource source, String channel, String botkey, String userkey, String user,
-      String network, String msg, String step, String to, Map<String, String> historyValues) {
+  public IMifiedTextEventImpl(final EventSource source, final String channel, final String botkey,
+      final String userkey, final String user, final String network, final String msg, final String step,
+      final String to, final Map<String, String> historyValues) {
     super(source, channel, botkey, userkey, user, network, msg, step, to, historyValues);
 
   }
 
   @Override
   public TextableEndpoint getSource() {
-    ImifiedEndpointImpl endPoint = new ImifiedEndpointImpl(source.getApplicationContext(), _userkey);
+    final ImifiedEndpointImpl endPoint = new ImifiedEndpointImpl(source.getApplicationContext(), _userkey);
     endPoint.setNetwork(_network);
     endPoint.setAddress(_user);
     return endPoint;
@@ -25,7 +26,7 @@ public class IMifiedTextEventImpl extends ImifiedTextEvent {
 
   @Override
   public TextableEndpoint getDestination() {
-    ImifiedEndpointImpl endPoint = new ImifiedEndpointImpl(source.getApplicationContext(), _botkey);
+    final ImifiedEndpointImpl endPoint = new ImifiedEndpointImpl(source.getApplicationContext(), _botkey);
     endPoint.setNetwork(_network);
     endPoint.setAddress(_to);
     return endPoint;
@@ -37,7 +38,8 @@ public class IMifiedTextEventImpl extends ImifiedTextEvent {
   }
 
   @Override
-  public void accept(Map<String, String> headers) throws SignalException, IllegalStateException {
+  public void accept(final Map<String, String> headers) throws SignalException, IllegalStateException {
     // DO NOTHING
   }
+
 }

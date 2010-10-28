@@ -23,14 +23,19 @@ public class SIPTextEventImpl extends SIPTextEvent {
 
   @Override
   public String getText() {
-    String text;
+    Object content = null;
     try {
-      text = this.getContent(_req);
+      content = _req.getContent();
     }
-    catch (Exception e) {
-      throw new SignalException(e);
+    catch (final IOException e) {
+      e.printStackTrace();
     }
-    return text;
+    return content == null ? null : String.valueOf(content);
+  }
+
+  @Override
+  public String getTextType() {
+    return _req.getContentType();
   }
 
   @Override
@@ -49,19 +54,19 @@ public class SIPTextEventImpl extends SIPTextEvent {
     try {
       res.send();
     }
-    catch (IOException ex) {
+    catch (final IOException ex) {
       throw new SignalException(ex);
     }
   }
 
   @Override
-  public void accept(Map<String, String> headers) throws SignalException, IllegalStateException {
+  public void accept(final Map<String, String> headers) throws SignalException, IllegalStateException {
     final SipServletResponse res = _req.createResponse(SipServletResponse.SC_OK);
     SIPHelper.addHeaders(res, headers);
     try {
       res.send();
     }
-    catch (IOException ex) {
+    catch (final IOException ex) {
       throw new SignalException(ex);
     }
   }
@@ -87,4 +92,5 @@ public class SIPTextEventImpl extends SIPTextEvent {
     }
     return s;
   }
+
 }

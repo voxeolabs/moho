@@ -41,18 +41,23 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
 
   private DefaultHttpClient _httpClient;
 
-  public ImifiedEndpointImpl(ApplicationContext ctx, String key) {
+  public ImifiedEndpointImpl(final ApplicationContext ctx, final String key) {
     super();
     _key = key;
     _ctx = ctx;
 
-    ApplicationContextImpl impl = (ApplicationContextImpl) ctx;
+    final ApplicationContextImpl impl = (ApplicationContextImpl) ctx;
     _imifiedAPI = impl.getImifiedApiURL();
     _httpClient = impl.getHttpClient();
   }
 
   @Override
-  public void sendText(TextableEndpoint from, String text) throws IOException {
+  public void sendText(final TextableEndpoint from, final String text) throws IOException {
+    sendText(from, text, null);
+  }
+
+  @Override
+  public void sendText(final TextableEndpoint from, final String text, final String type) throws IOException {
     ImifiedEndpointImpl bot = null;
     if (from instanceof ImifiedEndpointImpl) {
       bot = (ImifiedEndpointImpl) from;
@@ -61,18 +66,18 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
       throw new IllegalArgumentException("The from endpoint is not an ImifiedEndpoint instance.");
     }
 
-    HttpPost post = new HttpPost(_imifiedAPI);
+    final HttpPost post = new HttpPost(_imifiedAPI);
 
-    String up = bot.getImifiedUserName() + ":" + bot.getImifiedPasswd();
-    String value = "Basic " + new String(Base64.encodeBase64(up.getBytes("UTF-8")), "UTF-8");
+    final String up = bot.getImifiedUserName() + ":" + bot.getImifiedPasswd();
+    final String value = "Basic " + new String(Base64.encodeBase64(up.getBytes("UTF-8")), "UTF-8");
     post.addHeader("Authorization", value);
 
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append("botkey=").append(bot.getKey());
     sb.append("&apimethod=send&userkey=").append(getKey());
     sb.append("&msg=").append(URLEncoder.encode(text, "UTF-8"));
 
-    HttpEntity en = new StringEntity(sb.toString());
+    final HttpEntity en = new StringEntity(sb.toString());
     post.setEntity(en);
     post.setHeader("Content-Type", "application/x-www-form-urlencoded");
     post.setHeader("Connection", "keep-alive");
@@ -82,9 +87,9 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
     }
     HttpEntity resEntity = null;
     try {
-      HttpResponse response = _httpClient.execute(post);
+      final HttpResponse response = _httpClient.execute(post);
       resEntity = response.getEntity();
-      BufferedReader reader = new BufferedReader(new InputStreamReader(resEntity.getContent()));
+      final BufferedReader reader = new BufferedReader(new InputStreamReader(resEntity.getContent()));
 
       if (resEntity.getContentType().getValue().trim().toLowerCase().startsWith("application/xml")) {
         String firstLine = null;
@@ -94,7 +99,7 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
         while (firstLine.trim().length() == 0);
 
         if (!(firstLine.indexOf("stat=\"ok\"") > 0)) {
-          StringBuilder output = new StringBuilder();
+          final StringBuilder output = new StringBuilder();
           output.append(firstLine).append("\r\n");
           String line = null;
           while ((line = reader.readLine()) != null) {
@@ -140,16 +145,16 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
     return _network;
   }
 
-  public void setNetwork(String network) {
+  public void setNetwork(final String network) {
     _network = network;
   }
 
-  public void setAddress(String address) {
+  public void setAddress(final String address) {
     _address = address;
   }
 
   @Override
-  public void setKey(String key) {
+  public void setKey(final String key) {
     _key = key;
   }
 
@@ -157,7 +162,7 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
     return _imifiedUserName;
   }
 
-  public void setImifiedUserName(String imifiedUserName) {
+  public void setImifiedUserName(final String imifiedUserName) {
     _imifiedUserName = imifiedUserName;
   }
 
@@ -165,7 +170,7 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
     return _imifiedPasswd;
   }
 
-  public void setImifiedPasswd(String imifiedPasswd) {
+  public void setImifiedPasswd(final String imifiedPasswd) {
     _imifiedPasswd = imifiedPasswd;
   }
 
