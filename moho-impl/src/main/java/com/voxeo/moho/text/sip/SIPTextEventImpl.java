@@ -28,7 +28,7 @@ public class SIPTextEventImpl extends SIPTextEvent {
       content = _req.getContent();
     }
     catch (final IOException e) {
-      e.printStackTrace();
+      throw new SignalException(e);
     }
     return content == null ? null : String.valueOf(content);
   }
