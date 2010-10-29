@@ -15,6 +15,7 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.ListIterator;
 import java.util.Map;
 
 import javax.servlet.sip.SipServletRequest;
@@ -56,6 +57,16 @@ public class SIPInviteEventImpl extends SIPInviteEvent {
   @Override
   public SipServletRequest getSipRequest() {
     return _invite;
+  }
+
+  @Override
+  public String getHeader(final String name) {
+    return _invite.getHeader(name);
+  }
+
+  @Override
+  public ListIterator<String> getHeaders(final String name) {
+    return _invite.getHeaders(name);
   }
 
   @Override

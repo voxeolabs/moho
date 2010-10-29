@@ -14,12 +14,18 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.ListIterator;
+
 import javax.servlet.sip.SipServletRequest;
 
 import com.voxeo.moho.event.InviteEvent;
 
 public abstract class SIPInviteEvent extends InviteEvent {
 
-    public abstract SipServletRequest getSipRequest();
+  public abstract SipServletRequest getSipRequest();
+
+  public abstract String getHeader(String name);
+
+  public abstract ListIterator<String> getHeaders(String name);
 
 }
