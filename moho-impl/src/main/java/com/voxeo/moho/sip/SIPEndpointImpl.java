@@ -40,7 +40,7 @@ public class SIPEndpointImpl implements SIPEndpoint {
 
   public SIPEndpointImpl(final ExecutionContext ctx, final Address address) {
     _ctx = ctx;
-    _address = address;
+    _address = (Address) address.clone();
   }
 
   @Override

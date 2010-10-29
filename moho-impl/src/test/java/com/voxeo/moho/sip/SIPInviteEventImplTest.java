@@ -86,6 +86,7 @@ public class SIPInviteEventImplTest extends TestCase {
 
   Address toAddr = mockery.mock(Address.class, "toAddr");
 
+  @Override
   protected void setUp() throws Exception {
     super.setUp();
 
@@ -103,7 +104,13 @@ public class SIPInviteEventImplTest extends TestCase {
           allowing(inviteReq).getFrom();
           will(returnValue(fromAddr));
 
+          allowing(fromAddr).clone();
+          will(returnValue(fromAddr));
+
           oneOf(inviteReq).getTo();
+          will(returnValue(toAddr));
+
+          allowing(toAddr).clone();
           will(returnValue(toAddr));
 
           allowing(mediaSession).createParameters();
@@ -116,11 +123,12 @@ public class SIPInviteEventImplTest extends TestCase {
         }
       });
     }
-    catch (Throwable ex) {
+    catch (final Throwable ex) {
       ex.printStackTrace();
     }
   }
 
+  @Override
   protected void tearDown() throws Exception {
     super.tearDown();
   }
@@ -130,7 +138,7 @@ public class SIPInviteEventImplTest extends TestCase {
    */
   public void testAccept() throws Exception {
     // prepare
-    Observer ob = mockery.mock(Observer.class);
+    final Observer ob = mockery.mock(Observer.class);
     final MockSipServletResponse inviteResp = mockery.mock(MockSipServletResponse.class, "inviteResp");
 
     mockery.checking(new Expectations() {
@@ -143,8 +151,8 @@ public class SIPInviteEventImplTest extends TestCase {
     });
 
     // execute
-    SIPInviteEventImpl invite = new SIPInviteEventImpl(appContext, inviteReq);
-    Call call = invite.acceptCall(ob);
+    final SIPInviteEventImpl invite = new SIPInviteEventImpl(appContext, inviteReq);
+    final Call call = invite.acceptCall(ob);
 
     // assert
     assertTrue(call.getCallState() == State.ACCEPTED);
@@ -158,7 +166,7 @@ public class SIPInviteEventImplTest extends TestCase {
     final byte[] requestSDP = new byte[10];
 
     // prepare
-    Observer ob = mockery.mock(Observer.class);
+    final Observer ob = mockery.mock(Observer.class);
     final MockSipServletResponse inviteResp = mockery.mock(MockSipServletResponse.class, "inviteResp");
 
     final SdpPortManagerEvent mediaEvent0 = mockery.mock(SdpPortManagerEvent.class, "mediaEvent0");
@@ -174,7 +182,7 @@ public class SIPInviteEventImplTest extends TestCase {
         }
       });
     }
-    catch (Exception ex) {
+    catch (final Exception ex) {
       ex.printStackTrace();
     }
 
@@ -199,16 +207,16 @@ public class SIPInviteEventImplTest extends TestCase {
         oneOf(sdpManager).processSdpOffer(requestSDP);
         will(new Action() {
           @Override
-          public void describeTo(Description description) {
+          public void describeTo(final Description description) {
           }
 
           @Override
-          public Object invoke(Invocation invocation) throws Throwable {
-            Thread th = new Thread(new Runnable() {
+          public Object invoke(final Invocation invocation) throws Throwable {
+            final Thread th = new Thread(new Runnable() {
               @Override
               public void run() {
-                Object[] ls = sdpManager.listeners.toArray();
-                for (Object listerner : ls) {
+                final Object[] ls = sdpManager.listeners.toArray();
+                for (final Object listerner : ls) {
                   ((MediaEventListener<SdpPortManagerEvent>) listerner).onEvent(mediaEvent0);
                 }
               }
@@ -223,8 +231,8 @@ public class SIPInviteEventImplTest extends TestCase {
     });
 
     // execute
-    SIPInviteEventImpl invite = new SIPInviteEventImpl(appContext, inviteReq);
-    Call call = invite.acceptCallWithEarlyMedia(ob);
+    final SIPInviteEventImpl invite = new SIPInviteEventImpl(appContext, inviteReq);
+    final Call call = invite.acceptCallWithEarlyMedia(ob);
 
     // assert
     assertTrue(call.getCallState() == State.INPROGRESS);

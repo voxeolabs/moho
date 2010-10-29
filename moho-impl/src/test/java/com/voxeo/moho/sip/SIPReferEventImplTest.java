@@ -82,6 +82,7 @@ public class SIPReferEventImplTest extends TestCase {
 
   MockAddress peerAddr = mockery.mock(MockAddress.class, "peerAddr");
 
+  @Override
   protected void setUp() throws Exception {
     super.setUp();
 
@@ -100,6 +101,15 @@ public class SIPReferEventImplTest extends TestCase {
         allowing(peerEnd).getSipAddress();
         will(returnValue(peerAddr));
 
+        allowing(referedAddr).clone();
+        will(returnValue(referedAddr));
+
+        allowing(originAddr).clone();
+        will(returnValue(originAddr));
+
+        allowing(peerAddr).clone();
+        will(returnValue(peerAddr));
+
         allowing(referReq).getAddressHeader("Refer-To");
         will(returnValue(referedAddr));
 
@@ -109,6 +119,7 @@ public class SIPReferEventImplTest extends TestCase {
     });
   }
 
+  @Override
   protected void tearDown() throws Exception {
     super.tearDown();
   }
@@ -159,11 +170,11 @@ public class SIPReferEventImplTest extends TestCase {
           oneOf(referReq).createResponse(SipServletResponse.SC_ACCEPTED);
           will(new Action() {
             @Override
-            public void describeTo(Description description) {
+            public void describeTo(final Description description) {
             }
 
             @Override
-            public Object invoke(Invocation invocation) throws Throwable {
+            public Object invoke(final Invocation invocation) throws Throwable {
               referReq.setResponse(referResp);
               referResp.setRequest(referReq);
               referResp.setSession(session);
@@ -202,15 +213,15 @@ public class SIPReferEventImplTest extends TestCase {
         }
       });
     }
-    catch (Exception ex) {
+    catch (final Exception ex) {
       ex.printStackTrace();
     }
 
     // execute
-    SIPReferEventImpl referEvent = new SIPReferEventImpl(call, referReq);
+    final SIPReferEventImpl referEvent = new SIPReferEventImpl(call, referReq);
 
     // TODO why have public void accept(final Map<String, String> headers)
-    Call newCall = referEvent.accept(JoinType.DIRECT, Direction.DUPLEX, null);
+    final Call newCall = referEvent.accept(JoinType.DIRECT, Direction.DUPLEX, null);
 
     mockery.assertIsSatisfied();
   }

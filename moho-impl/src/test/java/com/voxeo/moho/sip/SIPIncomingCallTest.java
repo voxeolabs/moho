@@ -120,6 +120,12 @@ public class SIPIncomingCallTest extends TestCase {
         allowing(session).getRemoteParty();
         will(returnValue(fromAddr));
 
+        allowing(fromAddr).clone();
+        will(returnValue(fromAddr));
+
+        allowing(toAddr).clone();
+        will(returnValue(toAddr));
+
         allowing(session).getApplicationSession();
         will(returnValue(appSession));
 
@@ -187,7 +193,7 @@ public class SIPIncomingCallTest extends TestCase {
   public void testExceptionHandler() {
 
     sipcall = new SIPIncomingCall(appContext, initInviteEvent);
-    MyExceptionHandler handler = new MyExceptionHandler();
+    final MyExceptionHandler handler = new MyExceptionHandler();
     sipcall.addExceptionHandler(handler);
     // prepare
     final DisconnectEvent disconnectEvent = mockery.mock(DisconnectEvent.class);
@@ -226,7 +232,7 @@ public class SIPIncomingCallTest extends TestCase {
     Exception ex;
 
     @Override
-    public boolean handle(Exception ex, Event<? extends EventSource> event) {
+    public boolean handle(final Exception ex, final Event<? extends EventSource> event) {
       this.ex = ex;
       return false;
     }
