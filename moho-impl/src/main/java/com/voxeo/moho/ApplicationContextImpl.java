@@ -199,8 +199,14 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     return _servletContext;
   }
 
+  @Override
+  public String getRealPath(final String path) {
+    return getServletContext().getRealPath(path);
+  }
+
   public void destroy() {
     getApplication().destroy();
     _executor.shutdown();
   }
+
 }

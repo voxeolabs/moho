@@ -47,4 +47,6 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
 
   ServletContext getServletContext();
 
+  String getRealPath(String path);
+
 }
