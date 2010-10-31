@@ -21,7 +21,6 @@ import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.conference.Conference;
 import com.voxeo.moho.conference.ConferenceController;
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.conference.SimpleConferenceController;
@@ -50,14 +49,9 @@ public class ConferenceRoom implements Application {
   }
 
   @State
-  public void handleInvite(final InviteEvent inv) {
+  public void handleInvite(final InviteEvent inv) throws Exception {
     final Call call = inv.acceptCall();
-    final Conference conf = _manager.createConference(inv.getInvitee().getName(), Integer.MAX_VALUE, _controller, null);
-    try {
-      conf.join(call, JoinType.BRIDGE, Direction.DUPLEX).get();
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
+    _manager.createConference(inv.getInvitee().getName(), Integer.MAX_VALUE, _controller, null).join(call,
+        JoinType.BRIDGE, Direction.DUPLEX).get();
   }
 }

@@ -52,7 +52,6 @@ public class SIPController extends SipServlet {
 
   protected String _applicationClass = null;
 
-  @SuppressWarnings("unchecked")
   @Override
   public void init() {
     try {
@@ -97,7 +96,7 @@ public class SIPController extends SipServlet {
       _mscFactory = driver.getFactory(p);
 
       int eventDispatcherThreadPoolSize = 50;
-      String eventDipatcherThreadPoolSizePara = getInitParameter("eventDispatcherThreadPoolSize");
+      final String eventDipatcherThreadPoolSizePara = getInitParameter("eventDispatcherThreadPoolSize");
       if (eventDipatcherThreadPoolSizePara != null) {
         eventDispatcherThreadPoolSize = Integer.valueOf(eventDipatcherThreadPoolSizePara);
       }

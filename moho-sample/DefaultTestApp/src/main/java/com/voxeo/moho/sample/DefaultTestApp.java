@@ -6,8 +6,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.sip.SipServletRequest;
-
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
@@ -38,161 +36,107 @@ public class DefaultTestApp implements Application {
 
   private ApplicationContext _ctx = null;
 
-  public void init(ApplicationContext ctx) {
+  public void init(final ApplicationContext ctx) {
     _ctx = ctx;
   }
 
   @State
-  public void register(final RegisterEvent ev) {
-    if (ev.getExpiration() > 0) {
-      addresses.put(ev.getEndpoint().getURI().toLowerCase(), ev.getContacts()[0]);
+  public void handleRegister(final RegisterEvent evt) {
+    if (evt.getExpiration() > 0) {
+      addresses.put(evt.getEndpoint().getURI(), evt.getContacts()[0]);
     }
     else {
-      addresses.remove(ev.getEndpoint().getURI().toLowerCase());
+      addresses.remove(evt.getEndpoint().getURI());
     }
-    ev.accept();
+    evt.accept();
   }
 
   @State
-  public void handleInvite(final InviteEvent inv) {
+  public void handleInvite(final InviteEvent inv) throws Exception {
     final Call call = inv.acceptCall(this);
-
-    try {
-      SipServletRequest req = ((SIPInviteEvent) inv).getSipRequest();
-      call.setAttribute("RemoteContact", req.getAddressHeader("Contact").getURI());
+    if (inv instanceof SIPInviteEvent) {
+      call.setAttribute("RemoteContact", ((SIPInviteEvent) inv).getHeader("Contact"));
     }
-    catch (Exception ex) {
-      ex.printStackTrace();
-    }
-
-    try {
-      call.join().get();
-      call.getMediaService().output("Welcome to Voxeo Prism Test Application").get();
-      calls.put(inv.getInvitor().getURI().toLowerCase(), call);
-
-      mainMenu(call);
-    }
-    catch (Exception ex) {
-      call.disconnect();
-      calls.remove(call);
-      ex.printStackTrace();
-    }
+    call.join().get();
+    call.getMediaService().output("Welcome to Voxeo Prism Test Application").get();
+    calls.put(call.getAddress().getURI(), call);
+    mainMenu(call);
   }
 
-  private void mainMenu(Call call) throws Exception {
+  private void mainMenu(final Call call) throws Exception {
     call.setApplicationState("main-menu");
-
-    OutputCommand output = new OutputCommand(new TextToSpeechResource(
+    final OutputCommand output = new OutputCommand(new TextToSpeechResource(
         "Press or say  1 for testing TTS, Press or say 2 for testing Recording"));
     output.setBargein(true);
-
-    InputCommand input = new InputCommand(new Grammar[] {new SimpleGrammar("1,2"), new SimpleGrammar("one,two")});
-
+    final InputCommand input = new InputCommand(new Grammar[] {new SimpleGrammar("1,2"), new SimpleGrammar("one,two")});
     call.getMediaService().prompt(output, input, 0);
   }
 
   @State("main-menu")
-  public void maiMenuInputComplete(final InputCompleteEvent evt) {
+  public void maiMenuInputComplete(final InputCompleteEvent evt) throws Exception {
     switch (evt.getCause()) {
       case MATCH:
         final Call call = (Call) evt.getSource();
         if (evt.getValue().equals("1") || evt.getValue().equalsIgnoreCase("one")) {
           call.setApplicationState("ttsTest");
-
-          try {
-            TextableEndpoint endpoint = null;
-            if (addresses.get(call.getAddress().getURI().toLowerCase()) != null) {
-              endpoint = (TextableEndpoint) addresses.get(call.getAddress().getURI().toLowerCase());
+          Endpoint endpoint = addresses.get(call.getAddress().getURI());
+          if (endpoint == null) {
+            final String remote = (String) call.getAttribute("RemoteContact");
+            if (remote != null) {
+              endpoint = _ctx.getEndpoint(remote);
             }
-            else {
-              endpoint = (TextableEndpoint) _ctx.getEndpoint(((javax.servlet.sip.URI) call
-                  .getAttribute("RemoteContact")).toString());
-            }
-
-            endpoint.sendText((TextableEndpoint) call.getAddress(),
-                "Please type your message. Type exit, quit or bye to return to the main menu.");
           }
-          catch (Exception e) {
-            call.disconnect();
-            calls.remove(call);
-            e.printStackTrace();
-          }
-
+          ((TextableEndpoint) endpoint).sendText((TextableEndpoint) call.getAddress(),
+              "Please type your message. Type exit, quit or bye to return to the main menu.");
         }
         else {
           call.setApplicationState("recordTest");
-
-          final String path = evt.getSource().getApplicationContext().getServletContext().getRealPath(
-              call.getAddress().getName() + "_" + new Date().getTime() + "_Recording.au");
-
-          URI recordURI = new File(path).toURI();
+          final URI recordURI = new File(evt.getSource().getApplicationContext().getRealPath(
+              call.getAddress().getName() + "_" + new Date().getTime() + "_Recording.au")).toURI();
           call.setAttribute("RecordFileLocation", recordURI);
-
-          RecordCommand recordCommand = new RecordCommand(recordURI);
-
-          OutputCommand output = new OutputCommand(new TextToSpeechResource(
+          final OutputCommand output = new OutputCommand(new TextToSpeechResource(
               "Please record your message after the beep, Press hash to stop record."));
           output.setBargein(true);
+          final RecordCommand recordCommand = new RecordCommand(recordURI);
           recordCommand.setPrompt(output);
-
           call.getMediaService().input("#");
-
-          Recording recording = call.getMediaService().record(recordCommand);
-          call.setAttribute("Recording", recording);
+          call.setAttribute("Recording", call.getMediaService().record(recordCommand));
         }
-        break;
     }
   }
 
   @State("recordTest")
-  public void recordComplete(final InputCompleteEvent evt) {
+  public void recordComplete(final InputCompleteEvent evt) throws Exception {
     switch (evt.getCause()) {
       case MATCH:
         final Call call = (Call) evt.getSource();
         ((Recording) call.getAttribute("Recording")).stop();
-
-        AudibleResource[] resources = new AudibleResource[2];
+        final AudibleResource[] resources = new AudibleResource[2];
         resources[0] = new TextToSpeechResource("Here is what you said");
         resources[1] = new AudioURIResource(((URI) call.getAttribute("RecordFileLocation")), "");
-
-        OutputCommand output = new OutputCommand(resources);
-        try {
-          call.getMediaService().output(output).get();
-          mainMenu(call);
-        }
-        catch (Exception e) {
-          call.disconnect();
-          calls.remove(call);
-          e.printStackTrace();
-        }
-        break;
+        final OutputCommand output = new OutputCommand(resources);
+        call.getMediaService().output(output).get();
+        mainMenu(call);
     }
   }
 
   @State
-  public void handleText(final TextEvent e) {
-    Call call = calls.get(e.getSource().getURI().toLowerCase());
-    String text = e.getText();
-    try {
-      if (text.equalsIgnoreCase("exit") || text.equalsIgnoreCase("quit") || text.equalsIgnoreCase("bye")) {
-        call.getMediaService().output("Now return to main menu.").get();
-        mainMenu(call);
-      }
-      else {
-        call.getMediaService().output(text).get();
-      }
+  public void handleText(final TextEvent e) throws Exception {
+    final Call call = calls.get(e.getSource().getURI());
+    final String text = e.getText();
+    if (text.equalsIgnoreCase("exit") || text.equalsIgnoreCase("quit") || text.equalsIgnoreCase("bye")) {
+      call.getMediaService().output("Now return to main menu.").get();
+      mainMenu(call);
     }
-    catch (Exception ex) {
-      call.disconnect();
-      calls.remove(call);
-      ex.printStackTrace();
+    else {
+      call.getMediaService().output(text).get();
     }
   }
-  
+
   @State
   public void handleComplete(final CallCompleteEvent e) {
-    calls.remove(((Call) e.source).getAddress().getURI().toLowerCase());
-    addresses.remove(((Call) e.source).getAddress().getURI().toLowerCase());
+    calls.remove(((Call) e.source).getAddress().getURI());
+    addresses.remove(((Call) e.source).getAddress().getURI());
   }
 
   @Override

@@ -47,7 +47,7 @@ public class CallForward implements Application {
   }
 
   @State
-  public void handleInvite(final InviteEvent e) {
+  public void handleInvite(final InviteEvent e) throws Exception {
     final Call call = e.acceptCall(this);
     try {
       call.join(e.getInvitee(), JoinType.DIRECT, Joinable.Direction.DUPLEX).get();
@@ -59,9 +59,7 @@ public class CallForward implements Application {
       else if (ex.getCause() instanceof TimeoutException) {
         call.join(_timeoutTarget, JoinType.DIRECT, Joinable.Direction.DUPLEX);
       }
-      else {
-        ex.printStackTrace();
-      }
+      throw ex;
     }
   }
 }

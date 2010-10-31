@@ -9,6 +9,7 @@ import javax.servlet.sip.SipServletResponse;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.event.ApplicationEventSource;
+import com.voxeo.moho.sip.SIPEndpointImpl;
 import com.voxeo.moho.sip.SIPHelper;
 import com.voxeo.moho.sip.SIPTextEvent;
 
@@ -37,12 +38,12 @@ public class SIPTextEventImpl extends SIPTextEvent {
 
   @Override
   public TextableEndpoint getSource() {
-    return (TextableEndpoint) _ctx.getEndpoint(_req.getFrom().toString());
+    return new SIPEndpointImpl(_ctx, _req.getFrom());
   }
 
   @Override
   public TextableEndpoint getDestination() {
-    return (TextableEndpoint) _ctx.getEndpoint(_req.getTo().toString());
+    return new SIPEndpointImpl(_ctx, _req.getTo());
   }
 
   @Override

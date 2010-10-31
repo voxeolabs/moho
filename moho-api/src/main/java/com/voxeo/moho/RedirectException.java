@@ -14,7 +14,7 @@
 
 package com.voxeo.moho;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -25,7 +25,7 @@ public class RedirectException extends SignalException {
 
   private static final long serialVersionUID = -8620383625996859747L;
 
-  protected List<String> _targets = new LinkedList<String>();
+  protected List<String> _targets = new ArrayList<String>();
 
   public RedirectException(final ListIterator<String> targets) {
     while (targets.hasNext()) {
@@ -34,13 +34,10 @@ public class RedirectException extends SignalException {
   }
 
   public String getTarget() {
-    if (_targets.size() > 0) {
-      return _targets.get(0);
-    }
-    return null;
+    return _targets.size() > 0 ? _targets.get(0) : null;
   }
 
   public List<String> getTargets() {
-    return _targets;
+    return new ArrayList<String>(_targets);
   }
 }

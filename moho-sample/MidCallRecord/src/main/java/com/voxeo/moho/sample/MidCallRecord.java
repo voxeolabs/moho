@@ -14,8 +14,8 @@
 
 package com.voxeo.moho.sample;
 
+import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Date;
 
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -34,18 +34,12 @@ import com.voxeo.moho.media.record.RecordCommand;
 
 public class MidCallRecord implements Application {
 
-  String _mediaLocation;
-
   @Override
   public void destroy() {
   }
 
   @Override
   public void init(final ApplicationContext ctx) {
-    _mediaLocation = ctx.getParameter("MediaLocation");
-    if (_mediaLocation == null) {
-      throw new IllegalArgumentException();
-    }
   }
 
   @State
@@ -53,7 +47,7 @@ public class MidCallRecord implements Application {
     final Call partyA = event.acceptCall(this);
     partyA.setSupervised(true);
 
-    Call partyB = event.getInvitee().call(event.getInvitor(), null, this);
+    final Call partyB = event.getInvitee().call(event.getInvitor(), null, this);
     partyB.setSupervised(true);
 
     partyA.join(partyB, JoinType.BRIDGE, Direction.DUPLEX).get();
@@ -68,9 +62,9 @@ public class MidCallRecord implements Application {
   @State
   public void handleDisconnect(final DisconnectEvent event) {
     if (event.source instanceof Call) {
-      Call call = (Call) event.source;
+      final Call call = (Call) event.source;
 
-      Call peer = call.getPeers()[0];
+      final Call peer = call.getPeers()[0];
       peer.unjoin(call);
 
       peer.getMediaService().output("Hello, The peer disconnect.");
@@ -81,24 +75,17 @@ public class MidCallRecord implements Application {
   public void inputComplete(final InputCompleteEvent evt) {
     switch (evt.getCause()) {
       case MATCH:
-        URI media = null;
-        try {
-          media = new URI(_mediaLocation + System.getProperty("file.separator") + new Date().getTime()
-              + "_recording.au");
+        final URI media = new File(evt.getSource().getApplicationContext().getRealPath(
+            evt.getSource().getId() + "_" + new Date().getTime() + "_recording.au")).toURI();
+        final RecordCommand command = new RecordCommand(media);
+        command.setInitialTimeout(20 * 1000);
+        command.setFinalTimeout(60 * 1000);
+        final Recording recording = ((Call) evt.getSource()).getMediaService().record(command);
+        evt.getSource().setAttribute("Recording", recording);
+        evt.getSource().setApplicationState("waitStop");
 
-          RecordCommand command = new RecordCommand(media);
-          command.setInitialTimeout(20 * 1000);
-          command.setFinalTimeout(60 * 1000);
-          Recording recording = ((Call) evt.getSource()).getMediaService().record(command);
-          evt.getSource().setAttribute("Recording", recording);
-          evt.getSource().setApplicationState("waitStop");
-
-          MediaService mg = ((Call) evt.getSource()).getMediaService();
-          mg.input("1");
-        }
-        catch (URISyntaxException e) {
-          System.out.print("can't record, URISyntaxException, please configure MediaLocation parameter correctly.");
-        }
+        final MediaService mg = ((Call) evt.getSource()).getMediaService();
+        mg.input("1");
     }
   }
 
@@ -106,7 +93,7 @@ public class MidCallRecord implements Application {
   public void waitStop(final InputCompleteEvent evt) {
     switch (evt.getCause()) {
       case MATCH:
-        Recording recording = (Recording) evt.getSource().getAttribute("Recording");
+        final Recording recording = (Recording) evt.getSource().getAttribute("Recording");
         if (recording != null) {
           recording.stop();
         }

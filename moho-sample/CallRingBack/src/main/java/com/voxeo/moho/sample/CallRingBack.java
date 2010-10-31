@@ -42,14 +42,10 @@ public class CallRingBack implements Application {
   @Override
   public void init(final ApplicationContext ctx) {
     try {
-      String mediaLocation = ctx.getParameter("MediaLocation");
-      if (mediaLocation == null) {
-        throw new IllegalArgumentException();
-      }
-      _media = new URI(mediaLocation);
+      _media = new URI(ctx.getParameter("MediaLocation"));
     }
     catch (final URISyntaxException e) {
-      throw new RuntimeException(e);
+      throw new IllegalArgumentException(e);
     }
   }
 
@@ -58,8 +54,8 @@ public class CallRingBack implements Application {
     final Call call = e.acceptCallWithEarlyMedia(this);
 
     // set RTC, if the user press any button, stop the play.
-    OutputCommand outcommand = new OutputCommand(new AudioURIResource(_media, null));
-    RTC[] rtcs = new RTC[] {MediaGroup.SIGDET_STOPPLAY};
+    final OutputCommand outcommand = new OutputCommand(new AudioURIResource(_media, null));
+    final RTC[] rtcs = new RTC[] {MediaGroup.SIGDET_STOPPLAY};
     outcommand.setRtcs(rtcs);
 
     call.getMediaService().prompt(outcommand, null, 30);

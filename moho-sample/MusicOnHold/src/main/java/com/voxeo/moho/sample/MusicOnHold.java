@@ -40,14 +40,10 @@ public class MusicOnHold implements Application {
   @Override
   public void init(final ApplicationContext ctx) {
     try {
-      String mediaLocation = ctx.getParameter("MediaLocation");
-      if (mediaLocation == null) {
-        throw new IllegalArgumentException();
-      }
-      _media = new URI(mediaLocation);
+      _media = new URI(ctx.getParameter("MediaLocation"));
     }
     catch (final URISyntaxException e) {
-      throw new RuntimeException(e);
+      throw new IllegalArgumentException(e);
     }
   }
 
