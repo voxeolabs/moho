@@ -33,6 +33,9 @@ import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.EventState;
+import com.voxeo.moho.event.SignalEvent;
+import com.voxeo.moho.event.TextEvent;
 import com.voxeo.moho.text.sip.SIPTextEventImpl;
 import com.voxeo.moho.util.SessionUtils;
 
@@ -250,14 +253,74 @@ public class SIPController extends SipServlet {
 
   @Override
   protected void doRefer(final SipServletRequest req) throws ServletException, IOException {
-    final EventSource source = SessionUtils.getEventSource(req);
+    EventSource source = null;
+    if (!req.isInitial()) {
+      source = SessionUtils.getEventSource(req);
+    }
     if (source != null) {
-      source.dispatch(new SIPReferEventImpl(source, req));
+      final SignalEvent event = new SIPReferEventImpl(source, req);
+      source.dispatch(event);
     }
     else {
-      final SIPReferEventImpl ev = new SIPReferEventImpl(_app, req);
-      _app.dispatch(ev);
+      final SignalEvent event = new SIPReferEventImpl(_app, req);
+      _app.dispatch(event, new NoHandleHandler(event, req));
     }
+  }
+
+  @Override
+  protected void doNotify(final SipServletRequest req) throws ServletException, IOException {
+    EventSource source = null;
+    if (!req.isInitial()) {
+      source = SessionUtils.getEventSource(req);
+    }
+    if (source != null) {
+      final SignalEvent event = new SIPNotifyEventImpl(source, req);
+      source.dispatch(event);
+    }
+    else {
+      final SignalEvent event = new SIPNotifyEventImpl(_app, req);
+      _app.dispatch(event, new NoHandleHandler(event, req));
+    }
+  }
+
+  @Override
+  protected void doMessage(final SipServletRequest req) throws ServletException, IOException {
+    req.createResponse(200).send();
+    final String type = req.getContentType();
+    if (type != null && type.startsWith("text/")) {
+      EventSource source = null;
+      if (!req.isInitial()) {
+        source = SessionUtils.getEventSource(req);
+      }
+      if (source != null) {
+        final TextEvent event = new SIPTextEventImpl(source, req);
+        source.dispatch(event);
+      }
+      else {
+        final TextEvent event = new SIPTextEventImpl(_app, req);
+        _app.dispatch(event, new SessionDisposer(req));
+      }
+    }
+    else {
+      try {
+        req.getApplicationSession().invalidate();
+      }
+      catch (final Throwable t) {
+        ;
+      }
+    }
+  }
+
+  @Override
+  protected void doRegister(final SipServletRequest req) throws ServletException, IOException {
+    final SignalEvent event = new SIPRegisterEventImpl(_app, req);
+    _app.dispatch(event, new NoHandleHandler(event, req));
+  }
+
+  @Override
+  protected void doSubscribe(final SipServletRequest req) throws ServletException, IOException {
+    final SignalEvent event = new SIPSubscribeEventImpl(_app, req);
+    _app.dispatch(event, new NoHandleHandler(event, req));
   }
 
   @Override
@@ -276,48 +339,22 @@ public class SIPController extends SipServlet {
   }
 
   @Override
-  protected void doNotify(final SipServletRequest req) throws ServletException, IOException {
-    final EventSource source = SessionUtils.getEventSource(req);
-    if (source != null) {
-      source.dispatch(new SIPNotifyEventImpl(source, req));
-    }
-  }
-
-  @Override
-  protected void doRegister(final SipServletRequest req) throws ServletException, IOException {
-    _app.dispatch(new SIPRegisterEventImpl(_app, req));
-  }
-
-  @Override
-  protected void doSubscribe(final SipServletRequest req) throws ServletException, IOException {
-    _app.dispatch(new SIPSubscribeEventImpl(_app, req));
-  }
-
-  @Override
   protected void doPublish(final SipServletRequest req) throws ServletException, IOException {
     doOthers(req);
   }
 
-  @Override
-  protected void doMessage(final SipServletRequest req) throws ServletException, IOException {
-    req.createResponse(200).send();
-
-    if (req.getContentType() != null
-        && (req.getContentType().equalsIgnoreCase("text/plain") || req.getContentType().equalsIgnoreCase("text/html"))) {
-      _app.dispatch(new SIPTextEventImpl(_app, req));
-    }
-  }
-
   protected void doOthers(final SipServletRequest req) {
     EventSource source = null;
-    if (req.isInitial()) {
-      source = _app;
-    }
-    else {
+    if (!req.isInitial()) {
       source = SessionUtils.getEventSource(req);
     }
     if (source != null) {
-      source.dispatch(new SIPUndefinedSignalEventImpl(source, req));
+      final SignalEvent event = new SIPUndefinedSignalEventImpl(source, req);
+      source.dispatch(event);
+    }
+    else {
+      final SignalEvent event = new SIPUndefinedSignalEventImpl(_app, req);
+      _app.dispatch(event, new NoHandleHandler(event, req));
     }
   }
 
@@ -385,6 +422,65 @@ public class SIPController extends SipServlet {
     else {
       log.info("Cannot found EventSource to handle error response: " + source);
     }
+  }
+
+  private class NoHandleHandler implements Runnable {
+
+    private SignalEvent _event;
+
+    private SipServletRequest _req;
+
+    private boolean _invalidate = false;
+
+    public NoHandleHandler(final SignalEvent event, final SipServletRequest req) {
+      this(event, req, false);
+    }
+
+    public NoHandleHandler(final SignalEvent event, final SipServletRequest req, final boolean invalidate) {
+      _event = event;
+      _req = req;
+    }
+
+    public void run() {
+      if (_event.getState() == EventState.InitialEventState.INITIAL && _req.isInitial() && !_req.isCommitted()) {
+        try {
+          _req.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR, "Request not handled by app").send();
+        }
+        catch (final Throwable t) {
+          log.warn("", t);
+        }
+      }
+      if (_invalidate) {
+        try {
+          _req.getApplicationSession().invalidate();
+        }
+        catch (final Throwable t) {
+          log.warn("", t);
+        }
+      }
+    }
+  }
+
+  private class SessionDisposer implements Runnable {
+
+    private SipServletRequest _req;
+
+    public SessionDisposer(final SipServletRequest req) {
+      _req = req;
+    }
+
+    @Override
+    public void run() {
+      if (_req.isInitial()) {
+        try {
+          _req.getApplicationSession().invalidate();
+        }
+        catch (final Throwable t) {
+          log.warn("", t);
+        }
+      }
+    }
+
   }
 
 }
