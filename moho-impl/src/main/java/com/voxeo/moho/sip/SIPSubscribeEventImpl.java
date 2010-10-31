@@ -29,6 +29,8 @@ public class SIPSubscribeEventImpl extends SIPSubscribeEvent {
 
   @Override
   public synchronized void accept(final Map<String, String> headers) throws SignalException, IllegalStateException {
+    this.checkState();
+    this.setState(AcceptableEventState.ACCEPTED);
     // TODO
   }
 

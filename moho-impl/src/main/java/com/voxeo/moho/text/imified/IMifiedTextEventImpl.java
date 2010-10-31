@@ -2,7 +2,6 @@ package com.voxeo.moho.text.imified;
 
 import java.util.Map;
 
-import com.voxeo.moho.SignalException;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.imified.ImifiedTextEvent;
@@ -30,16 +29,6 @@ public class IMifiedTextEventImpl extends ImifiedTextEvent {
     endPoint.setNetwork(_network);
     endPoint.setAddress(_to);
     return endPoint;
-  }
-
-  @Override
-  public void accept() throws SignalException, IllegalStateException {
-    // DO NOTHING
-  }
-
-  @Override
-  public void accept(final Map<String, String> headers) throws SignalException, IllegalStateException {
-    // DO NOTHING
   }
 
 }

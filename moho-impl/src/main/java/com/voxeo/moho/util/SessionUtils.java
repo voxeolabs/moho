@@ -66,7 +66,7 @@ public class SessionUtils {
     return getEventSource(message.getSession());
   }
 
-  public static void setEventSource(final SipSession session, EventSource source) {
+  public static void setEventSource(final SipSession session, final EventSource source) {
     session.setAttribute(SESSION_EVENTSOURCE, source);
   }
 

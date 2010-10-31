@@ -119,10 +119,13 @@ public class SIPReferEventImpl extends SIPReferEvent {
   public void forwardTo(final Endpoint endpoint, final Map<String, String> headers) throws SignalException,
       IllegalStateException {
     if (source instanceof ApplicationEventSource && endpoint instanceof SIPEndpoint) {
-      ApplicationEventSource es = (ApplicationEventSource) source;
-      ApplicationContextImpl appContext = (ApplicationContextImpl) es.getApplicationContext();
+      this.checkState();
+      this.setState(ForwardableEventState.FORWARDED);
 
-      SipServletRequest req = appContext.getSipFactory().createRequest(_req.getApplicationSession(), "REFER",
+      final ApplicationEventSource es = (ApplicationEventSource) source;
+      final ApplicationContextImpl appContext = (ApplicationContextImpl) es.getApplicationContext();
+
+      final SipServletRequest req = appContext.getSipFactory().createRequest(_req.getApplicationSession(), "REFER",
           _req.getFrom(), ((SIPEndpoint) endpoint).getSipAddress());
       SIPHelper.addHeaders(req, headers);
       req.addHeader("Refer-To", _req.getHeader("Refer-To"));
@@ -135,17 +138,17 @@ public class SIPReferEventImpl extends SIPReferEvent {
         final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(appContext, Type.REFER, 180, new SIPEndpointImpl(
             appContext, _req.getFrom()), endpoint);
         //TODO should set event listener or observer.
-        SipSession outSession = req.getSession();
+        final SipSession outSession = req.getSession();
         outSession.setHandler(appContext.getController());
         SessionUtils.setEventSource(outSession, retval);
 
         req.send();
       }
-      catch (IOException e) {
+      catch (final IOException e) {
         LOG.error("", e);
         throw new SignalException("", e);
       }
-      catch (ServletException e) {
+      catch (final ServletException e) {
         LOG.error("", e);
         throw new SignalException("", e);
       }

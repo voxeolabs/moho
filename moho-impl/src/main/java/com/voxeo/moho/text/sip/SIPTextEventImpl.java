@@ -1,21 +1,18 @@
 package com.voxeo.moho.text.sip;
 
 import java.io.IOException;
-import java.util.Map;
 
 import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.TextableEndpoint;
-import com.voxeo.moho.event.ApplicationEventSource;
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.sip.SIPEndpointImpl;
-import com.voxeo.moho.sip.SIPHelper;
 import com.voxeo.moho.sip.SIPTextEvent;
 
 public class SIPTextEventImpl extends SIPTextEvent {
 
-  public SIPTextEventImpl(final ApplicationEventSource source, final SipServletRequest req) {
+  public SIPTextEventImpl(final EventSource source, final SipServletRequest req) {
     super(source, req);
   }
 
@@ -44,29 +41,6 @@ public class SIPTextEventImpl extends SIPTextEvent {
   @Override
   public TextableEndpoint getDestination() {
     return new SIPEndpointImpl(_ctx, _req.getTo());
-  }
-
-  @Override
-  public void accept() throws SignalException, IllegalStateException {
-    final SipServletResponse res = _req.createResponse(SipServletResponse.SC_OK);
-    try {
-      res.send();
-    }
-    catch (final IOException ex) {
-      throw new SignalException(ex);
-    }
-  }
-
-  @Override
-  public void accept(final Map<String, String> headers) throws SignalException, IllegalStateException {
-    final SipServletResponse res = _req.createResponse(SipServletResponse.SC_OK);
-    SIPHelper.addHeaders(res, headers);
-    try {
-      res.send();
-    }
-    catch (final IOException ex) {
-      throw new SignalException(ex);
-    }
   }
 
 }

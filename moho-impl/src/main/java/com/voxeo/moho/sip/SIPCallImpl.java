@@ -828,7 +828,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           LOG.debug("Set ms id with call id :" + getSipSession().getCallId());
         }
 
-        Parameters params = _media.createParameters();
+        final Parameters params = _media.createParameters();
 
         params.put(MediaObject.MEDIAOBJECT_ID, "MS-" + getSipSession().getCallId());
         _media.setParameters(params);

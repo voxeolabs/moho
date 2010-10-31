@@ -3,7 +3,7 @@ package com.voxeo.moho.event;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.utils.Event;
 
-public abstract class TextEvent extends Event<EventSource> implements AcceptableEvent {
+public abstract class TextEvent extends Event<EventSource> {
 
   public TextEvent(final EventSource source) {
     super(source);
@@ -16,4 +16,5 @@ public abstract class TextEvent extends Event<EventSource> implements Acceptable
   public abstract TextableEndpoint getSource();
 
   public abstract TextableEndpoint getDestination();
+
 }

@@ -63,6 +63,8 @@ public class SIPRegisterEventImpl extends SIPRegisterEvent {
 
   @Override
   public synchronized void accept(final Endpoint[] contacts, final int expiration, final Map<String, String> headers) {
+    this.checkState();
+    this.setState(AcceptableEventState.ACCEPTED);
     final SipServletResponse res = _req.createResponse(SipServletResponse.SC_OK);
     for (final Endpoint contact : contacts) {
       res.addHeader("Contact", contact.toString());
@@ -75,10 +77,13 @@ public class SIPRegisterEventImpl extends SIPRegisterEvent {
     catch (final IOException e) {
       throw new SignalException(e);
     }
+
   }
 
   @Override
   public synchronized void reject(final Reason reason, final Map<String, String> headers) {
+    this.checkState();
+    this.setState(RejectableEventState.REJECTED);
     final SipServletResponse res = _req.createResponse(reason == null ? Reason.DECLINE.getCode() : reason.getCode());
     SIPHelper.addHeaders(res, headers);
     try {
