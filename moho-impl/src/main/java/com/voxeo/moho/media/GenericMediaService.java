@@ -17,6 +17,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -51,6 +53,7 @@ import com.voxeo.moho.MediaService;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.InputDetectedEvent;
+import com.voxeo.moho.event.MediaCompleteEvent;
 import com.voxeo.moho.event.OutputCompleteEvent;
 import com.voxeo.moho.event.OutputPausedEvent;
 import com.voxeo.moho.event.OutputResumedEvent;
@@ -90,6 +93,8 @@ public class GenericMediaService implements MediaService {
   protected SignalGenerator _generator = null;
 
   protected ExecutionContext _context;
+
+  protected List<MediaOperation<? extends MediaCompleteEvent>> futures = new LinkedList<MediaOperation<? extends MediaCompleteEvent>>();
 
   protected GenericMediaService(final EventSource parent, final MediaGroup group) {
     _parent = parent;
@@ -302,12 +307,14 @@ public class GenericMediaService implements MediaService {
 
           retval.inputGetReady(new SignalDetectorWorker(input));
           retval.inputGetSet();
+          futures.add(retval.getInput());
         }
         else {
           final OutputImpl out = new OutputImpl(_group, _context);
           getPlayer().addListener(new PlayerListener(out, input == null ? null : retval));
           getPlayer().play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
           retval.setOutput(out.prepare());
+          futures.add(out);
         }
       }
       catch (final MsControlException e) {
@@ -315,7 +322,9 @@ public class GenericMediaService implements MediaService {
       }
     }
     else {
-      retval.setInput(detectSignal(input));
+      Input futureInput = detectSignal(input);
+      retval.setInput(futureInput);
+      futures.add(futureInput);
     }
     return retval;
   }
@@ -327,6 +336,7 @@ public class GenericMediaService implements MediaService {
       getRecorder().addListener(new RecorderListener(retval));
       getRecorder().record(recording, RTC.NO_RTC, Parameters.NO_PARAMETER);
       retval.prepare();
+      futures.add(retval);
       return retval;
     }
     catch (final Exception e) {
@@ -445,6 +455,7 @@ public class GenericMediaService implements MediaService {
       getRecorder().addListener(new RecorderListener(retval));
       getRecorder().record(command.getRecordURI(), rtcs.toArray(new RTC[] {}), params);
       retval.prepare();
+      futures.add(retval);
       return retval;
     }
     catch (final Exception e) {
@@ -743,4 +754,28 @@ public class GenericMediaService implements MediaService {
     }
   }
 
+  public void release() {
+    Iterator<MediaOperation<? extends MediaCompleteEvent>> ite = futures.iterator();
+
+    while (ite.hasNext()) {
+      MediaOperation future = ite.next();
+
+      if (future instanceof RecordingImpl) {
+        if (((RecordingImpl) future).isPending()) {
+          ((RecordingImpl) future).done(new RecordCompleteEvent(_parent, RecordCompleteEvent.Cause.UNKNOWN, 0));
+        }
+      }
+      else if (future instanceof InputImpl) {
+        if (((InputImpl) future).isPending()) {
+          ((InputImpl) future).done(new InputCompleteEvent(_parent, InputCompleteEvent.Cause.UNKNOWN));
+        }
+      }
+      else {
+        if (((InputImpl) future).isPending()) {
+          ((OutputImpl) future).done(new OutputCompleteEvent(_parent, OutputCompleteEvent.Cause.UNKNOWN));
+        }
+      }
+
+    }
+  }
 }

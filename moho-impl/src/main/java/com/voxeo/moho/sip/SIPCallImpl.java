@@ -68,6 +68,7 @@ import com.voxeo.moho.event.ForwardableEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.SignalEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
+import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.util.SessionUtils;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
@@ -667,6 +668,9 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
         LOG.trace(this + " is already terminated.");
       }
       return;
+    }
+    if (_service != null) {
+      ((GenericMediaService) _service).release();
     }
     final SIPCall.State old = getSIPCallState();
     if (failed) {
