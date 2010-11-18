@@ -117,6 +117,15 @@ public class RecordingImpl implements Recording {
     return _future.isDone();
   }
 
+  public synchronized boolean isPending() {
+    if (!_startedFuture) {
+      return false;
+    }
+    else {
+      return !_future.isDone();
+    }
+  }
+
   private synchronized void startFuture() {
     if (!_startedFuture) {
       if (_context != null) {
