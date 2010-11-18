@@ -15,6 +15,7 @@
 package com.voxeo.moho.sample;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -51,28 +52,30 @@ public class BlackList implements Application {
 
   @Override
   public void init(final ApplicationContext ctx) {
-    final String blacklist = ctx.getParameter("BlackList");
-    if (blacklist != null) {
-      try {
-        final Properties p = new Properties();
-        p.load(new FileInputStream(blacklist));
-        final Enumeration<?> e = p.propertyNames();
-        while (e.hasMoreElements()) {
-          final String key = (String) e.nextElement();
-          final String values = p.getProperty(key);
-          if (values != null && values.length() > 0) {
-            final List<String> list = new ArrayList<String>();
-            for (final String value : values.split(",")) {
-              list.add(value.trim());
-            }
-            _blacklists.put(key, list);
+    try {
+      InputStream in = new FileInputStream(ctx.getServletContext().getRealPath("WEB-INF/blacklist.txt"));
+
+      final Properties p = new Properties();
+      p.load(in);
+      final Enumeration<?> e = p.propertyNames();
+      while (e.hasMoreElements()) {
+        final String key = (String) e.nextElement();
+        final String values = p.getProperty(key);
+        if (values != null && values.length() > 0) {
+          final List<String> list = new ArrayList<String>();
+          for (final String value : values.split(",")) {
+            list.add(value.trim());
           }
+          _blacklists.put(key, list);
         }
       }
-      catch (final Exception e) {
-        throw new RuntimeException(e);
-      }
     }
+    catch (final Exception e) {
+      // ignore the exception, as there is no black list.
+      System.out.println("Can't get blackList File");
+      e.printStackTrace();
+    }
+
     System.out.println("BlackList: " + _blacklists);
   }
 
