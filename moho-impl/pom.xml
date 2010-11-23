@@ -115,7 +115,7 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-api</artifactId>
-      <version>0.5</version>
+      <version>0.6</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
