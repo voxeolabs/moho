@@ -54,7 +54,7 @@ public class CallRingBack implements Application {
     final Call call = e.acceptCallWithEarlyMedia(this);
 
     // set RTC, if the user press any button, stop the play.
-    final OutputCommand outcommand = new OutputCommand(new AudioURIResource(_media, null));
+    final OutputCommand outcommand = new OutputCommand(new AudioURIResource(_media));
     final RTC[] rtcs = new RTC[] {MediaGroup.SIGDET_STOPPLAY};
     outcommand.setRtcs(rtcs);
 

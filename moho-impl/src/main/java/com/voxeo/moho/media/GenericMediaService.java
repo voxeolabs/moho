@@ -228,7 +228,7 @@ public class GenericMediaService implements MediaService {
 
   @Override
   public Prompt prompt(final URI media, final String grammar, final int repeat) throws MediaException {
-    final OutputCommand output = media == null ? null : new OutputCommand(new AudioURIResource(media, null));
+    final OutputCommand output = media == null ? null : new OutputCommand(new AudioURIResource(media));
     final InputCommand input = grammar == null ? null : new InputCommand(new SimpleGrammar(grammar));
     return prompt(output, input, repeat);
   }
