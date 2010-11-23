@@ -113,7 +113,7 @@ public class DefaultTestApp implements Application {
         ((Recording) call.getAttribute("Recording")).stop();
         final AudibleResource[] resources = new AudibleResource[2];
         resources[0] = new TextToSpeechResource("Here is what you said");
-        resources[1] = new AudioURIResource(((URI) call.getAttribute("RecordFileLocation")), "");
+        resources[1] = new AudioURIResource(((URI) call.getAttribute("RecordFileLocation")));
         final OutputCommand output = new OutputCommand(resources);
         call.getMediaService().output(output).get();
         mainMenu(call);
