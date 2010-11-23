@@ -20,22 +20,14 @@ public class AudioURIResource extends AudibleResource {
 
   protected URI _uri;
 
-  protected String _type;
-
   protected TextToSpeechResource _alternative;
 
-  public AudioURIResource(final URI uri, final String type) {
+  public AudioURIResource(final URI uri) {
     _uri = uri;
-    _type = type;
   }
 
-  public String getType() {
-    return _type;
-  }
-
-  public void setMedia(final URI uri, final String type) {
+  public void setMedia(final URI uri) {
     _uri = uri;
-    _type = type;
   }
 
   public void setAlternative(final TextToSpeechResource text) {
