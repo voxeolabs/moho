@@ -14,6 +14,10 @@
 
 package com.voxeo.moho.media.output;
 
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.Value;
 import javax.media.mscontrol.mediagroup.CodecConstants;
@@ -21,7 +25,11 @@ import javax.media.mscontrol.mediagroup.FileFormatConstants;
 import javax.media.mscontrol.resource.RTC;
 import javax.media.mscontrol.resource.Resource;
 
+import org.apache.log4j.Logger;
+
 public class OutputCommand {
+
+  private static final Logger log = Logger.getLogger(OutputCommand.class);
 
   public enum BehaviorIfBusy {
     QUEUE, STOP, ERROR
@@ -86,6 +94,33 @@ public class OutputCommand {
   protected Parameters _parameters;
 
   protected RTC[] _rtcs;
+
+  /**
+   * @param textOrURL
+   */
+  public OutputCommand(String textOrURL) {
+    if (textOrURL == null || textOrURL.length() == 0) {
+      throw new IllegalArgumentException();
+    }
+    URL url = null;
+    try {
+      url = new URL(textOrURL);
+    }
+    catch (IllegalArgumentException ex) {
+      // IGNORE
+      log.debug("" + ex.getMessage());
+    }
+    catch (MalformedURLException e) {
+      // IGNORE
+      log.debug("" + e.getMessage());
+    }
+    if (url != null) {
+      _resources = new AudibleResource[] {new AudioURIResource(URI.create(textOrURL))};
+    }
+    else {
+      _resources = new AudibleResource[] {new TextToSpeechResource(textOrURL)};
+    }
+  }
 
   public OutputCommand(final AudibleResource resource) {
     if (resource != null) {
@@ -207,5 +242,12 @@ public class OutputCommand {
 
   public void setRtcs(RTC[] rtcs) {
     _rtcs = rtcs;
+  }
+
+  public static void main(String[] args) {
+
+    OutputCommand o = new OutputCommand("http:areyouok");
+    System.out.print(o);
+
   }
 }

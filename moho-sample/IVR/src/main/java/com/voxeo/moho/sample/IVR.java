@@ -14,9 +14,6 @@
 
 package com.voxeo.moho.sample;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
@@ -25,10 +22,7 @@ import com.voxeo.moho.State;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.media.input.InputCommand;
-import com.voxeo.moho.media.input.SimpleGrammar;
-import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.OutputCommand;
-import com.voxeo.moho.media.output.TextToSpeechResource;
 
 public class IVR implements Application {
 
@@ -42,26 +36,16 @@ public class IVR implements Application {
 
   @State
   public void handleInvite(final InviteEvent inv) throws Exception {
-    final Call call = inv.acceptCall(this);
-    call.join().get();
+    final Call call = inv.answer(this);
+
     call.setApplicationState("menu-level-1");
 
-    List<AudibleResource> audibleResources = new ArrayList<AudibleResource>();
-
-    TextToSpeechResource resource = new TextToSpeechResource(
-        "1 for sales, 2 for support, this is the first prompt that should be interruptable.");
-    audibleResources.add(resource);
-
-    resource = new TextToSpeechResource("this is the second prompt that should be interruptable.");
-    audibleResources.add(resource);
-
-    OutputCommand output = new OutputCommand(audibleResources.toArray(new AudibleResource[0]));
+    OutputCommand output = new OutputCommand(
+        "1 for sales, 2 for support, this is the prompt that should be interruptable.");
     output.setBargein(true);
 
     final MediaService mg = call.getMediaService(false);
-
-    SimpleGrammar grammar = new SimpleGrammar("1,2");
-    InputCommand input = new InputCommand(grammar);
+    InputCommand input = new InputCommand("1,2");
 
     mg.prompt(output, input, 0);
   }

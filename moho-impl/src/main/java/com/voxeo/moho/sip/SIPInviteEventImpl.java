@@ -17,6 +17,7 @@ package com.voxeo.moho.sip;
 import java.io.IOException;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -27,6 +28,7 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.Joint;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.EventState;
@@ -214,5 +216,46 @@ public class SIPInviteEventImpl extends SIPInviteEvent {
         throw new SignalException(e);
       }
     }
+  }
+
+  @Override
+  public Call answer(Map<String, String> headers, EventListener<?>... listeners) throws SignalException,
+      IllegalStateException {
+    Call call = acceptCall(headers, listeners);
+
+    Joint joint = call.join();
+    while (!joint.isDone()) {
+      try {
+        joint.get();
+      }
+      catch (InterruptedException e) {
+        // ignore
+      }
+      catch (ExecutionException e) {
+        throw new SignalException(e.getCause());
+      }
+    }
+
+    return call;
+  }
+
+  @Override
+  public Call answer(Map<String, String> headers, Observer... observer) throws SignalException, IllegalStateException {
+    Call call = acceptCall(headers, observer);
+
+    Joint joint = call.join();
+    while (!joint.isDone()) {
+      try {
+        joint.get();
+      }
+      catch (InterruptedException e) {
+        // ignore
+      }
+      catch (ExecutionException e) {
+        throw new SignalException(e.getCause());
+      }
+    }
+
+    return call;
   }
 }
