@@ -49,6 +49,22 @@ public class InputCommand {
    */
   protected boolean _supervised = true;
 
+  public InputCommand() {
+
+  }
+
+  /**
+   * @param grammers
+   *          can be simple string or string that starts with "#JSGF". if the
+   *          string starts with "#JSGF", a JSGF grammar will be created.
+   */
+  public InputCommand(String grammer) {
+    if (grammer == null || grammer.length() == 0) {
+      throw new IllegalArgumentException();
+    }
+    _grammars = new Grammar[] {Grammar.create(grammer)};
+  }
+
   public InputCommand(final Grammar... grammars) {
     if (grammars != null && grammars.length > 0) {
       _grammars = grammars;
@@ -146,5 +162,4 @@ public class InputCommand {
   public void setRtcs(RTC[] rtcs) {
     _rtcs = rtcs;
   }
-
 }
