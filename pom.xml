@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  
+
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.voxeo.moho</groupId>
-  <name>Moho Parent</name>  
+  <name>Moho Parent</name>
   <artifactId>moho-parent</artifactId>
   <version>0.7-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <repositories>  
+  <repositories>
     <repository>
       <id>sonatype-nexus-public</id>
       <url>http://oss.sonatype.org/content/groups/public</url>
@@ -20,12 +20,12 @@
   </repositories>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <svnUrlBase>scm:git@github.com:voxeo/moho.git/1.0</svnUrlBase>
-  </properties>  
-  
+  </properties>
+
   <build>
-    <plugins>    
+    <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
@@ -33,7 +33,7 @@
           <target>1.6</target>
         </configuration>
       </plugin>
-      
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
@@ -47,7 +47,7 @@
           </execution>
         </executions>
       </plugin>
-      
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -56,38 +56,38 @@
           <archive>
             <manifestEntries>
               <Module-Name>${project.artifactId}</Module-Name>
-              <Inner-Version>${project.version}</Inner-Version>              
+              <Inner-Version>${project.version}</Inner-Version>
             </manifestEntries>
           </archive>
         </configuration>
       </plugin>
-            
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-scm-plugin</artifactId>
         <version>1.3</version>
-        <configuration/>
+        <configuration />
       </plugin>
-      
+
       <plugin>
         <artifactId>maven-surefire-report-plugin</artifactId>
-        <version>2.5</version>        
+        <version>2.5</version>
       </plugin>
-      
+
       <plugin>
-            <groupId>com.mycila.maven-license-plugin</groupId>
-            <artifactId>maven-license-plugin</artifactId>
-            <configuration>
-                <header>header.txt</header>
-                <includes>
-                    <include>src/**/*.java</include>
-                </includes>
-            </configuration>
-        </plugin>
-             
+        <groupId>com.mycila.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <configuration>
+          <header>header.txt</header>
+          <includes>
+            <include>src/**/*.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
-  
+
   <reporting>
     <plugins>
       <plugin>
@@ -95,24 +95,39 @@
         <artifactId>maven-changelog-plugin</artifactId>
         <reportSets>
           <reportSet>
-              <id>dual-report</id>
-              <configuration>
-                <type>range</type>
-                <range>30</range>
-              </configuration>
-              <reports>
-                <report>changelog</report>
-                <report>file-activity</report>
-              </reports>
-            </reportSet>
-          </reportSets>
-       </plugin> 
+            <id>dual-report</id>
+            <configuration>
+              <type>range</type>
+              <range>30</range>
+            </configuration>
+            <reports>
+              <report>changelog</report>
+              <report>file-activity</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
     </plugins>
   </reporting>
-  
+
   <modules>
     <module>moho-api</module>
     <module>moho-impl</module>
     <module>moho-sample</module>
   </modules>
+
+  <distributionManagement>
+    <repository>
+      <id>maven.voxeo.com</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://maven.voxeo.com:8081/nexus/content/repositories/releases</url>
+    </repository>
+    <!-- use the following if you ARE using a snapshot version. -->
+    <snapshotRepository>
+      <id>maven.voxeo.com</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://maven.voxeo.com:8081/nexus/content/repositories/snapshots</url>
+      <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
