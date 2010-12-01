@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  
+
   <modelVersion>4.0.0</modelVersion>
-  <name>Moho Sample Parent</name>  
+  <name>Moho Sample Parent</name>
   <artifactId>moho-sample-parent</artifactId>
   <packaging>pom</packaging>
 
@@ -11,7 +11,7 @@
     <artifactId>moho-parent</artifactId>
     <version>0.7-SNAPSHOT</version>
   </parent>
-  
+
   <modules>
     <module>AutomaticRedial</module>
     <module>BlackList</module>
@@ -24,17 +24,17 @@
     <module>PresenceSubscribe</module>
     <module>SampleAutowire</module>
     <module>SampleQueue</module>
-    <module>Transfer</module>   
-    <module>MusicOnHold</module>  
+    <module>Transfer</module>
+    <module>MusicOnHold</module>
     <module>Echo</module>
-    <module>ImifiedEcho</module>     
-    <module>DefaultTestApp</module>  
+    <module>ImifiedEcho</module>
+    <module>DefaultTestApp</module>
   </modules>
-  
+
   <scm>
     <connection>${svnUrlBase}/moho-sample</connection>
     <url>${svnUrlBase}/moho-sample</url>
-  </scm>  
+  </scm>
 
   <dependencies>
     <dependency>
@@ -42,7 +42,7 @@
       <artifactId>servlet-api</artifactId>
       <version>2.5</version>
       <scope>provided</scope>
-    </dependency>  
+    </dependency>
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>sipservlet-api</artifactId>
@@ -54,17 +54,31 @@
       <artifactId>mscontrol-api</artifactId>
       <version>1.0-SNAPSHOT</version>
       <scope>provided</scope>
-    </dependency>  
+    </dependency>
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-api</artifactId>
-      <version>0.7-SNAPSHOT</version>   
-    </dependency> 
+      <version>0.7-SNAPSHOT</version>
+    </dependency>
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-impl</artifactId>
-      <version>0.7-SNAPSHOT</version>   
+      <version>0.7-SNAPSHOT</version>
     </dependency>
   </dependencies>
-    
+
+  <distributionManagement>
+    <repository>
+      <id>maven.voxeo.com</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://maven.voxeo.com:8081/nexus/content/repositories/releases</url>
+    </repository>
+    <!-- use the following if you ARE using a snapshot version. -->
+    <snapshotRepository>
+      <id>maven.voxeo.com</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://maven.voxeo.com:8081/nexus/content/repositories/snapshots</url>
+      <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
