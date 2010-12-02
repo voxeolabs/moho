@@ -17,6 +17,7 @@ package com.voxeo.moho.util;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.voxeo.utils.EventListener;
 
@@ -44,13 +45,15 @@ public class Utils {
   public static class DaemonThreadFactory implements ThreadFactory {
     private ThreadGroup group;
 
+    private AtomicInteger id = new AtomicInteger(0);
+
     public DaemonThreadFactory(String groupName) {
       group = new ThreadGroup(groupName);
     }
 
     @Override
     public Thread newThread(final Runnable r) {
-      final Thread t = new Thread(group, r);
+      final Thread t = new Thread(group, r, "MOHO-" + id.getAndIncrement());
       t.setDaemon(true);
       return t;
     }
