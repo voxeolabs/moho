@@ -49,10 +49,6 @@ public class InputCommand {
    */
   protected boolean _supervised = true;
 
-  public InputCommand() {
-
-  }
-
   /**
    * @param grammers
    *          can be simple string or string that starts with "#JSGF". if the
