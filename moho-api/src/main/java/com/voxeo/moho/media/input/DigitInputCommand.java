@@ -17,11 +17,6 @@ package com.voxeo.moho.media.input;
 public class DigitInputCommand extends InputCommand {
 
   public DigitInputCommand() {
-    super();
-  }
-
-  @Override
-  public Grammar[] getGrammars() {
-    return new Grammar[] {Grammar.create("1,2,3,4,5,6,7,8,9,0")};
+    super("1,2,3,4,5,6,7,8,9,0");
   }
 }
