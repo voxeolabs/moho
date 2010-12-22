@@ -49,6 +49,14 @@ public interface CallableEndpoint extends Endpoint {
    * @return outbound call made to this endpoint
    */
   Call call(Endpoint caller, Map<String, String> headers, Observer... observers);
+  
+  Call call(String caller);
+  
+  Call call(Endpoint caller);
+  
+  Call call(Endpoint caller, Observer... observers);
+  
+  Call call(String caller, Observer... observers);
 
   /**
    * Create a subscription to this address
