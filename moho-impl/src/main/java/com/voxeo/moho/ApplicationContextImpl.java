@@ -114,6 +114,11 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
       throw new IllegalArgumentException(e);
     }
   }
+  
+  @Override
+  public Endpoint createEndpoint(String endpoint) {
+    return getEndpoint(endpoint);
+  }
 
   @Override
   public MsControlFactory getMSFactory() {

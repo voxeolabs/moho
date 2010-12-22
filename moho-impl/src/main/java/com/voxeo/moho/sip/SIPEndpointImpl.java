@@ -136,4 +136,25 @@ public class SIPEndpointImpl implements SIPEndpoint {
       throw new SignalException(ex);
     }
   }
+
+  @Override
+  public Call call(String caller) {
+    return call(caller, (Observer[])null);
+  }
+
+  @Override
+  public Call call(String caller, Observer... observers) {
+    Endpoint endpoint = _ctx.createEndpoint(caller);
+    return call(endpoint, null, observers);
+  }
+
+  @Override
+  public Call call(Endpoint caller) {
+    return call(caller, null, (Observer[])null);
+  }
+
+  @Override
+  public Call call(Endpoint caller, Observer... observers) {
+    return call(caller, null, observers);
+  }
 }

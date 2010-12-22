@@ -37,7 +37,10 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
 
   String APPLICATION_CONTEXT = "com.voxeo.moho.application.context";
 
+  @Deprecated
   Endpoint getEndpoint(String addr);
+  
+  Endpoint createEndpoint(String addr);
 
   Application getApplication();
 
