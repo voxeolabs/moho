@@ -50,7 +50,7 @@ public class MusicOnHold implements Application {
   @State
   public void handleInvite(final InviteEvent e) {
     final Call call = e.acceptCall(this);
-    final Call outgoingCall = e.getInvitee().call(e.getInvitor(), null, this);
+    final Call outgoingCall = e.getInvitee().call(e.getInvitor(), this);
     call.join(outgoingCall, JoinType.BRIDGE, Joinable.Direction.DUPLEX);
   }
 

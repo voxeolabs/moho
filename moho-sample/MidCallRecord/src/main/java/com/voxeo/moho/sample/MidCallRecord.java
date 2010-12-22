@@ -47,7 +47,7 @@ public class MidCallRecord implements Application {
     final Call partyA = event.acceptCall(this);
     partyA.setSupervised(true);
 
-    final Call partyB = event.getInvitee().call(event.getInvitor(), null, this);
+    final Call partyB = event.getInvitee().call(event.getInvitor(), this);
     partyB.setSupervised(true);
 
     partyA.join(partyB, JoinType.BRIDGE, Direction.DUPLEX).get();
