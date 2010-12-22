@@ -106,6 +106,10 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
       else if (addr.startsWith("im:")) {
         return new ImifiedEndpointImpl(this, addr.substring(addr.indexOf(":") + 1));
       }
+      else if (addr.startsWith("tel:") || addr.startsWith("fax:") || addr.startsWith("<tel:")
+          || addr.startsWith("<fax:")) {
+        return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
+      }
       else {
         throw new IllegalArgumentException("Unsupported format: " + addr);
       }
