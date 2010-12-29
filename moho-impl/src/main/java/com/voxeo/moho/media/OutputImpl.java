@@ -72,79 +72,107 @@ public class OutputImpl implements Output {
 
   @Override
   public synchronized void jump(final int index) {
-    final Parameters params = _group.getParameters(null);
-    final int oldValue = (Integer) params.get(Player.JUMP_PLAYLIST_INCREMENT);
-    try {
-      if (index > 0) {
-        params.put(Player.JUMP_PLAYLIST_INCREMENT, index);
-        _group.setParameters(params);
-        _group.triggerAction(Player.JUMP_FORWARD_IN_PLAYLIST);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        final Parameters params = _group.getParameters(null);
+        final int oldValue = (Integer) params.get(Player.JUMP_PLAYLIST_INCREMENT);
+        try {
+          if (index > 0) {
+            params.put(Player.JUMP_PLAYLIST_INCREMENT, index);
+            _group.setParameters(params);
+            _group.triggerAction(Player.JUMP_FORWARD_IN_PLAYLIST);
+          }
+          else if (index < 0) {
+            params.put(Player.JUMP_PLAYLIST_INCREMENT, -index);
+            _group.setParameters(params);
+            _group.triggerAction(Player.JUMP_BACKWARD_IN_PLAYLIST);
+          }
+        }
+        finally {
+          params.put(Player.JUMP_PLAYLIST_INCREMENT, oldValue);
+          _group.setParameters(params);
+        }
       }
-      else if (index < 0) {
-        params.put(Player.JUMP_PLAYLIST_INCREMENT, -index);
-        _group.setParameters(params);
-        _group.triggerAction(Player.JUMP_BACKWARD_IN_PLAYLIST);
-      }
-    }
-    finally {
-      params.put(Player.JUMP_PLAYLIST_INCREMENT, oldValue);
-      _group.setParameters(params);
     }
   }
 
   @Override
   public synchronized void move(final boolean direction, final int time) {
-    final Parameters params = _group.getParameters(null);
-    final int oldValue = (Integer) params.get(Player.JUMP_TIME);
-    params.put(Player.JUMP_TIME, time);
-    _group.setParameters(params);
-    try {
-      if (direction) {
-        _group.triggerAction(Player.JUMP_FORWARD);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        final Parameters params = _group.getParameters(null);
+        final int oldValue = (Integer) params.get(Player.JUMP_TIME);
+        params.put(Player.JUMP_TIME, time);
+        _group.setParameters(params);
+        try {
+          if (direction) {
+            _group.triggerAction(Player.JUMP_FORWARD);
+          }
+          else {
+            _group.triggerAction(Player.JUMP_BACKWARD);
+          }
+        }
+        finally {
+          params.put(Player.JUMP_TIME, oldValue);
+          _group.setParameters(params);
+        }
       }
-      else {
-        _group.triggerAction(Player.JUMP_BACKWARD);
-      }
-    }
-    finally {
-      params.put(Player.JUMP_TIME, oldValue);
-      _group.setParameters(params);
     }
   }
 
   @Override
   public void speed(final boolean upOrDown) {
-    if (upOrDown) {
-      _group.triggerAction(Player.SPEED_UP);
-    }
-    else {
-      _group.triggerAction(Player.SPEED_DOWN);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        if (upOrDown) {
+          _group.triggerAction(Player.SPEED_UP);
+        }
+        else {
+          _group.triggerAction(Player.SPEED_DOWN);
+        }
+      }
     }
   }
 
   @Override
   public void volume(final boolean upOrDown) {
-    if (upOrDown) {
-      _group.triggerAction(Player.VOLUME_UP);
-    }
-    else {
-      _group.triggerAction(Player.VOLUME_DOWN);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        if (upOrDown) {
+          _group.triggerAction(Player.VOLUME_UP);
+        }
+        else {
+          _group.triggerAction(Player.VOLUME_DOWN);
+        }
+      }
     }
   }
 
   @Override
   public void pause() {
-    _group.triggerAction(Player.PAUSE);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        _group.triggerAction(Player.PAUSE);
+      }
+    }
   }
 
   @Override
   public void resume() {
-    _group.triggerAction(Player.RESUME);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        _group.triggerAction(Player.RESUME);
+      }
+    }
   }
 
   @Override
   public void stop() {
-    _group.triggerAction(Player.STOP);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        _group.triggerAction(Player.STOP);
+      }
+    }
   }
 
   @Override

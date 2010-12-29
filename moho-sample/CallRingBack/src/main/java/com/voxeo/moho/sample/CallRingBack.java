@@ -19,7 +19,6 @@ import java.net.URISyntaxException;
 
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.mediagroup.MediaGroup;
-import javax.media.mscontrol.resource.RTC;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
@@ -55,8 +54,8 @@ public class CallRingBack implements Application {
 
     // set RTC, if the user press any button, stop the play.
     final OutputCommand outcommand = new OutputCommand(new AudioURIResource(_media));
-    final RTC[] rtcs = new RTC[] {MediaGroup.SIGDET_STOPPLAY};
-    outcommand.setRtcs(rtcs);
+
+    outcommand.addRTC(MediaGroup.SIGDET_STOPPLAY);
 
     call.getMediaService().prompt(outcommand, null, 30);
     call.join(e.getInvitee(), JoinType.BRIDGE, Joinable.Direction.DUPLEX);

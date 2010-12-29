@@ -48,6 +48,8 @@ public class InputCompleteEvent extends MediaCompleteEvent {
 
   protected String _nlsml;
 
+  protected String _tag;
+
   protected boolean successful;
 
   public InputCompleteEvent(final EventSource source, final Cause cause) {
@@ -96,6 +98,14 @@ public class InputCompleteEvent extends MediaCompleteEvent {
 
   public void setNlsml(final String _nlsml) {
     this._nlsml = _nlsml;
+  }
+
+  public String getTag() {
+    return _tag;
+  }
+
+  public void setTag(final String tag) {
+    _tag = _nlsml;
   }
 
   public Cause getCause() {

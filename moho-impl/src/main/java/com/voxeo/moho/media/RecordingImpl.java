@@ -68,17 +68,29 @@ public class RecordingImpl implements Recording {
 
   @Override
   public void pause() {
-    _group.triggerAction(Recorder.PAUSE);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        _group.triggerAction(Recorder.PAUSE);
+      }
+    }
   }
 
   @Override
   public void resume() {
-    _group.triggerAction(Recorder.RESUME);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        _group.triggerAction(Recorder.RESUME);
+      }
+    }
   }
 
   @Override
   public void stop() {
-    _group.triggerAction(Recorder.STOP);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        _group.triggerAction(Recorder.STOP);
+      }
+    }
   }
 
   @Override

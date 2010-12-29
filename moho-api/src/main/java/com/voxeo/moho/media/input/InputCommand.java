@@ -15,12 +15,18 @@
 package com.voxeo.moho.media.input;
 
 import java.net.URI;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
+import javax.media.mscontrol.Parameter;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.resource.RTC;
 import javax.media.mscontrol.resource.Resource;
 
-public class InputCommand {
+public class InputCommand implements Parameters {
 
   protected int _signalNumber = -1;
 
@@ -43,6 +49,10 @@ public class InputCommand {
   protected Parameters _parameters;
 
   protected RTC[] _rtcs;
+
+  protected Map<Parameter, Object> _parametersExt = new HashMap<Parameter, Object>();
+
+  protected Set<RTC> _rtcsExt = new HashSet<RTC>();
 
   /**
    * if true, every DTMF (or word?) received generate a
@@ -143,19 +153,105 @@ public class InputCommand {
     return _supervised;
   }
 
+  @Deprecated
   public Parameters getParameters() {
     return _parameters;
   }
 
+  @Deprecated
   public void setParameters(Parameters parameters) {
     _parameters = parameters;
   }
 
+  @Deprecated
   public RTC[] getRtcs() {
     return _rtcs;
   }
 
+  @Deprecated
   public void setRtcs(RTC[] rtcs) {
     _rtcs = rtcs;
+  }
+
+  // method for RTC
+  public boolean addRTC(RTC o) {
+    return _rtcsExt.add(o);
+  }
+
+  public boolean addAllRTC(Collection<? extends RTC> c) {
+    return _rtcsExt.addAll(c);
+  }
+
+  public void removeAllRTC() {
+    _rtcsExt.clear();
+  }
+
+  public boolean removeRTC(Object o) {
+    return _rtcsExt.remove(o);
+  }
+
+  public Set<RTC> getAllRTC() {
+    return _rtcsExt;
+  }
+
+  // method for Parameters
+  @Override
+  public void clear() {
+    _parametersExt.clear();
+  }
+
+  @Override
+  public boolean containsKey(Object key) {
+    return _parametersExt.containsKey(key);
+  }
+
+  @Override
+  public boolean containsValue(Object value) {
+    return _parametersExt.containsValue(value);
+  }
+
+  @Override
+  public Set<java.util.Map.Entry<Parameter, Object>> entrySet() {
+    return _parametersExt.entrySet();
+  }
+
+  @Override
+  public Object get(Object key) {
+    return _parametersExt.get(key);
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return _parametersExt.isEmpty();
+  }
+
+  @Override
+  public Set<Parameter> keySet() {
+    return _parametersExt.keySet();
+  }
+
+  @Override
+  public Object put(Parameter key, Object value) {
+    return _parametersExt.put(key, value);
+  }
+
+  @Override
+  public void putAll(Map<? extends Parameter, ? extends Object> t) {
+    _parametersExt.putAll(t);
+  }
+
+  @Override
+  public Object remove(Object key) {
+    return _parametersExt.remove(key);
+  }
+
+  @Override
+  public int size() {
+    return _parametersExt.size();
+  }
+
+  @Override
+  public Collection<Object> values() {
+    return _parametersExt.values();
   }
 }

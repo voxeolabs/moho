@@ -154,7 +154,7 @@ public class RecordCommand {
    * conclude they finished.
    */
   protected long _finalTimeout;
-  
+
   protected String _finishOnKey;
 
   public long getInitialTimeout() {
@@ -341,5 +341,5 @@ public class RecordCommand {
   public void setFinishOnKey(String finishOnKey) {
     _finishOnKey = finishOnKey;
   }
-  
+
 }

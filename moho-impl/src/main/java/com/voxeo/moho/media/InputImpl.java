@@ -71,7 +71,11 @@ public class InputImpl implements Input {
 
   @Override
   public void stop() {
-    _group.triggerAction(SignalDetector.STOP);
+    synchronized (_lock) {
+      if (_event == null && !_future.isDone()) {
+        _group.triggerAction(SignalDetector.STOP);
+      }
+    }
   }
 
   @Override

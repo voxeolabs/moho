@@ -244,10 +244,18 @@ public class GenericMediaService implements MediaService {
         params.putAll(output.getParameters());
       }
 
+      if (output.size() > 0) {
+        params.putAll(output);
+      }
+
       if (output.getRtcs() != null) {
         for (final RTC rtc : output.getRtcs()) {
           rtcs.add(rtc);
         }
+      }
+
+      if (output.getAllRTC() != null && output.getAllRTC().size() > 0) {
+        rtcs.addAll(output.getAllRTC());
       }
 
       switch (output.getBehavior()) {
@@ -485,6 +493,14 @@ public class GenericMediaService implements MediaService {
       }
     }
 
+    if (cmd.size() > 0) {
+      params.putAll(cmd);
+    }
+
+    if (cmd.getAllRTC() != null && cmd.getAllRTC().size() > 0) {
+      rtcs.addAll(cmd.getAllRTC());
+    }
+
     params.put(SignalDetector.BUFFERING, cmd.isBuffering());
     params.put(SignalDetector.MAX_DURATION, cmd.getMaxTimeout());
     params.put(SignalDetector.INITIAL_TIMEOUT, cmd.getInitialTimeout());
@@ -663,6 +679,7 @@ public class GenericMediaService implements MediaService {
         if (e instanceof SpeechRecognitionEvent) {
           final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
           inputCompleteEvent.setUtterance(se.getUserInput());
+          inputCompleteEvent.setTag(se.getTag());
           final URL semanticResult = se.getSemanticResult();
           if (semanticResult != null && "application/x-nlsml".equalsIgnoreCase(semanticResult.getHost())) {
             try {
@@ -771,7 +788,7 @@ public class GenericMediaService implements MediaService {
         }
       }
       else {
-        if (((InputImpl) future).isPending()) {
+        if (((OutputImpl) future).isPending()) {
           ((OutputImpl) future).done(new OutputCompleteEvent(_parent, OutputCompleteEvent.Cause.UNKNOWN));
         }
       }
