@@ -14,11 +14,14 @@
 
 package com.voxeo.moho.sample;
 
+import java.util.Properties;
+
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.conference.ConferenceController;
@@ -34,6 +37,8 @@ public class ConferenceRoom implements Application {
 
   ConferenceController _controller;
 
+  ApplicationContext _ctx;
+
   @Override
   public void destroy() {
     _controller = null;
@@ -46,12 +51,19 @@ public class ConferenceRoom implements Application {
     _manager = ctx.getConferenceManager();
     _controller = new SimpleConferenceController(new TextToSpeechResource("Hello"), new TextToSpeechResource("Bye"),
         new SimpleGrammar("#"));
+    _ctx = ctx;
   }
 
   @State
   public void handleInvite(final InviteEvent inv) throws Exception {
     final Call call = inv.acceptCall();
-    _manager.createConference(inv.getInvitee().getName(), Integer.MAX_VALUE, _controller, null).join(call,
-        JoinType.BRIDGE, Direction.DUPLEX).get();
+    MixerEndpoint end = (MixerEndpoint) _ctx.createEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT);
+    end.setProperty("playTones", "true");
+
+    Properties p = new Properties();
+    p.setProperty("playTones", "false");
+
+    _manager.createConference(end, null, inv.getInvitee().getName(), Integer.MAX_VALUE, _controller, null).join(call,
+        JoinType.BRIDGE, Direction.DUPLEX, p).get();
   }
 }

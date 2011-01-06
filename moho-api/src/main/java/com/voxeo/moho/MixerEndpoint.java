@@ -33,4 +33,27 @@ public interface MixerEndpoint extends Endpoint {
    */
   Mixer create(Map<Object, Object> params) throws MediaException;
 
+  /**
+   * set parameter for this endpoint, such as playTones = false
+   * 
+   * @param key
+   * @param value
+   */
+  void setProperty(String key, String value);
+
+  /**
+   * get parameter value from this endpoint.
+   * 
+   * @param key
+   * @return
+   */
+  String getProperty(String key);
+
+  /**
+   * remove parameter from this endpoint.
+   * 
+   * @param key
+   * @return
+   */
+  String remove(String key);
 }

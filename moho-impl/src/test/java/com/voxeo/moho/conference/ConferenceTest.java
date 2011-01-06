@@ -14,6 +14,7 @@
 
 package com.voxeo.moho.conference;
 
+import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -86,8 +87,18 @@ public class ConferenceTest extends TestCase {
 
   ConferenceImpl mohoConference;
 
+  Properties props = new Properties();
+
   protected void setUp() throws Exception {
     super.setUp();
+    mockery.checking(new Expectations() {
+      {
+        // creation
+        oneOf(msFactory).getProperties();
+        will(returnValue(props));
+      }
+    });
+    address = (MixerEndpoint) appContext.getEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT);
   }
 
   protected void tearDown() throws Exception {
@@ -108,6 +119,9 @@ public class ConferenceTest extends TestCase {
 
           oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
+
+          oneOf(mixer).createMixerAdapter(with(any(Configuration.class)));
+          will(returnValue(null));
         }
       });
     }
@@ -232,6 +246,9 @@ public class ConferenceTest extends TestCase {
 
           oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
+
+          oneOf(mixer).createMixerAdapter(with(any(Configuration.class)));
+          will(returnValue(null));
         }
       });
     }

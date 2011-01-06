@@ -283,10 +283,17 @@ public class GenericMediaService implements MediaService {
       params.put(Player.JUMP_PLAYLIST_INCREMENT, output.getJumpPlaylistIncrement());
       params.put(Player.JUMP_TIME, output.getJumpTime());
       params.put(Player.START_IN_PAUSED_MODE, output.isStartInPausedMode());
+
+      if (output.getRepeatTimes() > 0) {
+        params.put(Player.REPEAT_COUNT, output.getRepeatTimes() + 1);
+        params.put(Player.INTERVAL, output.getRepeatInterval());
+      }
+
       if (repeat > 0) {
         params.put(Player.REPEAT_COUNT, repeat + 1);
         params.put(Player.INTERVAL, output.getRepeatInterval());
       }
+
       final List<URI> uris = new ArrayList<URI>();
       final MediaResource[] reses = output.getAudibleResources();
       for (final MediaResource r : reses) {

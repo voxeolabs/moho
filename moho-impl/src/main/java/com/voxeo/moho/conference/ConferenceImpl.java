@@ -15,6 +15,7 @@
 package com.voxeo.moho.conference;
 
 import java.util.Map;
+import java.util.Properties;
 
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -66,6 +67,30 @@ public class ConferenceImpl extends MixerImpl implements Conference {
         synchronized (ConferenceImpl.this) {
           _controller.preJoin(other, ConferenceImpl.this);
           final JoinCompleteEvent retval = ConferenceImpl.super.join(other, type, direction).get();
+          _occupiedSeats = _occupiedSeats + 1;
+          _controller.postJoin(other, ConferenceImpl.this);
+          return retval;
+        }
+      }
+
+      @Override
+      public boolean cancel() {
+        return false;
+      }
+    });
+
+  }
+  
+  @Override
+  public Joint join(final Participant other, final JoinType type, final Direction direction, final Properties props)
+      throws IllegalStateException {
+    checkState();
+    return new JointImpl(_context.getExecutor(), new JoinWorker() {
+      @Override
+      public JoinCompleteEvent call() throws Exception {
+        synchronized (ConferenceImpl.this) {
+          _controller.preJoin(other, ConferenceImpl.this);
+          final JoinCompleteEvent retval = ConferenceImpl.super.join(other, type, direction, props).get();
           _occupiedSeats = _occupiedSeats + 1;
           _controller.postJoin(other, ConferenceImpl.this);
           return retval;

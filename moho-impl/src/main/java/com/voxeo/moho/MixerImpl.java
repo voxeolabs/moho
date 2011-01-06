@@ -13,6 +13,7 @@ package com.voxeo.moho;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Future;
 
 import javax.media.mscontrol.MediaObject;
 import javax.media.mscontrol.MediaSession;
@@ -24,15 +25,20 @@ import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.join.JoinableStream.StreamType;
 import javax.media.mscontrol.mixer.MediaMixer;
+import javax.media.mscontrol.mixer.MixerAdapter;
 import javax.media.mscontrol.spi.Driver;
 import javax.media.mscontrol.spi.DriverManager;
 
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.MediaResourceDisconnectEvent;
+import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
+import com.voxeo.utils.Event;
+import com.voxeo.utils.EventListener;
 
 public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer {
 
@@ -45,6 +51,12 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   protected MediaSession _media;
 
   protected MediaMixer _mixer;
+
+  protected MixerAdapter _adapter;
+
+  protected MyMixerAdapter _adapterParticipant;
+
+  protected boolean _clampDtmf;
 
   protected JoineeData _joinees = new JoineeData();
 
@@ -72,6 +84,14 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       _media = mf.createMediaSession();
       _mixer = _media.createMediaMixer(MediaMixer.AUDIO, parameters);
       _address = address;
+
+      _adapter = _mixer.createMixerAdapter(MixerAdapter.DTMF_CLAMP);
+      _adapterParticipant = new MyMixerAdapter();
+
+      if ((address.getProperty("playTones") != null && !Boolean.valueOf(address.getProperty("playTones")))
+          || (params != null && !Boolean.valueOf((String) params.get("playTones")))) {
+        _clampDtmf = true;
+      }
     }
     catch (final Exception e) {
       throw new MediaException(e);
@@ -169,8 +189,17 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         return new JointImpl(_context.getExecutor(), new JointImpl.DummyJoinWorker(MixerImpl.this, other));
       }
     }
+
     if (other instanceof Call) {
-      return other.join(this, type, direction);
+      Joint joint = null;
+      if (isClampDtmf(null)) {
+        joint = other.join(_adapterParticipant, type, direction);
+      }
+      else {
+        joint = other.join(this, type, direction);
+      }
+
+      return joint;
     }
     else {
       if (!(other.getMediaObject() instanceof Joinable)) {
@@ -182,7 +211,12 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
           JoinCompleteEvent event = null;
           try {
             synchronized (MixerImpl.this) {
-              _mixer.join(direction, (Joinable) other.getMediaObject());
+              if (MixerImpl.this.isClampDtmf(null)) {
+                _adapter.join(direction, (Joinable) other.getMediaObject());
+              }
+              else {
+                _mixer.join(direction, (Joinable) other.getMediaObject());
+              }
               _joinees.add(other, type, direction);
               ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction);
               event = new JoinCompleteEvent(MixerImpl.this, other, Cause.JOINED);
@@ -256,4 +290,261 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
   }
 
+  protected boolean isClampDtmf(Properties props) {
+    boolean clampDTMF = _clampDtmf;
+    if (props != null && props.get("playTones") != null) {
+      if (Boolean.valueOf(props.getProperty("playTones"))) {
+        clampDTMF = false;
+      }
+      else {
+        clampDTMF = true;
+      }
+    }
+    return clampDTMF;
+  }
+
+  @Override
+  public Joint join(final Participant other, final JoinType type, final Direction direction, final Properties props) {
+    synchronized (this) {
+      checkState();
+      if (_joinees.contains(other)) {
+        return new JointImpl(_context.getExecutor(), new JointImpl.DummyJoinWorker(MixerImpl.this, other));
+      }
+    }
+
+    if (other instanceof Call) {
+      Joint joint = null;
+      if (isClampDtmf(props)) {
+        joint = other.join(_adapterParticipant, type, direction);
+      }
+      else {
+        joint = other.join(this, type, direction);
+      }
+
+      return joint;
+    }
+    else {
+      if (!(other.getMediaObject() instanceof Joinable)) {
+        throw new IllegalArgumentException("MediaObject is't joinable.");
+      }
+      return new JointImpl(_context.getExecutor(), new JoinWorker() {
+        @Override
+        public JoinCompleteEvent call() throws Exception {
+          JoinCompleteEvent event = null;
+          try {
+            synchronized (MixerImpl.this) {
+              if (MixerImpl.this.isClampDtmf(props)) {
+                _adapter.join(direction, (Joinable) other.getMediaObject());
+              }
+              else {
+                _mixer.join(direction, (Joinable) other.getMediaObject());
+              }
+              _joinees.add(other, type, direction);
+              ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction);
+              event = new JoinCompleteEvent(MixerImpl.this, other, Cause.JOINED);
+            }
+          }
+          catch (final Exception e) {
+            event = new JoinCompleteEvent(MixerImpl.this, other, Cause.ERROR, e);
+            throw new MediaException(e);
+          }
+          finally {
+            MixerImpl.this.dispatch(event);
+          }
+          return event;
+        }
+
+        @Override
+        public boolean cancel() {
+          return false;
+        }
+      });
+    }
+  }
+
+  class MyMixerAdapter implements Mixer, ParticipantContainer {
+
+    @Override
+    public MediaService getMediaService() {
+      return MixerImpl.this.getMediaService();
+    }
+
+    @Override
+    public Joint join(Participant other, JoinType type, Direction direction, Properties props) {
+      return MixerImpl.this.join(other, type, direction, props);
+    }
+
+    @Override
+    public JoinableStream getJoinableStream(StreamType value) {
+      JoinableStream result = null;
+
+      try {
+        result = MixerImpl.this._adapter.getJoinableStream(value);
+      }
+
+      catch (final MsControlException e) {
+        throw new MediaException(e);
+      }
+      return result;
+    }
+
+    @Override
+    public JoinableStream[] getJoinableStreams() {
+      JoinableStream[] result = null;
+
+      try {
+        result = MixerImpl.this._adapter.getJoinableStreams();
+      }
+
+      catch (final MsControlException e) {
+        throw new MediaException(e);
+      }
+      return result;
+    }
+
+    @Override
+    public void disconnect() {
+      MixerImpl.this.disconnect();
+    }
+
+    @Override
+    public Endpoint getAddress() {
+      return MixerImpl.this.getAddress();
+    }
+
+    @Override
+    public MediaObject getMediaObject() {
+      return MixerImpl.this._adapter;
+    }
+
+    @Override
+    public Participant[] getParticipants() {
+      return MixerImpl.this.getParticipants();
+    }
+
+    @Override
+    public Participant[] getParticipants(Direction direction) {
+      return MixerImpl.this.getParticipants(direction);
+    }
+
+    @Override
+    public Joint join(Participant other, JoinType type, Direction direction) {
+      return MixerImpl.this.join(other, type, direction);
+    }
+
+    @Override
+    public void unjoin(Participant other) {
+      MixerImpl.this.unjoin(other);
+    }
+
+    @Override
+    public void addExceptionHandler(ExceptionHandler... handlers) {
+      MixerImpl.this.addExceptionHandler(handlers);
+    }
+
+    @Override
+    public void addListener(EventListener<?> listener) {
+      MixerImpl.this.addListener(listener);
+    }
+
+    @Override
+    public <E extends Event<?>, T extends EventListener<E>> void addListener(Class<E> type, T listener) {
+      MixerImpl.this.addListener(type, listener);
+    }
+
+    @Override
+    public void addListeners(EventListener<?>... listeners) {
+      MixerImpl.this.addListeners(listeners);
+    }
+
+    @Override
+    public <E extends Event<?>, T extends EventListener<E>> void addListeners(Class<E> type, T... listener) {
+      MixerImpl.this.addListeners(type, listener);
+    }
+
+    @Override
+    public void addObserver(Observer observer) {
+      MixerImpl.this.addObserver(observer);
+    }
+
+    @Override
+    public void addObservers(Observer... observers) {
+      MixerImpl.this.addObservers(observers);
+    }
+
+    @Override
+    public <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event) {
+      return MixerImpl.this.dispatch(event);
+    }
+
+    @Override
+    public <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event, Runnable afterExec) {
+      return MixerImpl.this.dispatch(event, afterExec);
+    }
+
+    @Override
+    public ApplicationContext getApplicationContext() {
+      return MixerImpl.this.getApplicationContext();
+    }
+
+    @Override
+    public String getApplicationState() {
+      return MixerImpl.this.getApplicationState();
+    }
+
+    @Override
+    public String getApplicationState(String FSM) {
+      return MixerImpl.this.getApplicationState(FSM);
+    }
+
+    @Override
+    public void removeListener(EventListener<?> listener) {
+      MixerImpl.this.removeListener(listener);
+    }
+
+    @Override
+    public void removeObserver(Observer listener) {
+      MixerImpl.this.removeObserver(listener);
+    }
+
+    @Override
+    public void setApplicationState(String state) {
+      MixerImpl.this.setApplicationState(state);
+    }
+
+    @Override
+    public void setApplicationState(String FSM, String state) {
+      MixerImpl.this.setApplicationState(FSM, state);
+    }
+
+    @Override
+    public String getId() {
+      return MixerImpl.this.getId();
+    }
+
+    @Override
+    public Object getAttribute(String name) {
+      return MixerImpl.this.getAttribute(name);
+    }
+
+    @Override
+    public Map<String, Object> getAttributeMap() {
+      return MixerImpl.this.getAttributeMap();
+    }
+
+    @Override
+    public void setAttribute(String name, Object value) {
+      MixerImpl.this.setAttribute(name, value);
+    }
+
+    @Override
+    public void addParticipant(Participant p, JoinType type, Direction direction) {
+      MixerImpl.this.addParticipant(p, type, direction);
+    }
+
+    @Override
+    public void removeParticipant(Participant p) {
+      MixerImpl.this.removeParticipant(p);
+    }
+  }
 }

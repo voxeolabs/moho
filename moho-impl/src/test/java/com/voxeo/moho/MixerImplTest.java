@@ -86,6 +86,9 @@ public class MixerImplTest extends TestCase {
 
           oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
+
+          oneOf(mixer).createMixerAdapter(with(any(Configuration.class)));
+          will(returnValue(null));
         }
       });
     }
@@ -165,6 +168,9 @@ public class MixerImplTest extends TestCase {
 
           oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
+
+          oneOf(mixer).createMixerAdapter(with(any(Configuration.class)));
+          will(returnValue(null));
 
           // release.
           oneOf(mediaSession).release();

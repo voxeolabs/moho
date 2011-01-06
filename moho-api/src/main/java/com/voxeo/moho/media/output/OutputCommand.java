@@ -78,6 +78,11 @@ public class OutputCommand implements Parameters {
   protected int _repeatInterval = 3;
 
   /**
+   * INTERVAL
+   */
+  protected int _repeatTimes = 0;
+
+  /**
    * JUMP_PLAYLIST_INCREMENT Integer number of items to jump forward or backward
    * in the play list, for either a JUMP_FORWARD_IN_PLAYLIST or
    * JUMP_BACKWARD_IN_PLAYLIST. Default value = 1.
@@ -339,4 +344,13 @@ public class OutputCommand implements Parameters {
   public Collection<Object> values() {
     return _parametersExt.values();
   }
+
+  public int getRepeatTimes() {
+    return _repeatTimes;
+  }
+
+  public void setRepeatTimes(int repeatTimes) {
+    _repeatTimes = repeatTimes;
+  }
+
 }

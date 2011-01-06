@@ -14,7 +14,9 @@
 
 package com.voxeo.moho;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.media.mscontrol.MsControlFactory;
 
@@ -23,6 +25,10 @@ public class MixerEndpointImpl implements MixerEndpoint {
   protected ExecutionContext _context;
 
   protected String _uri;
+
+  protected Map<String, String> _parameters = new HashMap<String, String>();
+
+  protected Properties _props = new Properties();
 
   protected MixerEndpointImpl(final ExecutionContext ctx, final String uri) {
     _context = ctx;
@@ -64,4 +70,20 @@ public class MixerEndpointImpl implements MixerEndpoint {
   public Mixer create(final Map<Object, Object> params) throws MediaException {
     return new MixerImpl(_context, this, params, null);
   }
+
+  @Override
+  public String getProperty(String key) {
+    return _props.getProperty(key);
+  }
+
+  @Override
+  public String remove(String key) {
+    return (String) _props.remove(key);
+  }
+
+  @Override
+  public void setProperty(String key, String value) {
+    _props.setProperty(key, value);
+  }
+
 }
