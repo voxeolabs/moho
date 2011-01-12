@@ -52,6 +52,7 @@ import com.voxeo.moho.event.RecordResumedEvent;
 import com.voxeo.moho.event.RecordStartedEvent;
 import com.voxeo.moho.event.OutputCompleteEvent.Cause;
 import com.voxeo.moho.event.fake.MockEventSource;
+import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.media.fake.MockMediaGroup;
 import com.voxeo.moho.media.fake.MockMediaSession;
 import com.voxeo.moho.media.fake.MockParameters;
@@ -83,6 +84,8 @@ public class GenericMediaServiceTest extends TestCase {
   // testing object.
   GenericMediaService service;
 
+  MediaDialect dialect;
+  
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -143,8 +146,10 @@ public class GenericMediaServiceTest extends TestCase {
       }
     });
 
+    dialect = mockery.mock(MediaDialect.class);
+    
     // create mediaservice
-    service = (GenericMediaService) new GenericMediaServiceFactory().create(parent, session, null);
+    service = (GenericMediaService) new GenericMediaServiceFactory(dialect).create(parent, session, null);
   }
 
   /**
@@ -494,6 +499,8 @@ public class GenericMediaServiceTest extends TestCase {
           oneOf(group).createParameters();
           will(returnValue(parameters));
 
+          oneOf(dialect).setTextToSpeechVoice(parameters, null);
+          
           // invoke player.play
           allowing(player).play(with(any(URI[].class)), with(new TypeSafeMatcher<RTC[]>() {
             @Override
@@ -613,6 +620,8 @@ public class GenericMediaServiceTest extends TestCase {
           // create parameters
           oneOf(group).createParameters();
           will(returnValue(parameters));
+
+          oneOf(dialect).setTextToSpeechVoice(parameters, null);
 
           // invoke play.
           allowing(player).play(with(any(URI[].class)), with(new TypeSafeMatcher<RTC[]>() {
@@ -762,13 +771,19 @@ public class GenericMediaServiceTest extends TestCase {
       ex.printStackTrace();
     }
 
+    final MockParameters parameters = new MockParameters();
+    
     try {
       mockery.checking(new Expectations() {
         {
           // create parameters
           allowing(group).createParameters();
-          will(returnValue(new MockParameters()));
+          will(returnValue(parameters));
 
+          oneOf(dialect).setSpeechLanguage(parameters, null);
+          oneOf(dialect).setSpeechTermChar(parameters, null);
+          oneOf(dialect).setSpeechInputMode(parameters, null);
+          
           oneOf(signalDetector).receiveSignals(with(equal(-1)), with(any(Parameter[].class)),
               with(new TypeSafeMatcher<RTC[]>() {
                 @Override

@@ -30,8 +30,6 @@ import javax.servlet.sip.SipFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import com.voxeo.moho.conference.ConferenceManager;
-import com.voxeo.moho.conference.ConferenceMangerImpl;
-import com.voxeo.moho.media.GenericMediaServiceFactory;
 import com.voxeo.moho.sip.SIPEndpointImpl;
 import com.voxeo.moho.text.imified.ImifiedEndpointImpl;
 import com.voxeo.moho.util.Utils.DaemonThreadFactory;
@@ -53,9 +51,9 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
 
   protected String _controller;
 
-  protected Map<String, Call> _calls;
+  protected Map<String, Call> _calls = new ConcurrentHashMap<String, Call>();
 
-  protected Map<String, String> _parameters;
+  protected Map<String, String> _parameters = new ConcurrentHashMap<String, String>();
 
   protected String _imifiedApiURL;
 
@@ -72,10 +70,6 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     _sipFactory = sip;
     _sdpFactory = sdp;
     _controller = controller;
-    _confMgr = new ConferenceMangerImpl(this);
-    _calls = new ConcurrentHashMap<String, Call>();
-    _msFactory = new GenericMediaServiceFactory();
-    _parameters = new ConcurrentHashMap<String, String>();
     _servletContext = servletContext;
 
     _executor = new ThreadPoolExecutor(threadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
@@ -139,6 +133,10 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     return _confMgr;
   }
 
+  public void setConferenceManager(ConferenceManager conferenceManager) {
+    _confMgr = conferenceManager;
+  }
+
   @Override
   public Executor getExecutor() {
     return _executor;
@@ -185,6 +183,10 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
   @Override
   public MediaServiceFactory getMediaServiceFactory() {
     return _msFactory;
+  }
+  
+  public void setMediaServiceFactory(MediaServiceFactory factory) {
+    _msFactory = factory;
   }
 
   public String getImifiedApiURL() {

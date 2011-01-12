@@ -82,6 +82,7 @@ public class ConferenceTest extends TestCase {
 
   // ApplicationContextImpl is simple, no need to mock it.
   ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
+  
 
   MixerEndpoint address;
 

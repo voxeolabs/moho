@@ -23,9 +23,22 @@ import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.MediaServiceFactory;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.media.dialect.GenericDialect;
+import com.voxeo.moho.media.dialect.MediaDialect;
 
 public class GenericMediaServiceFactory implements MediaServiceFactory {
 
+    
+  private MediaDialect _dialect;
+
+  public GenericMediaServiceFactory() {
+      _dialect = new GenericDialect();
+    }
+
+  public GenericMediaServiceFactory(MediaDialect dialect) {
+    _dialect = dialect;
+  }
+    
   @Override
   public MediaService create(final EventSource parent, final MediaSession session, Parameters params) {
     MediaGroup group = null;
@@ -45,7 +58,7 @@ public class GenericMediaServiceFactory implements MediaServiceFactory {
         }
       }
     }
-    return new GenericMediaService(parent, group);
+    return new GenericMediaService(parent, group, _dialect);
   }
 
 }

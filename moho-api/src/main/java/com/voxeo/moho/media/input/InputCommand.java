@@ -26,6 +26,8 @@ import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.resource.RTC;
 import javax.media.mscontrol.resource.Resource;
 
+import com.voxeo.moho.media.InputMode;
+
 public class InputCommand implements Parameters {
 
   protected int _signalNumber = -1;
@@ -53,9 +55,15 @@ public class InputCommand implements Parameters {
   protected Map<Parameter, Object> _parametersExt = new HashMap<Parameter, Object>();
 
   protected Set<RTC> _rtcsExt = new HashSet<RTC>();
-
+  
+  protected String _speechLanguage;
+  
+  protected Character _termChar;
+  
+  protected InputMode _inputMode;
+  
   /**
-   * if true, every DTMF (or word?) received generate a
+   * if true, every DTMF (or word?) received generates an event
    */
   protected boolean _supervised = true;
 
@@ -151,6 +159,30 @@ public class InputCommand implements Parameters {
 
   public boolean isSupervised() {
     return _supervised;
+  }
+
+  public String getSpeechLanguage() {
+    return _speechLanguage;
+  }
+
+  public void setSpeechLanguage(String speechLanguage) {
+    this._speechLanguage = speechLanguage;
+  }
+
+  public Character getTermChar() {
+    return _termChar;
+  }
+
+  public void setTermChar(Character termChar) {
+    this._termChar = termChar;
+  }
+
+  public InputMode getInputMode() {
+    return _inputMode;
+  }
+
+  public void setInputMode(InputMode inputMode) {
+    this._inputMode = inputMode;
   }
 
   @Deprecated
@@ -254,4 +286,6 @@ public class InputCommand implements Parameters {
   public Collection<Object> values() {
     return _parametersExt.values();
   }
+  
+  
 }

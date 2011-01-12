@@ -31,11 +31,14 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
+import com.voxeo.moho.conference.ConferenceMangerImpl;
 import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.EventState;
 import com.voxeo.moho.event.SignalEvent;
 import com.voxeo.moho.event.TextEvent;
+import com.voxeo.moho.media.GenericMediaServiceFactory;
+import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.text.sip.SIPTextEventImpl;
 import com.voxeo.moho.util.SessionUtils;
 
@@ -55,7 +58,8 @@ public class SIPController extends SipServlet {
 
   protected String _applicationClass = null;
 
-  @Override
+  @SuppressWarnings("unchecked")
+@Override
   public void init() {
     try {
       _applicationClass = getInitParameter("ApplicationClass");
@@ -105,8 +109,18 @@ public class SIPController extends SipServlet {
       }
       log.info("Moho using eventDipatcherThreadPoolSize:" + eventDispatcherThreadPoolSize);
 
+      Class<? extends MediaDialect> mediaDialectClass = com.voxeo.moho.media.dialect.GenericDialect.class;
+      String mediaDialectClassName = getInitParameter("mediaDialectClass");
+      if(mediaDialectClassName != null) {
+          mediaDialectClass = (Class<? extends MediaDialect>) Class.forName(mediaDialectClassName);
+      }
+      MediaDialect mediaDialect = mediaDialectClass.newInstance();
+      
       final ApplicationContextImpl ctx = new ApplicationContextImpl(app, _mscFactory, _sipFacory, _sdpFactory,
           getServletConfig().getServletName(), this.getServletContext(), eventDispatcherThreadPoolSize);
+      
+      ctx.setMediaServiceFactory(new GenericMediaServiceFactory(mediaDialect));
+      ctx.setConferenceManager(new ConferenceMangerImpl(ctx));
 
       final Enumeration e = getInitParameterNames();
       while (e.hasMoreElements()) {

@@ -62,6 +62,7 @@ import com.voxeo.moho.event.RecordPausedEvent;
 import com.voxeo.moho.event.RecordResumedEvent;
 import com.voxeo.moho.event.RecordStartedEvent;
 import com.voxeo.moho.event.OutputCompleteEvent.Cause;
+import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.media.input.Grammar;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.input.SimpleGrammar;
@@ -93,12 +94,15 @@ public class GenericMediaService implements MediaService {
   protected SignalGenerator _generator = null;
 
   protected ExecutionContext _context;
+  
+  protected MediaDialect _dialect;
 
   protected List<MediaOperation<? extends MediaCompleteEvent>> futures = new LinkedList<MediaOperation<? extends MediaCompleteEvent>>();
 
-  protected GenericMediaService(final EventSource parent, final MediaGroup group) {
+  protected GenericMediaService(final EventSource parent, final MediaGroup group, final MediaDialect dialect) {
     _parent = parent;
     _group = group;
+    _dialect = dialect;
     _context = (ExecutionContext) _parent.getApplicationContext();
   }
 
@@ -283,6 +287,8 @@ public class GenericMediaService implements MediaService {
       params.put(Player.JUMP_PLAYLIST_INCREMENT, output.getJumpPlaylistIncrement());
       params.put(Player.JUMP_TIME, output.getJumpTime());
       params.put(Player.START_IN_PAUSED_MODE, output.isStartInPausedMode());
+      
+      _dialect.setTextToSpeechVoice(params, output.getVoiceName());
 
       if (output.getRepeatTimes() > 0) {
         params.put(Player.REPEAT_COUNT, output.getRepeatTimes() + 1);
@@ -326,7 +332,7 @@ public class GenericMediaService implements MediaService {
         }
         else {
           final OutputImpl out = new OutputImpl(_group, _context);
-          getPlayer().addListener(new PlayerListener(out, input == null ? null : retval));
+          getPlayer().addListener(new PlayerListener(out, null));
           getPlayer().play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
           retval.setOutput(out.prepare());
           futures.add(out);
@@ -479,6 +485,7 @@ public class GenericMediaService implements MediaService {
   }
 
   protected Input detectSignal(final InputCommand cmd) throws MediaException {
+      
     if (cmd.isRecord()) {
       try {
         getRecorder().record(cmd.getRecordURI(), cmd.getRtcs() != null ? cmd.getRtcs() : RTC.NO_RTC,
@@ -512,8 +519,11 @@ public class GenericMediaService implements MediaService {
     params.put(SignalDetector.MAX_DURATION, cmd.getMaxTimeout());
     params.put(SignalDetector.INITIAL_TIMEOUT, cmd.getInitialTimeout());
     params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterSigTimeout());
-
     params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getConfidence());
+    
+    _dialect.setSpeechLanguage(params, cmd.getSpeechLanguage());
+    _dialect.setSpeechTermChar(params, cmd.getTermChar());
+    _dialect.setSpeechInputMode(params, cmd.getInputMode());    
 
     Parameter[] patternKeys = null;
 

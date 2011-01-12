@@ -46,6 +46,8 @@ public class OutputCommand implements Parameters {
   protected BehaviorIfBusy _behavior = BehaviorIfBusy.QUEUE;
 
   protected boolean _bargein = false;
+  
+  protected String _voiceName;
 
   /**
    * MAX_DURATION
@@ -352,5 +354,13 @@ public class OutputCommand implements Parameters {
   public void setRepeatTimes(int repeatTimes) {
     _repeatTimes = repeatTimes;
   }
+  
+  public String getVoiceName() {
+      return _voiceName;
+  }
 
+  public void setVoiceName(String voiceName) {
+      _voiceName = voiceName;
+  }
+  
 }
