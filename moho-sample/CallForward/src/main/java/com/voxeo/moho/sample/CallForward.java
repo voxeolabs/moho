@@ -23,7 +23,6 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.State;
 import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.sip.SIPEndpoint;
 
 public class CallForward implements Application {
@@ -42,12 +41,12 @@ public class CallForward implements Application {
   @Override
   public void init(final ApplicationContext ctx) {
     _ctx = ctx;
-    _busyTarget = (SIPEndpoint) _ctx.getEndpoint(ctx.getParameter("target1"));
-    _timeoutTarget = (SIPEndpoint) _ctx.getEndpoint(ctx.getParameter("target2"));
+    _busyTarget = (SIPEndpoint) _ctx.createEndpoint(ctx.getParameter("target1"));
+    _timeoutTarget = (SIPEndpoint) _ctx.createEndpoint(ctx.getParameter("target2"));
   }
 
   @State
-  public void handleInvite(final InviteEvent e) throws Exception {
+  public void handleInvite(final Call e) throws Exception {
     final Call call = e.acceptCall(this);
     try {
       call.join(e.getInvitee(), JoinType.DIRECT, Joinable.Direction.DUPLEX).get();

@@ -38,9 +38,9 @@ public class Outbound implements Application {
 
   @Override
   public void init(final ApplicationContext ctx) {
-    _party1 = (CallableEndpoint) ctx.getEndpoint(ctx.getParameter("party1"));
-    _party2 = (CallableEndpoint) ctx.getEndpoint(ctx.getParameter("party2"));
-    _local = (CallableEndpoint) ctx.getEndpoint("sip:mohosample@example.com");
+    _party1 = (CallableEndpoint) ctx.createEndpoint(ctx.getParameter("party1"));
+    _party2 = (CallableEndpoint) ctx.createEndpoint(ctx.getParameter("party2"));
+    _local = (CallableEndpoint) ctx.createEndpoint("sip:mohosample@example.com");
     final long time = Long.parseLong(ctx.getParameter("time"));
     _timer = new Timer();
     _timer.schedule(new TimerTask() {

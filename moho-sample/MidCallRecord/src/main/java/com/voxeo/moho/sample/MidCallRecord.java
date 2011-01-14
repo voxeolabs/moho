@@ -28,7 +28,6 @@ import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.DisconnectEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.media.Recording;
 import com.voxeo.moho.media.record.RecordCommand;
 
@@ -43,7 +42,7 @@ public class MidCallRecord implements Application {
   }
 
   @State
-  public void handleInvite(final InviteEvent event) throws Exception {
+  public void handleInvite(final Call event) throws Exception {
     final Call partyA = event.acceptCall(this);
     partyA.setSupervised(true);
 

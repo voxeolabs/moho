@@ -25,7 +25,6 @@ import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
 
@@ -49,7 +48,7 @@ public class CallRingBack implements Application {
   }
 
   @State
-  public void handleInvite(final InviteEvent e) {
+  public void handleInvite(final Call e) {
     final Call call = e.acceptCallWithEarlyMedia(this);
 
     // set RTC, if the user press any button, stop the play.

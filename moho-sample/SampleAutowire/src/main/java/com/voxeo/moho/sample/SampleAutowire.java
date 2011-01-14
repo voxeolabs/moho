@@ -20,7 +20,6 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.InputCompleteEvent;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Output;
@@ -39,7 +38,7 @@ public class SampleAutowire implements Application {
   private GameServer game;
 
   @State
-  public void handleInvite(final InviteEvent invite) throws Exception {
+  public void handleInvite(final Call invite) throws Exception {
     final Call call = invite.acceptCall();
     call.join().get();
 

@@ -24,7 +24,6 @@ import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.event.NotifyEvent;
 import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.OutputCommand;
@@ -47,12 +46,12 @@ public class PresenceSubscribe implements Application {
   public void init(final ApplicationContext ctx) {
     _prompt = new OutputCommand(new AudibleResource[] {new TextToSpeechResource(
         "Peer is not available now, we will automatically redial for you when peer is available. Please wait.")});
-    _ep1 = (CallableEndpoint) ctx.getEndpoint(ctx.getParameter("party1"));
-    _ep2 = ctx.getEndpoint(ctx.getParameter("party2"));
+    _ep1 = (CallableEndpoint) ctx.createEndpoint(ctx.getParameter("party1"));
+    _ep2 = ctx.createEndpoint(ctx.getParameter("party2"));
   }
 
   @State
-  public void handleInvite(final InviteEvent e) throws Exception {
+  public void handleInvite(final Call e) throws Exception {
     final Call call = e.acceptCall(this);
     call.join().get();
     call.getMediaService().prompt(_prompt, null, 30);

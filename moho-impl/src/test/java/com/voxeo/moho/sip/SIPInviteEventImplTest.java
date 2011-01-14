@@ -151,7 +151,7 @@ public class SIPInviteEventImplTest extends TestCase {
     });
 
     // execute
-    final SIPInviteEventImpl invite = new SIPInviteEventImpl(appContext, inviteReq);
+    final SIPIncomingCall invite = new SIPIncomingCall(appContext, inviteReq);
     final Call call = invite.acceptCall(ob);
 
     // assert
@@ -231,7 +231,7 @@ public class SIPInviteEventImplTest extends TestCase {
     });
 
     // execute
-    final SIPInviteEventImpl invite = new SIPInviteEventImpl(appContext, inviteReq);
+    final SIPIncomingCall invite = new SIPIncomingCall(appContext, inviteReq);
     final Call call = invite.acceptCallWithEarlyMedia(ob);
 
     // assert

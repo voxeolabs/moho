@@ -25,13 +25,13 @@ import com.voxeo.moho.State;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
 
-class AutowiredEventTarget {
+public class AutowiredEventTarget {
 
   private static final Logger log = Logger.getLogger(AutowiredEventTarget.class);
 
-  static final String DEFAULT_FSM = "com.voxeo.moho.event.fsm";
+  public static final String DEFAULT_FSM = "com.voxeo.moho.event.fsm";
 
-  static final String ANY_STATE = "com.voxeo.moho.event.anystate";
+  public static final String ANY_STATE = "com.voxeo.moho.event.anystate";
 
   protected final Map<String, String> _definedStates = new HashMap<String, String>();
 

@@ -14,18 +14,28 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.ListIterator;
+
+import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipSession;
 
 import com.voxeo.moho.Call;
 
-public interface SIPCall extends Call {
+public abstract class SIPCall extends Call {
 
   public enum State {
     INITIALIZED, INVITING, RINGING, ANSWERING, ANSWERED, PROGRESSING, PROGRESSED, DISCONNECTED, FAILED
   }
 
-  SipSession getSipSession();
+  public abstract SipSession getSipSession();
 
-  SIPCall.State getSIPCallState();
+  public abstract SIPCall.State getSIPCallState();
+
+  //
+  public abstract SipServletRequest getSipRequest();
+
+  public abstract String getHeader(String name);
+
+  public abstract ListIterator<String> getHeaders(String name);
 
 }

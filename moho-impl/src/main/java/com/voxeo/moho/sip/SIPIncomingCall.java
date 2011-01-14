@@ -31,9 +31,9 @@ public class SIPIncomingCall extends SIPCallImpl {
 
   private static final Logger LOG = Logger.getLogger(SIPIncomingCall.class);
 
-  protected SIPIncomingCall(final ExecutionContext context, final SIPInviteEvent event) {
-    super(context, event.getSipRequest());
-    setRemoteSDP(SIPHelper.getRawContentWOException(event.getSipRequest()));
+  protected SIPIncomingCall(final ExecutionContext context, final SipServletRequest req) {
+    super(context, req);
+    setRemoteSDP(SIPHelper.getRawContentWOException(req));
   }
 
   @Override
@@ -113,7 +113,7 @@ public class SIPIncomingCall extends SIPCallImpl {
           LOG.warn("", e);
           res.send();
         }
-        setSIPCallState(State.PROGRESSED);
+        setSIPCallState(SIPCall.State.PROGRESSED);
         this.notifyAll();
       }
       catch (final IOException e) {
@@ -138,7 +138,7 @@ public class SIPIncomingCall extends SIPCallImpl {
       if (_joinDelegate != null) {
         _joinDelegate.setException(new CanceledException());
       }
-      this.setSIPCallState(State.DISCONNECTED);
+      this.setSIPCallState(SIPCall.State.DISCONNECTED);
       terminate(CallCompleteEvent.Cause.CANCEL, null);
     }
     else {
@@ -146,13 +146,13 @@ public class SIPIncomingCall extends SIPCallImpl {
         LOG.debug("Receiving Cancel, but is already answered. terminating, callID"
             + (getSipSession() != null ? getSipSession().getCallId() : ""));
       }
-      this.setSIPCallState(State.DISCONNECTED);
+      this.setSIPCallState(SIPCall.State.DISCONNECTED);
       terminate(CallCompleteEvent.Cause.CANCEL, null);
     }
   }
 
   protected synchronized void doInvite(final Map<String, String> headers) throws IOException {
-    if (_cstate == SIPCallImpl.State.INVITING) {
+    if (_cstate == SIPCall.State.INVITING) {
       setSIPCallState(SIPCall.State.RINGING);
       final SipServletResponse res = _invite.createResponse(SipServletResponse.SC_RINGING);
       SIPHelper.addHeaders(res, headers);
@@ -161,10 +161,10 @@ public class SIPIncomingCall extends SIPCallImpl {
   }
 
   protected synchronized void doInviteWithEarlyMedia(final Map<String, String> headers) throws MediaException {
-    if (_cstate == SIPCallImpl.State.INVITING) {
+    if (_cstate == SIPCall.State.INVITING) {
       setSIPCallState(SIPCall.State.PROGRESSING);
       processSDPOffer(getSipInitnalRequest());
-      while (!this.isTerminated() && _cstate == State.PROGRESSING) {
+      while (!this.isTerminated() && _cstate == SIPCall.State.PROGRESSING) {
         try {
           this.wait();
         }
@@ -172,14 +172,14 @@ public class SIPIncomingCall extends SIPCallImpl {
           // ignore
         }
       }
-      if (_cstate != State.PROGRESSED) {
+      if (_cstate != SIPCall.State.PROGRESSED) {
         throw new IllegalStateException("" + this);
       }
     }
   }
 
   protected synchronized void doPrack(final SipServletRequest req) throws IOException {
-    if (_cstate == SIPCallImpl.State.PROGRESSED) {
+    if (_cstate == SIPCall.State.PROGRESSED) {
       final SipServletResponse res = req.createResponse(SipServletResponse.SC_OK);
       if (getLocalSDP() != null) {
         res.setContent(getLocalSDP(), "application/sdp");

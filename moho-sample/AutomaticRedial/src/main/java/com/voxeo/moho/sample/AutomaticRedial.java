@@ -26,7 +26,6 @@ import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.event.NotifyEvent;
 import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.OutputCommand;
@@ -46,7 +45,7 @@ public class AutomaticRedial implements Application {
   }
 
   @State
-  public void handleInvite(final InviteEvent event) throws Exception {
+  public void handleInvite(final Call event) throws Exception {
     Call call = event.acceptCall();
     try {
       call.join(event.getInvitee(), JoinType.DIRECT, Direction.DUPLEX).get();

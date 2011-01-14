@@ -22,7 +22,6 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.event.ReferEvent;
 
 /**
@@ -46,7 +45,7 @@ public class Transfer implements Application {
   }
 
   @State
-  public void handleInvite(final InviteEvent e) {
+  public void handleInvite(final Call e) {
     final Call call = e.acceptCall(this);
     call.setSupervised(true);
     final Call outgoingCall = e.getInvitee().call(e.getInvitor(), this);

@@ -27,7 +27,6 @@ import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.conference.ConferenceController;
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.conference.SimpleConferenceController;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 
@@ -55,7 +54,7 @@ public class ConferenceRoom implements Application {
   }
 
   @State
-  public void handleInvite(final InviteEvent inv) throws Exception {
+  public void handleInvite(final Call inv) throws Exception {
     final Call call = inv.acceptCall();
     MixerEndpoint end = (MixerEndpoint) _ctx.createEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT);
     end.setProperty("playTones", "true");

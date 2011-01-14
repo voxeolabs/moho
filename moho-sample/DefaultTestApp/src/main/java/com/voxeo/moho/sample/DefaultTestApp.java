@@ -14,7 +14,6 @@ import com.voxeo.moho.State;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.event.RegisterEvent;
 import com.voxeo.moho.event.TextEvent;
 import com.voxeo.moho.media.Recording;
@@ -26,7 +25,7 @@ import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
-import com.voxeo.moho.sip.SIPInviteEvent;
+import com.voxeo.moho.sip.SIPCall;
 
 public class DefaultTestApp implements Application {
 
@@ -52,11 +51,11 @@ public class DefaultTestApp implements Application {
   }
 
   @State
-  public void handleInvite(final InviteEvent inv) throws Exception {
+  public void handleInvite(final Call inv) throws Exception {
     final Call call = inv.acceptCall(this);
-    if (inv instanceof SIPInviteEvent) {
-      call.setAttribute("RemoteContact", ((SIPInviteEvent) inv).getHeader("Contact"));
-    }
+
+    call.setAttribute("RemoteContact", ((SIPCall) inv).getHeader("Contact"));
+
     call.join().get();
     call.getMediaService().output("Welcome to Voxeo Prism Test Application").get();
     calls.put(call.getAddress().getURI(), call);
@@ -83,7 +82,7 @@ public class DefaultTestApp implements Application {
           if (endpoint == null) {
             final String remote = (String) call.getAttribute("RemoteContact");
             if (remote != null) {
-              endpoint = _ctx.getEndpoint(remote);
+              endpoint = _ctx.createEndpoint(remote);
             }
           }
           ((TextableEndpoint) endpoint).sendText((TextableEndpoint) call.getAddress(),

@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
+import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.conference.ConferenceMangerImpl;
 import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.event.EventSource;
@@ -59,7 +60,7 @@ public class SIPController extends SipServlet {
   protected String _applicationClass = null;
 
   @SuppressWarnings("unchecked")
-@Override
+  @Override
   public void init() {
     try {
       _applicationClass = getInitParameter("ApplicationClass");
@@ -111,14 +112,14 @@ public class SIPController extends SipServlet {
 
       Class<? extends MediaDialect> mediaDialectClass = com.voxeo.moho.media.dialect.GenericDialect.class;
       String mediaDialectClassName = getInitParameter("mediaDialectClass");
-      if(mediaDialectClassName != null) {
-          mediaDialectClass = (Class<? extends MediaDialect>) Class.forName(mediaDialectClassName);
+      if (mediaDialectClassName != null) {
+        mediaDialectClass = (Class<? extends MediaDialect>) Class.forName(mediaDialectClassName);
       }
       MediaDialect mediaDialect = mediaDialectClass.newInstance();
-      
+
       final ApplicationContextImpl ctx = new ApplicationContextImpl(app, _mscFactory, _sipFacory, _sdpFactory,
           getServletConfig().getServletName(), this.getServletContext(), eventDispatcherThreadPoolSize);
-      
+
       ctx.setMediaServiceFactory(new GenericMediaServiceFactory(mediaDialect));
       ctx.setConferenceManager(new ConferenceMangerImpl(ctx));
 
@@ -204,7 +205,7 @@ public class SIPController extends SipServlet {
   @Override
   protected void doInvite(final SipServletRequest req) throws ServletException, IOException {
     if (req.isInitial()) {
-      final SIPInviteEvent ev = new SIPInviteEventImpl(_app.getApplicationContext(), req);
+      final SIPCall ev = new SIPIncomingCall((ExecutionContext) _app.getApplicationContext(), req);
       _app.dispatch(ev);
     }
     else {
@@ -263,7 +264,7 @@ public class SIPController extends SipServlet {
     // log.warn("", e);
     // }
     // }
-    
+
     final EventSource source = SessionUtils.getEventSource(req);
     if (source != null) {
       source.dispatch(new SIPDisconnectEventImpl(source, req));

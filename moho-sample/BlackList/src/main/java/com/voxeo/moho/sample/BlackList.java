@@ -32,7 +32,6 @@ import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.event.SignalEvent.Reason;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
@@ -80,7 +79,7 @@ public class BlackList implements Application {
   }
 
   @State
-  public void handleInvite(final InviteEvent inv) throws Exception {
+  public void handleInvite(final Call inv) throws Exception {
     final Endpoint caller = inv.getInvitor();
     final CallableEndpoint callee = inv.getInvitee();
     final List<String> blacklist = _blacklists.get(callee.getName());

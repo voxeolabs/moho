@@ -20,7 +20,6 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.InputCompleteEvent;
-import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 
@@ -35,7 +34,7 @@ public class IVR implements Application {
   }
 
   @State
-  public void handleInvite(final InviteEvent inv) throws Exception {
+  public void handleInvite(final Call inv) throws Exception {
     final Call call = inv.answer(this);
 
     call.setApplicationState("menu-level-1");

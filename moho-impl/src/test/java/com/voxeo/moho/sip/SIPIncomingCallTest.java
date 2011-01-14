@@ -125,6 +125,12 @@ public class SIPIncomingCallTest extends TestCase {
 
         allowing(toAddr).clone();
         will(returnValue(toAddr));
+        
+        allowing(initInviteReq).getFrom();
+        will(returnValue(fromAddr));
+
+        oneOf(initInviteReq).getTo();
+        will(returnValue(toAddr));
 
         allowing(session).getApplicationSession();
         will(returnValue(appSession));
@@ -151,7 +157,7 @@ public class SIPIncomingCallTest extends TestCase {
    */
   public void testAddObserverAndDispatchEventUnderSupervised() {
 
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
     // prepare
     final DisconnectEvent disconnectEvent = mockery.mock(DisconnectEvent.class);
 
@@ -192,7 +198,7 @@ public class SIPIncomingCallTest extends TestCase {
    */
   public void testExceptionHandler() {
 
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
     final MyExceptionHandler handler = new MyExceptionHandler();
     sipcall.addExceptionHandler(handler);
     // prepare
@@ -276,7 +282,7 @@ public class SIPIncomingCallTest extends TestCase {
    * test SIPIncomingCall.join(final Joinable.Direction direction) .
    */
   public void testJoin() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectations("testJoin");
 
@@ -389,7 +395,7 @@ public class SIPIncomingCallTest extends TestCase {
    * invite request haven't sdp.
    */
   public void testJoinRequestNoSDP() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectationsInitRequestNoSDP("testJoinRequestNoSDP");
 
@@ -513,7 +519,7 @@ public class SIPIncomingCallTest extends TestCase {
    * direction).
    */
   public void testJoinAfterJoin() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectations("testJoinAfterJoin");
 
@@ -652,7 +658,7 @@ public class SIPIncomingCallTest extends TestCase {
    * test SIPIncomingCall.joinToOutgoingCall() . JoinType BRIDGE.
    */
   public void testJoinOutgoingCallBridgeInitReqNoSDP() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectationsInitRequestNoSDP("testJoinOutgoingCallBridge1");
 
@@ -778,7 +784,7 @@ public class SIPIncomingCallTest extends TestCase {
    * 
    */
   public void testJoinOutgoingCallBridgeAfterJoin() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectations("testJoinOutgoingCallBridgeAfterJoinMS");
 
@@ -806,7 +812,7 @@ public class SIPIncomingCallTest extends TestCase {
    * 
    */
   public void testJoinAnsweredOutgoingCallBridge() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectationsInitRequestNoSDP("testJoinOutgoingCallBridge1");
 
@@ -927,7 +933,7 @@ public class SIPIncomingCallTest extends TestCase {
    * 
    */
   public void testAnsweredJoinOutgoingCallBridgeAfterJoin() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectations("testJoinOutgoingCallBridgeAfterJoinMS");
 
@@ -956,7 +962,7 @@ public class SIPIncomingCallTest extends TestCase {
    * test SIPIncomingCall.joinToOutgoingCall() . JoinType BRIDGE.
    */
   public void testJoinIncomingCallBridgeReqNoSDP() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectationsInitRequestNoSDP("testJoinIncomingCallBridge1");
 
@@ -1080,7 +1086,7 @@ public class SIPIncomingCallTest extends TestCase {
    * test SIPIncomingCall.joinToOutgoingCall() . JoinType BRIDGE.
    */
   public void testJoinAnsweredIncomingCallBridgeReqNoSDP() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectationsInitRequestNoSDP("testJoinIncomingCallBridge1");
 
@@ -1182,7 +1188,7 @@ public class SIPIncomingCallTest extends TestCase {
    * 
    */
   public void testJoinIncomingCallBridgeAfterJoin() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectations("testJoinIncomingCallBridgeAfterJoin");
 
@@ -1212,7 +1218,7 @@ public class SIPIncomingCallTest extends TestCase {
    * 
    */
   public void testJoinAnsweredIncomingCallBridgeAfterJoin() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectations("testJoinIncomingCallBridgeAfterJoin");
 
@@ -1242,7 +1248,7 @@ public class SIPIncomingCallTest extends TestCase {
    * haven't sdp.
    */
   public void testJoinOutgoingCallDirectInitReqNoSDP() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     final SIPOutgoingCall outgoingCall = joinOutgoingCallDirectInitReqNoSDPExpectations("testJoinOutgoingCallDirectInitReqNoSDP");
 
@@ -1442,7 +1448,7 @@ public class SIPIncomingCallTest extends TestCase {
    * 
    */
   public void testJoinAnsweredOutgoingCallDirectInitReqNoSDP() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     final SIPOutgoingCall outgoingCall = joinAnsweredOutgoingCallDirectInitReqNoSDPExpectations("testJoinAnsweredOutgoingCallDirectInitReqNoSDP");
 
@@ -1638,7 +1644,7 @@ public class SIPIncomingCallTest extends TestCase {
    * test SIPIncomingCall.joinToOutgoingCall() . JoinType DIRECT.
    */
   public void testJoinOutgoingCallDirectAfterJoin() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectations("testJoinOutgoingCallDirectAfterJoin");
 
@@ -1851,7 +1857,7 @@ public class SIPIncomingCallTest extends TestCase {
    * JoinType DIRECT.
    */
   public void testJoinAnsweredOutgoingCallDirectAfterJoin() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectations("testJoinOutgoingCallDirectAfterJoin");
 
@@ -2104,7 +2110,7 @@ public class SIPIncomingCallTest extends TestCase {
     initInviteReq.setContentType("application/sdp");
 
     //
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     final MockSipServletResponse sipInviteResp = mockery.mock(MockSipServletResponse.class, mockObjectNamePrefix
         + "sipInviteResp");
@@ -2292,7 +2298,7 @@ public class SIPIncomingCallTest extends TestCase {
    * @return
    */
   private SIPIncomingCall joinincomingCallDirectAfterJoinExpectations(final String mockObjectNamePrefix) {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     // prepare
     joinToMSExpectations(mockObjectNamePrefix);
@@ -2550,7 +2556,7 @@ public class SIPIncomingCallTest extends TestCase {
     final byte[] reqSDP = new byte[10];
     initInviteReq.setRawContent(reqSDP);
 
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     // prepare
     joinToMSExpectations(mockObjectNamePrefix);
@@ -2808,7 +2814,7 @@ public class SIPIncomingCallTest extends TestCase {
    */
   private SIPIncomingCall joinAnsweredincomingCallDirectInitExpectations(final String mockObjectNamePrefix) {
     //
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     // prepare
     // mock jsr289 object.
@@ -2987,7 +2993,7 @@ public class SIPIncomingCallTest extends TestCase {
    * test disconnect.
    */
   public void testDisconnectAfterJoin() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectations("testJoin");
 
@@ -3053,7 +3059,7 @@ public class SIPIncomingCallTest extends TestCase {
    * reinvite event after join().
    */
   public void testReinviteAfterjoin() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectations("testReinviteAfterjoin");
 
@@ -3149,7 +3155,7 @@ public class SIPIncomingCallTest extends TestCase {
    * refer event after join to outgoingcall bridge.
    */
   public void testNotifyEventAfterjoinOutgoingCallBridge() {
-    sipcall = new SIPIncomingCall(appContext, initInviteEvent);
+    sipcall = new SIPIncomingCall(appContext, initInviteReq);
 
     joinToMSExpectationsInitRequestNoSDP("testNotifyEventAfterjoinOutgoingCallBridge");
 
