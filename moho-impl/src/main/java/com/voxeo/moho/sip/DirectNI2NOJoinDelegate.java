@@ -80,8 +80,8 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
     }
     catch (final Exception e) {
       setError(e);
-      _call1.fail();
-      _call2.fail();
+      _call1.fail(e);
+      _call2.fail(e);
       throw e;
     }
   }
@@ -98,8 +98,8 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
       }
       catch (final Exception e) {
         setError(e);
-        _call1.fail();
-        _call2.fail();
+        _call1.fail(e);
+        _call2.fail(e);
         throw e;
       }
       _call1.linkCall(_call2, JoinType.DIRECT, _direction);

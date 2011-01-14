@@ -110,6 +110,8 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
 
   protected String _replacesHeader;
 
+  protected Exception _exception;
+
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
     _invite = req;
@@ -324,7 +326,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
 
   @Override
   public void disconnect() {
-    this.disconnect(false);
+    this.disconnect(false, CallCompleteEvent.Cause.NEAR_END_DISCONNECT, null);
   }
 
   @Override
@@ -423,16 +425,21 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.JOINED);
         }
         catch (final Exception e) {
+          _exception = e;
           event = handleJoinException(e);
           throw e;
         }
         finally {
-          if (event.getCause() != Cause.JOINED) {
-            SIPCallImpl.this.disconnect(true);
-          }
           SIPCallImpl.this.dispatch(event);
-          if (isTerminated()) {
-            SIPCallImpl.this.dispatch(new CallCompleteEvent(SIPCallImpl.this));
+
+          if (event.getCause() != Cause.JOINED) {
+            CallCompleteEvent.Cause cause = null;
+
+            switch (event.getCause()) {
+              case ERROR:
+                cause = CallCompleteEvent.Cause.ERROR;
+            }
+            SIPCallImpl.this.disconnect(true, cause, _exception);
           }
         }
         return event;
@@ -478,14 +485,22 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
           throw e;
         }
         finally {
-          if (event.getCause() != Cause.JOINED) {
-            ((SIPCallImpl) other).disconnect(true);
-          }
           SIPCallImpl.this.dispatch(event);
-          if (isTerminated()) {
-            SIPCallImpl.this.dispatch(new CallCompleteEvent(SIPCallImpl.this));
+
+          if (event.getCause() != Cause.JOINED) {
+            CallCompleteEvent.Cause cause = null;
+            switch (event.getCause()) {
+              case BUSY:
+                cause = CallCompleteEvent.Cause.BUSY;
+              case REJECT:
+                cause = CallCompleteEvent.Cause.DECLINE;
+              case TIMEOUT:
+                cause = CallCompleteEvent.Cause.TIMEOUT;
+              case ERROR:
+                cause = CallCompleteEvent.Cause.ERROR;
+            }
+            ((SIPCallImpl) other).disconnect(true, cause, _exception);
           }
-          // other.dispatch(event);
         }
         return event;
       }
@@ -541,7 +556,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
       _joinDelegate.setException(new DisconnectedException());
     }
     this.setSIPCallState(State.DISCONNECTED);
-    terminate();
+    terminate(CallCompleteEvent.Cause.DISCONNECT, null);
   }
 
   protected synchronized void doAck(final SipServletRequest req) throws Exception {
@@ -658,12 +673,14 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     return _cstate == SIPCall.State.FAILED || _cstate == SIPCall.State.DISCONNECTED;
   }
 
-  protected void fail() {
-    disconnect(true);
+  protected void fail(Exception ex) {
+    disconnect(true, CallCompleteEvent.Cause.ERROR, ex);
   }
 
-  protected synchronized void disconnect(final boolean failed) {
+  protected synchronized void disconnect(final boolean failed, final CallCompleteEvent.Cause cause,
+      final Exception exception) {
     if (isTerminated()) {
+      System.out.print("test");
       if (LOG.isTraceEnabled()) {
         LOG.trace(this + " is already terminated.");
       }
@@ -679,7 +696,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     else {
       this.setSIPCallState(State.DISCONNECTED);
     }
-    terminate();
+    terminate(cause, exception);
     if (isNoAnswered(old)) {
       try {
         if (this instanceof SIPOutgoingCall && !failed) {
@@ -705,7 +722,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
     }
   }
 
-  protected synchronized void terminate() {
+  protected synchronized void terminate(final CallCompleteEvent.Cause cause, final Exception exception) {
     _context.removeCall(getId());
 
     destroyNetworkConnection();
@@ -727,6 +744,7 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
             + (getSipSession() != null ? getSipSession().getCallId() : ""));
       }
       _joinDelegate.getCondition().notifyAll();
+      this.dispatch(new CallCompleteEvent(this, cause, exception));
     }
     else {
       if (LOG.isDebugEnabled()) {
@@ -734,10 +752,9 @@ public abstract class SIPCallImpl extends DispatchableEventSource implements SIP
             + (getSipSession() != null ? getSipSession().getCallId() : ""));
       }
       this.notifyAll();
-      this.dispatch(new CallCompleteEvent(this));
+      this.dispatch(new CallCompleteEvent(this, cause, exception));
     }
     _callDelegate = null;
-
   }
 
   protected SipServletRequest getSipInitnalRequest() {

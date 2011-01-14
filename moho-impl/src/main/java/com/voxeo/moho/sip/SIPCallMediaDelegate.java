@@ -26,6 +26,7 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPCallImpl.HoldState;
@@ -53,7 +54,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
     }
     catch (final Exception e) {
       LOG.error("Exception", e);
-      call.fail();
+      call.fail(e);
     }
   }
 
@@ -104,7 +105,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
         LOG.error("IOException when sending ACK", e);
         call.setHoldState(HoldState.None);
         call.notify();
-        call.fail();
+        call.fail(e);
       }
     }
     else {
@@ -129,7 +130,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
         catch (IOException e) {
           LOG.error("IOException when sending ACK", e);
           call.setHoldState(HoldState.None);
-          call.fail();
+          call.fail(e);
         }
         finally {
           call.notify();
@@ -149,12 +150,12 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
           }
           catch (final Exception e) {
             LOG.error("", e);
-            call.fail();
+            call.fail(e);
           }
         }
         else {
           SIPHelper.handleErrorSdpPortManagerEvent(event, _req);
-          call.fail();
+          call.fail(new NegotiateException(event));
         }
       }
 

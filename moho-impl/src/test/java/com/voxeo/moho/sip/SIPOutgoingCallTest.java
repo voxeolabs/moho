@@ -50,6 +50,8 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.AutowiredEventListener;
+import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
@@ -206,7 +208,8 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
+          oneOf(mediaSession)
+              .createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -295,7 +298,7 @@ public class SIPOutgoingCallTest extends TestCase {
    */
   public void testJoinWithSIPIOException2() {
     joinExceptionWithSIPExpectations2("testJoin");
-
+    sipcall.addListener(new AutowiredEventListener(new MyObserver()));
     // execute
     try {
       sipcall.join(Joinable.Direction.DUPLEX).get();
@@ -309,6 +312,14 @@ public class SIPOutgoingCallTest extends TestCase {
     assertTrue(sipcall.getSIPCallState() == State.FAILED);
     assertTrue(sipcall.getMediaObject() == null);
     mockery.assertIsSatisfied();
+  }
+
+  public class MyObserver {
+
+    @com.voxeo.moho.State
+    public void listenCallcomplete(CallCompleteEvent event) {
+      System.out.println("received==========>");
+    }
   }
 
   /**
@@ -342,7 +353,8 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
+          oneOf(mediaSession)
+              .createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -469,7 +481,7 @@ public class SIPOutgoingCallTest extends TestCase {
    */
   public void testJoinWithUnsuccessSipResp() {
     joinExceptionWithUnsuccessSipResp("testJoin");
-
+    sipcall.addListener(new AutowiredEventListener(new MyObserver()));
     // execute
     try {
       sipcall.join(Joinable.Direction.DUPLEX).get();
@@ -513,7 +525,8 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
+          oneOf(mediaSession)
+              .createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -657,7 +670,8 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
+          oneOf(mediaSession)
+              .createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -838,7 +852,8 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
+          oneOf(mediaSession)
+              .createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -947,7 +962,8 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(msFactory).createMediaSession();
           will(returnValue(mediaSession));
 
-          oneOf(mediaSession).createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
+          oneOf(mediaSession)
+              .createNetworkConnection(with(equal(NetworkConnection.BASIC)), with(any(Parameters.class)));
           will(returnValue(network));
 
           oneOf(sdpManager).addListener(sipcall);
@@ -1893,7 +1909,7 @@ public class SIPOutgoingCallTest extends TestCase {
           //
           // oneOf(sipcallCancelReq).send();
 
-          oneOf(outgoingCall).fail();
+          oneOf(outgoingCall).fail(with(any(IOException.class)));
         }
       });
     }

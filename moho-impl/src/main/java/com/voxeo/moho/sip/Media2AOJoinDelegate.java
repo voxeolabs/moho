@@ -53,13 +53,14 @@ public class Media2AOJoinDelegate extends JoinDelegate {
           }
           catch (final IOException e) {
             setError(e);
-            _call.fail();
+            _call.fail(e);
             throw new RuntimeException(e);
           }
         }
       }
-      setError(new NegotiateException(event));
-      _call.fail();
+      Exception ex = new NegotiateException(event);
+      setError(ex);
+      _call.fail(ex);
     }
   }
 
@@ -81,7 +82,7 @@ public class Media2AOJoinDelegate extends JoinDelegate {
     }
     catch (final Exception e) {
       setError(e);
-      _call.fail();
+      _call.fail(e);
       throw e;
     }
   }

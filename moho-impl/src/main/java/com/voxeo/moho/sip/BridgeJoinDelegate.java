@@ -84,7 +84,7 @@ public class BridgeJoinDelegate extends JoinDelegate {
     }
     catch (final Exception e) {
       setError(e);
-      call.fail();
+      call.fail(e);
       throw e;
     }
   }

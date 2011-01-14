@@ -75,8 +75,8 @@ public class DirectAO2AOJoinDelegate extends JoinDelegate {
       }
       catch (final Exception e) {
         setError(e);
-        _call1.fail();
-        _call2.fail();
+        _call1.fail(e);
+        _call2.fail(e);
         throw e;
       }
     }

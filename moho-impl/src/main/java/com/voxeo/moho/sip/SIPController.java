@@ -253,15 +253,20 @@ public class SIPController extends SipServlet {
 
   @Override
   protected void doCancel(final SipServletRequest req) throws ServletException, IOException {
+    // final EventSource source = SessionUtils.getEventSource(req);
+    // if (source instanceof SIPIncomingCall) {
+    // final SIPIncomingCall call = (SIPIncomingCall) source;
+    // try {
+    // call.doCancel();
+    // }
+    // catch (final Exception e) {
+    // log.warn("", e);
+    // }
+    // }
+    
     final EventSource source = SessionUtils.getEventSource(req);
-    if (source instanceof SIPIncomingCall) {
-      final SIPIncomingCall call = (SIPIncomingCall) source;
-      try {
-        call.doCancel();
-      }
-      catch (final Exception e) {
-        log.warn("", e);
-      }
+    if (source != null) {
+      source.dispatch(new SIPDisconnectEventImpl(source, req));
     }
   }
 

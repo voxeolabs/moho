@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.CanceledException;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.MediaException;
+import com.voxeo.moho.event.CallCompleteEvent;
 
 public class SIPIncomingCall extends SIPCallImpl {
 
@@ -138,7 +139,7 @@ public class SIPIncomingCall extends SIPCallImpl {
         _joinDelegate.setException(new CanceledException());
       }
       this.setSIPCallState(State.DISCONNECTED);
-      terminate();
+      terminate(CallCompleteEvent.Cause.CANCEL, null);
     }
     else {
       if (LOG.isDebugEnabled()) {
@@ -146,7 +147,7 @@ public class SIPIncomingCall extends SIPCallImpl {
             + (getSipSession() != null ? getSipSession().getCallId() : ""));
       }
       this.setSIPCallState(State.DISCONNECTED);
-      terminate();
+      terminate(CallCompleteEvent.Cause.CANCEL, null);
     }
   }
 

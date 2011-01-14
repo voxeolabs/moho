@@ -48,20 +48,21 @@ public class Media2NIJoinDelegate extends JoinDelegate {
         }
         catch (final IOException e) {
           setError(e);
-          _call.fail();
+          _call.fail(e);
           throw new RuntimeException(e);
         }
       }
       else {
         SIPHelper.handleErrorSdpPortManagerEvent(event, _call.getSipInitnalRequest());
-        setError(new NegotiateException(event));
-        _call.fail();
+        Exception ex = new NegotiateException(event);
+        setError(ex);
+        _call.fail(ex);
       }
     }
   }
 
   @Override
-  protected void doAck(final SipServletRequest req, final SIPCallImpl call) {
+  protected void doAck(final SipServletRequest req, final SIPCallImpl call) throws Exception {
     try {
       _call.setSIPCallState(SIPCall.State.ANSWERED);
       _call.processSDPAnswer(req);
@@ -69,8 +70,8 @@ public class Media2NIJoinDelegate extends JoinDelegate {
     }
     catch (final Exception e) {
       setError(e);
-      _call.fail();
-      throw new RuntimeException(e);
+      _call.fail(e);
+      throw e;
     }
   }
 

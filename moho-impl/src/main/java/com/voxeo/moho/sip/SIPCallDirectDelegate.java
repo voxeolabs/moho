@@ -81,7 +81,7 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
         LOG.error("IOException when sending back ACK.", e);
         call.setHoldState(HoldState.None);
         call.setDeafState(HoldState.None);
-        call.fail();
+        call.fail(e);
       }
       finally {
         call.notify();
@@ -131,7 +131,7 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
       catch (IOException e1) {
         LOG.error("IOException", e1);
         call.setMuteState(HoldState.None);
-        call.fail();
+        call.fail(e1);
       }
       finally {
         call.notify();
