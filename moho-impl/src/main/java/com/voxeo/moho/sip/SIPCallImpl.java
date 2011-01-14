@@ -496,8 +496,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
           throw e;
         }
         finally {
-          SIPCallImpl.this.dispatch(event);
-
           if (event.getCause() != Cause.JOINED) {
             CallCompleteEvent.Cause cause = null;
 
@@ -506,6 +504,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
                 cause = CallCompleteEvent.Cause.ERROR;
             }
             SIPCallImpl.this.disconnect(true, cause, _exception);
+          }
+          SIPCallImpl.this.dispatch(event);
+
+          if (isTerminated()) {
+            SIPCallImpl.this
+                .dispatch(new CallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR, _exception));
           }
         }
         return event;
@@ -551,8 +555,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
           throw e;
         }
         finally {
-          SIPCallImpl.this.dispatch(event);
-
           if (event.getCause() != Cause.JOINED) {
             CallCompleteEvent.Cause cause = null;
             switch (event.getCause()) {
@@ -566,6 +568,13 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
                 cause = CallCompleteEvent.Cause.ERROR;
             }
             ((SIPCallImpl) other).disconnect(true, cause, _exception);
+          }
+
+          SIPCallImpl.this.dispatch(event);
+
+          if (isTerminated()) {
+            SIPCallImpl.this
+                .dispatch(new CallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR, _exception));
           }
         }
         return event;
@@ -810,7 +819,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
             + (getSipSession() != null ? getSipSession().getCallId() : ""));
       }
       _joinDelegate.getCondition().notifyAll();
-      this.dispatch(new CallCompleteEvent(this, cause, exception));
+
     }
     else {
       if (LOG.isDebugEnabled()) {
