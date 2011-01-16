@@ -34,12 +34,12 @@ public class Grammar implements MediaResource {
 
   public Grammar() {}
 
-  protected Grammar(final String contentType, final String contents) {
+  public Grammar(final String contentType, final String contents) {
     _contentType = contentType;
     _text = contents;
   }
 
-  protected Grammar(final URI uri) {
+  public Grammar(final URI uri) {
       _uri = uri;
   }
 
