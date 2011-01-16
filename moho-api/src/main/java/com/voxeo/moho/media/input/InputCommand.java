@@ -67,10 +67,12 @@ public class InputCommand implements Parameters {
    */
   protected boolean _supervised = true;
 
+  
   /**
    * @param grammers
    *          can be simple string or string that starts with "#JSGF". if the
    *          string starts with "#JSGF", a JSGF grammar will be created.
+   * @deprecated Grammar type 'guessing' has been deprecated. Supply a Grammar instance instead.
    */
   public InputCommand(String grammer) {
     if (grammer == null || grammer.length() == 0) {

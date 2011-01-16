@@ -237,6 +237,7 @@ public class GenericMediaService implements MediaService {
     return prompt(output, input, repeat);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public Prompt prompt(final OutputCommand output, final InputCommand input, final int repeat) throws MediaException {
     final PromptImpl retval = new PromptImpl(_context);
@@ -484,6 +485,7 @@ public class GenericMediaService implements MediaService {
     }
   }
 
+  @SuppressWarnings("deprecation")
   protected Input detectSignal(final InputCommand cmd) throws MediaException {
       
     if (cmd.isRecord()) {
@@ -534,20 +536,28 @@ public class GenericMediaService implements MediaService {
         if (grammar == null) {
           continue;
         }
-        Object o = grammar.toURI();
-        if (o == null) {
-          final String text = grammar.toText();
-          try {
-            o = new URL(text);
-          }
-          catch (final MalformedURLException e) {
-            o = text;
-          }
+        
+        Object pattern = null;
+        
+        URI uri = grammar.toURI();
+        
+        if("data".equals(uri.getScheme())) {
+            pattern = uri;
         }
-        if (o == null) {
-          continue;
+        else if("digits".equals(uri.getScheme())) {
+            pattern = uri.getSchemeSpecificPart();
         }
-        patterns.add(o);
+        else {
+            try {
+                pattern = uri.toURL();
+            }
+            catch (MalformedURLException e) {
+                LOG.warn("Skipped Grammar! Only 'data' URIs and http/https/ftp/file URLs are permitted [uri=" + uri.toString() + "]");
+            }
+        }
+        
+        patterns.add(pattern);
+        
       }
 
       final Parameters patternParams = _group.createParameters();
@@ -558,13 +568,6 @@ public class GenericMediaService implements MediaService {
         patternKeys[i] = SignalDetector.PATTERN[i];
         patternParams.put(SignalDetector.PATTERN[i], o);
       }
-
-      // process terminate char. Remove , application transfer this parameter
-      // instead.
-      // if (cmd.getTerminateChar() != null) {
-      // patternParams.put(VoxeoParameter.DTMF_TERM_CHAR,
-      // cmd.getTerminateChar());
-      // }
 
       if (patterns.size() > 0) {
         _group.setParameters(patternParams);
@@ -792,7 +795,7 @@ public class GenericMediaService implements MediaService {
     Iterator<MediaOperation<? extends MediaCompleteEvent>> ite = futures.iterator();
 
     while (ite.hasNext()) {
-      MediaOperation future = ite.next();
+      MediaOperation<?> future = ite.next();
 
       if (future instanceof RecordingImpl) {
         if (((RecordingImpl) future).isPending()) {

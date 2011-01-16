@@ -14,9 +14,14 @@
 
 package com.voxeo.moho.media.input;
 
+import java.net.URI;
+
 public class DigitInputCommand extends InputCommand {
 
+  private static final URI DIGIT_GRAMMAR = URI.create("digits:1,2,3,4,5,6,7,8,9,0");
+    
   public DigitInputCommand() {
-    super("1,2,3,4,5,6,7,8,9,0");
+    super(new Grammar(DIGIT_GRAMMAR));
   }
+  
 }

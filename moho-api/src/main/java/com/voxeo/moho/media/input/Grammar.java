@@ -16,13 +16,64 @@ package com.voxeo.moho.media.input;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+
+import org.apache.log4j.Logger;
 
 import com.voxeo.moho.media.MediaResource;
 
-public abstract class Grammar implements MediaResource {
+public class Grammar implements MediaResource {
 
+  private static final Logger LOG = Logger.getLogger(JSGFGrammar.class);
+
+  protected URI _uri;
   protected String _text = null;
+  protected String _contentType = null;
 
+  public Grammar() {}
+
+  protected Grammar(final String contentType, final String contents) {
+    _contentType = contentType;
+    _text = contents;
+  }
+
+  protected Grammar(final URI uri) {
+      _uri = uri;
+  }
+
+  public String getText() {
+    return _text;
+  }
+
+  public URI getUri() {
+    return _uri;
+  }
+
+  public String getContentType() {
+    return _contentType;
+  }
+
+  @SuppressWarnings("deprecation")
+  public URI toURI() {
+    if(_uri == null) {
+        try {
+            return URI.create("data:" + URLEncoder.encode(getContentType() + "," + getText(), "UTF-8"));
+        }
+        catch (final UnsupportedEncodingException e) {
+            LOG.warn("", e);
+            return URI.create("data:" + URLEncoder.encode(getContentType() + "," + getText()));
+        }
+    }
+    else {
+        return _uri;
+    }
+  }
+
+  /**
+  * @deprecated Use the Grammar class constructor instead
+  */
   public static Grammar create(final String grammar) {
     if (grammar.startsWith("#JSGF")) {
       return new JSGFGrammar(grammar);
@@ -32,6 +83,9 @@ public abstract class Grammar implements MediaResource {
     }
   }
 
+  /**
+   * @deprecated Use the Grammar class constructor instead
+   */
   public static Grammar create(Reader reader) throws IOException {
     StringBuffer sb = new StringBuffer();
     char[] charbuf = new char[1024];
@@ -39,9 +93,9 @@ public abstract class Grammar implements MediaResource {
     while ((readLength = reader.read(charbuf)) > 0) {
       sb.append(charbuf, 0, readLength);
     }
-
+      
     String grammar = sb.toString();
-
+      
     if (grammar.startsWith("#JSGF")) {
       return new JSGFGrammar(grammar);
     }
@@ -49,17 +103,5 @@ public abstract class Grammar implements MediaResource {
       return new SimpleGrammar(grammar);
     }
   }
-
-  protected Grammar() {
-
-  }
-
-  protected Grammar(final String text) {
-    _text = text;
-  }
-
-  public String toText() {
-    return _text;
-  }
-
+  
 }

@@ -11,25 +11,11 @@
 
 package com.voxeo.moho.media.input;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
 
 public class SimpleGrammar extends Grammar {
 
   public SimpleGrammar(final String string) {
-    super(string);
-  }
-
-  @SuppressWarnings("deprecation")
-  @Override
-  public URI toURI() {
-    try {
-      return URI.create("data:" + URLEncoder.encode("application/grammar+voxeo," + toText(), "UTF-8"));
-    }
-    catch (final UnsupportedEncodingException e) {
-      return URI.create("data:" + URLEncoder.encode("application/grammar+voxeo," + toText()));
-    }
+    super("application/grammar+voxeo", string);
   }
 
 }
