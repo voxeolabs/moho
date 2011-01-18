@@ -118,15 +118,15 @@
 
   <distributionManagement>
     <repository>
-      <id>oss.sonatype.org</id>
+      <id>public.voxeo.com</id>
       <name>Nexus Public Mirror</name>
-      <url>http://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+      <url>http://199.230.56.150:8081/nexus/content/repositories/releases/</url>
     </repository>
     <!-- use the following if you ARE using a snapshot version. -->
     <snapshotRepository>
-      <id>oss.sonatype.org</id>
+      <id>public.voxeo.com</id>
       <name>Nexus Public Mirror</name>
-      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+      <url>http://199.230.56.150:8081/nexus/content/repositories/snapshots/</url>
       <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
   </distributionManagement>
