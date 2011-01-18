@@ -75,6 +75,7 @@ import com.voxeo.moho.event.EventDispatcher;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.EventState;
 import com.voxeo.moho.event.ForwardableEvent;
+import com.voxeo.moho.event.InviteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.event.SignalEvent;
@@ -175,7 +176,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
     _caller = new SIPEndpointImpl((ApplicationContextImpl) context, req.getFrom());
     _callee = new SIPEndpointImpl((ApplicationContextImpl) context, req.getTo());
-    _state = InviteState.ALERTING;
+    _state = InviteEvent.InviteEventState.ALERTING;
 
     _invite = req;
 
@@ -1529,7 +1530,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   public synchronized void redirect(final Endpoint o, final Map<String, String> headers) throws SignalException,
       IllegalArgumentException {
     this.checkState();
-    _state = InviteState.REDIRECTING;
+    _state = InviteEvent.InviteEventState.REDIRECTING;
     setSIPCallState(SIPCall.State.DISCONNECTED);
     if (o instanceof SIPEndpoint) {
       final SipServletResponse res = _invite.createResponse(SipServletResponse.SC_MOVED_TEMPORARILY);
@@ -1550,7 +1551,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public synchronized void reject(final Reason reason, final Map<String, String> headers) throws SignalException {
     this.checkState();
-    _state = InviteState.REJECTING;
+    _state = InviteEvent.InviteEventState.REJECTING;
     setSIPCallState(SIPCall.State.DISCONNECTED);
     try {
       final SipServletResponse res = _invite.createResponse(reason == null ? Reason.DECLINE.getCode() : reason
@@ -1576,7 +1577,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
     this.checkState();
     accepted = true;
-    _state = InviteState.ACCEPTING;
+    _state = InviteEvent.InviteEventState.ACCEPTING;
     ((SIPIncomingCall) this).addListeners(listeners);
     try {
       ((SIPIncomingCall) this).doInvite(headers);
@@ -1595,7 +1596,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
     this.checkState();
     accepted = true;
-    _state = InviteState.ACCEPTING;
+    _state = InviteEvent.InviteEventState.ACCEPTING;
     ((SIPIncomingCall) this).addObservers(observers);
     try {
       ((SIPIncomingCall) this).doInvite(headers);
@@ -1614,7 +1615,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
     this.checkState();
     accepted = true;
-    _state = InviteState.PROGRESSING;
+    _state = InviteEvent.InviteEventState.PROGRESSING;
     ((SIPIncomingCall) this).addListeners(listeners);
     try {
       ((SIPIncomingCall) this).doInviteWithEarlyMedia(headers);
@@ -1641,7 +1642,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
     this.checkState();
     accepted = true;
-    _state = InviteState.PROGRESSING;
+    _state = InviteEvent.InviteEventState.PROGRESSING;
     ((SIPIncomingCall) this).addObservers(observers);
     try {
       ((SIPIncomingCall) this).doInviteWithEarlyMedia(headers);
