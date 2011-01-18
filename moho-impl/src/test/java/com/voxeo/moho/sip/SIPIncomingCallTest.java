@@ -91,8 +91,6 @@ public class SIPIncomingCallTest extends TestCase {
   // ApplicationContextImpl is simple, no need to mock it.
   ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
 
-  SIPInviteEvent initInviteEvent = mockery.mock(SIPInviteEvent.class);
-
   Address fromAddr = mockery.mock(Address.class, "fromAddr");
 
   Address toAddr = mockery.mock(Address.class, "toAddr");
@@ -114,9 +112,6 @@ public class SIPIncomingCallTest extends TestCase {
     // common Expectations.
     mockery.checking(new Expectations() {
       {
-        allowing(initInviteEvent).getSipRequest();
-        will(returnValue(initInviteReq));
-
         allowing(session).getRemoteParty();
         will(returnValue(fromAddr));
 
@@ -125,7 +120,7 @@ public class SIPIncomingCallTest extends TestCase {
 
         allowing(toAddr).clone();
         will(returnValue(toAddr));
-        
+
         allowing(initInviteReq).getFrom();
         will(returnValue(fromAddr));
 
