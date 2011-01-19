@@ -84,7 +84,6 @@
           </includes>
         </configuration>
       </plugin>
-
     </plugins>
   </build>
 
@@ -114,6 +113,7 @@
     <module>moho-api</module>
     <module>moho-impl</module>
     <module>moho-sample</module>
+	  <module>moho-artifacts</module>
   </modules>
 
   <distributionManagement>
