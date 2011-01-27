@@ -16,8 +16,11 @@ import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.join.Joinable.Direction;
+import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+
+import org.apache.log4j.Logger;
 
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.RedirectException;
@@ -28,6 +31,8 @@ import com.voxeo.moho.sip.SIPCall.State;
 
 public class DirectAI2NOJoinDelegate extends JoinDelegate {
 
+  private static final Logger LOG = Logger.getLogger(DirectAI2NOJoinDelegate.class);
+
   protected SIPIncomingCall _call1;
 
   protected SIPOutgoingCall _call2;
@@ -35,6 +40,8 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
   protected Direction _direction;
 
   protected SipServletResponse _response;
+
+  protected boolean _reInvited;
 
   protected DirectAI2NOJoinDelegate(final SIPIncomingCall call1, final SIPOutgoingCall call2, final Direction direction) {
     _call1 = call1;
@@ -70,14 +77,39 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
     }
     else if (SIPHelper.isProvisionalResponse(res) && _call2.equals(call)) {
       _call2.setSIPCallState(SIPCall.State.ANSWERING);
+
+      if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
+        try {
+          if (SIPHelper.getRawContentWOException(res) != null) {
+            reInviteCall1(res);
+            _reInvited = true;
+          }
+
+          try {
+            res.createPrack().send();
+          }
+          catch (Rel100Exception ex) {
+            LOG.warn(ex.getMessage());
+          }
+          catch (IllegalStateException ex) {
+            LOG.warn(ex.getMessage());
+          }
+        }
+        catch (Exception e) {
+          setError(e);
+          _call1.fail(e);
+          _call2.fail(e);
+          throw e;
+        }
+      }
     }
     else if (SIPHelper.isSuccessResponse(res)) {
       try {
         if (_call2.equals(call)) {
           _response = res;
-          final SipServletRequest req = _call1.getSipSession().createRequest("INVITE");
-          SIPHelper.copyContent(res, req);
-          req.send();
+          if (!_reInvited) {
+            reInviteCall1(res);
+          }
         }
         else if (_call1.equals(call)) {
           final SipServletRequest ack1 = res.createAck();
@@ -102,5 +134,11 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
         throw e;
       }
     }
+  }
+
+  private void reInviteCall1(SipServletResponse res) throws Exception {
+    final SipServletRequest req = _call1.getSipSession().createRequest("INVITE");
+    SIPHelper.copyContent(res, req);
+    req.send();
   }
 }

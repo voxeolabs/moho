@@ -71,6 +71,7 @@ import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.event.AutowiredEventListener;
 import com.voxeo.moho.event.AutowiredEventTarget;
 import com.voxeo.moho.event.CallCompleteEvent;
+import com.voxeo.moho.event.EarlyMediaEvent;
 import com.voxeo.moho.event.EventDispatcher;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.EventState;
@@ -139,10 +140,14 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   protected ConcurrentHashMap<Observer, AutowiredEventListener> _observers = new ConcurrentHashMap<Observer, AutowiredEventListener>();
 
+  protected SIPCallImpl _bridgeJoiningPeer;
+
   // attribute store
   private Map<String, Object> _attributes = new ConcurrentHashMap<String, Object>();
 
-  private boolean accepted;
+  private boolean _accepted;
+
+  private boolean _acceptedWithEarlyMedia;
 
   @Override
   public Object getAttribute(final String name) {
@@ -346,7 +351,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
         public void run() {
           if (((SignalEvent) event).getState() == EventState.InitialEventState.INITIAL) {
             try {
-              ((SignalEvent) event).accept();
+              if (event instanceof EarlyMediaEvent) {
+                ((EarlyMediaEvent) event).reject(null);
+              }
+              else {
+                ((SignalEvent) event).accept();
+              }
             }
             catch (final SignalException e) {
               LOG.warn("", e);
@@ -382,7 +392,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     return _signal;
   }
 
-  public synchronized MediaObject getMediaObject() {
+  public MediaObject getMediaObject() {
     return _network;
   }
 
@@ -747,6 +757,10 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   protected synchronized boolean isTerminated() {
     return _cstate == SIPCall.State.FAILED || _cstate == SIPCall.State.DISCONNECTED;
+  }
+
+  protected boolean isAcceptedWithEarlyMedia() {
+    return _acceptedWithEarlyMedia;
   }
 
   protected void fail(Exception ex) {
@@ -1572,11 +1586,11 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public synchronized Call acceptCall(final Map<String, String> headers, final EventListener<?>... listeners)
       throws SignalException, IllegalStateException {
-    if (accepted) {
+    if (_accepted) {
       throw new IllegalStateException("...");
     }
     this.checkState();
-    accepted = true;
+    _accepted = true;
     _state = InviteEvent.InviteEventState.ACCEPTING;
     ((SIPIncomingCall) this).addListeners(listeners);
     try {
@@ -1591,11 +1605,11 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public synchronized Call acceptCall(final Map<String, String> headers, final Observer... observers)
       throws SignalException, IllegalStateException {
-    if (accepted) {
+    if (_accepted) {
       throw new IllegalStateException("...");
     }
     this.checkState();
-    accepted = true;
+    _accepted = true;
     _state = InviteEvent.InviteEventState.ACCEPTING;
     ((SIPIncomingCall) this).addObservers(observers);
     try {
@@ -1610,11 +1624,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers,
       final EventListener<?>... listeners) throws SignalException, MediaException, IllegalStateException {
-    if (accepted) {
+    if (_accepted) {
       throw new IllegalStateException("...");
     }
     this.checkState();
-    accepted = true;
+    _accepted = true;
+    _acceptedWithEarlyMedia = true;
     _state = InviteEvent.InviteEventState.PROGRESSING;
     ((SIPIncomingCall) this).addListeners(listeners);
     try {
@@ -1637,11 +1652,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers, final Observer... observers)
       throws SignalException, MediaException, IllegalStateException {
-    if (accepted) {
+    if (_accepted) {
       throw new IllegalStateException("...");
     }
     this.checkState();
-    accepted = true;
+    _accepted = true;
+    _acceptedWithEarlyMedia = true;
     _state = InviteEvent.InviteEventState.PROGRESSING;
     ((SIPIncomingCall) this).addObservers(observers);
     try {
@@ -1815,5 +1831,15 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   public void addExceptionHandler(ExceptionHandler... handlers) {
     _dispatcher.addExceptionHandler(handlers);
   }
+
   // for dispatchable eventsource over=========
+
+  public SIPCallImpl getBridgeJoiningPeer() {
+    return _bridgeJoiningPeer;
+  }
+
+  public void setBridgeJoiningPeer(SIPCallImpl bridgeJoiningPeer) {
+    _bridgeJoiningPeer = bridgeJoiningPeer;
+  }
+
 }

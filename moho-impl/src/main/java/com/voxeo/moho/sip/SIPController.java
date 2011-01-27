@@ -399,7 +399,10 @@ public class SIPController extends SipServlet {
     final EventSource source = SessionUtils.getEventSource(res);
     if (source != null) {
       final int status = res.getStatus();
-      if (status != SipServletResponse.SC_TRYING) {
+      if(status == SipServletResponse.SC_SESSION_PROGRESS){
+        source.dispatch(new SIPEarlyMediaEventImpl(source, res));
+      }
+      else if (status != SipServletResponse.SC_TRYING) {
         source.dispatch(new SIPRingEventImpl(source, res));
       }
     }

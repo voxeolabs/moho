@@ -52,7 +52,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
       final Map<String, String> headers) throws Exception {
     try {
       if (_call2.equals(call)) {
-        if (SIPHelper.isSuccessResponse(res)) {
+        if (SIPHelper.isSuccessResponse(res) || SIPHelper.isProvisionalResponse(res)) {
           _response = res;
           final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
               res.getReasonPhrase());

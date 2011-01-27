@@ -1175,6 +1175,8 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
+          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));
           when(incomingCallStates.is("incomingCallInit"));
@@ -1305,6 +1307,8 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
+          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));
           when(incomingCallStates.is("incomingCallInit"));
@@ -1379,6 +1383,8 @@ public class SIPOutgoingCallTest extends TestCase {
           allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
+
+          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
 
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));
@@ -1766,6 +1772,8 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
+          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));
           when(outgoingCallStates.is("outgoingCallInit"));
@@ -1842,30 +1850,6 @@ public class SIPOutgoingCallTest extends TestCase {
 
           oneOf(initInviteReq).send();
           will(new MockClientDoResponseAction(sipcall, sipInviteResp, null));
-          will(new Action() {
-            @Override
-            public void describeTo(Description description) {
-            }
-
-            @Override
-            public Object invoke(Invocation invocation) throws Throwable {
-              Thread th = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                  try {
-                    sipcall.doResponse(sipInviteResp, null);
-                  }
-                  catch (Exception e) {
-                    // e.printStackTrace();
-                  }
-                }
-              });
-              th.start();
-
-              return null;
-            }
-
-          });
         }
       });
     }
@@ -1877,14 +1861,6 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          // outgoing call ack.
-          oneOf(outgoingCallInviteResp).createAck();
-          will(returnValue(outgoingCallInviteAck));
-
-          oneOf(outgoingCallInviteAck).setContent(respSDP, "application/sdp");
-          //
-          // oneOf(outgoingCallInviteAck).send();
-
           // sipcall ack
           oneOf(sipInviteResp).createAck();
           will(returnValue(sipInviteAck));
@@ -1895,7 +1871,7 @@ public class SIPOutgoingCallTest extends TestCase {
       });
     }
     catch (Exception ex) {
-      ex.printStackTrace();
+      //ex.printStackTrace();
     }
 
     final MockSipServletRequest sipcallCancelReq = mockery.mock(MockSipServletRequest.class, mockObjectNamePrefix

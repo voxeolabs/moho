@@ -14,7 +14,10 @@ package com.voxeo.moho.sip;
 import java.util.Map;
 
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
+import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletResponse;
+
+import org.apache.log4j.Logger;
 
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.MediaException;
@@ -25,7 +28,11 @@ import com.voxeo.moho.TimeoutException;
 
 public class Media2NOJoinDelegate extends JoinDelegate {
 
+  private static final Logger LOG = Logger.getLogger(Media2NOJoinDelegate.class);
+
   protected SIPOutgoingCall _call;
+
+  protected boolean processedAnswer;
 
   protected Media2NOJoinDelegate(final SIPOutgoingCall call) {
     _call = call;
@@ -65,12 +72,30 @@ public class Media2NOJoinDelegate extends JoinDelegate {
     try {
       if (SIPHelper.isProvisionalResponse(res)) {
         _call.setSIPCallState(SIPCall.State.ANSWERING);
-        _call.processSDPAnswer(res);
+
+        if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
+          if (SIPHelper.getRawContentWOException(res) != null) {
+            _call.processSDPAnswer(res);
+            processedAnswer = true;
+          }
+
+          try {
+            res.createPrack().send();
+          }
+          catch (Rel100Exception ex) {
+            LOG.warn(ex.getMessage());
+          }
+          catch (IllegalStateException ex) {
+            LOG.warn(ex.getMessage());
+          }
+        }
       }
       else if (SIPHelper.isSuccessResponse(res)) {
         _call.setSIPCallState(SIPCall.State.ANSWERED);
         res.createAck().send();
-        _call.processSDPAnswer(res);
+        if (!processedAnswer) {
+          _call.processSDPAnswer(res);
+        }
         done();
       }
       else if (SIPHelper.isErrorResponse(res)) {

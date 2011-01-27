@@ -696,6 +696,8 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
+          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));
           when(outgoingCallStates.is("outgoingCallInit"));
@@ -849,6 +851,8 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
+          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+
           allowing(outgoingCall).isAnswered();
           will(returnValue(true));
           allowing(outgoingCall).isNoAnswered();
@@ -998,6 +1002,8 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(incomingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
+          allowing(incomingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+
           allowing(incomingCall).isAnswered();
           will(returnValue(false));
           when(incomingCallStates.is("incomingCallInit"));
@@ -1121,6 +1127,8 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(incomingCall).setJoinDelegate(with(any(JoinDelegate.class)));
 
           allowing(incomingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
+
+          allowing(incomingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
 
           allowing(incomingCall).isAnswered();
           will(returnValue(true));
@@ -3170,6 +3178,8 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
+
+          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
 
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));

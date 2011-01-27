@@ -34,6 +34,8 @@ public class BridgeJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws Exception {
+    _call1.setBridgeJoiningPeer(_call2);
+    _call2.setBridgeJoiningPeer(_call1);
     if (_call1.isAnswered()) {
       doDisengage(_call1, JoinType.BRIDGE);
     }
@@ -41,10 +43,10 @@ public class BridgeJoinDelegate extends JoinDelegate {
       doDisengage(_call2, JoinType.BRIDGE);
     }
     if (_call1.getMediaObject() == null) {
-      _call1.joinWithoutCheckOperation(_direction);
+      _call1.joinWithoutCheckOperation(Direction.DUPLEX);
     }
     if (_call2.getMediaObject() == null) {
-      _call2.joinWithoutCheckOperation(_direction);
+      _call2.joinWithoutCheckOperation(Direction.DUPLEX);
     }
     SIPCallImpl call = null;
     if (_call1.getSIPCallState() == State.PROGRESSED) {
@@ -73,6 +75,9 @@ public class BridgeJoinDelegate extends JoinDelegate {
       }
     }
     _call1.linkCall(_call2, JoinType.BRIDGE, _direction);
+
+    _call1.setBridgeJoiningPeer(null);
+    _call2.setBridgeJoiningPeer(null);
   }
 
   @Override
