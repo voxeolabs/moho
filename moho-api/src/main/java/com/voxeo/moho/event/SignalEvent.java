@@ -17,7 +17,6 @@ package com.voxeo.moho.event;
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.EventState.InitialEventState;
 import com.voxeo.utils.Event;
 
 public abstract class SignalEvent extends Event<EventSource> implements AcceptableEvent {
@@ -57,27 +56,28 @@ public abstract class SignalEvent extends Event<EventSource> implements Acceptab
 
   private static final long serialVersionUID = -4047823356801745059L;
 
-  protected EventState _state = EventState.InitialEventState.INITIAL;
+  protected boolean _accepted = false;
 
   protected SignalEvent(final EventSource source) {
     super(source);
   }
 
-  public synchronized EventState getState() {
-    return _state;
+  @Override
+  public boolean isAccepted() {
+    return _accepted;
   }
 
   public void accept() throws SignalException, IllegalStateException {
     this.accept(null);
   }
 
-  protected synchronized void setState(final EventState state) {
-    _state = state;
+  public boolean isProcessed() {
+    return isAccepted();
   }
 
   protected synchronized void checkState() {
-    if (getState() != InitialEventState.INITIAL) {
-      throw new IllegalStateException("Event already " + getState());
+    if (isProcessed()) {
+      throw new IllegalStateException("Event already be processed.");
     }
   }
 

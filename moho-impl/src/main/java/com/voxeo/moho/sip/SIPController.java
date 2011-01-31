@@ -35,7 +35,6 @@ import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.conference.ConferenceMangerImpl;
 import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.EventState;
 import com.voxeo.moho.event.SignalEvent;
 import com.voxeo.moho.event.TextEvent;
 import com.voxeo.moho.media.GenericMediaServiceFactory;
@@ -111,11 +110,11 @@ public class SIPController extends SipServlet {
       log.info("Moho using eventDipatcherThreadPoolSize:" + eventDispatcherThreadPoolSize);
 
       Class<? extends MediaDialect> mediaDialectClass = com.voxeo.moho.media.dialect.GenericDialect.class;
-      String mediaDialectClassName = getInitParameter("mediaDialectClass");
+      final String mediaDialectClassName = getInitParameter("mediaDialectClass");
       if (mediaDialectClassName != null) {
         mediaDialectClass = (Class<? extends MediaDialect>) Class.forName(mediaDialectClassName);
       }
-      MediaDialect mediaDialect = mediaDialectClass.newInstance();
+      final MediaDialect mediaDialect = mediaDialectClass.newInstance();
 
       final ApplicationContextImpl ctx = new ApplicationContextImpl(app, _mscFactory, _sipFacory, _sdpFactory,
           getServletConfig().getServletName(), this.getServletContext(), eventDispatcherThreadPoolSize);
@@ -399,7 +398,7 @@ public class SIPController extends SipServlet {
     final EventSource source = SessionUtils.getEventSource(res);
     if (source != null) {
       final int status = res.getStatus();
-      if(status == SipServletResponse.SC_SESSION_PROGRESS){
+      if (status == SipServletResponse.SC_SESSION_PROGRESS) {
         source.dispatch(new SIPEarlyMediaEventImpl(source, res));
       }
       else if (status != SipServletResponse.SC_TRYING) {
@@ -465,7 +464,7 @@ public class SIPController extends SipServlet {
     }
 
     public void run() {
-      if (_event.getState() == EventState.InitialEventState.INITIAL && _req.isInitial() && !_req.isCommitted()) {
+      if (!_event.isProcessed() && _req.isInitial() && !_req.isCommitted()) {
         try {
           _req.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR, "Request not handled by app").send();
         }

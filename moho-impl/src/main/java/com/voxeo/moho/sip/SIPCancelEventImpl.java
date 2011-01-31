@@ -9,14 +9,14 @@ import com.voxeo.moho.event.EventSource;
 
 public class SIPCancelEventImpl extends SIPCancelEvent {
 
-  protected SIPCancelEventImpl(EventSource source, SipServletRequest req) {
+  protected SIPCancelEventImpl(final EventSource source, final SipServletRequest req) {
     super(source, req);
   }
 
   @Override
   public synchronized void accept(final Map<String, String> headers) throws SignalException {
     this.checkState();
-    this.setState(AcceptableEventState.ACCEPTED);
+    _accepted = true;
     if (this.source instanceof SIPIncomingCall) {
       final SIPIncomingCall retval = (SIPIncomingCall) this.source;
       retval.doCancel();

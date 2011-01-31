@@ -32,7 +32,7 @@ public class SIPErrorEventImpl extends SIPErrorEvent {
   @Override
   public synchronized void accept(final Map<String, String> headers) throws SignalException {
     this.checkState();
-    this.setState(AcceptableEventState.ACCEPTED);
+    _accepted = true;
     if (this.source instanceof SIPCallImpl) {
       final SIPCallImpl call = (SIPCallImpl) this.source;
       try {

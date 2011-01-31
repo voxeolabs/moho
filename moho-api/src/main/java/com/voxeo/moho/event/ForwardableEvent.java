@@ -22,9 +22,7 @@ import com.voxeo.moho.SignalException;
 
 public interface ForwardableEvent {
 
-  public enum ForwardableEventState implements EventState {
-    FORWARDED;
-  }
+  boolean isForwarded();
 
   void forwardTo(final Call call) throws SignalException, IllegalStateException;
 

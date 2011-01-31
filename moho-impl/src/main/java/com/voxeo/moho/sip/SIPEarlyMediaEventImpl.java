@@ -11,22 +11,21 @@ import com.voxeo.moho.event.EventSource;
 
 public class SIPEarlyMediaEventImpl extends SIPEarlyMediaEvent {
 
-  protected SIPEarlyMediaEventImpl(EventSource source, SipServletResponse res) {
+  protected SIPEarlyMediaEventImpl(final EventSource source, final SipServletResponse res) {
     super(source, res);
   }
 
   @Override
-  public void reject(Reason reason) throws SignalException {
+  public void reject(final Reason reason) throws SignalException {
     reject(reason, null);
   }
 
   @Override
-  public void reject(Reason reason, Map<String, String> headers) throws SignalException {
+  public void reject(final Reason reason, final Map<String, String> headers) throws SignalException {
     this.checkState();
-    this.setState(RejectableEventState.REJECTED);
-
+    _rejected = true;
     if (source instanceof SIPCallImpl) {
-      SIPCallImpl call = (SIPCallImpl) source;
+      final SIPCallImpl call = (SIPCallImpl) source;
 
       try {
         call.doResponse(_res, headers);
@@ -44,14 +43,14 @@ public class SIPEarlyMediaEventImpl extends SIPEarlyMediaEvent {
   }
 
   @Override
-  public void accept(Map<String, String> headers) throws SignalException, IllegalStateException {
+  public void accept(final Map<String, String> headers) throws SignalException, IllegalStateException {
     this.checkState();
-    this.setState(AcceptableEventState.ACCEPTED);
+    _accepted = true;
     // if join to media server, process as normal.
 
     // if bridge, join networks of two call.
     if (source instanceof SIPCallImpl) {
-      SIPCallImpl call = (SIPCallImpl) source;
+      final SIPCallImpl call = (SIPCallImpl) source;
 
       try {
         call.doResponse(_res, headers);
@@ -60,7 +59,7 @@ public class SIPEarlyMediaEventImpl extends SIPEarlyMediaEvent {
         throw new SignalException(e);
       }
 
-      JoinDelegate delegate = call.getJoinDelegate();
+      final JoinDelegate delegate = call.getJoinDelegate();
       if (delegate instanceof Media2NOJoinDelegate) {
         try {
           if (call.getBridgeJoiningPeer() != null && call.getBridgeJoiningPeer().getMediaObject() == null) {
@@ -81,5 +80,4 @@ public class SIPEarlyMediaEventImpl extends SIPEarlyMediaEvent {
 
     // if direct, send the SDP this to the peer.
   }
-
 }

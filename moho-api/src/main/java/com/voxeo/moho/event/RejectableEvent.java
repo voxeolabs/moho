@@ -21,9 +21,7 @@ import com.voxeo.moho.event.SignalEvent.Reason;
 
 public interface RejectableEvent {
 
-  public enum RejectableEventState implements EventState {
-    REJECTED;
-  }
+  boolean isRejected();
 
   void reject(Reason reason) throws SignalException;
 

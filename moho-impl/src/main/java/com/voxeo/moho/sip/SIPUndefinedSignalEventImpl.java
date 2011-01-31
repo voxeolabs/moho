@@ -41,7 +41,7 @@ public class SIPUndefinedSignalEventImpl extends SIPUndefinedSignalEvent {
   @Override
   public synchronized void accept(final Map<String, String> headers) throws SignalException {
     this.checkState();
-    this.setState(AcceptableEventState.ACCEPTED);
+    _accepted = true;
     final SipServletResponse res = _req.createResponse(SipServletResponse.SC_OK);
     SIPHelper.addHeaders(res, headers);
     try {
@@ -55,7 +55,7 @@ public class SIPUndefinedSignalEventImpl extends SIPUndefinedSignalEvent {
   @Override
   public synchronized void reject(final Reason reason, final Map<String, String> headers) throws SignalException {
     this.checkState();
-    this.setState(RejectableEventState.REJECTED);
+    _rejected = true;
     final SipServletResponse res = _req.createResponse(reason == null ? Reason.DECLINE.getCode() : reason.getCode());
     SIPHelper.addHeaders(res, headers);
     try {
@@ -85,8 +85,8 @@ public class SIPUndefinedSignalEventImpl extends SIPUndefinedSignalEvent {
       throw new IllegalStateException("Cannot forward to no-answered call.");
     }
     this.checkState();
-    this.setState(ForwardableEventState.FORWARDED);
 
+    _forwarded = true;
     final SipSession session = scall.getSipSession();
     final SipServletRequest req = session.createRequest(_req.getMethod());
     SIPHelper.addHeaders(req, headers);
@@ -116,7 +116,7 @@ public class SIPUndefinedSignalEventImpl extends SIPUndefinedSignalEvent {
       throw new IllegalArgumentException(e);
     }
     this.checkState();
-    this.setState(ForwardableEventState.FORWARDED);
+    _forwarded = true;
     final SipServletRequest req = _ctx.getSipFactory().createRequest(_req.getApplicationSession(), _req.getMethod(),
         _req.getFrom(), _req.getTo());
     req.setRequestURI(target);
@@ -130,4 +130,5 @@ public class SIPUndefinedSignalEventImpl extends SIPUndefinedSignalEvent {
       throw new SignalException(e);
     }
   }
+
 }

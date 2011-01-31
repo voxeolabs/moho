@@ -38,7 +38,6 @@ import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.Subscription.Type;
 import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.EventState;
 import com.voxeo.moho.util.SessionUtils;
 import com.voxeo.utils.EventListener;
 
@@ -92,7 +91,7 @@ public class SIPReferEventImpl extends SIPReferEvent {
       throw new IllegalStateException("Cannot forward to no-answered call.");
     }
     this.checkState();
-    this.setState(ForwardableEventState.FORWARDED);
+    _forwarded = true;
 
     final SipSession session = scall.getSipSession();
     final SipServletRequest req = session.createRequest(_req.getMethod());
@@ -120,7 +119,7 @@ public class SIPReferEventImpl extends SIPReferEvent {
       IllegalStateException {
     if (source instanceof ApplicationEventSource && endpoint instanceof SIPEndpoint) {
       this.checkState();
-      this.setState(ForwardableEventState.FORWARDED);
+      _forwarded = true;
 
       final ApplicationEventSource es = (ApplicationEventSource) source;
       final ApplicationContextImpl appContext = (ApplicationContextImpl) es.getApplicationContext();
@@ -167,7 +166,7 @@ public class SIPReferEventImpl extends SIPReferEvent {
   public synchronized Call accept(final JoinType type, final Direction direction, final Map<String, String> headers)
       throws SignalException {
     this.checkState();
-    this.setState(AcceptableEventState.ACCEPTED);
+    _accepted = true;
     if (this.source instanceof SIPCallImpl) {
       final SIPCallImpl call = (SIPCallImpl) this.source;
       if (!call.isAnswered()) {
@@ -204,7 +203,8 @@ public class SIPReferEventImpl extends SIPReferEvent {
         LOG.warn("This is Attended Transfer request, can't be accepted, forward it, will return null!");
         final Call peer = call.getLastPeer();
         if (peer != null) {
-          this.setState(EventState.InitialEventState.INITIAL);
+          _accepted = false;
+          _forwarded = false;
           this.forwardTo(peer);
           return null;
         }

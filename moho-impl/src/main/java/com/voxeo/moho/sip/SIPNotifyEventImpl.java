@@ -42,7 +42,7 @@ public class SIPNotifyEventImpl extends SIPNotifyEvent {
   @Override
   public synchronized void accept(final Map<String, String> headers) throws SignalException, IllegalStateException {
     this.checkState();
-    this.setState(AcceptableEventState.ACCEPTED);
+    _accepted = true;
     final SipServletResponse res = _req.createResponse(SipServletResponse.SC_OK);
     SIPHelper.addHeaders(res, headers);
     try {
@@ -72,7 +72,7 @@ public class SIPNotifyEventImpl extends SIPNotifyEvent {
       throw new IllegalStateException("Cannot forward to no-answered call.");
     }
     this.checkState();
-    this.setState(ForwardableEventState.FORWARDED);
+    _forwarded = true;
 
     final SipSession session = scall.getSipSession();
     final SipServletRequest req = session.createRequest(_req.getMethod());

@@ -24,7 +24,7 @@ import com.voxeo.moho.Call;
 public abstract class SIPCall extends Call {
 
   public enum State {
-    INITIALIZED, INVITING, RINGING, ANSWERING, ANSWERED, PROGRESSING, PROGRESSED, DISCONNECTED, FAILED
+    INITIALIZED, INVITING, PROGRESSING, PROGRESSED, RINGING, ANSWERING, ANSWERED, DISCONNECTED, FAILED,
   }
 
   public abstract SipSession getSipSession();

@@ -26,6 +26,10 @@ public abstract class SIPUndefinedSignalEvent extends UndefinedSignalEvent imple
 
   protected SipServletRequest _req;
 
+  protected boolean _forwarded = false;
+
+  protected boolean _rejected = false;
+
   protected SIPUndefinedSignalEvent(final EventSource source, final SipServletRequest req) {
     super(source);
     _req = req;
@@ -33,6 +37,21 @@ public abstract class SIPUndefinedSignalEvent extends UndefinedSignalEvent imple
 
   public SipServletRequest getSipRequest() {
     return _req;
+  }
+
+  @Override
+  public boolean isForwarded() {
+    return _forwarded;
+  }
+
+  @Override
+  public boolean isRejected() {
+    return _rejected;
+  }
+
+  @Override
+  public boolean isProcessed() {
+    return isAccepted() || isForwarded() || isRejected();
   }
 
   @Override

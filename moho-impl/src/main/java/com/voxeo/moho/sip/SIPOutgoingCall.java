@@ -134,7 +134,7 @@ public class SIPOutgoingCall extends SIPCallImpl {
    *          applicationSession that used to create INVITE request.
    * @throws IOException
    */
-  protected synchronized void call(final byte[] sdp, SipApplicationSession appSession) throws IOException {
+  protected synchronized void call(final byte[] sdp, final SipApplicationSession appSession) throws IOException {
     if (_appSession == null) {
       _appSession = appSession;
     }
@@ -151,7 +151,7 @@ public class SIPOutgoingCall extends SIPCallImpl {
    *          applicationSession that used to create INVITE request.
    * @throws IOException
    */
-  protected synchronized void call(final byte[] sdp, SipApplicationSession appSession, String replacesHeader)
+  protected synchronized void call(final byte[] sdp, final SipApplicationSession appSession, final String replacesHeader)
       throws IOException {
     if (_appSession == null) {
       _appSession = appSession;

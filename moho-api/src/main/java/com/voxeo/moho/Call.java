@@ -19,7 +19,6 @@ import java.util.Map;
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import com.voxeo.moho.event.InviteEvent;
-import com.voxeo.moho.event.RejectableEvent;
 
 /**
  * <p>
@@ -37,7 +36,7 @@ import com.voxeo.moho.event.RejectableEvent;
  * 
  * @author wchen
  */
-public abstract class Call extends InviteEvent implements MultiStreamParticipant, RejectableEvent {
+public abstract class Call extends InviteEvent implements MultiStreamParticipant {
   public enum State {
     /** the Call object is initialized **/
     INITIALIZED,

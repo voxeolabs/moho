@@ -32,6 +32,8 @@ public abstract class ReferEvent extends SignalEvent implements ForwardableEvent
 
   private static final long serialVersionUID = 4342028709927637088L;
 
+  protected boolean _forwarded = false;
+
   public enum TransferType {
     BRIDGE, BLIND
   }
@@ -46,4 +48,14 @@ public abstract class ReferEvent extends SignalEvent implements ForwardableEvent
 
   public abstract Call accept(final JoinType type, final Direction direction, final Map<String, String> headers)
       throws SignalException;
+
+  @Override
+  public boolean isForwarded() {
+    return _forwarded;
+  }
+
+  @Override
+  public boolean isProcessed() {
+    return isAccepted() || isForwarded();
+  }
 }

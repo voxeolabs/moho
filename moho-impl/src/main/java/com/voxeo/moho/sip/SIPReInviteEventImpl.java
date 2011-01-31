@@ -36,7 +36,7 @@ public class SIPReInviteEventImpl extends SIPReInviteEvent {
   @Override
   public synchronized void accept(final Map<String, String> headers) throws SignalException {
     this.checkState();
-    this.setState(AcceptableEventState.ACCEPTED);
+    _accepted = true;
     final SIPCallImpl call = (SIPCallImpl) this.source;
     try {
       call.doReinvite(_req, headers);
@@ -52,7 +52,7 @@ public class SIPReInviteEventImpl extends SIPReInviteEvent {
       try {
         final byte[] content = SIPHelper.getRawContentWOException(_req);
         if (content != null) {
-          String sdp = new String(content, "iso8859-1");
+          final String sdp = new String(content, "iso8859-1");
           // TODO improve the parse.
           if (sdp.indexOf("sendonly") > 0) {
             isHold = Boolean.TRUE;
@@ -60,7 +60,7 @@ public class SIPReInviteEventImpl extends SIPReInviteEvent {
           }
         }
       }
-      catch (Exception ex) {
+      catch (final Exception ex) {
         LOG.error("", ex);
       }
       isHold = false;

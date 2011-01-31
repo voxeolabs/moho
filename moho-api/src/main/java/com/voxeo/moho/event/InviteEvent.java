@@ -29,40 +29,18 @@ import com.voxeo.utils.EventListener;
  * 
  * @author wchen
  */
-public abstract class InviteEvent extends SignalEvent implements RejectableEvent {
+public abstract class InviteEvent extends SignalEvent implements RejectableEvent, RedirectableEvent {
 
   private static final long serialVersionUID = 8264519475273617594L;
 
+  protected boolean _acceptedWithEarlyMedia = false;
+
+  protected boolean _rejected = false;
+
+  protected boolean _redirected = false;
+
   protected InviteEvent() {
     super(null);
-  }
-
-  /**
-   * States of the InviteEvent
-   * 
-   * @author wchen
-   */
-  public enum InviteEventState implements EventState {
-    /**
-     * the initial state of InviteEvent.
-     */
-    ALERTING,
-    /**
-     * when one of the accept method is called.
-     */
-    ACCEPTING,
-    /**
-     * when one of acceptWithEarlyMedia method is called.
-     */
-    PROGRESSING,
-    /**
-     * when one of the reject method is called.
-     */
-    REJECTING,
-    /**
-     * when one of the redirect method is called.
-     */
-    REDIRECTING
   }
 
   /**
@@ -74,6 +52,25 @@ public abstract class InviteEvent extends SignalEvent implements RejectableEvent
    * @return the address that is supposed to receive invitation
    */
   public abstract CallableEndpoint getInvitee();
+
+  public boolean isAcceptedWithEarlyMedia() {
+    return _acceptedWithEarlyMedia;
+  }
+
+  @Override
+  public boolean isRedirected() {
+    return _redirected;
+  }
+
+  @Override
+  public boolean isRejected() {
+    return _rejected;
+  }
+
+  @Override
+  public boolean isProcessed() {
+    return isAccepted() || isAcceptedWithEarlyMedia() || isRejected() || isRedirected();
+  }
 
   /**
    * Accept the event.
@@ -295,9 +292,6 @@ public abstract class InviteEvent extends SignalEvent implements RejectableEvent
     this.redirect(other, null);
   }
 
-  public abstract void redirect(Endpoint other, Map<String, String> headers) throws SignalException,
-      IllegalArgumentException;
-
   /**
    * reject the invitation with reason
    * 
@@ -407,10 +401,4 @@ public abstract class InviteEvent extends SignalEvent implements RejectableEvent
   public abstract Call answer(final Map<String, String> headers, final Observer... observer) throws SignalException,
       IllegalStateException;
 
-  @Override
-  protected synchronized void checkState() {
-    if (getState() != InviteEventState.ALERTING) {
-      throw new IllegalStateException("Event already " + getState());
-    }
-  }
 }

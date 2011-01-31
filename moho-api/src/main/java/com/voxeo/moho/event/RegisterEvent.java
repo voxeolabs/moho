@@ -21,6 +21,8 @@ import com.voxeo.moho.SignalException;
 
 public abstract class RegisterEvent extends SignalEvent implements RejectableEvent {
 
+  protected boolean _rejected = false;
+
   protected RegisterEvent(final EventSource source) {
     super(source);
   }
@@ -39,6 +41,16 @@ public abstract class RegisterEvent extends SignalEvent implements RejectableEve
 
   public void reject(final Reason reason) throws SignalException {
     this.reject(reason, null);
+  }
+
+  @Override
+  public boolean isRejected() {
+    return _rejected;
+  }
+
+  @Override
+  public boolean isProcessed() {
+    return isAccepted() || isRejected();
   }
 
 }

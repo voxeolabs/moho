@@ -25,6 +25,8 @@ public abstract class NotifyEvent extends SignalEvent implements ForwardableEven
     ACTIVE, PENDING, TERMINATED
   }
 
+  protected boolean _forwarded = false;
+
   protected NotifyEvent(final EventSource source) {
     super(source);
   }
@@ -35,4 +37,14 @@ public abstract class NotifyEvent extends SignalEvent implements ForwardableEven
 
   // TODO the state string for dialog, presence, refer event package.
   public abstract String getResourceState();
+
+  @Override
+  public boolean isForwarded() {
+    return _forwarded;
+  }
+
+  @Override
+  public boolean isProcessed() {
+    return isAccepted() || isForwarded();
+  }
 }

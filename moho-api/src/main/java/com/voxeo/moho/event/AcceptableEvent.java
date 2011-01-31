@@ -23,9 +23,7 @@ import com.voxeo.moho.SignalException;
  */
 public interface AcceptableEvent {
 
-  public enum AcceptableEventState implements EventState {
-    ACCEPTED;
-  }
+  boolean isAccepted();
 
   /**
    * Accept the event.
@@ -35,7 +33,7 @@ public interface AcceptableEvent {
    * @throws IllegalStateException
    *           when the event has been accpeted.
    */
-  public void accept() throws SignalException, IllegalStateException;
+  void accept() throws SignalException, IllegalStateException;
 
   /**
    * Accept the event with additional headers.
@@ -48,6 +46,6 @@ public interface AcceptableEvent {
    * @throws IllegalStateException
    *           when the event has been accpeted.
    */
-  public abstract void accept(final Map<String, String> headers) throws SignalException, IllegalStateException;
+  void accept(final Map<String, String> headers) throws SignalException, IllegalStateException;
 
 }

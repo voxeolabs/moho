@@ -47,7 +47,6 @@ import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.DisconnectEvent;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.EventState;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
@@ -161,11 +160,9 @@ public class SIPIncomingCallTest extends TestCase {
       {
         // TODO
         // oneOf(app).handleDisconnect(disconnectEvent);
-
+        allowing(disconnectEvent).isProcessed();
         oneOf(disconnectEvent).accept();
 
-        oneOf(disconnectEvent).getState();
-        will(returnValue(EventState.InitialEventState.INITIAL));
       }
     });
 
@@ -202,11 +199,9 @@ public class SIPIncomingCallTest extends TestCase {
     sipcall.setSupervised(true);
     mockery.checking(new Expectations() {
       {
-
+        allowing(disconnectEvent).isProcessed();
         oneOf(disconnectEvent).accept();
 
-        oneOf(disconnectEvent).getState();
-        will(returnValue(EventState.InitialEventState.INITIAL));
       }
     });
 

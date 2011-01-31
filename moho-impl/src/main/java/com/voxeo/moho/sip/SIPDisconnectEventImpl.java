@@ -30,7 +30,7 @@ public class SIPDisconnectEventImpl extends SIPDisconnectEvent {
   @Override
   public synchronized void accept(final Map<String, String> headers) throws SignalException {
     this.checkState();
-    this.setState(AcceptableEventState.ACCEPTED);
+    _accepted = true;
     if (this.source instanceof SIPCallImpl) {
       final SIPCallImpl retval = (SIPCallImpl) this.source;
       retval.doBye(_req, headers);
