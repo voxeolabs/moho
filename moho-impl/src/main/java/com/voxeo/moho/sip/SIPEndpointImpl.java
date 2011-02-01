@@ -67,8 +67,8 @@ public class SIPEndpointImpl implements SIPEndpoint {
   }
 
   @Override
-  public String getURI() {
-    return _address.getURI().toString();
+  public java.net.URI getURI() {
+    return java.net.URI.create(_address.getURI().toString());
   }
 
   @Override

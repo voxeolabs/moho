@@ -14,6 +14,8 @@
 
 package com.voxeo.moho;
 
+import java.net.URI;
+
 /**
  * This represents an address of an endpoint
  * @author wchen
@@ -29,5 +31,5 @@ public interface Endpoint {
     /**
      * @return the URI, such as SIP URI, of the endpoint
      */
-    String getURI();
+    URI getURI();
 }

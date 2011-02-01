@@ -187,4 +187,10 @@ public abstract class Call extends InviteEvent implements MultiStreamParticipant
    * send a sendrecv SDP and resume to send media data.
    */
   public abstract void unhold();
+  
+  /**
+   * disconnect this participant with headers.
+   */
+  public abstract void disconnect(Map<String, String> headers);
+
 }

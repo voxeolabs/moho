@@ -228,7 +228,7 @@ public class SIPIncomingCallTest extends TestCase {
     Exception ex;
 
     @Override
-    public boolean handle(final Exception ex, final Event<? extends EventSource> event) {
+    public boolean handle(final Exception ex, final Event<?> event) {
       this.ex = ex;
       return false;
     }

@@ -21,7 +21,7 @@ public class ClearResourceSessionListener implements SipSessionListener {
     final EventSource source = SessionUtils.getEventSource(sipsessionevent.getSession());
 
     if (source != null && source instanceof SIPCallImpl) {
-      ((SIPCallImpl) source).disconnect(true, CallCompleteEvent.Cause.ERROR, null);
+      ((SIPCallImpl) source).disconnect(true, CallCompleteEvent.Cause.ERROR, null, null);
     }
   }
 

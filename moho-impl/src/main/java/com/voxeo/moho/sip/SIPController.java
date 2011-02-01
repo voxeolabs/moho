@@ -67,14 +67,7 @@ public class SIPController extends SipServlet {
         throw new IllegalArgumentException("Cannot found moho application class.");
       }
       log.info("Moho using applicationClass:" + _applicationClass);
-      Class clz = null;
-      try {
-        clz = this.getClass().getClassLoader().loadClass(_applicationClass);
-      }
-      catch (final Throwable t) {
-        clz = Thread.currentThread().getContextClassLoader().loadClass(_applicationClass);
-      }
-      final Application app = (Application) clz.newInstance();
+      final Application app = createApplicationInstance();
 
       _sipFacory = (SipFactory) getServletContext().getAttribute(SipServlet.SIP_FACTORY);
       _sdpFactory = (SdpFactory) getServletContext().getAttribute("javax.servlet.sdp.SdpFactory");
@@ -138,6 +131,19 @@ public class SIPController extends SipServlet {
       log.error("Unable to initialize Moho:", t);
       throw new RuntimeException(t);
     }
+  }
+
+  @SuppressWarnings("rawtypes")
+  private Application createApplicationInstance() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+      Class clz = null;
+      try {
+        clz = this.getClass().getClassLoader().loadClass(_applicationClass);
+      }
+      catch (final Throwable t) {
+        clz = Thread.currentThread().getContextClassLoader().loadClass(_applicationClass);
+      }
+      final Application app = (Application) clz.newInstance();
+      return app;
   }
 
   @Override

@@ -15,6 +15,7 @@
 package com.voxeo.moho.voicexml;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
@@ -62,9 +63,9 @@ public class VoiceXMLEndpointImpl implements VoiceXMLEndpoint {
   }
 
   @Override
-  public String getURI() {
+  public URI getURI() {
     try {
-      return _document.toURI().toString();
+      return _document.toURI();
     }
     catch (final URISyntaxException e) {
       throw new IllegalArgumentException(e);

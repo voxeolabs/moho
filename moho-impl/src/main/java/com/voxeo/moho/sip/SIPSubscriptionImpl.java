@@ -119,7 +119,7 @@ public class SIPSubscriptionImpl extends DispatchableEventSource implements SIPS
 
       SessionUtils.setEventSource(_session, this);
       if (uri != null) {
-        req.setRequestURI(_context.getSipFactory().createURI(uri.getURI()));
+        req.setRequestURI(_context.getSipFactory().createURI(uri.getURI().toString()));
       }
       req.setExpires(expiration);
       req.send();

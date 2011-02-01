@@ -89,4 +89,5 @@ public interface Participant extends EventSource {
    *         MediaObject}.
    */
   MediaObject getMediaObject();
+
 }

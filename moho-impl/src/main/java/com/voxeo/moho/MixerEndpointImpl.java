@@ -14,6 +14,7 @@
 
 package com.voxeo.moho;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -24,7 +25,7 @@ public class MixerEndpointImpl implements MixerEndpoint {
 
   protected ExecutionContext _context;
 
-  protected String _uri;
+  protected URI _uri;
 
   protected Map<String, String> _parameters = new HashMap<String, String>();
 
@@ -33,7 +34,10 @@ public class MixerEndpointImpl implements MixerEndpoint {
   protected MixerEndpointImpl(final ExecutionContext ctx, final String uri) {
     _context = ctx;
     if (uri == null || uri.equals(MixerEndpoint.DEFAULT_MIXER_ENDPOINT)) {
-      _uri = ctx.getMSFactory().getProperties().getProperty(MsControlFactory.MEDIA_SERVER_URI);
+      String resultUri = ctx.getMSFactory().getProperties().getProperty(MsControlFactory.MEDIA_SERVER_URI);
+      if(resultUri != null) {
+        _uri = URI.create(resultUri);
+      }
     }
   }
 
@@ -58,11 +62,11 @@ public class MixerEndpointImpl implements MixerEndpoint {
 
   @Override
   public String getName() {
-    return _uri;
+    return _uri.toString();
   }
 
   @Override
-  public String getURI() {
+  public URI getURI() {
     return _uri;
   }
 

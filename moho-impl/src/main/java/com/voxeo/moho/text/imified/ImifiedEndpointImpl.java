@@ -3,6 +3,7 @@ package com.voxeo.moho.text.imified;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URLEncoder;
 
 import org.apache.commons.codec.binary.Base64;
@@ -129,8 +130,8 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
   }
 
   @Override
-  public String getURI() {
-    return _address;
+  public URI getURI() {
+    return URI.create(String.format("%s:%s", _network, _address));
   }
 
   public String getAddress() {

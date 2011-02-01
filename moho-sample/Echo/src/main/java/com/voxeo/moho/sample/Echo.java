@@ -1,8 +1,8 @@
 package com.voxeo.moho.sample;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Endpoint;
@@ -13,7 +13,7 @@ import com.voxeo.moho.event.TextEvent;
 
 public class Echo implements Application {
 
-  private Map<String, Endpoint> addresses = new ConcurrentHashMap<String, Endpoint>();
+  private Map<URI, Endpoint> addresses = new ConcurrentHashMap<URI, Endpoint>();
 
   public void destroy() {
 

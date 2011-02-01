@@ -123,11 +123,11 @@ public class SIPSubscriptionImplTest extends TestCase {
           });
 
           allowing(reqEnd).getURI();
-          will(returnValue("test"));
+          will(returnValue(java.net.URI.create("dummy:thing")));
 
           allowing(subscribeReq).addHeader(with(any(String.class)), with(any(String.class)));
 
-          oneOf(sipFactory).createURI("test");
+          oneOf(sipFactory).createURI("dummy:thing");
           will(returnValue(uri));
 
           oneOf(subscribeReq).setRequestURI(uri);

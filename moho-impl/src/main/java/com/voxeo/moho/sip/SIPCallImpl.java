@@ -396,7 +396,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   @Override
   public void disconnect() {
-    this.disconnect(false, CallCompleteEvent.Cause.NEAR_END_DISCONNECT, null);
+    this.disconnect(false, CallCompleteEvent.Cause.NEAR_END_DISCONNECT, null, null);
+  }
+
+  @Override
+  public void disconnect(Map<String, String> headers) {
+    this.disconnect(false, CallCompleteEvent.Cause.NEAR_END_DISCONNECT, null, headers);
   }
 
   @Override
@@ -509,7 +514,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
               case ERROR:
                 cause = CallCompleteEvent.Cause.ERROR;
             }
-            SIPCallImpl.this.disconnect(true, cause, _exception);
+            SIPCallImpl.this.disconnect(true, cause, _exception, null);
           }
           SIPCallImpl.this.dispatch(event);
 
@@ -576,7 +581,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
               case ERROR:
                 cause = CallCompleteEvent.Cause.ERROR;
             }
-            ((SIPCallImpl) other).disconnect(true, cause, _exception);
+            ((SIPCallImpl) other).disconnect(true, cause, _exception, null);
           }
 
           SIPCallImpl.this.dispatch(event);
@@ -752,12 +757,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
         || _cstate == SIPCall.State.REJECTED || _cstate == SIPCall.State.REDIRECTED;
   }
 
-  protected void fail(final Exception ex) {
-    disconnect(true, CallCompleteEvent.Cause.ERROR, ex);
+  protected void fail(Exception ex) {
+    disconnect(true, CallCompleteEvent.Cause.ERROR, ex, null);
   }
 
   protected synchronized void disconnect(final boolean failed, final CallCompleteEvent.Cause cause,
-      final Exception exception) {
+      final Exception exception, Map<String, String> headers) {
     if (isTerminated()) {
       System.out.print("test");
       if (LOG.isTraceEnabled()) {
@@ -780,11 +785,15 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       try {
         if (this instanceof SIPOutgoingCall && !failed) {
           if (_invite != null) {
-            _invite.createCancel().send();
+            SipServletRequest cancelRequest = _invite.createCancel();
+            SIPHelper.addHeaders(cancelRequest, headers);
+            cancelRequest.send();
           }
         }
         else if (this instanceof SIPIncomingCall) {
-          _invite.createResponse(SipServletResponse.SC_DECLINE).send();
+          SipServletResponse declineResponse = _invite.createResponse(SipServletResponse.SC_DECLINE);
+          SIPHelper.addHeaders(declineResponse, headers);
+          declineResponse.send();
         }
       }
       catch (final IOException t) {

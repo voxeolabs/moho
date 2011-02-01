@@ -50,11 +50,11 @@ public class SIPRegistrationImpl extends DispatchableEventSource implements SIPR
       final int expiration, final Endpoint... contacts) {
     super(ctx);
     try {
-      _from = ctx.getSipFactory().createAddress(ep.getURI());
-      _target = ctx.getSipFactory().createURI(target.getURI());
+      _from = ctx.getSipFactory().createAddress(ep.getURI().toString());
+      _target = ctx.getSipFactory().createURI(target.getURI().toString());
       _contacts = new Address[contacts.length];
       for (int i = 0; i < contacts.length; i++) {
-        _contacts[i] = ctx.getSipFactory().createAddress(contacts[i].getURI());
+        _contacts[i] = ctx.getSipFactory().createAddress(contacts[i].getURI().toString());
       }
     }
     catch (final ServletParseException e) {

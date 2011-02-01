@@ -29,9 +29,9 @@ import com.voxeo.moho.sip.SIPCall;
 
 public class DefaultTestApp implements Application {
 
-  private Map<String, Endpoint> addresses = new ConcurrentHashMap<String, Endpoint>();
+  private Map<URI, Endpoint> addresses = new ConcurrentHashMap<URI, Endpoint>();
 
-  private Map<String, Call> calls = new ConcurrentHashMap<String, Call>();
+  private Map<URI, Call> calls = new ConcurrentHashMap<URI, Call>();
 
   private ApplicationContext _ctx = null;
 

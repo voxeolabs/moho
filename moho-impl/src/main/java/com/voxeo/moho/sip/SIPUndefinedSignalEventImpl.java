@@ -110,7 +110,7 @@ public class SIPUndefinedSignalEventImpl extends SIPUndefinedSignalEvent {
       throws SignalException, IllegalStateException {
     URI target = null;
     try {
-      target = _ctx.getSipFactory().createURI(endpoint.getURI());
+      target = _ctx.getSipFactory().createURI(endpoint.getURI().toString());
     }
     catch (final ServletParseException e) {
       throw new IllegalArgumentException(e);
