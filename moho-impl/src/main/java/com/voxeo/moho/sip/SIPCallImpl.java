@@ -748,7 +748,8 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   }
 
   protected synchronized boolean isTerminated() {
-    return _cstate == SIPCall.State.FAILED || _cstate == SIPCall.State.DISCONNECTED;
+    return _cstate == SIPCall.State.FAILED || _cstate == SIPCall.State.DISCONNECTED
+        || _cstate == SIPCall.State.REJECTED || _cstate == SIPCall.State.REDIRECTED;
   }
 
   protected void fail(final Exception ex) {
@@ -1535,7 +1536,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       IllegalArgumentException {
     checkState();
     _redirected = true;
-    setSIPCallState(SIPCall.State.DISCONNECTED);
+    setSIPCallState(SIPCall.State.REDIRECTED);
     if (o instanceof SIPEndpoint) {
       final SipServletResponse res = _invite.createResponse(SipServletResponse.SC_MOVED_TEMPORARILY);
       res.setHeader("Contact", ((SIPEndpoint) o).getURI().toString());
@@ -1556,7 +1557,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   public synchronized void reject(final Reason reason, final Map<String, String> headers) throws SignalException {
     checkState();
     _rejected = true;
-    setSIPCallState(SIPCall.State.DISCONNECTED);
+    setSIPCallState(SIPCall.State.REJECTED);
     try {
       final SipServletResponse res = _invite.createResponse(reason == null ? Reason.DECLINE.getCode() : reason
           .getCode());
