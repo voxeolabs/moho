@@ -667,7 +667,7 @@ public class GenericMediaService implements MediaService {
     @Override
     public void onEvent(final SignalDetectorEvent e) {
       final EventType t = e.getEventType();
-      if (t == SignalDetectorEvent.RECEIVE_SIGNALS_COMPLETED) {
+    if (t == SignalDetectorEvent.RECEIVE_SIGNALS_COMPLETED) {
         getSignalDetector().removeListener(this);
         if (_cmd.isRecord()) {
           getRecorder().stop();
@@ -722,8 +722,11 @@ public class GenericMediaService implements MediaService {
           }
         }
         else {
-          inputCompleteEvent.setConcept(e.getSignalString());
+          String signalString = e.getSignalString();
+          inputCompleteEvent.setConcept(signalString);
           inputCompleteEvent.setConfidence(1.0F);
+          inputCompleteEvent.setInterpretation(signalString);
+          inputCompleteEvent.setUtterance(signalString);
         }
         _input.done(inputCompleteEvent);
         if (_cmd.isSupervised()) {
