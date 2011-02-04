@@ -280,6 +280,9 @@ public class GenericMediaService implements MediaService {
         rtcs.add(new RTC(SpeechDetectorConstants.START_OF_SPEECH, Player.STOP_ALL));
         params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
       }
+      else {
+          params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.FALSE);
+      }
       params.put(Player.MAX_DURATION, output.getTimeout());
       params.put(Player.START_OFFSET, output.getOffset());
       params.put(Player.VOLUME_CHANGE, output.getVolumeUnit());
