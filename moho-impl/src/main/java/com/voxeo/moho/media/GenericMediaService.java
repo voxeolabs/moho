@@ -94,7 +94,7 @@ public class GenericMediaService implements MediaService {
   protected SignalGenerator _generator = null;
 
   protected ExecutionContext _context;
-  
+
   protected MediaDialect _dialect;
 
   protected List<MediaOperation<? extends MediaCompleteEvent>> futures = new LinkedList<MediaOperation<? extends MediaCompleteEvent>>();
@@ -281,7 +281,7 @@ public class GenericMediaService implements MediaService {
         params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
       }
       else {
-          params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.FALSE);
+        params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.FALSE);
       }
       params.put(Player.MAX_DURATION, output.getTimeout());
       params.put(Player.START_OFFSET, output.getOffset());
@@ -291,7 +291,7 @@ public class GenericMediaService implements MediaService {
       params.put(Player.JUMP_PLAYLIST_INCREMENT, output.getJumpPlaylistIncrement());
       params.put(Player.JUMP_TIME, output.getJumpTime());
       params.put(Player.START_IN_PAUSED_MODE, output.isStartInPausedMode());
-      
+
       _dialect.setTextToSpeechVoice(params, output.getVoiceName());
 
       if (output.getRepeatTimes() > 0) {
@@ -335,10 +335,10 @@ public class GenericMediaService implements MediaService {
           futures.add(retval.getInput());
         }
         else {
-          final OutputImpl out = new OutputImpl(_group, _context);
+          final OutputImpl out = new OutputImpl(_group);
           getPlayer().addListener(new PlayerListener(out, null));
           getPlayer().play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
-          retval.setOutput(out.prepare());
+          retval.setOutput(out);
           futures.add(out);
         }
       }
@@ -356,11 +356,10 @@ public class GenericMediaService implements MediaService {
 
   @Override
   public Recording record(final URI recording) throws MediaException {
-    final RecordingImpl retval = new RecordingImpl(_group, _context);
+    final RecordingImpl retval = new RecordingImpl(_group);
     try {
       getRecorder().addListener(new RecorderListener(retval));
       getRecorder().record(recording, RTC.NO_RTC, Parameters.NO_PARAMETER);
-      retval.prepare();
       futures.add(retval);
       return retval;
     }
@@ -371,7 +370,7 @@ public class GenericMediaService implements MediaService {
 
   @Override
   public Recording record(final RecordCommand command) throws MediaException {
-    final RecordingImpl retval = new RecordingImpl(_group, _context);
+    final RecordingImpl retval = new RecordingImpl(_group);
     try {
       final List<RTC> rtcs = new ArrayList<RTC>();
 
@@ -479,7 +478,6 @@ public class GenericMediaService implements MediaService {
 
       getRecorder().addListener(new RecorderListener(retval));
       getRecorder().record(command.getRecordURI(), rtcs.toArray(new RTC[] {}), params);
-      retval.prepare();
       futures.add(retval);
       return retval;
     }
@@ -490,7 +488,7 @@ public class GenericMediaService implements MediaService {
 
   @SuppressWarnings("deprecation")
   protected Input detectSignal(final InputCommand cmd) throws MediaException {
-      
+
     if (cmd.isRecord()) {
       try {
         getRecorder().record(cmd.getRecordURI(), cmd.getRtcs() != null ? cmd.getRtcs() : RTC.NO_RTC,
@@ -525,10 +523,10 @@ public class GenericMediaService implements MediaService {
     params.put(SignalDetector.INITIAL_TIMEOUT, cmd.getInitialTimeout());
     params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterSigTimeout());
     params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getConfidence());
-    
+
     _dialect.setSpeechLanguage(params, cmd.getSpeechLanguage());
     _dialect.setSpeechTermChar(params, cmd.getTermChar());
-    _dialect.setSpeechInputMode(params, cmd.getInputMode());    
+    _dialect.setSpeechInputMode(params, cmd.getInputMode());
 
     Parameter[] patternKeys = null;
 
@@ -539,28 +537,29 @@ public class GenericMediaService implements MediaService {
         if (grammar == null) {
           continue;
         }
-        
+
         Object pattern = null;
-        
+
         URI uri = grammar.toURI();
-        
-        if("data".equals(uri.getScheme())) {
-            pattern = uri;
+
+        if ("data".equals(uri.getScheme())) {
+          pattern = uri;
         }
-        else if("digits".equals(uri.getScheme())) {
-            pattern = uri.getSchemeSpecificPart();
+        else if ("digits".equals(uri.getScheme())) {
+          pattern = uri.getSchemeSpecificPart();
         }
         else {
-            try {
-                pattern = uri.toURL();
-            }
-            catch (MalformedURLException e) {
-                LOG.warn("Skipped Grammar! Only 'data' URIs and http/https/ftp/file URLs are permitted [uri=" + uri.toString() + "]");
-            }
+          try {
+            pattern = uri.toURL();
+          }
+          catch (MalformedURLException e) {
+            LOG.warn("Skipped Grammar! Only 'data' URIs and http/https/ftp/file URLs are permitted [uri="
+                + uri.toString() + "]");
+          }
         }
-        
+
         patterns.add(pattern);
-        
+
       }
 
       final Parameters patternParams = _group.createParameters();
@@ -581,7 +580,7 @@ public class GenericMediaService implements MediaService {
       throw new MediaException("No pattern");
     }
 
-    final InputImpl in = new InputImpl(_group, _context);
+    final InputImpl in = new InputImpl(_group);
     getSignalDetector().addListener(new DetectorListener(in, cmd));
     try {
       getSignalDetector().receiveSignals(cmd.getSignalNumber(), patternKeys, rtcs.toArray(new RTC[] {}), params);
@@ -589,7 +588,6 @@ public class GenericMediaService implements MediaService {
     catch (final MsControlException e) {
       throw new MediaException(e);
     }
-    in.prepare();
     return in;
   }
 
@@ -670,7 +668,7 @@ public class GenericMediaService implements MediaService {
     @Override
     public void onEvent(final SignalDetectorEvent e) {
       final EventType t = e.getEventType();
-    if (t == SignalDetectorEvent.RECEIVE_SIGNALS_COMPLETED) {
+      if (t == SignalDetectorEvent.RECEIVE_SIGNALS_COMPLETED) {
         getSignalDetector().removeListener(this);
         if (_cmd.isRecord()) {
           getRecorder().stop();
