@@ -24,6 +24,7 @@ import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.AttributeStoreImpl;
 import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.util.Utils;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
 
@@ -89,9 +90,19 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
   @Override
   public void addObserver(final Observer observer) {
     if (observer != null) {
-      final AutowiredEventListener autowire = new AutowiredEventListener(observer);
-      if (_observers.putIfAbsent(observer, autowire) == null) {
-        _dispatcher.addListener(Event.class, autowire);
+      if (observer instanceof EventListener) {
+        EventListener l = (EventListener) observer;
+        Class claz = Utils.getGenericType(observer);
+        if (claz == null) {
+          claz = Event.class;
+        }
+        _dispatcher.addListener(claz, l);
+      }
+      else {
+        final AutowiredEventListener autowire = new AutowiredEventListener(observer);
+        if (_observers.putIfAbsent(observer, autowire) == null) {
+          _dispatcher.addListener(Event.class, autowire);
+        }
       }
     }
   }

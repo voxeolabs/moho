@@ -14,6 +14,8 @@
 
 package com.voxeo.utils;
 
-public interface EventListener<E extends Event<?>> {
-    void onEvent(E event) throws Exception;
+import com.voxeo.moho.event.Observer;
+
+public interface EventListener<E extends Event<?>> extends Observer {
+  void onEvent(E event) throws Exception;
 }

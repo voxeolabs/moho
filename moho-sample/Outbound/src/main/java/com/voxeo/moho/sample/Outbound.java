@@ -47,8 +47,8 @@ public class Outbound implements Application {
 
       @Override
       public void run() {
-        final Call c1 = _party1.call(_local, null, (EventListener<?>) null);
-        final Call c2 = _party2.call(_local, null, (EventListener<?>) null);
+        final Call c1 = _party1.call(_local, (EventListener<?>) null);
+        final Call c2 = _party2.call(_local, (EventListener<?>) null);
         c1.join(c2, JoinType.DIRECT, Direction.DUPLEX);
       }
     }, time);

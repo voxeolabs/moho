@@ -46,13 +46,13 @@ import com.voxeo.moho.Participant;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.DisconnectEvent;
-import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
 import com.voxeo.utils.Event;
+import com.voxeo.utils.EventListener;
 
 public class SIPIncomingCallTest extends TestCase {
 
@@ -168,7 +168,7 @@ public class SIPIncomingCallTest extends TestCase {
 
     // execute test.
 
-    sipcall.addObserver(app);
+    sipcall.addObserver(new MyOListener());
     final Future<DisconnectEvent> future = sipcall.dispatch(disconnectEvent);
 
     // verify result
@@ -183,6 +183,20 @@ public class SIPIncomingCallTest extends TestCase {
 
     assertTrue(invoked);
     mockery.assertIsSatisfied();
+  }
+
+  class MyListener implements EventListener<DisconnectEvent> {
+    @Override
+    public void onEvent(DisconnectEvent event) throws Exception {
+      //invoked = true;
+    }
+  }
+  
+  class MyOListener extends MyListener{
+    @Override
+    public void onEvent(DisconnectEvent event) throws Exception {
+      invoked = true;
+    }
   }
 
   /**

@@ -81,6 +81,7 @@ import com.voxeo.moho.event.SignalEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.util.SessionUtils;
+import com.voxeo.moho.util.Utils;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
 
@@ -764,7 +765,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   protected synchronized void disconnect(final boolean failed, final CallCompleteEvent.Cause cause,
       final Exception exception, Map<String, String> headers) {
     if (isTerminated()) {
-      System.out.print("test");
       if (LOG.isTraceEnabled()) {
         LOG.trace(this + " is already terminated.");
       }
@@ -1745,10 +1745,21 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public void addObserver(final Observer observer) {
     if (observer != null) {
-      final AutowiredEventListener autowire = new AutowiredEventListener(observer);
-      if (_observers.putIfAbsent(observer, autowire) == null) {
-        _dispatcher.addListener(Event.class, autowire);
+      if (observer instanceof EventListener) {
+        EventListener l = (EventListener) observer;
+        Class claz = Utils.getGenericType(observer);
+        if (claz == null) {
+          claz = Event.class;
+        }
+        _dispatcher.addListener(claz, l);
       }
+      else {
+        final AutowiredEventListener autowire = new AutowiredEventListener(observer);
+        if (_observers.putIfAbsent(observer, autowire) == null) {
+          _dispatcher.addListener(Event.class, autowire);
+        }
+      }
+
     }
   }
 
