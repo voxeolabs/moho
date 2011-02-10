@@ -646,10 +646,18 @@ public class GenericMediaService implements MediaService {
         }
       }
       else if (t == PlayerEvent.PAUSED) {
+        _output.pauseActionDone();
         _parent.dispatch(new OutputPausedEvent(_parent));
       }
       else if (t == PlayerEvent.RESUMED) {
+        _output.resumeActionDone();
         _parent.dispatch(new OutputResumedEvent(_parent));
+      }
+      else if (t == PlayerEvent.SPEED_CHANGED) {
+        _output.speedActionDone();
+      }
+      else if (t == PlayerEvent.VOLUME_CHANGED) {
+        _output.volumeActionDone();
       }
     }
   }
@@ -784,9 +792,11 @@ public class GenericMediaService implements MediaService {
         _parent.dispatch(recordCompleteEvent);
       }
       else if (t == RecorderEvent.PAUSED) {
+        _recording.pauseActionDone();
         _parent.dispatch(new RecordPausedEvent(_parent));
       }
       else if (t == RecorderEvent.RESUMED) {
+        _recording.resumeActionDone();
         _parent.dispatch(new RecordResumedEvent(_parent));
       }
       else if (t == RecorderEvent.STARTED) {

@@ -42,6 +42,16 @@ public class InputImpl implements Input {
   public void stop() {
     if (!_future.isDone()) {
       _group.triggerAction(SignalDetector.STOP);
+
+      try {
+        _future.get();
+      }
+      catch (InterruptedException e) {
+        // ignore
+      }
+      catch (ExecutionException e) {
+        // ignore
+      }
     }
   }
 

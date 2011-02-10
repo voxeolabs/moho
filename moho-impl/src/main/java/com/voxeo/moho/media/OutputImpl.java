@@ -17,6 +17,9 @@ package com.voxeo.moho.media;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.mediagroup.MediaGroup;
@@ -29,13 +32,21 @@ public class OutputImpl implements Output {
 
   protected MediaGroup _group;
 
-  protected SettableResultFuture<OutputCompleteEvent> _future= new SettableResultFuture<OutputCompleteEvent>();
+  protected SettableResultFuture<OutputCompleteEvent> _future = new SettableResultFuture<OutputCompleteEvent>();
+
+  final Lock lock = new ReentrantLock();
+
+  private Condition speedActionResult = lock.newCondition();
+
+  private Condition volumeActionResult = lock.newCondition();
+
+  private Condition pauseActionResult = lock.newCondition();
+
+  private Condition resumeActionResult = lock.newCondition();
 
   protected OutputImpl(final MediaGroup group) {
     _group = group;
   }
-
-
 
   protected void done(final OutputCompleteEvent event) {
     _future.setResult(event);
@@ -89,39 +100,162 @@ public class OutputImpl implements Output {
 
   @Override
   public void speed(final boolean upOrDown) {
-    if (!_future.isDone()) {
-      if (upOrDown) {
-        _group.triggerAction(Player.SPEED_UP);
-      }
-      else {
-        _group.triggerAction(Player.SPEED_DOWN);
+    lock.lock();
+    try {
+      if (!_future.isDone()) {
+        if (upOrDown) {
+          _group.triggerAction(Player.SPEED_UP);
+        }
+        else {
+          _group.triggerAction(Player.SPEED_DOWN);
+        }
+
+        while (!speedResult) {
+          try {
+            speedActionResult.await();
+          }
+          catch (InterruptedException e) {
+            // ignore
+          }
+        }
+        speedResult = false;
       }
     }
+    finally {
+      lock.unlock();
+    }
   }
+
+  protected boolean speedResult = false;
+
+  protected void speedActionDone() {
+    lock.lock();
+    speedResult = true;
+    try {
+      speedActionResult.signalAll();
+    }
+    finally {
+      lock.unlock();
+    }
+  }
+
+  protected boolean volumeResult = false;
 
   @Override
   public void volume(final boolean upOrDown) {
-    if (!_future.isDone()) {
-      if (upOrDown) {
-        _group.triggerAction(Player.VOLUME_UP);
+    lock.lock();
+    try {
+      if (!_future.isDone()) {
+        if (upOrDown) {
+          _group.triggerAction(Player.VOLUME_UP);
+        }
+        else {
+          _group.triggerAction(Player.VOLUME_DOWN);
+        }
+
+        while (!volumeResult) {
+          try {
+            volumeActionResult.await();
+          }
+          catch (InterruptedException e) {
+            // ignore
+          }
+        }
+        volumeResult = false;
       }
-      else {
-        _group.triggerAction(Player.VOLUME_DOWN);
-      }
+    }
+    finally {
+      lock.unlock();
     }
   }
 
+  protected void volumeActionDone() {
+    lock.lock();
+    volumeResult = true;
+    try {
+      volumeActionResult.signalAll();
+    }
+    finally {
+      lock.unlock();
+    }
+  }
+
+  protected boolean paused = false;
+
+  protected boolean pauseResult = false;
+
   @Override
   public void pause() {
-    if (!_future.isDone()) {
-      _group.triggerAction(Player.PAUSE);
+    lock.lock();
+    try {
+      if (!_future.isDone() && !paused) {
+        _group.triggerAction(Player.PAUSE);
+      }
+
+      while (!pauseResult) {
+        try {
+          pauseActionResult.await();
+        }
+        catch (InterruptedException e) {
+          // ignore
+        }
+      }
+
+      pauseResult = false;
+    }
+    finally {
+      lock.unlock();
+    }
+  }
+
+  protected void pauseActionDone() {
+    lock.lock();
+    pauseResult = true;
+    paused = true;
+    try {
+      pauseActionResult.signalAll();
+    }
+    finally {
+      lock.unlock();
     }
   }
 
   @Override
   public void resume() {
-    if (!_future.isDone()) {
-      _group.triggerAction(Player.RESUME);
+    lock.lock();
+    try {
+      if (!_future.isDone() && paused) {
+        _group.triggerAction(Player.RESUME);
+      }
+
+      while (!resumeResult) {
+        try {
+          resumeActionResult.await();
+        }
+        catch (InterruptedException e) {
+          // ignore
+        }
+      }
+
+      resumeResult = false;
+    }
+    finally {
+      lock.unlock();
+    }
+
+  }
+
+  protected boolean resumeResult = false;
+
+  protected void resumeActionDone() {
+    lock.lock();
+    resumeResult = true;
+    paused = false;
+    try {
+      resumeActionResult.signalAll();
+    }
+    finally {
+      lock.unlock();
     }
   }
 
@@ -129,6 +263,15 @@ public class OutputImpl implements Output {
   public void stop() {
     if (!_future.isDone()) {
       _group.triggerAction(Player.STOP);
+      try {
+        _future.get();
+      }
+      catch (InterruptedException e) {
+        // ignore
+      }
+      catch (ExecutionException e) {
+        // ignore
+      }
     }
   }
 
