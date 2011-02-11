@@ -631,8 +631,11 @@ public class GenericMediaService implements MediaService {
           cause = Cause.TIMEOUT;
         }
         else if (q == ResourceEvent.RTC_TRIGGERED) {
-          if (e.getRTCTrigger() == MediaGroup.SIGDET_STOPPLAY) {
+          if (e.getRTCTrigger() == MediaGroup.SIGDET_STOPPLAY.getTrigger()) {
             cause = Cause.BARGEIN;
+          }
+          else if (e.getRTCTrigger() == ResourceEvent.MANUAL_TRIGGER) {
+            cause = Cause.CANCEL;
           }
         }
         else if (q == ResourceEvent.STOPPED) {
@@ -787,6 +790,9 @@ public class GenericMediaService implements MediaService {
         else if (q == ResourceEvent.STOPPED) {
           cause = RecordCompleteEvent.Cause.CANCEL;
         }
+        else if (q == ResourceEvent.RTC_TRIGGERED) {
+          cause = RecordCompleteEvent.Cause.CANCEL;
+        }
         final RecordCompleteEvent recordCompleteEvent = new RecordCompleteEvent(_parent, cause, e.getDuration());
         _parent.dispatch(recordCompleteEvent);
         _recording.done(recordCompleteEvent);
@@ -812,21 +818,29 @@ public class GenericMediaService implements MediaService {
       MediaOperation<?> future = ite.next();
 
       if (future instanceof RecordingImpl) {
-        if (((RecordingImpl) future).isPending()) {
-          ((RecordingImpl) future).done(new RecordCompleteEvent(_parent, RecordCompleteEvent.Cause.UNKNOWN, 0));
+        RecordingImpl recording = (RecordingImpl) future;
+        if (recording.isPending()) {
+          recording.done(new RecordCompleteEvent(_parent, RecordCompleteEvent.Cause.UNKNOWN, 0));
         }
+        recording.pauseActionDone();
+        recording.resumeActionDone();
       }
       else if (future instanceof InputImpl) {
-        if (((InputImpl) future).isPending()) {
-          ((InputImpl) future).done(new InputCompleteEvent(_parent, InputCompleteEvent.Cause.UNKNOWN));
+        InputImpl input = (InputImpl) future;
+        if (input.isPending()) {
+          input.done(new InputCompleteEvent(_parent, InputCompleteEvent.Cause.UNKNOWN));
         }
       }
       else {
-        if (((OutputImpl) future).isPending()) {
-          ((OutputImpl) future).done(new OutputCompleteEvent(_parent, OutputCompleteEvent.Cause.UNKNOWN));
+        OutputImpl output = (OutputImpl) future;
+        if (output.isPending()) {
+          output.done(new OutputCompleteEvent(_parent, OutputCompleteEvent.Cause.UNKNOWN));
         }
+        output.pauseActionDone();
+        output.resumeActionDone();
+        output.speedActionDone();
+        output.volumeActionDone();
       }
-
     }
   }
 }
