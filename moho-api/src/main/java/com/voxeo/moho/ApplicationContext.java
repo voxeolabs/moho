@@ -39,14 +39,12 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
 
   @Deprecated
   Endpoint getEndpoint(String addr);
-  
+
   Endpoint createEndpoint(String addr);
 
   Application getApplication();
 
   ConferenceManager getConferenceManager();
-
-  MediaServiceFactory getMediaServiceFactory();
 
   ServletContext getServletContext();
 

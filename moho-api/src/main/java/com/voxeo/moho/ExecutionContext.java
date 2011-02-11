@@ -36,4 +36,5 @@ public interface ExecutionContext extends ApplicationContext {
 
   void removeCall(String id);
 
+  MediaServiceFactory getMediaServiceFactory();
 }
