@@ -634,6 +634,7 @@ public class GenericMediaService implements MediaService {
           if (e.getRTCTrigger() == MediaGroup.SIGDET_STOPPLAY.getTrigger()) {
             cause = Cause.BARGEIN;
           }
+          // for _group.triggerAction(Player.STOP);
           else if (e.getRTCTrigger() == ResourceEvent.MANUAL_TRIGGER) {
             cause = Cause.CANCEL;
           }

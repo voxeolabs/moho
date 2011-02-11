@@ -31,6 +31,7 @@ import javax.media.mscontrol.mediagroup.signals.SignalDetectorEvent;
 import javax.media.mscontrol.mediagroup.signals.SignalGenerator;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.resource.RTC;
+import javax.media.mscontrol.resource.ResourceEvent;
 
 import junit.framework.TestCase;
 
@@ -602,7 +603,10 @@ public class GenericMediaServiceTest extends TestCase {
           will(returnValue(PlayerEvent.PLAY_COMPLETED));
 
           allowing(mediaEvent3).getQualifier();
-          will(returnValue(PlayerEvent.STOPPED));
+          will(returnValue(PlayerEvent.RTC_TRIGGERED));
+
+          allowing(mediaEvent3).getRTCTrigger();
+          will(returnValue(ResourceEvent.MANUAL_TRIGGER));
         }
       });
     }
