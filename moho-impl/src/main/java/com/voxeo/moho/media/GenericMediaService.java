@@ -788,8 +788,8 @@ public class GenericMediaService implements MediaService {
           cause = RecordCompleteEvent.Cause.CANCEL;
         }
         final RecordCompleteEvent recordCompleteEvent = new RecordCompleteEvent(_parent, cause, e.getDuration());
-        _recording.done(recordCompleteEvent);
         _parent.dispatch(recordCompleteEvent);
+        _recording.done(recordCompleteEvent);
       }
       else if (t == RecorderEvent.PAUSED) {
         _recording.pauseActionDone();

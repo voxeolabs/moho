@@ -190,18 +190,18 @@ public class OutputImpl implements Output {
     try {
       if (!_future.isDone() && !paused) {
         _group.triggerAction(Player.PAUSE);
-      }
 
-      while (!pauseResult) {
-        try {
-          pauseActionResult.await();
+        while (!pauseResult) {
+          try {
+            pauseActionResult.await();
+          }
+          catch (InterruptedException e) {
+            // ignore
+          }
         }
-        catch (InterruptedException e) {
-          // ignore
-        }
-      }
 
-      pauseResult = false;
+        pauseResult = false;
+      }
     }
     finally {
       lock.unlock();
@@ -226,18 +226,18 @@ public class OutputImpl implements Output {
     try {
       if (!_future.isDone() && paused) {
         _group.triggerAction(Player.RESUME);
-      }
 
-      while (!resumeResult) {
-        try {
-          resumeActionResult.await();
+        while (!resumeResult) {
+          try {
+            resumeActionResult.await();
+          }
+          catch (InterruptedException e) {
+            // ignore
+          }
         }
-        catch (InterruptedException e) {
-          // ignore
-        }
-      }
 
-      resumeResult = false;
+        resumeResult = false;
+      }
     }
     finally {
       lock.unlock();

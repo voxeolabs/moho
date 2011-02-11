@@ -85,7 +85,7 @@ public class GenericMediaServiceTest extends TestCase {
   GenericMediaService service;
 
   MediaDialect dialect;
-  
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -147,7 +147,7 @@ public class GenericMediaServiceTest extends TestCase {
     });
 
     dialect = mockery.mock(MediaDialect.class);
-    
+
     // create mediaservice
     service = (GenericMediaService) new GenericMediaServiceFactory(dialect).create(parent, session, null);
   }
@@ -455,17 +455,12 @@ public class GenericMediaServiceTest extends TestCase {
     // verify
     assertTrue(event != null);
     assertTrue(event.getCause() == RecordCompleteEvent.Cause.CANCEL);
-    // verify event is dispatched.
-    System.err.print(parent.getReceivedEvents().size());
-    System.err.print(parent.getReceivedEvents().get(0).getClass());
-    System.err.print(parent.getReceivedEvents().get(1).getClass());
-    System.err.print(parent.getReceivedEvents().get(2).getClass());
-    
+
     assertTrue(parent.getReceivedEvents().get(0) instanceof RecordStartedEvent);
     assertTrue(parent.getReceivedEvents().get(1) instanceof RecordPausedEvent);
     assertTrue(parent.getReceivedEvents().get(2) instanceof RecordResumedEvent);
-    //assertTrue(parent.getReceivedEvents().get(3) instanceof RecordCompleteEvent);
-    //assertTrue(((RecordCompleteEvent) parent.getReceivedEvents().get(3)).getCause() == RecordCompleteEvent.Cause.CANCEL);
+    assertTrue(parent.getReceivedEvents().get(3) instanceof RecordCompleteEvent);
+    assertTrue(((RecordCompleteEvent) parent.getReceivedEvents().get(3)).getCause() == RecordCompleteEvent.Cause.CANCEL);
     assertTrue(recorder.listeners.size() == 0);
     mockery.assertIsSatisfied();
   }
@@ -503,7 +498,7 @@ public class GenericMediaServiceTest extends TestCase {
           will(returnValue(parameters));
 
           oneOf(dialect).setTextToSpeechVoice(parameters, null);
-          
+
           // invoke player.play
           allowing(player).play(with(any(URI[].class)), with(new TypeSafeMatcher<RTC[]>() {
             @Override
@@ -773,7 +768,7 @@ public class GenericMediaServiceTest extends TestCase {
     }
 
     final MockParameters parameters = new MockParameters();
-    
+
     try {
       mockery.checking(new Expectations() {
         {
@@ -784,7 +779,7 @@ public class GenericMediaServiceTest extends TestCase {
           oneOf(dialect).setSpeechLanguage(parameters, null);
           oneOf(dialect).setSpeechTermChar(parameters, null);
           oneOf(dialect).setSpeechInputMode(parameters, null);
-          
+
           oneOf(signalDetector).receiveSignals(with(equal(-1)), with(any(Parameter[].class)),
               with(new TypeSafeMatcher<RTC[]>() {
                 @Override

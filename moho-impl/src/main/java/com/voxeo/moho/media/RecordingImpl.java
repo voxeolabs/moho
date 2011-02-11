@@ -57,18 +57,18 @@ public class RecordingImpl implements Recording {
     try {
       if (!_future.isDone() && !paused) {
         _group.triggerAction(Recorder.PAUSE);
-      }
 
-      while (!pauseResult) {
-        try {
-          pauseActionResult.await();
+        while (!pauseResult) {
+          try {
+            pauseActionResult.await();
+          }
+          catch (InterruptedException e) {
+            // ignore
+          }
         }
-        catch (InterruptedException e) {
-          // ignore
-        }
-      }
 
-      pauseResult = false;
+        pauseResult = false;
+      }
     }
     finally {
       lock.unlock();
@@ -93,18 +93,18 @@ public class RecordingImpl implements Recording {
     try {
       if (!_future.isDone() && paused) {
         _group.triggerAction(Recorder.RESUME);
-      }
 
-      while (!resumeResult) {
-        try {
-          resumeActionResult.await();
+        while (!resumeResult) {
+          try {
+            resumeActionResult.await();
+          }
+          catch (InterruptedException e) {
+            // ignore
+          }
         }
-        catch (InterruptedException e) {
-          // ignore
-        }
-      }
 
-      resumeResult = false;
+        resumeResult = false;
+      }
     }
     finally {
       lock.unlock();
