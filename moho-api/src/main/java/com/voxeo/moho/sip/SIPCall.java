@@ -14,8 +14,6 @@
 
 package com.voxeo.moho.sip;
 
-import java.util.ListIterator;
-
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipSession;
 
@@ -33,9 +31,4 @@ public abstract class SIPCall extends Call {
 
   //
   public abstract SipServletRequest getSipRequest();
-
-  public abstract String getHeader(String name);
-
-  public abstract ListIterator<String> getHeaders(String name);
-
 }

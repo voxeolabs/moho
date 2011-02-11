@@ -14,6 +14,7 @@
 
 package com.voxeo.moho;
 
+import java.util.ListIterator;
 import java.util.Map;
 
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -187,10 +188,13 @@ public abstract class Call extends InviteEvent implements MultiStreamParticipant
    * send a sendrecv SDP and resume to send media data.
    */
   public abstract void unhold();
-  
+
   /**
    * disconnect this participant with headers.
    */
   public abstract void disconnect(Map<String, String> headers);
 
+  public abstract String getHeader(String name);
+
+  public abstract ListIterator<String> getHeaders(String name);
 }
