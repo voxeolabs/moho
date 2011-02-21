@@ -1583,7 +1583,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     acceptCall(headers);
   }
 
-  @Override
   public synchronized Call acceptCall(final Map<String, String> headers, final EventListener<?>... listeners)
       throws SignalException, IllegalStateException {
     checkState();
@@ -1613,7 +1612,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
   }
 
-  @Override
   public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers,
       final EventListener<?>... listeners) throws SignalException, MediaException, IllegalStateException {
     if (isProcessed()) {
@@ -1665,7 +1663,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
   }
 
-  @Override
   public Call answer(final Map<String, String> headers, final EventListener<?>... listeners) throws SignalException,
       IllegalStateException {
     final Call call = acceptCall(headers, listeners);
@@ -1710,14 +1707,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   // for invite event over==========
 
   // for dispatchable eventsource=========
-  @Override
   public void addListener(final EventListener<?> listener) {
     if (listener != null) {
       _dispatcher.addListener(Event.class, listener);
     }
   }
 
-  @Override
   public void addListeners(final EventListener<?>... listeners) {
     if (listeners != null) {
       for (final EventListener<?> listener : listeners) {
@@ -1726,7 +1721,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
   }
 
-  @Override
   public <E extends Event<?>, T extends EventListener<E>> void addListener(final Class<E> type, final T listener) {
     if (listener != null) {
       _dispatcher.addListener(type, listener);
@@ -1742,7 +1736,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
   }
 
-  @Override
   public void addObserver(final Observer observer) {
     if (observer != null) {
       if (observer instanceof EventListener) {

@@ -21,7 +21,6 @@ import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.SignalException;
-import com.voxeo.utils.EventListener;
 
 /**
  * Invitation is an incoming call alert. This is a key event to start the call
@@ -115,42 +114,6 @@ public abstract class InviteEvent extends SignalEvent implements RejectableEvent
   }
 
   /**
-   * Accept the invitation with a set of {@link com.voxeo.utils.EventListener
-   * EventListener}s.
-   * 
-   * @param listeners
-   *          the {@link com.voxeo.utils.EventListener EventListener}s to be
-   *          added to the {@link Call Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public Call acceptCall(final EventListener<?>... listeners) throws SignalException, IllegalStateException {
-    return this.acceptCall(null, listeners);
-  }
-
-  /**
-   * Accept the invitation with a set of {@link com.voxeo.utils.EventListener
-   * EventListener}s and additional headers.
-   * 
-   * @param headers
-   *          additional signaling protocol specific headers to be sent with the
-   *          response.
-   * @param listeners
-   *          the {@link com.voxeo.utils.EventListener EventListener}s to be
-   *          added to the {@link Call Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public abstract Call acceptCall(final Map<String, String> headers, final EventListener<?>... listeners)
-      throws SignalException, IllegalStateException;
-
-  /**
    * Accept the invitation with a set of {@link Observer Observer}s and
    * additional headers.
    * 
@@ -220,45 +183,6 @@ public abstract class InviteEvent extends SignalEvent implements RejectableEvent
       IllegalStateException {
     return this.acceptCallWithEarlyMedia(null, observers);
   }
-
-  /**
-   * accept the invitation with early media (SIP 183) with additional headers
-   * 
-   * @param listeners
-   *          the {@link com.voxeo.utils.EventListener EventListener}s to be
-   *          added to the {@link Call Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws MediaException
-   *           when there is any media server error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public Call acceptCallWithEarlyMedia(final EventListener<?>... listeners) throws SignalException, MediaException,
-      IllegalStateException {
-    return this.acceptCallWithEarlyMedia(null, listeners);
-  }
-
-  /**
-   * accept the invitation with early media (SIP 183)
-   * 
-   * @param headers
-   *          additional signaling protocol specific headers to be sent with the
-   *          response.
-   * @param listeners
-   *          the {@link com.voxeo.utils.EventListener EventListener}s to be
-   *          added to the {@link Call Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws MediaException
-   *           when there is any media server error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public abstract Call acceptCallWithEarlyMedia(final Map<String, String> headers, final EventListener<?>... listeners)
-      throws SignalException, MediaException, IllegalStateException;
 
   /**
    * accept the invitation with early media (SIP 183)
@@ -345,42 +269,6 @@ public abstract class InviteEvent extends SignalEvent implements RejectableEvent
   public Call answer(final Observer... observers) throws SignalException, IllegalStateException {
     return this.answer(null, observers);
   }
-
-  /**
-   * Accept the invitation with a set of {@link com.voxeo.utils.EventListener
-   * EventListener}s and join the call to media server.
-   * 
-   * @param listeners
-   *          the {@link com.voxeo.utils.EventListener EventListener}s to be
-   *          added to the {@link Call Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public Call answer(final EventListener<?>... listeners) throws SignalException, IllegalStateException {
-    return this.answer(null, listeners);
-  }
-
-  /**
-   * Accept the invitation with a set of {@link com.voxeo.utils.EventListener
-   * EventListener}s and additional headers and join the call to media server.
-   * 
-   * @param headers
-   *          additional signaling protocol specific headers to be sent with the
-   *          response.
-   * @param listeners
-   *          the {@link com.voxeo.utils.EventListener EventListener}s to be
-   *          added to the {@link Call Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public abstract Call answer(final Map<String, String> headers, final EventListener<?>... listeners)
-      throws SignalException, IllegalStateException;
 
   /**
    * Accept the invitation with a set of {@link Observer Observer}s and

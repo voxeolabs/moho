@@ -89,6 +89,7 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
    * 
    * @param observer
    *          the event observer to be added.
+   * @deprecated use addObservers(Observer... observers)
    */
   void addObserver(Observer observer);
 
@@ -107,6 +108,7 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
    * 
    * @param listener
    *          the event listener to be added
+   *@deprecated use addObservers(Observer... observers)
    */
   void addListener(EventListener<?> listener);
 
@@ -116,6 +118,7 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
    * 
    * @param listeners
    *          the event listeners to be added
+   * @deprecated use addObservers(Observer... observers)
    */
   void addListeners(EventListener<?>... listeners);
 
@@ -126,6 +129,7 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
    * 
    * @param listener
    *          the event listener to be added
+   *@deprecated use addObservers(Observer... observers)
    */
   <E extends Event<?>, T extends EventListener<E>> void addListener(Class<E> type, T listener);
 
@@ -136,6 +140,7 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
    * 
    * @param listener
    *          the event listener to be added
+   * @deprecated use addObservers(Observer... observers)
    */
   <E extends Event<?>, T extends EventListener<E>> void addListeners(Class<E> type, T... listener);
 
@@ -145,6 +150,7 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
    * 
    * @param listener
    *          the event listener to be added
+   * @deprecated use removeObserver(Observer listener)
    */
   void removeListener(EventListener<?> listener);
 

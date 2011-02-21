@@ -85,7 +85,6 @@ public class SIPEndpointImpl implements SIPEndpoint {
     throw new IllegalArgumentException(_address.toString());
   }
 
-  @Override
   public Call call(final Endpoint caller, final Map<String, String> headers, final EventListener<?>... listeners)
       throws SignalException {
     final SIPOutgoingCall retval = new SIPOutgoingCall(_ctx, ((SIPEndpoint) caller), this, headers);
@@ -100,7 +99,6 @@ public class SIPEndpointImpl implements SIPEndpoint {
     return retval;
   }
 
-  @Override
   public Subscription subscribe(final Endpoint caller, final Type type, final int expiration,
       final EventListener<?>... listeners) throws SignalException {
     final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
@@ -139,7 +137,7 @@ public class SIPEndpointImpl implements SIPEndpoint {
 
   @Override
   public Call call(String caller) {
-    return call(caller, (Observer[])null);
+    return call(caller, (Observer[]) null);
   }
 
   @Override
@@ -150,7 +148,7 @@ public class SIPEndpointImpl implements SIPEndpoint {
 
   @Override
   public Call call(Endpoint caller) {
-    return call(caller, null, (Observer[])null);
+    return call(caller, null, (Observer[]) null);
   }
 
   @Override

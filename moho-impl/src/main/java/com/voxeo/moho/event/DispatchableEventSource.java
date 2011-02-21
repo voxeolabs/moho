@@ -87,6 +87,7 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void addObserver(final Observer observer) {
     if (observer != null) {
@@ -121,11 +122,17 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
     _dispatcher.removeListener(listener);
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public void removeObserver(final Observer listener) {
-    final AutowiredEventListener autowiredEventListener = _observers.remove(listener);
-    if (autowiredEventListener != null) {
-      _dispatcher.removeListener(autowiredEventListener);
+    if (listener instanceof EventListener) {
+      _dispatcher.removeListener((EventListener) listener);
+    }
+    else {
+      final AutowiredEventListener autowiredEventListener = _observers.remove(listener);
+      if (autowiredEventListener != null) {
+        _dispatcher.removeListener(autowiredEventListener);
+      }
     }
   }
 
