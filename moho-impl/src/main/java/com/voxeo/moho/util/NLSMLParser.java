@@ -100,6 +100,24 @@ public class NLSMLParser {
           }
         }
 
+        Element input = getFirstChildElement(interpretation, "input");
+        if (input != null) {
+          String interp = getTextContent(input);
+          if (interp != null && interp.trim().length() > 0) {
+            reco.put("_interpretation", interp);
+          }
+
+          final Node modeNode = input.getAttributes().getNamedItem("mode");
+          if (modeNode != null) {
+            String inputmode = modeNode.getNodeValue().trim();
+
+            if (inputmode.equalsIgnoreCase("speech")) {
+              inputmode = "voice"; // per VXML
+            }
+            reco.put("_inputmode", new String(inputmode));
+          }
+        }
+
         final Element voxeoresult = getFirstChildElement(interpretation, "voxeoresult");
         if (voxeoresult != null) {
           final Element concept = getFirstChildElement(voxeoresult, "concept");
@@ -211,4 +229,24 @@ public class NLSMLParser {
     }
   }
 
+  public static void main(String[] args) {
+    try {
+      List<Map<String, String>> nlsml = NLSMLParser
+          .parse("<?xml version=\"1.0\"?><result grammar=\"0@28113c18.vxmlgrammar\"><interpretation grammar=\"0@28113c18.vxmlgrammar\" confidence=\"48\"><input mode=\"speech\">blue</input></interpretation></result>");
+      for (final Map<String, String> reco : nlsml) {
+        final String conf = reco.get("_confidence");
+        if (conf != null) {
+          System.out.println(conf);
+        }
+        final String interpretation = reco.get("_interpretation");
+        if (interpretation != null) {
+          System.out.println(interpretation);
+        }
+      }
+    }
+    catch (Exception e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+  }
 }

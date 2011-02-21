@@ -52,6 +52,8 @@ public class InputCompleteEvent extends MediaCompleteEvent {
 
   protected boolean successful;
 
+  protected String _inputMode;
+
   public InputCompleteEvent(final EventSource source, final Cause cause) {
     super(source);
     _cause = cause;
@@ -105,7 +107,7 @@ public class InputCompleteEvent extends MediaCompleteEvent {
   }
 
   public void setTag(final String tag) {
-    _tag = _nlsml;
+    _tag = tag;
   }
 
   public Cause getCause() {
@@ -114,6 +116,14 @@ public class InputCompleteEvent extends MediaCompleteEvent {
 
   public boolean hasMatch() {
     return successful;
+  }
+
+  public String getInputMode() {
+    return _inputMode;
+  }
+
+  public void setInputMode(String inputMode) {
+    _inputMode = inputMode;
   }
 
   public String getValue() {

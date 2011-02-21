@@ -727,6 +727,14 @@ public class GenericMediaService implements MediaService {
                 if (interpretation != null) {
                   inputCompleteEvent.setInterpretation(interpretation);
                 }
+                final String concept = reco.get("_concept");
+                if (concept != null) {
+                  inputCompleteEvent.setConcept(concept);
+                }
+                final String inputmode = reco.get("_inputmode");
+                if (inputmode != null) {
+                  inputCompleteEvent.setInputMode(inputmode);
+                }
               }
             }
             catch (final Exception e1) {
@@ -740,6 +748,7 @@ public class GenericMediaService implements MediaService {
           inputCompleteEvent.setConfidence(1.0F);
           inputCompleteEvent.setInterpretation(signalString);
           inputCompleteEvent.setUtterance(signalString);
+          inputCompleteEvent.setInputMode("dtmf");
         }
         _input.done(inputCompleteEvent);
         if (_cmd.isSupervised()) {
