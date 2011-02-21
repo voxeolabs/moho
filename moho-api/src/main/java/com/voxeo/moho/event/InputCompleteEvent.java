@@ -15,6 +15,10 @@ package com.voxeo.moho.event;
 
 public class InputCompleteEvent extends MediaCompleteEvent {
 
+  public enum InputMode {
+    dtmf, voice
+  }
+
   public enum Cause {
     /** the input is terminated because the initial silence is too long */
     INI_TIMEOUT,
@@ -52,7 +56,7 @@ public class InputCompleteEvent extends MediaCompleteEvent {
 
   protected boolean successful;
 
-  protected String _inputMode;
+  protected InputMode _inputMode;
 
   public InputCompleteEvent(final EventSource source, final Cause cause) {
     super(source);
@@ -118,11 +122,11 @@ public class InputCompleteEvent extends MediaCompleteEvent {
     return successful;
   }
 
-  public String getInputMode() {
+  public InputMode getInputMode() {
     return _inputMode;
   }
 
-  public void setInputMode(String inputMode) {
+  public void setInputMode(InputMode inputMode) {
     _inputMode = inputMode;
   }
 
