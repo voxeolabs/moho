@@ -31,6 +31,7 @@ import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.utils.EnumEvent;
 import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
+import com.voxeo.utils.IEvent;
 
 public class EventDispatcher {
 
@@ -179,15 +180,15 @@ public class EventDispatcher {
     }
   }
 
-  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event) {
+  public <S extends EventSource, T extends IEvent<S>> Future<T> fire(final T event) {
     return fire(event, false);
   }
 
-  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType) {
+  public <S extends EventSource, T extends IEvent<S>> Future<T> fire(final T event, final boolean narrowType) {
     return fire(event, narrowType, null);
   }
 
-  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType,
+  public <S extends EventSource, T extends IEvent<S>> Future<T> fire(final T event, final boolean narrowType,
       final Runnable afterExec) {
 
     final FutureTask<T> task = new FutureTask<T>(new Runnable() {
@@ -196,7 +197,7 @@ public class EventDispatcher {
         if (log.isTraceEnabled()) {
           log.trace("Firing event :" + event);
         }
-        Class<? extends Event> clazz = event.getClass();
+        Class<? extends IEvent> clazz = event.getClass();
         out: do {
           final List<Object> list = clazzListeners.get(clazz);
           if (list != null) {
@@ -214,7 +215,7 @@ public class EventDispatcher {
               }
             }
           }
-          clazz = (Class<? extends Event>) clazz.getSuperclass();
+          clazz = (Class<? extends IEvent>) clazz.getSuperclass();
         }
         while (narrowType && !clazz.equals(Object.class));
 
@@ -281,9 +282,10 @@ public class EventDispatcher {
 
         try {
           task.run();
+          task.get();
         }
         catch (Throwable t) {
-          log.error("Throwable when processing task.", t);
+          log.info("Throwable when processing task.", t);
         }
       }
     }

@@ -14,7 +14,7 @@
 
 package com.voxeo.utils;
 
-public class Event<Source> {
+public class Event<Source> implements IEvent<Source> {
   public final Source source;
 
   public Event(final Source source) {
@@ -26,5 +26,11 @@ public class Event<Source> {
   public String toString() {
     return String.format("[Event class=%s sourceClass=%s]", getClass().getName(), (source != null ? source.getClass()
         .getSimpleName() : null));
+  }
+
+  @Override
+  public Source getSource() {
+    return source;
+ 
   }
 }

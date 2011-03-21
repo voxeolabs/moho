@@ -23,13 +23,13 @@ public class ImifiedEcho implements Application {
 
   @State
   public void handleText(final TextEvent e) throws Exception {
-    final ImifiedEndpoint endpoint = (ImifiedEndpoint) e.getDestination();
+    final ImifiedEndpoint endpoint = (ImifiedEndpoint) e.getTo();
     if (_name != null) {
       endpoint.setImifiedUserName(_name);
       if (_pwd != null) {
         endpoint.setImifiedPasswd(_pwd);
       }
     }
-    e.getSource().sendText(endpoint, e.getText(), e.getTextType());
+    e.getFrom().sendText(endpoint, e.getText(), e.getTextType());
   }
 }

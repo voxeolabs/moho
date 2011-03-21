@@ -13,8 +13,8 @@ public abstract class TextEvent extends Event<EventSource> {
 
   public abstract String getTextType();
 
-  public abstract TextableEndpoint getSource();
+  public abstract TextableEndpoint getFrom();
 
-  public abstract TextableEndpoint getDestination();
+  public abstract TextableEndpoint getTo();
 
 }

@@ -35,7 +35,6 @@ public class Echo implements Application {
 
   @State
   public void handleText(final TextEvent evt) throws Throwable {
-    ((TextableEndpoint) addresses.get(evt.getSource().getURI())).sendText(evt.getDestination(), evt.getText(), evt
-        .getTextType());
+    ((TextableEndpoint) addresses.get(evt.getFrom().getURI())).sendText(evt.getTo(), evt.getText(), evt.getTextType());
   }
 }

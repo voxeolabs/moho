@@ -43,16 +43,16 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Participant;
-import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.State;
 import com.voxeo.moho.event.DisconnectEvent;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
-import com.voxeo.utils.Event;
 import com.voxeo.utils.EventListener;
+import com.voxeo.utils.IEvent;
 
 public class SIPIncomingCallTest extends TestCase {
 
@@ -242,7 +242,7 @@ public class SIPIncomingCallTest extends TestCase {
     Exception ex;
 
     @Override
-    public boolean handle(final Exception ex, final Event<?> event) {
+    public boolean handle(final Exception ex, final IEvent<?> event) {
       this.ex = ex;
       return false;
     }

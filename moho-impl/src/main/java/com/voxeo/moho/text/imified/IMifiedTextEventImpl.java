@@ -16,7 +16,7 @@ public class IMifiedTextEventImpl extends ImifiedTextEvent {
   }
 
   @Override
-  public TextableEndpoint getSource() {
+  public TextableEndpoint getFrom() {
     final ImifiedEndpointImpl endPoint = new ImifiedEndpointImpl(source.getApplicationContext(), _userkey);
     endPoint.setNetwork(_network);
     endPoint.setAddress(_user);
@@ -24,7 +24,7 @@ public class IMifiedTextEventImpl extends ImifiedTextEvent {
   }
 
   @Override
-  public TextableEndpoint getDestination() {
+  public TextableEndpoint getTo() {
     final ImifiedEndpointImpl endPoint = new ImifiedEndpointImpl(source.getApplicationContext(), _botkey);
     endPoint.setNetwork(_network);
     endPoint.setAddress(_to);
