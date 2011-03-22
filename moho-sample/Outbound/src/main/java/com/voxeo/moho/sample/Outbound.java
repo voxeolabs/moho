@@ -24,7 +24,7 @@ import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.EventListener;
 
 public class Outbound implements Application {
 

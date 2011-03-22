@@ -1,4 +1,4 @@
-package com.voxeo.utils;
+package com.voxeo.moho.utils;
 
 public interface IEvent<T> {
 

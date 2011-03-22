@@ -16,7 +16,7 @@ package com.voxeo.moho.event;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ExecutionContext;
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.EventListener;
 
 public class ApplicationEventSource extends DispatchableEventSource {
 

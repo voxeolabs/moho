@@ -1,7 +1,7 @@
 package com.voxeo.moho.event;
 
 import com.voxeo.moho.TextableEndpoint;
-import com.voxeo.utils.Event;
+import com.voxeo.moho.utils.Event;
 
 public abstract class TextEvent extends Event<EventSource> {
 

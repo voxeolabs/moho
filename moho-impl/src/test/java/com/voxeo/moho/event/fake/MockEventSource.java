@@ -24,8 +24,8 @@ import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.MediaEvent;
 import com.voxeo.moho.event.Observer;
-import com.voxeo.utils.Event;
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.Event;
+import com.voxeo.moho.utils.EventListener;
 
 public class MockEventSource implements EventSource {
 

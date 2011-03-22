@@ -28,10 +28,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ExceptionHandler;
-import com.voxeo.utils.EnumEvent;
-import com.voxeo.utils.Event;
-import com.voxeo.utils.EventListener;
-import com.voxeo.utils.IEvent;
+import com.voxeo.moho.utils.EnumEvent;
+import com.voxeo.moho.utils.Event;
+import com.voxeo.moho.utils.EventListener;
+import com.voxeo.moho.utils.IEvent;
 
 public class EventDispatcher {
 

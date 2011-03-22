@@ -82,8 +82,8 @@ import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.util.SessionUtils;
 import com.voxeo.moho.util.Utils;
-import com.voxeo.utils.Event;
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.Event;
+import com.voxeo.moho.utils.EventListener;
 
 public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<SdpPortManagerEvent> {
 

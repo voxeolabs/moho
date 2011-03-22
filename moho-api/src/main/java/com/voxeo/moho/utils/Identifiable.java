@@ -12,20 +12,8 @@
  * governing permissions and limitations under the License.
  */
 
-package com.voxeo.utils;
+package com.voxeo.moho.utils;
 
-import java.util.concurrent.Executor;
-
-public final class SynchronousExecutor implements Executor {
-
-    private static final SynchronousExecutor singleton = new SynchronousExecutor();
-
-    public static final Executor get() {
-        return singleton;
-    }
-    
-    public void execute(Runnable command) {
-        command.run();
-    }
-
+public interface Identifiable<K> {
+    K getId();
 }

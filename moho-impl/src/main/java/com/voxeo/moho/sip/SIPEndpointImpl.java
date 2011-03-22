@@ -30,7 +30,7 @@ import com.voxeo.moho.Subscription;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.Subscription.Type;
 import com.voxeo.moho.event.Observer;
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.EventListener;
 
 public class SIPEndpointImpl implements SIPEndpoint {
 

@@ -17,8 +17,8 @@ package com.voxeo.moho.event;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.voxeo.utils.Event;
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.Event;
+import com.voxeo.moho.utils.EventListener;
 
 public class BlockingQueueEventListener<T extends Event<?>> implements EventListener<T> {
 

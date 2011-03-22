@@ -19,9 +19,9 @@ import java.util.concurrent.Future;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.AttributeStore;
 import com.voxeo.moho.ExceptionHandler;
-import com.voxeo.utils.Event;
-import com.voxeo.utils.EventListener;
-import com.voxeo.utils.Identifiable;
+import com.voxeo.moho.utils.Event;
+import com.voxeo.moho.utils.EventListener;
+import com.voxeo.moho.utils.Identifiable;
 
 /**
  * <p>

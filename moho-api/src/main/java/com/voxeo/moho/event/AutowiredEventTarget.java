@@ -22,8 +22,8 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.State;
-import com.voxeo.utils.Event;
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.Event;
+import com.voxeo.moho.utils.EventListener;
 
 public class AutowiredEventTarget {
 

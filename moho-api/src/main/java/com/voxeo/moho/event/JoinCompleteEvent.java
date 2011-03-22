@@ -12,7 +12,7 @@
 package com.voxeo.moho.event;
 
 import com.voxeo.moho.Participant;
-import com.voxeo.utils.Event;
+import com.voxeo.moho.utils.Event;
 
 public class JoinCompleteEvent extends Event<EventSource> {
 

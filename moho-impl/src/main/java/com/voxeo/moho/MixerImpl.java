@@ -37,8 +37,8 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.MediaResourceDisconnectEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
-import com.voxeo.utils.Event;
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.Event;
+import com.voxeo.moho.utils.EventListener;
 
 public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer {
 

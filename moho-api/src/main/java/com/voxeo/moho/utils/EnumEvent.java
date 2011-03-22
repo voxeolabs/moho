@@ -12,7 +12,7 @@
  * governing permissions and limitations under the License.
  */
 
-package com.voxeo.utils;
+package com.voxeo.moho.utils;
 
 
 public class EnumEvent<T,E extends Enum<E>> extends Event<T> {

@@ -25,8 +25,8 @@ import com.voxeo.moho.AttributeStoreImpl;
 import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.util.Utils;
-import com.voxeo.utils.Event;
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.Event;
+import com.voxeo.moho.utils.EventListener;
 
 /**
  * DispatchableEventSource supports dispatching events to different targets on a

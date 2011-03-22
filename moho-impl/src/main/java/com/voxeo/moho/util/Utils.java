@@ -19,7 +19,7 @@ import java.lang.reflect.Type;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.EventListener;
 
 public class Utils {
 

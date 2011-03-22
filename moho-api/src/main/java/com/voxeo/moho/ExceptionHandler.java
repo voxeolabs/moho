@@ -1,6 +1,6 @@
 package com.voxeo.moho;
 
-import com.voxeo.utils.IEvent;
+import com.voxeo.moho.utils.IEvent;
 
 
 public interface ExceptionHandler {

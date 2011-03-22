@@ -39,7 +39,7 @@ import com.voxeo.moho.Subscription.Type;
 import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.util.SessionUtils;
-import com.voxeo.utils.EventListener;
+import com.voxeo.moho.utils.EventListener;
 
 public class SIPReferEventImpl extends SIPReferEvent {
 

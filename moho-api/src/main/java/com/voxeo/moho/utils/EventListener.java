@@ -12,25 +12,10 @@
  * governing permissions and limitations under the License.
  */
 
-package com.voxeo.utils;
+package com.voxeo.moho.utils;
 
-public class Event<Source> implements IEvent<Source> {
-  public final Source source;
+import com.voxeo.moho.event.Observer;
 
-  public Event(final Source source) {
-    super();
-    this.source = source;
-  }
-
-  @Override
-  public String toString() {
-    return String.format("[Event class=%s sourceClass=%s]", getClass().getName(), (source != null ? source.getClass()
-        .getSimpleName() : null));
-  }
-
-  @Override
-  public Source getSource() {
-    return source;
- 
-  }
+public interface EventListener<E extends IEvent<?>> extends Observer {
+  void onEvent(E event) throws Exception;
 }

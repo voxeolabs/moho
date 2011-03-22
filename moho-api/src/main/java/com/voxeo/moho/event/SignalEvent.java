@@ -17,7 +17,7 @@ package com.voxeo.moho.event;
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.SignalException;
-import com.voxeo.utils.Event;
+import com.voxeo.moho.utils.Event;
 
 public abstract class SignalEvent extends Event<EventSource> implements AcceptableEvent {
 

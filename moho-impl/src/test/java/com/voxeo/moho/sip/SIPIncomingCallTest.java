@@ -51,8 +51,8 @@ import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
-import com.voxeo.utils.EventListener;
-import com.voxeo.utils.IEvent;
+import com.voxeo.moho.utils.EventListener;
+import com.voxeo.moho.utils.IEvent;
 
 public class SIPIncomingCallTest extends TestCase {
 
