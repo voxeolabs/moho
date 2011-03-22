@@ -66,7 +66,7 @@ public abstract class ImifiedTextEvent extends TextEvent {
     return _userkey;
   }
 
-  public String getUser() {
+  public String getFromUser() {
     return _user;
   }
 
@@ -82,7 +82,7 @@ public abstract class ImifiedTextEvent extends TextEvent {
     return _historyValues;
   }
 
-  public String getTo() {
+  public String getToUser() {
     return _to;
   }
 }

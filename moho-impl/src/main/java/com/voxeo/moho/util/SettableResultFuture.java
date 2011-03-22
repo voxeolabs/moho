@@ -8,7 +8,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class SettableResultFuture<C> implements Future<C> {
+public class SettableResultFuture<C> implements Future<C>, FutureResult<C> {
 
   final Lock lock = new ReentrantLock();
 

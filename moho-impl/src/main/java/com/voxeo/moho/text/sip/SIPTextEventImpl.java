@@ -34,12 +34,12 @@ public class SIPTextEventImpl extends SIPTextEvent {
   }
 
   @Override
-  public TextableEndpoint getSource() {
+  public TextableEndpoint getFrom() {
     return new SIPEndpointImpl(_ctx, _req.getFrom());
   }
 
   @Override
-  public TextableEndpoint getDestination() {
+  public TextableEndpoint getTo() {
     return new SIPEndpointImpl(_ctx, _req.getTo());
   }
 

@@ -121,7 +121,7 @@ public class DefaultTestApp implements Application {
 
   @State
   public void handleText(final TextEvent e) throws Exception {
-    final Call call = calls.get(e.getSource().getURI());
+    final Call call = calls.get(e.getFrom().getURI());
     final String text = e.getText();
     if (text.equalsIgnoreCase("exit") || text.equalsIgnoreCase("quit") || text.equalsIgnoreCase("bye")) {
       call.getMediaService().output("Now return to main menu.").get();
