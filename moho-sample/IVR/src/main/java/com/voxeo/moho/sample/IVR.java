@@ -20,6 +20,7 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.InputCompleteEvent;
+import com.voxeo.moho.media.InputMode;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 
@@ -45,7 +46,9 @@ public class IVR implements Application {
 
     final MediaService mg = call.getMediaService(false);
     InputCommand input = new InputCommand("1,2");
-
+    input.setTermChar('#');
+    input.setInputMode(InputMode.dtmf);
+    input.setSpeechLanguage("en-US");
     mg.prompt(output, input, 0);
   }
 

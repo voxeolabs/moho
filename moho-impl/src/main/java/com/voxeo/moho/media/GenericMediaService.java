@@ -713,6 +713,7 @@ public class GenericMediaService implements MediaService {
           final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
           inputCompleteEvent.setUtterance(se.getUserInput());
           inputCompleteEvent.setTag(se.getTag());
+          inputCompleteEvent.setConcept(se.getTag());
           final URL semanticResult = se.getSemanticResult();
           if (semanticResult != null && "application/x-nlsml".equalsIgnoreCase(semanticResult.getHost())) {
             try {
