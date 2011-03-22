@@ -643,8 +643,8 @@ public class GenericMediaService implements MediaService {
           cause = Cause.CANCEL;
         }
         final OutputCompleteEvent outputCompleteEvent = new OutputCompleteEvent(_parent, cause);
-        _output.done(outputCompleteEvent);
         _parent.dispatch(outputCompleteEvent);
+        _output.done(outputCompleteEvent);
         if (_prompt != null) {
           _prompt.inputGetSet();
         }
@@ -756,10 +756,10 @@ public class GenericMediaService implements MediaService {
           inputCompleteEvent.setUtterance(signalString);
           inputCompleteEvent.setInputMode(InputCompleteEvent.InputMode.dtmf);
         }
-        _input.done(inputCompleteEvent);
         if (_cmd.isSupervised()) {
           _parent.dispatch(inputCompleteEvent);
         }
+        _input.done(inputCompleteEvent);
       }
       else if (t == SignalDetectorEvent.SIGNAL_DETECTED) {
         if (_cmd.isSupervised()) {
