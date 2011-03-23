@@ -728,10 +728,6 @@ public class GenericMediaService implements MediaService {
                 if (interpretation != null) {
                   inputCompleteEvent.setInterpretation(interpretation);
                 }
-                final String concept = reco.get("_concept");
-                if (concept != null) {
-                  inputCompleteEvent.setConcept(concept);
-                }
                 final String inputmode = reco.get("_inputmode");
                 if (inputmode != null) {
                   if (inputmode.equalsIgnoreCase("speech") || inputmode.equalsIgnoreCase("voice")) {
