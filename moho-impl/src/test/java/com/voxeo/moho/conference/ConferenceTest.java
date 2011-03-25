@@ -175,7 +175,7 @@ public class ConferenceTest extends TestCase {
           allowing(event).hasMatch();
           will(returnValue(true));
 
-          oneOf(call).addObserver(with(any(Observer.class)));
+          oneOf(call).addObservers(with(any(Observer.class)));
           oneOf(mediaService).input(exitCommand);
 
           // join
