@@ -14,6 +14,7 @@ package com.voxeo.moho.sip;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -1539,6 +1540,11 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public ListIterator<String> getHeaders(final String name) {
     return _invite.getHeaders(name);
+  }
+
+  @Override
+  public Iterator<String> getHeaderNames() {
+    return _invite.getHeaderNames();
   }
 
   @Override

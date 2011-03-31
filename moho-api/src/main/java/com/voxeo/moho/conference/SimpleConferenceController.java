@@ -146,7 +146,7 @@ public class SimpleConferenceController implements ConferenceController {
           }
         }
       };
-      call.addObserver(observer);
+      call.addObservers(observer);
       try {
         call.getMediaService().input(_term);
       }

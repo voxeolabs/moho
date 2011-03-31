@@ -14,6 +14,7 @@
 
 package com.voxeo.moho;
 
+import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map;
 
@@ -197,4 +198,7 @@ public abstract class Call extends InviteEvent implements MultiStreamParticipant
   public abstract String getHeader(String name);
 
   public abstract ListIterator<String> getHeaders(String name);
+  
+  public abstract Iterator<String> getHeaderNames();
+
 }
