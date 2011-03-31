@@ -457,10 +457,21 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
     if (p.getMediaObject() instanceof Joinable) {
       try {
-        _network.unjoin((Joinable) p.getMediaObject());
+        boolean unjoin = false;
+        Joinable peerJoinalbe = (Joinable) p.getMediaObject();
+        Joinable[] joinables = _network.getJoinees();
+        for (Joinable joinable : joinables) {
+          if (joinable == peerJoinalbe) {
+            unjoin = true;
+            break;
+          }
+        }
+        if (unjoin) {
+          _network.unjoin(peerJoinalbe);
+        }
       }
       catch (final Exception e) {
-        LOG.warn("", e);
+        LOG.warn(e.getMessage());
       }
     }
     p.unjoin(this);

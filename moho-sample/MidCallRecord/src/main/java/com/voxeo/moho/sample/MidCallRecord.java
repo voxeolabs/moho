@@ -51,8 +51,6 @@ public class MidCallRecord implements Application {
 
     partyA.join(partyB, JoinType.BRIDGE, Direction.DUPLEX).get();
 
-    // partyA.join(event.getInvitee(), JoinType.BRIDGE, Direction.DUPLEX).get();
-
     final MediaService mg = partyA.getMediaService(true);
     partyA.setApplicationState("waitForInput");
     mg.input("* *");
@@ -66,7 +64,7 @@ public class MidCallRecord implements Application {
       final Call peer = call.getPeers()[0];
       peer.unjoin(call);
 
-      peer.getMediaService().output("Hello, The peer disconnect.");
+      peer.getMediaService(true).output("Hello, The peer disconnect.");
     }
   }
 
@@ -79,6 +77,7 @@ public class MidCallRecord implements Application {
         final RecordCommand command = new RecordCommand(media);
         command.setInitialTimeout(20 * 1000);
         command.setFinalTimeout(60 * 1000);
+        command.setStartBeep(false);
         final Recording recording = ((Call) evt.getSource()).getMediaService().record(command);
         evt.getSource().setAttribute("Recording", recording);
         evt.getSource().setApplicationState("waitStop");
