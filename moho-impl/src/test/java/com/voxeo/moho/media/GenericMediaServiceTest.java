@@ -783,6 +783,8 @@ public class GenericMediaServiceTest extends TestCase {
           oneOf(dialect).setSpeechLanguage(parameters, null);
           oneOf(dialect).setSpeechTermChar(parameters, null);
           oneOf(dialect).setSpeechInputMode(parameters, null);
+          oneOf(dialect).setDtmfHotwordEnabled(parameters, false);
+          oneOf(dialect).setDtmfTypeaheadEnabled(parameters, false);
 
           oneOf(signalDetector).receiveSignals(with(equal(-1)), with(any(Parameter[].class)),
               with(new TypeSafeMatcher<RTC[]>() {
