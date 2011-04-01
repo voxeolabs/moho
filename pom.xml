@@ -113,16 +113,21 @@
     <module>moho-api</module>
     <module>moho-impl</module>
     <module>moho-sample</module>
-	  <module>moho-artifacts</module>
+    <module>moho-artifacts</module>
   </modules>
 
   <distributionManagement>
     <repository>
-        <id>maven.voxeo.com</id>
-        <name>Voxeo Maven Repo</name>
-        <url>
-            http://maven.voxeo.com:8081/nexus/content/repositories/snapshots/
-        </url>
+      <id>maven.voxeo.com</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://maven.voxeo.com:8081/nexus/content/repositories/releases</url>
     </repository>
+    <!-- use the following if you ARE using a snapshot version. -->
+    <snapshotRepository>
+      <id>maven.voxeo.com</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://maven.voxeo.com:8081/nexus/content/repositories/snapshots</url>
+      <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
   </distributionManagement>
 </project>
