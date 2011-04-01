@@ -62,6 +62,10 @@ public class InputCommand implements Parameters {
   
   protected InputMode _inputMode;
   
+  protected boolean _dtmfHotword = false;
+
+  protected boolean _dtmfTypeahead = false;
+  
   /**
    * if true, every DTMF (or word?) received generates an event
    */
@@ -288,6 +292,21 @@ public class InputCommand implements Parameters {
   public Collection<Object> values() {
     return _parametersExt.values();
   }
-  
+
+  public boolean isDtmfHotword() {
+    return _dtmfHotword;
+  }
+
+  public void setDtmfHotword(boolean dtmfHotword) {
+    _dtmfHotword = dtmfHotword;
+  }
+
+  public boolean isDtmfTypeahead() {
+    return _dtmfTypeahead;
+  }
+
+  public void setDtmfTypeahead(boolean dtmfTypeahead) {
+    _dtmfTypeahead = dtmfTypeahead;
+  }
   
 }

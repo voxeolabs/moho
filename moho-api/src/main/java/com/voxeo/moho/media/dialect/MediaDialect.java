@@ -18,4 +18,8 @@ public interface MediaDialect {
 
     void setBeepOnConferenceExit(Parameters parameters, Boolean value);
 
+    void setDtmfHotwordEnabled(Parameters parameters, Boolean value);
+
+    void setDtmfTypeaheadEnabled(Parameters parameters, Boolean value);
+
 }

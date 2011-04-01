@@ -24,4 +24,10 @@ public class GenericDialect implements MediaDialect {
     @Override
     public void setTextToSpeechVoice(Parameters parameters, String value) {}
 
+    @Override
+    public void setDtmfHotwordEnabled(Parameters parameters, Boolean value) {}
+
+    @Override
+    public void setDtmfTypeaheadEnabled(Parameters parameters, Boolean value) {}
+
 }

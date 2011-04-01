@@ -527,7 +527,9 @@ public class GenericMediaService implements MediaService {
     _dialect.setSpeechLanguage(params, cmd.getSpeechLanguage());
     _dialect.setSpeechTermChar(params, cmd.getTermChar());
     _dialect.setSpeechInputMode(params, cmd.getInputMode());
-
+    _dialect.setDtmfHotwordEnabled(params, cmd.isDtmfHotword());
+    _dialect.setDtmfTypeaheadEnabled(params, cmd.isDtmfTypeahead());
+    
     Parameter[] patternKeys = null;
 
     final Grammar[] grammars = cmd.getGrammars();
