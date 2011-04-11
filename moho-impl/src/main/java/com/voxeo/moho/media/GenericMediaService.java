@@ -529,7 +529,7 @@ public class GenericMediaService implements MediaService {
     _dialect.setSpeechInputMode(params, cmd.getInputMode());
     _dialect.setDtmfHotwordEnabled(params, cmd.isDtmfHotword());
     _dialect.setDtmfTypeaheadEnabled(params, cmd.isDtmfTypeahead());
-    
+
     Parameter[] patternKeys = null;
 
     final Grammar[] grammars = cmd.getGrammars();
@@ -712,37 +712,47 @@ public class GenericMediaService implements MediaService {
         }
         final InputCompleteEvent inputCompleteEvent = new InputCompleteEvent(_parent, cause);
         if (e instanceof SpeechRecognitionEvent) {
-          final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
-          inputCompleteEvent.setUtterance(se.getUserInput());
-          inputCompleteEvent.setTag(se.getTag());
-          inputCompleteEvent.setConcept(se.getTag());
-          final URL semanticResult = se.getSemanticResult();
-          if (semanticResult != null && "application/x-nlsml".equalsIgnoreCase(semanticResult.getHost())) {
-            try {
-              inputCompleteEvent.setNlsml(semanticResult.getPath());
-              final List<Map<String, String>> nlsml = NLSMLParser.parse(inputCompleteEvent.getNlsml());
-              for (final Map<String, String> reco : nlsml) {
-                final String conf = reco.get("_confidence");
-                if (conf != null) {
-                  inputCompleteEvent.setConfidence(Float.parseFloat(conf));
-                }
-                final String interpretation = reco.get("_interpretation");
-                if (interpretation != null) {
-                  inputCompleteEvent.setInterpretation(interpretation);
-                }
-                final String inputmode = reco.get("_inputmode");
-                if (inputmode != null) {
-                  if (inputmode.equalsIgnoreCase("speech") || inputmode.equalsIgnoreCase("voice")) {
-                    inputCompleteEvent.setInputMode(InputCompleteEvent.InputMode.voice);
+          String signalString = e.getSignalString();
+          if (signalString != null) {
+            inputCompleteEvent.setConcept(signalString);
+            inputCompleteEvent.setConfidence(1.0F);
+            inputCompleteEvent.setInterpretation(signalString);
+            inputCompleteEvent.setUtterance(signalString);
+            inputCompleteEvent.setInputMode(InputCompleteEvent.InputMode.dtmf);
+          }
+          else {
+            final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
+            inputCompleteEvent.setUtterance(se.getUserInput());
+            inputCompleteEvent.setTag(se.getTag());
+            inputCompleteEvent.setConcept(se.getTag());
+            final URL semanticResult = se.getSemanticResult();
+            if (semanticResult != null && "application/x-nlsml".equalsIgnoreCase(semanticResult.getHost())) {
+              try {
+                inputCompleteEvent.setNlsml(semanticResult.getPath());
+                final List<Map<String, String>> nlsml = NLSMLParser.parse(inputCompleteEvent.getNlsml());
+                for (final Map<String, String> reco : nlsml) {
+                  final String conf = reco.get("_confidence");
+                  if (conf != null) {
+                    inputCompleteEvent.setConfidence(Float.parseFloat(conf));
                   }
-                  else {
-                    inputCompleteEvent.setInputMode(InputCompleteEvent.InputMode.dtmf);
+                  final String interpretation = reco.get("_interpretation");
+                  if (interpretation != null) {
+                    inputCompleteEvent.setInterpretation(interpretation);
+                  }
+                  final String inputmode = reco.get("_inputmode");
+                  if (inputmode != null) {
+                    if (inputmode.equalsIgnoreCase("speech") || inputmode.equalsIgnoreCase("voice")) {
+                      inputCompleteEvent.setInputMode(InputCompleteEvent.InputMode.voice);
+                    }
+                    else {
+                      inputCompleteEvent.setInputMode(InputCompleteEvent.InputMode.dtmf);
+                    }
                   }
                 }
               }
-            }
-            catch (final Exception e1) {
-              LOG.warn("No NLSML", e1);
+              catch (final Exception e1) {
+                LOG.warn("No NLSML", e1);
+              }
             }
           }
         }
