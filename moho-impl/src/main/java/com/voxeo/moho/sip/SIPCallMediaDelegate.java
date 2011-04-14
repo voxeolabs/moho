@@ -15,12 +15,16 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
+import javax.media.mscontrol.join.Joinable;
+import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.sdp.SdpException;
+import javax.sdp.SessionDescription;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
@@ -28,6 +32,7 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPCallImpl.HoldState;
 
@@ -80,11 +85,19 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
     // if it is a hold request, hold peer.
     SIPCallImpl peerCall = (SIPCallImpl) call.getLastPeer();
     if (peerCall != null) {
+
       String sdp = new String(call.getRemoteSdp(), "iso8859-1");
       if (sdp.indexOf("sendonly") > 0) {
+        if (call.getJoinType(peerCall) == JoinType.BRIDGE) {
+          ((NetworkConnection) peerCall.getMediaObject()).unjoin((NetworkConnection) call.getMediaObject());
+        }
         peerCall.hold(true);
       }
       else if (sdp.indexOf("sendrecv") > 0) {
+        if (call.getJoinType(peerCall) == JoinType.BRIDGE) {
+          ((NetworkConnection) peerCall.getMediaObject()).join(Direction.DUPLEX, (NetworkConnection) call
+              .getMediaObject());
+        }
         peerCall.unhold();
       }
     }
@@ -141,7 +154,24 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
       }
       else {
         if (event.isSuccessful()) {
-          final byte[] sdp = event.getMediaServerSdp();
+          byte[] sdp = event.getMediaServerSdp();
+
+          SessionDescription sessionDescription = null;
+          try {
+            String remoteSdp = new String(call.getRemoteSdp(), "iso8859-1");
+            // TODO improve the parse.
+            if (remoteSdp.indexOf("sendonly") > 0) {
+              sessionDescription = createRecvonlySDP(call, sdp);
+              sdp = sessionDescription.toString().getBytes("iso8859-1");
+            }
+          }
+          catch (UnsupportedEncodingException e1) {
+            LOG.error("", e1);
+          }
+          catch (SdpException e) {
+            LOG.error("", e);
+          }
+
           call.setLocalSDP(sdp);
           try {
             final SipServletResponse res = _req.createResponse(SipServletResponse.SC_OK);
@@ -167,6 +197,18 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
     ((NetworkConnection) call.getMediaObject()).getSdpPortManager().processSdpOffer(
         send ? createRecvonlySDP(call, call.getRemoteSdp()).toString().getBytes() : createSendonlySDP(call,
             call.getRemoteSdp()).toString().getBytes());
+    Joinable[] joinees = null;
+    try {
+      joinees = ((NetworkConnection) call.getMediaObject()).getJoinees();
+    }
+    catch (Exception ex) {
+      // ignore
+    }
+    if (joinees != null) {
+      for (Joinable joinable : joinees) {
+        ((NetworkConnection) call.getMediaObject()).join(Direction.SEND, joinable);
+      }
+    }
 
     SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
     reInvite.setAttribute(SIPCallDelegate.SIPCALL_HOLD_REQUEST, "true");
@@ -175,7 +217,20 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   }
 
   @Override
-  protected void mute(SIPCallImpl call) throws IOException, SdpException {
+  protected void mute(SIPCallImpl call) throws MsControlException, IOException, SdpException {
+    Joinable[] joinees = null;
+    try {
+      joinees = ((NetworkConnection) call.getMediaObject()).getJoinees();
+    }
+    catch (Exception ex) {
+      // ignore
+    }
+    if (joinees != null) {
+      for (Joinable joinable : joinees) {
+        ((NetworkConnection) call.getMediaObject()).join(Direction.RECV, joinable);
+      }
+    }
+
     SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
     reInvite.setAttribute(SIPCallDelegate.SIPCALL_MUTE_REQUEST, "true");
     reInvite.setContent(createSendonlySDP(call, call.getLocalSDP()), "application/sdp");
@@ -187,6 +242,19 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
     ((NetworkConnection) call.getMediaObject()).getSdpPortManager().processSdpOffer(
         createSendrecvSDP(call, call.getRemoteSdp()).toString().getBytes());
 
+    Joinable[] joinees = null;
+    try {
+      joinees = ((NetworkConnection) call.getMediaObject()).getJoinees();
+    }
+    catch (Exception ex) {
+      // ignore
+    }
+    if (joinees != null) {
+      for (Joinable joinable : joinees) {
+        ((NetworkConnection) call.getMediaObject()).join(Direction.DUPLEX, joinable);
+      }
+    }
+
     SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
     reInvite.setAttribute(SIPCallDelegate.SIPCALL_UNHOLD_REQUEST, "true");
     reInvite.setContent(createSendrecvSDP(call, call.getLocalSDP()), "application/sdp");
@@ -194,7 +262,20 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   }
 
   @Override
-  protected void unmute(SIPCallImpl call) throws IOException, SdpException {
+  protected void unmute(SIPCallImpl call) throws MsControlException, IOException, SdpException {
+    Joinable[] joinees = null;
+    try {
+      joinees = ((NetworkConnection) call.getMediaObject()).getJoinees();
+    }
+    catch (Exception ex) {
+      // ignore
+    }
+    if (joinees != null) {
+      for (Joinable joinable : joinees) {
+        ((NetworkConnection) call.getMediaObject()).join(Direction.DUPLEX, joinable);
+      }
+    }
+
     SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
     reInvite.setAttribute(SIPCallDelegate.SIPCALL_UNMUTE_REQUEST, "true");
     reInvite.setContent(createSendrecvSDP(call, call.getLocalSDP()), "application/sdp");

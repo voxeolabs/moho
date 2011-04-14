@@ -136,7 +136,7 @@ public class VoiceXMLDialogImplTest extends TestCase {
 
             @Override
             public Object invoke(Invocation invocation) throws Throwable {
-              vXMLDialog.addParticipant(call, JoinType.BRIDGE, Direction.DUPLEX);
+              vXMLDialog.addParticipant(call, JoinType.BRIDGE, Direction.DUPLEX, null);
               return null;
             }
           });

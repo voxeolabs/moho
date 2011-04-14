@@ -63,11 +63,11 @@ public abstract class SIPCallDelegate {
     throw new UnsupportedOperationException();
   }
 
-  protected void mute(final SIPCallImpl call) throws IOException, SdpException {
+  protected void mute(final SIPCallImpl call) throws MsControlException, IOException, SdpException {
     throw new UnsupportedOperationException();
   }
 
-  protected void unmute(final SIPCallImpl call) throws IOException, SdpException {
+  protected void unmute(final SIPCallImpl call) throws MsControlException, IOException, SdpException {
     throw new UnsupportedOperationException();
   }
 

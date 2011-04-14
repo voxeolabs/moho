@@ -39,8 +39,22 @@ public class JoineeData {
     }
   }
 
-  public synchronized void remove(final Participant p) {
-    _joinees.remove(p);
+  public synchronized void add(final Participant p, final JoinType type, final Direction direction,
+      Participant realJoined) {
+    final JoinData datum = _joinees.get(p);
+    if (datum == null) {
+      _joinees.put(p, new JoinData(p, direction, type, realJoined));
+    }
+    else {
+      datum.setDirection(direction);
+      datum.setType(type);
+      datum.setRealJoined(realJoined);
+      _joinees.put(p, datum);
+    }
+  }
+
+  public synchronized JoinData remove(final Participant p) {
+    return _joinees.remove(p);
   }
 
   public synchronized void clear() {
@@ -71,4 +85,11 @@ public class JoineeData {
     return list.toArray(new Participant[list.size()]);
   }
 
+  public synchronized JoinType getJoinType(final Participant p) {
+    JoinData data = _joinees.get(p);
+    if (data != null) {
+      return data.getType();
+    }
+    return null;
+  }
 }

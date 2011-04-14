@@ -18,7 +18,7 @@ import javax.media.mscontrol.join.Joinable.Direction;
 
 import com.voxeo.moho.Participant.JoinType;
 
-class JoinData {
+public class JoinData {
 
   protected Participant _participant;
 
@@ -26,10 +26,19 @@ class JoinData {
 
   protected JoinType _type;
 
+  protected Participant _realJoined;
+
   protected JoinData(final Participant p, final Direction direction, final JoinType type) {
     _participant = p;
     _direction = direction;
     _type = type;
+  }
+
+  protected JoinData(final Participant p, final Direction direction, final JoinType type, Participant realJoined) {
+    _participant = p;
+    _direction = direction;
+    _type = type;
+    _realJoined = realJoined;
   }
 
   public Participant getParticipant() {
@@ -52,4 +61,11 @@ class JoinData {
     _type = type;
   }
 
+  public Participant getRealJoined() {
+    return _realJoined;
+  }
+
+  public void setRealJoined(Participant realJoined) {
+    _realJoined = realJoined;
+  }
 }

@@ -47,8 +47,6 @@ public class IVR implements Application {
     final MediaService mg = call.getMediaService(false);
     InputCommand input = new InputCommand("1,2");
     input.setTermChar('#');
-    input.setInputMode(InputMode.dtmf);
-    input.setSpeechLanguage("en-US");
     mg.prompt(output, input, 0);
   }
 

@@ -53,7 +53,7 @@ public class MidCallRecord implements Application {
 
     final MediaService mg = partyA.getMediaService(true);
     partyA.setApplicationState("waitForInput");
-    mg.input("* *");
+    mg.input("*");
   }
 
   @State
@@ -61,10 +61,12 @@ public class MidCallRecord implements Application {
     if (event.source instanceof Call) {
       final Call call = (Call) event.source;
 
-      final Call peer = call.getPeers()[0];
-      peer.unjoin(call);
+      final Call[] peers = call.getPeers();
 
-      peer.getMediaService(true).output("Hello, The peer disconnect.");
+      if (peers != null && peers.length > 0) {
+        peers[0].unjoin(call);
+        peers[0].getMediaService(true).output("Hello, The peer disconnect.");
+      }
     }
   }
 

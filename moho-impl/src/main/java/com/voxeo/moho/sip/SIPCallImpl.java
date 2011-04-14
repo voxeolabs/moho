@@ -57,12 +57,14 @@ import com.voxeo.moho.DisconnectedException;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.JoinData;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.JoineeData;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
+import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.RedirectException;
@@ -296,9 +298,17 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
     try {
       Direction direction = Direction.DUPLEX;
-      if (_joinees.getJoinees().length > 0) {
+      Joinable[] joinables = null;
+      try {
+        joinables = _network.getJoinees(Direction.RECV);
+      }
+      catch (MsControlException ex) {
+        // ignore.
+      }
+      if (joinables != null && joinables.length > 0) {
         direction = Direction.RECV;
       }
+
       if (_service == null) {
         Parameters params = null;
         if (getSipSession() != null) {
@@ -416,6 +426,10 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     return _joinees.getJoinees(direction);
   }
 
+  public JoinType getJoinType(Participant participant) {
+    return _joinees.getJoinType(participant);
+  }
+
   @Override
   public JoinableStream getJoinableStream(final StreamType arg0) throws MediaException, IllegalStateException {
     if (_network == null) {
@@ -450,7 +464,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     if (!_joinees.contains(p)) {
       return;
     }
-    _joinees.remove(p);
+    JoinData joinData = _joinees.remove(p);
     if (p instanceof Call) {
       synchronized (_peers) {
         _peers.remove(p);
@@ -459,7 +473,13 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     if (p.getMediaObject() instanceof Joinable) {
       try {
         boolean unjoin = false;
-        Joinable peerJoinalbe = (Joinable) p.getMediaObject();
+        Joinable peerJoinalbe = null;
+        if (joinData.getRealJoined() != null) {
+          peerJoinalbe = (Joinable) joinData.getRealJoined().getMediaObject();
+        }
+        else {
+          peerJoinalbe = (Joinable) p.getMediaObject();
+        }
         Joinable[] joinables = _network.getJoinees();
         for (Joinable joinable : joinables) {
           if (joinable == peerJoinalbe) {
@@ -1213,9 +1233,22 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     if (_network == null) {
       this.join().get();
     }
+
     ((Joinable) other.getMediaObject()).join(direction, _network);
-    _joinees.add(other, type, direction);
-    ((ParticipantContainer) other).addParticipant(this, type, direction);
+
+    if (other instanceof MixerImpl.MyMixerAdapter) {
+      MixerImpl.MyMixerAdapter adapter = (MixerImpl.MyMixerAdapter) other;
+
+      ((Joinable) other.getMediaObject()).join(direction, _network);
+      _joinees.add(adapter.getMixer(), type, direction, adapter);
+      ((ParticipantContainer) other).addParticipant(this, type, direction, adapter);
+    }
+    else {
+      _joinees.add(other, type, direction);
+      ((ParticipantContainer) other).addParticipant(this, type, direction, null);
+    }
+
+    
   }
 
   protected abstract JoinDelegate createJoinDelegate(final Direction direction);

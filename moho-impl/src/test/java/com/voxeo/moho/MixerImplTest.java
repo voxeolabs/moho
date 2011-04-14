@@ -119,7 +119,7 @@ public class MixerImplTest extends TestCase {
 
             @Override
             public Object invoke(Invocation invocation) throws Throwable {
-              mohoMixer.addParticipant(call, JoinType.BRIDGE, Direction.DUPLEX);
+              mohoMixer.addParticipant(call, JoinType.BRIDGE, Direction.DUPLEX, null);
               return null;
             }
           });

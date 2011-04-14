@@ -23,7 +23,7 @@ import com.voxeo.moho.Participant.JoinType;
  */
 public interface ParticipantContainer {
 
-  void addParticipant(Participant p, JoinType type, Direction direction);
+  void addParticipant(Participant p, JoinType type, Direction direction, Participant realJoined);
 
   void removeParticipant(Participant p);
 

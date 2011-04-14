@@ -171,8 +171,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   }
 
   @Override
-  public void addParticipant(final Participant p, final JoinType type, final Direction direction) {
-    _joinees.add(p, type, direction);
+  public void addParticipant(final Participant p, final JoinType type, final Direction direction, Participant realJoined) {
+    _joinees.add(p, type, direction, realJoined);
   }
 
   @Override
@@ -213,12 +213,15 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
             synchronized (MixerImpl.this) {
               if (MixerImpl.this.isClampDtmf(null)) {
                 _adapter.join(direction, (Joinable) other.getMediaObject());
+                _joinees.add(other, type, direction, _adapterParticipant);
+                ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, _adapterParticipant);
               }
               else {
                 _mixer.join(direction, (Joinable) other.getMediaObject());
+                _joinees.add(other, type, direction);
+                ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, null);
               }
-              _joinees.add(other, type, direction);
-              ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction);
+
               event = new JoinCompleteEvent(MixerImpl.this, other, Cause.JOINED);
             }
           }
@@ -245,10 +248,15 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     if (!_joinees.contains(p)) {
       return;
     }
-    _joinees.remove(p);
+    JoinData joinData = _joinees.remove(p);
     if (p.getMediaObject() instanceof Joinable) {
       try {
-        _mixer.unjoin((Joinable) p.getMediaObject());
+        if (joinData.getRealJoined() != null) {
+          _adapter.unjoin((Joinable) p.getMediaObject());
+        }
+        else{
+          _mixer.unjoin((Joinable) p.getMediaObject());
+        }
       }
       catch (final Exception e) {
         LOG.warn("", e);
@@ -335,12 +343,15 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
             synchronized (MixerImpl.this) {
               if (MixerImpl.this.isClampDtmf(props)) {
                 _adapter.join(direction, (Joinable) other.getMediaObject());
+                _joinees.add(other, type, direction, _adapterParticipant);
+                ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, _adapterParticipant);
               }
               else {
                 _mixer.join(direction, (Joinable) other.getMediaObject());
+                _joinees.add(other, type, direction);
+                ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, null);
               }
-              _joinees.add(other, type, direction);
-              ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction);
+
               event = new JoinCompleteEvent(MixerImpl.this, other, Cause.JOINED);
             }
           }
@@ -362,7 +373,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
   }
 
-  class MyMixerAdapter implements Mixer, ParticipantContainer {
+  public class MyMixerAdapter implements Mixer, ParticipantContainer {
 
     @Override
     public MediaService getMediaService() {
@@ -538,13 +549,17 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
 
     @Override
-    public void addParticipant(Participant p, JoinType type, Direction direction) {
-      MixerImpl.this.addParticipant(p, type, direction);
+    public void addParticipant(Participant p, JoinType type, Direction direction, Participant realJoined) {
+      MixerImpl.this.addParticipant(p, type, direction, realJoined);
     }
 
     @Override
     public void removeParticipant(Participant p) {
       MixerImpl.this.removeParticipant(p);
+    }
+
+    public MixerImpl getMixer() {
+      return MixerImpl.this;
     }
   }
 }

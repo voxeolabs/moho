@@ -169,8 +169,8 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   }
 
   @Override
-  public void addParticipant(final Participant p, final JoinType type, final Direction direction) {
-    _joinees.add(p, type, direction);
+  public void addParticipant(final Participant p, final JoinType type, final Direction direction, Participant realJoined) {
+    _joinees.add(p, type, direction, realJoined);
   }
 
   @Override
@@ -204,7 +204,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
             synchronized (_lock) {
               _dialog.join(direction, (Joinable) other.getMediaObject());
               _joinees.add(other, type, direction);
-              ((ParticipantContainer) other).addParticipant(VoiceXMLDialogImpl.this, type, direction);
+              ((ParticipantContainer) other).addParticipant(VoiceXMLDialogImpl.this, type, direction, null);
               event = new JoinCompleteEvent(VoiceXMLDialogImpl.this, other, Cause.JOINED);
             }
           }

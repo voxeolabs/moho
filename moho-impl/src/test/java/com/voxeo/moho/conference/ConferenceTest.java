@@ -187,7 +187,7 @@ public class ConferenceTest extends TestCase {
 
             @Override
             public Object invoke(Invocation invocation) throws Throwable {
-              mohoConference.addParticipant(call, JoinType.BRIDGE, Direction.DUPLEX);
+              mohoConference.addParticipant(call, JoinType.BRIDGE, Direction.DUPLEX, null);
               return new JointImpl(new ThreadPoolExecutor(1, 1, 1, TimeUnit.SECONDS,
                   new ArrayBlockingQueue<Runnable>(1)), new JointImpl.DummyJoinWorker(mohoConference, call));
             }
