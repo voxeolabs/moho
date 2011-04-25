@@ -14,18 +14,29 @@
 
 package com.voxeo.moho.media.input;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 
 public class DigitInputCommand extends InputCommand {
 
-  private static final URI DIGIT_GRAMMAR = URI.create("digits:1,2,3,4,5,6,7,8,9,0");
+    private static final URI DIGIT_GRAMMAR = URI.create("digits:" + encode("1,2,3,4,5,6,7,8,9,0,*,#"));
 
-  public DigitInputCommand(char digit) {
-    super(new Grammar(URI.create("digits:" + digit)));
-  }
+    public DigitInputCommand(char digit) {
+        super(new Grammar(URI.create("digits:" + encode(Character.toString(digit)))));
+    }
 
-  public DigitInputCommand() {
-    super(new Grammar(DIGIT_GRAMMAR));
-  }
-  
+    public DigitInputCommand() {
+        super(new Grammar(DIGIT_GRAMMAR));
+    }
+
+    private static String encode(String url) {
+        try {
+            return URLEncoder.encode(url, "UTF-8");
+        }
+        catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
 }

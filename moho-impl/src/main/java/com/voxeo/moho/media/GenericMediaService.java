@@ -13,9 +13,11 @@
  */
 package com.voxeo.moho.media;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -548,7 +550,12 @@ public class GenericMediaService implements MediaService {
           pattern = uri;
         }
         else if ("digits".equals(uri.getScheme())) {
-          pattern = uri.getSchemeSpecificPart();
+          try {
+              pattern = URLDecoder.decode(uri.getSchemeSpecificPart(), "UTF-8");
+          }
+          catch (UnsupportedEncodingException e) {
+              throw new IllegalStateException(e);
+          }
         }
         else {
           try {
