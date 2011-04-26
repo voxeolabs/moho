@@ -33,8 +33,8 @@ import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.MsControlFactory;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable;
-import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.Joinable.Direction;
+import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.JoinableStream.StreamType;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
@@ -79,9 +79,9 @@ import com.voxeo.moho.event.EventDispatcher;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.ForwardableEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.event.SignalEvent;
-import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.util.SessionUtils;
 import com.voxeo.moho.util.Utils;
@@ -183,8 +183,8 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     _invite = req;
 
     // process Replaces header.
-    final SipSessionsUtil sessionUtil = (SipSessionsUtil) _invite.getSession().getServletContext().getAttribute(
-        "javax.servlet.sip.SipSessionsUtil");
+    final SipSessionsUtil sessionUtil = (SipSessionsUtil) _invite.getSession().getServletContext()
+        .getAttribute("javax.servlet.sip.SipSessionsUtil");
     if (sessionUtil != null) {
       final SipSession peerSession = sessionUtil.getCorrespondingSipSession(_invite.getSession(), "Replaces");
       if (peerSession != null) {
@@ -664,21 +664,24 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   }
 
   protected synchronized void doBye(final SipServletRequest req, final Map<String, String> headers) {
+    if (isTerminated()) {
+      LOG.debug(this + " is already terminated.");
+      return;
+    }
+    else {
+      if (_joinDelegate != null) {
+        _joinDelegate.setException(new DisconnectedException());
+      }
+      this.setSIPCallState(SIPCall.State.DISCONNECTED);
+      terminate(CallCompleteEvent.Cause.DISCONNECT, null);
+    }
+
     try {
       req.createResponse(SipServletResponse.SC_OK).send();
     }
     catch (final Exception e) {
       LOG.warn("", e);
     }
-    if (isTerminated()) {
-      LOG.debug(this + " is already terminated.");
-      return;
-    }
-    if (_joinDelegate != null) {
-      _joinDelegate.setException(new DisconnectedException());
-    }
-    this.setSIPCallState(SIPCall.State.DISCONNECTED);
-    terminate(CallCompleteEvent.Cause.DISCONNECT, null);
   }
 
   protected synchronized void doAck(final SipServletRequest req) throws Exception {
@@ -1085,9 +1088,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       while (!this.isTerminated() && _joinDelegate.isWaiting()) {
         try {
           if (LOG.isDebugEnabled()) {
-            LOG
-                .debug("Start wait joinDelegate. CallID:"
-                    + (getSipSession() != null ? getSipSession().getCallId() : ""));
+            LOG.debug("Start wait joinDelegate. CallID:" + (getSipSession() != null ? getSipSession().getCallId() : ""));
           }
 
           this.wait(1000 * 30);
@@ -1248,7 +1249,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       ((ParticipantContainer) other).addParticipant(this, type, direction, null);
     }
 
-    
   }
 
   protected abstract JoinDelegate createJoinDelegate(final Direction direction);
