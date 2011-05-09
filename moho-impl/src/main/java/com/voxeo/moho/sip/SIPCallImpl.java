@@ -545,7 +545,29 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
             switch (event.getCause()) {
               case ERROR:
-                cause = CallCompleteEvent.Cause.ERROR;
+                  cause = CallCompleteEvent.Cause.ERROR;
+                  break;
+              case BUSY:
+                  cause = CallCompleteEvent.Cause.BUSY;
+                  break;
+              case CANCELED:
+                  cause = CallCompleteEvent.Cause.CANCEL;
+                  break;
+              case DISCONNECTED:
+                  cause = CallCompleteEvent.Cause.DISCONNECT;
+                  break;
+              case REJECT:
+                  cause = CallCompleteEvent.Cause.DECLINE;
+                  break;
+              case TIMEOUT:
+                  cause = CallCompleteEvent.Cause.TIMEOUT;
+                  break;
+              case JOINED:
+              case REDIRECT:                  
+                  // Ignore
+                  break;
+              default:
+                  throw new UnsupportedOperationException("Completion cause is not supported yet: " + event.getCause());
             }
             SIPCallImpl.this.disconnect(true, cause, _exception, null);
           }
