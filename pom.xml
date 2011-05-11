@@ -10,8 +10,8 @@
 
   <repositories>
     <repository>
-      <id>sonatype-nexus-public</id>
-      <url>http://oss.sonatype.org/content/groups/public</url>
+      <id>maven.voxeo.net</id>
+      <url>http://maven.voxeo.net/nexus/content/groups/public/</url>
     </repository>
     <repository>
       <id>sun-public</id>
