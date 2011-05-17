@@ -22,11 +22,13 @@ import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.MixerEndpoint;
-import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.State;
+import com.voxeo.moho.conference.Conference;
 import com.voxeo.moho.conference.ConferenceController;
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.conference.SimpleConferenceController;
+import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 
@@ -37,6 +39,8 @@ public class ConferenceRoom implements Application {
   ConferenceController _controller;
 
   ApplicationContext _ctx;
+
+  Conference conference;
 
   @Override
   public void destroy() {
@@ -55,14 +59,29 @@ public class ConferenceRoom implements Application {
 
   @State
   public void handleInvite(final Call inv) throws Exception {
-    final Call call = inv.acceptCall();
+    final Call call = inv.acceptCall(this);
     MixerEndpoint end = (MixerEndpoint) _ctx.createEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT);
     end.setProperty("playTones", "true");
 
     Properties p = new Properties();
     p.setProperty("playTones", "false");
 
-    _manager.createConference(end, null, inv.getInvitee().getName(), Integer.MAX_VALUE, _controller, null).join(call,
-        JoinType.BRIDGE, Direction.DUPLEX, p).get();
+    if (conference == null) {
+      conference = _manager.createConference(end, null, inv.getInvitee().getName(), Integer.MAX_VALUE, _controller,
+          null);
+    }
+
+    conference.join(call, JoinType.BRIDGE, Direction.DUPLEX, p).get();
+
+    call.setAttribute("conference", conference);
+  }
+
+  @State
+  public void handleCallComplete(final CallCompleteEvent env) throws Exception {
+    Call call = env.getSource();
+    Conference conference = (Conference) call.getAttribute("conference");
+
+    conference.getMediaService().output(
+        "participant left conference. there is " + conference.getParticipants().length + " participants now.");
   }
 }

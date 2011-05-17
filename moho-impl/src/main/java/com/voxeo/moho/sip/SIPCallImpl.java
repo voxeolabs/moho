@@ -807,6 +807,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
     if (_service != null) {
       ((GenericMediaService) _service).release();
+      _service = null;
     }
     final SIPCall.State old = getSIPCallState();
     if (failed) {
@@ -848,8 +849,20 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   protected synchronized void terminate(final CallCompleteEvent.Cause cause, final Exception exception) {
     _context.removeCall(getId());
 
+    if (_service != null) {
+      ((GenericMediaService) _service).release();
+      _service = null;
+    }
     destroyNetworkConnection();
+
+    Participant[] _joineesArray = _joinees.getJoinees();
+    for (Participant participant : _joineesArray) {
+      if (participant instanceof ParticipantContainer) {
+        ((ParticipantContainer) participant).removeParticipant(this);
+      }
+    }
     _joinees.clear();
+
     synchronized (_peers) {
       for (final Call peer : _peers) {
         try {
