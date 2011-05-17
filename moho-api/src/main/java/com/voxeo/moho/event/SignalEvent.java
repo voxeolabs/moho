@@ -77,7 +77,7 @@ public abstract class SignalEvent extends Event<EventSource> implements Acceptab
 
   protected synchronized void checkState() {
     if (isProcessed()) {
-      throw new IllegalStateException("Event already be processed.");
+      throw new IllegalStateException("Event already processed");
     }
   }
 
