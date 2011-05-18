@@ -23,11 +23,12 @@ public class AttributeStoreImpl implements AttributeStore {
   private Map<String, Object> _attributes = new ConcurrentHashMap<String, Object>();
 
   @Override
-  public Object getAttribute(final String name) {
+  @SuppressWarnings("unchecked")
+  public <T> T getAttribute(final String name) {
     if (name == null) {
       return null;
     }
-    return _attributes.get(name);
+    return (T)_attributes.get(name);
   }
 
   @Override
