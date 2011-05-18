@@ -38,6 +38,9 @@ public class SIPOutgoingCall extends SIPCallImpl {
   protected SIPOutgoingCall(final ExecutionContext context, final SIPEndpoint from, final SIPEndpoint to,
       final Map<String, String> headers) {
     super(context);
+    if (from == null || to == null) {
+      throw new IllegalArgumentException("to or from can't be null");
+    }
     _address = to;
     _from = from;
     _headers = headers;
@@ -168,8 +171,8 @@ public class SIPOutgoingCall extends SIPCallImpl {
   }
 
   private void createRequest() {
-    _invite = SIPHelper.createSipInitnalRequest(_context.getSipFactory(), "INVITE", _from.getSipAddress(), _address
-        .getSipAddress(), _headers, _appSession);
+    _invite = SIPHelper.createSipInitnalRequest(_context.getSipFactory(), "INVITE", _from.getSipAddress(),
+        _address.getSipAddress(), _headers, _appSession);
 
     _signal = _invite.getSession();
 

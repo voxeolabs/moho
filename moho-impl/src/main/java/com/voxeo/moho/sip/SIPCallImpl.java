@@ -1267,7 +1267,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
     unlinkDirectlyPeer();
     if (_network == null) {
-      this.join().get();
+      this.doJoin(Direction.DUPLEX);
     }
 
     ((Joinable) other.getMediaObject()).join(direction, _network);
