@@ -285,7 +285,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     if (_network == null) {
       if (reinvite) {
         try {
-          this.join().get();
+          this.doJoin(Direction.DUPLEX);
         }
         catch (final Exception e) {
           throw new MediaException(e);
@@ -545,29 +545,29 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
             switch (event.getCause()) {
               case ERROR:
-                  cause = CallCompleteEvent.Cause.ERROR;
-                  break;
+                cause = CallCompleteEvent.Cause.ERROR;
+                break;
               case BUSY:
-                  cause = CallCompleteEvent.Cause.BUSY;
-                  break;
+                cause = CallCompleteEvent.Cause.BUSY;
+                break;
               case CANCELED:
-                  cause = CallCompleteEvent.Cause.CANCEL;
-                  break;
+                cause = CallCompleteEvent.Cause.CANCEL;
+                break;
               case DISCONNECTED:
-                  cause = CallCompleteEvent.Cause.DISCONNECT;
-                  break;
+                cause = CallCompleteEvent.Cause.DISCONNECT;
+                break;
               case REJECT:
-                  cause = CallCompleteEvent.Cause.DECLINE;
-                  break;
+                cause = CallCompleteEvent.Cause.DECLINE;
+                break;
               case TIMEOUT:
-                  cause = CallCompleteEvent.Cause.TIMEOUT;
-                  break;
+                cause = CallCompleteEvent.Cause.TIMEOUT;
+                break;
               case JOINED:
-              case REDIRECT:                  
-                  // Ignore
-                  break;
+              case REDIRECT:
+                // Ignore
+                break;
               default:
-                  throw new UnsupportedOperationException("Completion cause is not supported yet: " + event.getCause());
+                throw new UnsupportedOperationException("Completion cause is not supported yet: " + event.getCause());
             }
             SIPCallImpl.this.disconnect(true, cause, _exception, null);
           }
@@ -1272,10 +1272,9 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
     ((Joinable) other.getMediaObject()).join(direction, _network);
 
-    if (other instanceof MixerImpl.MyMixerAdapter) {
-      MixerImpl.MyMixerAdapter adapter = (MixerImpl.MyMixerAdapter) other;
+    if (other instanceof MixerImpl.ClampDtmfMixerAdapter) {
+      MixerImpl.ClampDtmfMixerAdapter adapter = (MixerImpl.ClampDtmfMixerAdapter) other;
 
-      ((Joinable) other.getMediaObject()).join(direction, _network);
       _joinees.add(adapter.getMixer(), type, direction, adapter);
       ((ParticipantContainer) other).addParticipant(this, type, direction, adapter);
     }
@@ -1283,7 +1282,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       _joinees.add(other, type, direction);
       ((ParticipantContainer) other).addParticipant(this, type, direction, null);
     }
-
   }
 
   protected abstract JoinDelegate createJoinDelegate(final Direction direction);

@@ -11,32 +11,38 @@
 
 package com.voxeo.moho;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
+import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MediaObject;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.MsControlFactory;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable;
-import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.Joinable.Direction;
+import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.JoinableStream.StreamType;
 import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.mixer.MixerAdapter;
+import javax.media.mscontrol.mixer.MixerEvent;
 import javax.media.mscontrol.spi.Driver;
 import javax.media.mscontrol.spi.DriverManager;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.event.ActiveSpeakerEvent;
 import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.MediaResourceDisconnectEvent;
 import com.voxeo.moho.event.Observer;
-import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.utils.Event;
 import com.voxeo.moho.utils.EventListener;
 
@@ -52,13 +58,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   protected MediaMixer _mixer;
 
-  protected MixerAdapter _adapter;
-
-  protected MyMixerAdapter _adapterParticipant;
-
   protected boolean _clampDtmf;
 
   protected JoineeData _joinees = new JoineeData();
+
+  protected Map<Object, Participant> activeInputParticipant = new HashMap<Object, Participant>();
 
   protected MixerImpl(final ExecutionContext context, final MixerEndpoint address, final Map<Object, Object> params,
       Parameters parameters) {
@@ -82,16 +86,22 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         mf = driver.getFactory(props);
       }
       _media = mf.createMediaSession();
-      _mixer = _media.createMediaMixer(MediaMixer.AUDIO, parameters);
-      _address = address;
 
-      _adapter = _mixer.createMixerAdapter(MixerAdapter.DTMF_CLAMP);
-      _adapterParticipant = new MyMixerAdapter();
+      if (parameters != null && parameters.get(MediaMixer.ENABLED_EVENTS) != null) {
+        _mixer = _media.createMediaMixer(MediaMixer.AUDIO_EVENTS, parameters);
+      }
+      else {
+        _mixer = _media.createMediaMixer(MediaMixer.AUDIO, parameters);
+      }
+
+      _address = address;
 
       if ((address.getProperty("playTones") != null && !Boolean.valueOf(address.getProperty("playTones")))
           || (params != null && !Boolean.valueOf((String) params.get("playTones")))) {
         _clampDtmf = true;
       }
+
+      _mixer.addListener(new MixerEventListener());
     }
     catch (final Exception e) {
       throw new MediaException(e);
@@ -173,11 +183,27 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   @Override
   public void addParticipant(final Participant p, final JoinType type, final Direction direction, Participant realJoined) {
     _joinees.add(p, type, direction, realJoined);
+
+    if (realJoined == null) {
+      activeInputParticipant.put(p.getMediaObject(), p);
+    }
+    else {
+      activeInputParticipant.put(realJoined.getMediaObject(), p);
+    }
   }
 
   @Override
   public void removeParticipant(final Participant p) {
-    _joinees.remove(p);
+    JoinData joinData = _joinees.remove(p);
+
+    if (joinData != null) {
+      if (joinData.getRealJoined() == null) {
+        activeInputParticipant.remove(p.getMediaObject());
+      }
+      else {
+        activeInputParticipant.put(joinData.getRealJoined().getMediaObject(), p);
+      }
+    }
   }
 
   @Override
@@ -193,7 +219,13 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     if (other instanceof Call) {
       Joint joint = null;
       if (isClampDtmf(null)) {
-        joint = other.join(_adapterParticipant, type, direction);
+        try {
+          joint = other.join(new ClampDtmfMixerAdapter(), type, direction);
+        }
+        catch (MsControlException ex) {
+          LOG.warn("can't clamp DTMF", ex);
+          joint = other.join(this, type, direction);
+        }
       }
       else {
         joint = other.join(this, type, direction);
@@ -212,9 +244,18 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
           try {
             synchronized (MixerImpl.this) {
               if (MixerImpl.this.isClampDtmf(null)) {
-                _adapter.join(direction, (Joinable) other.getMediaObject());
-                _joinees.add(other, type, direction, _adapterParticipant);
-                ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, _adapterParticipant);
+                try {
+                  ClampDtmfMixerAdapter clampMixerAdapter = new ClampDtmfMixerAdapter();
+                  clampMixerAdapter._mixerAdapter.join(direction, (Joinable) other.getMediaObject());
+                  _joinees.add(other, type, direction, clampMixerAdapter);
+                  ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, clampMixerAdapter);
+                }
+                catch (MsControlException ex) {
+                  LOG.warn("can't clamp DTMF", ex);
+                  _mixer.join(direction, (Joinable) other.getMediaObject());
+                  _joinees.add(other, type, direction);
+                  ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, null);
+                }
               }
               else {
                 _mixer.join(direction, (Joinable) other.getMediaObject());
@@ -252,9 +293,10 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     if (p.getMediaObject() instanceof Joinable) {
       try {
         if (joinData.getRealJoined() != null) {
-          _adapter.unjoin((Joinable) p.getMediaObject());
+          ((ClampDtmfMixerAdapter) joinData.getRealJoined())._mixerAdapter.unjoin((Joinable) p.getMediaObject());
+          ((ClampDtmfMixerAdapter) joinData.getRealJoined())._mixerAdapter.release();
         }
-        else{
+        else {
           _mixer.unjoin((Joinable) p.getMediaObject());
         }
       }
@@ -323,7 +365,13 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     if (other instanceof Call) {
       Joint joint = null;
       if (isClampDtmf(props)) {
-        joint = other.join(_adapterParticipant, type, direction);
+        try {
+          joint = other.join(new ClampDtmfMixerAdapter(), type, direction);
+        }
+        catch (MsControlException ex) {
+          LOG.warn("can't clamp DTMF", ex);
+          joint = other.join(this, type, direction);
+        }
       }
       else {
         joint = other.join(this, type, direction);
@@ -342,9 +390,18 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
           try {
             synchronized (MixerImpl.this) {
               if (MixerImpl.this.isClampDtmf(props)) {
-                _adapter.join(direction, (Joinable) other.getMediaObject());
-                _joinees.add(other, type, direction, _adapterParticipant);
-                ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, _adapterParticipant);
+                try {
+                  ClampDtmfMixerAdapter clampMixerAdapter = new ClampDtmfMixerAdapter();
+                  clampMixerAdapter._mixerAdapter.join(direction, (Joinable) other.getMediaObject());
+                  _joinees.add(other, type, direction, clampMixerAdapter);
+                  ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, clampMixerAdapter);
+                }
+                catch (MsControlException ex) {
+                  LOG.warn("can't clamp DTMF", ex);
+                  _mixer.join(direction, (Joinable) other.getMediaObject());
+                  _joinees.add(other, type, direction);
+                  ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, null);
+                }
               }
               else {
                 _mixer.join(direction, (Joinable) other.getMediaObject());
@@ -373,7 +430,13 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
   }
 
-  public class MyMixerAdapter implements Mixer, ParticipantContainer {
+  public class ClampDtmfMixerAdapter implements Mixer, ParticipantContainer {
+    protected MixerAdapter _mixerAdapter;
+
+    public ClampDtmfMixerAdapter() throws MsControlException {
+      super();
+      _mixerAdapter = MixerImpl.this._mixer.createMixerAdapter(MixerAdapter.DTMF_CLAMP);
+    }
 
     @Override
     public MediaService getMediaService() {
@@ -388,9 +451,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     @Override
     public JoinableStream getJoinableStream(StreamType value) {
       JoinableStream result = null;
-
       try {
-        result = MixerImpl.this._adapter.getJoinableStream(value);
+        result = _mixerAdapter.getJoinableStream(value);
       }
 
       catch (final MsControlException e) {
@@ -402,11 +464,9 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     @Override
     public JoinableStream[] getJoinableStreams() {
       JoinableStream[] result = null;
-
       try {
-        result = MixerImpl.this._adapter.getJoinableStreams();
+        result = _mixerAdapter.getJoinableStreams();
       }
-
       catch (final MsControlException e) {
         throw new MediaException(e);
       }
@@ -425,7 +485,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
     @Override
     public MediaObject getMediaObject() {
-      return MixerImpl.this._adapter;
+      return _mixerAdapter;
     }
 
     @Override
@@ -560,6 +620,30 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
     public MixerImpl getMixer() {
       return MixerImpl.this;
+    }
+  }
+
+  // listener for Active speaker event.
+  public class MixerEventListener implements MediaEventListener<MixerEvent> {
+    @Override
+    public void onEvent(MixerEvent event) {
+      if (event.getEventType() == MixerEvent.ACTIVE_INPUTS_CHANGED) {
+        Joinable[] joinables = event.getActiveInputs();
+        if (joinables != null) {
+          List<Participant> activeSpeakers = new LinkedList<Participant>();
+          for (Joinable joinalbe : joinables) {
+            Participant participant = activeInputParticipant.get(joinalbe);
+            if (participant != null) {
+              activeSpeakers.add(participant);
+            }
+          }
+
+          if (activeSpeakers.size() > 0) {
+            MixerImpl.this
+                .dispatch(new ActiveSpeakerEvent(MixerImpl.this, activeSpeakers.toArray(new Participant[] {})));
+          }
+        }
+      }
     }
   }
 }
