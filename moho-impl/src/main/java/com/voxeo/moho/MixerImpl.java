@@ -594,8 +594,9 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
 
     @Override
-    public Object getAttribute(String name) {
-      return MixerImpl.this.getAttribute(name);
+    @SuppressWarnings("unchecked")
+    public <T> T getAttribute(String name) {
+      return (T)MixerImpl.this.getAttribute(name);
     }
 
     @Override

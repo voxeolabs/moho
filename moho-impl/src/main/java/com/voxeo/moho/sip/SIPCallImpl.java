@@ -148,11 +148,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   private Map<String, Object> _attributes = new ConcurrentHashMap<String, Object>();
 
   @Override
-  public Object getAttribute(final String name) {
+  @SuppressWarnings("unchecked")
+  public <T> T getAttribute(final String name) {
     if (name == null) {
       return null;
     }
-    return _attributes.get(name);
+    return (T)_attributes.get(name);
   }
 
   @Override
@@ -1697,6 +1698,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers,
       final EventListener<?>... listeners) throws SignalException, MediaException, IllegalStateException {
+      
     if (isProcessed()) {
       throw new IllegalStateException("...");
     }
@@ -1723,6 +1725,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers, final Observer... observers)
       throws SignalException, MediaException, IllegalStateException {
+      
     if (isProcessed()) {
       throw new IllegalStateException("...");
     }
@@ -1748,9 +1751,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   public Call answer(final Map<String, String> headers, final EventListener<?>... listeners) throws SignalException,
       IllegalStateException {
-    final Call call = acceptCall(headers, listeners);
+      
+    if(!_accepted) {
+        acceptCall(headers, listeners);
+    }
 
-    final Joint joint = call.join();
+    final Joint joint = this.join();
     while (!joint.isDone()) {
       try {
         joint.get();
@@ -1763,15 +1769,17 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       }
     }
 
-    return call;
+    return this;
   }
 
   @Override
-  public Call answer(final Map<String, String> headers, final Observer... observer) throws SignalException,
-      IllegalStateException {
-    final Call call = acceptCall(headers, observer);
-
-    final Joint joint = call.join();
+  public Call answer(final Map<String, String> headers, final Observer... observer) throws SignalException, IllegalStateException {
+      
+    if(!_accepted) {
+      acceptCall(headers, observer);
+    }
+      
+    final Joint joint = this.join();
     while (!joint.isDone()) {
       try {
         joint.get();
@@ -1784,7 +1792,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       }
     }
 
-    return call;
+    return this;
   }
 
   // for invite event over==========
@@ -1819,6 +1827,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
   }
 
+  @SuppressWarnings("rawtypes")
   public void addObserver(final Observer observer) {
     if (observer != null) {
       if (observer instanceof EventListener) {
