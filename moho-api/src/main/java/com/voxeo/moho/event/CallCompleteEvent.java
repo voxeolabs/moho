@@ -27,4 +27,9 @@ public class CallCompleteEvent extends Event<Call> {
   public Cause getCause() {
     return _cause;
   }
+  
+  public Exception getException() {
+	  
+	  return _exception;
+  }
 }

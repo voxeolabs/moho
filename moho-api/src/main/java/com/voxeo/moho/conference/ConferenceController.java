@@ -32,7 +32,7 @@ public interface ConferenceController {
    * @param f
    *          the conference be joined.
    */
-  void preJoin(Participant p, Conference f);
+  void preJoin(Participant participant, Conference conference);
 
   /**
    * Invoked for each participant just before the invoked join method on the
@@ -41,7 +41,7 @@ public interface ConferenceController {
    * @param p
    * @param f
    */
-  void postJoin(Participant p, Conference f);
+  void postJoin(Participant participant, Conference conference);
 
   /**
    * Invoked for each participant just after invoked the unjoin method on the
@@ -52,7 +52,7 @@ public interface ConferenceController {
    * @param f
    *          the conference be joined.
    */
-  void preUnjoin(Participant p, Conference f);
+  void preUnjoin(Participant participant, Conference conference);
 
   /**
    * Invoked for each participant just before the invoked unjoin method on the
@@ -63,6 +63,6 @@ public interface ConferenceController {
    * @param f
    *          the conference be joined.
    */
-  void postUnjoin(Participant p, Conference f);
+  void postUnjoin(Participant participant, Conference conference);
 
 }

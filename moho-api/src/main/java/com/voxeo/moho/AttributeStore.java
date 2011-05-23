@@ -29,7 +29,7 @@ public interface AttributeStore {
      * @param name
      * @return the named information
      */
-    Object getAttribute(String name);
+    <T> T getAttribute(String name);
 
     /**
      * allows the application to store source-specific information

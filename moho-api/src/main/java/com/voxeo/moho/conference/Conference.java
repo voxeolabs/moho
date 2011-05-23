@@ -23,18 +23,22 @@ import com.voxeo.moho.Mixer;
  */
 public interface Conference extends Mixer {
 
-  /**
-   * Get the max capacity of this conference.
-   * 
-   * @return number of seats in this conference.
-   */
-  int getMaxSeats();
+    /**
+     * Get the max capacity of this conference.
+     * 
+     * @return number of seats in this conference.
+     */
+    int getMaxSeats();
 
-  /**
-   * Get the number of seats that has been occupied in this conference.
-   * 
-   * @return number of seats that has been occupied in this conference.
-   */
-  int getOccupiedSeats();
+    /**
+     * Get the number of seats that has been occupied in this conference.
+     * 
+     * @return number of seats that has been occupied in this conference.
+     */
+    int getOccupiedSeats();
+
+    public ConferenceController getController();
+
+    public void setController(ConferenceController controller);
 
 }

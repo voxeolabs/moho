@@ -42,7 +42,7 @@ public class ConferenceMangerImpl implements ConferenceManager {
   @Override
   public Conference createConference(final String id, final int seats, final ConferenceController controller,
       Parameters parameters) {
-    return this.createConference((MixerEndpoint) _context.getEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT), null, id,
+    return this.createConference((MixerEndpoint) _context.createEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT), null, id,
         seats, controller, parameters);
   }
 
