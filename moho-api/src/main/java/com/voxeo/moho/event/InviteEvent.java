@@ -250,7 +250,7 @@ public abstract class InviteEvent extends SignalEvent implements RejectableEvent
    *           when the event has been accpeted.
    */
   public Call answer(final Map<String, String> headers) {
-    return this.acceptCall((Map<String, String>) null, (Observer) null);
+    return this.answer((Map<String, String>) null, (Observer) null);
   }
 
   /**

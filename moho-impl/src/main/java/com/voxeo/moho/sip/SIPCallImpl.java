@@ -148,11 +148,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   private Map<String, Object> _attributes = new ConcurrentHashMap<String, Object>();
 
   @Override
-  public Object getAttribute(final String name) {
+  @SuppressWarnings("unchecked")
+  public <T> T getAttribute(final String name) {
     if (name == null) {
       return null;
     }
-    return _attributes.get(name);
+    return (T)_attributes.get(name);
   }
 
   @Override
@@ -285,7 +286,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     if (_network == null) {
       if (reinvite) {
         try {
-          this.join().get();
+          this.doJoin(Direction.DUPLEX);
         }
         catch (final Exception e) {
           throw new MediaException(e);
@@ -545,29 +546,29 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
             switch (event.getCause()) {
               case ERROR:
-                  cause = CallCompleteEvent.Cause.ERROR;
-                  break;
+                cause = CallCompleteEvent.Cause.ERROR;
+                break;
               case BUSY:
-                  cause = CallCompleteEvent.Cause.BUSY;
-                  break;
+                cause = CallCompleteEvent.Cause.BUSY;
+                break;
               case CANCELED:
-                  cause = CallCompleteEvent.Cause.CANCEL;
-                  break;
+                cause = CallCompleteEvent.Cause.CANCEL;
+                break;
               case DISCONNECTED:
-                  cause = CallCompleteEvent.Cause.DISCONNECT;
-                  break;
+                cause = CallCompleteEvent.Cause.DISCONNECT;
+                break;
               case REJECT:
-                  cause = CallCompleteEvent.Cause.DECLINE;
-                  break;
+                cause = CallCompleteEvent.Cause.DECLINE;
+                break;
               case TIMEOUT:
-                  cause = CallCompleteEvent.Cause.TIMEOUT;
-                  break;
+                cause = CallCompleteEvent.Cause.TIMEOUT;
+                break;
               case JOINED:
-              case REDIRECT:                  
-                  // Ignore
-                  break;
+              case REDIRECT:
+                // Ignore
+                break;
               default:
-                  throw new UnsupportedOperationException("Completion cause is not supported yet: " + event.getCause());
+                throw new UnsupportedOperationException("Completion cause is not supported yet: " + event.getCause());
             }
             SIPCallImpl.this.disconnect(true, cause, _exception, null);
           }
@@ -1272,10 +1273,9 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
     ((Joinable) other.getMediaObject()).join(direction, _network);
 
-    if (other instanceof MixerImpl.MyMixerAdapter) {
-      MixerImpl.MyMixerAdapter adapter = (MixerImpl.MyMixerAdapter) other;
+    if (other instanceof MixerImpl.ClampDtmfMixerAdapter) {
+      MixerImpl.ClampDtmfMixerAdapter adapter = (MixerImpl.ClampDtmfMixerAdapter) other;
 
-      ((Joinable) other.getMediaObject()).join(direction, _network);
       _joinees.add(adapter.getMixer(), type, direction, adapter);
       ((ParticipantContainer) other).addParticipant(this, type, direction, adapter);
     }
@@ -1283,7 +1283,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       _joinees.add(other, type, direction);
       ((ParticipantContainer) other).addParticipant(this, type, direction, null);
     }
-
   }
 
   protected abstract JoinDelegate createJoinDelegate(final Direction direction);
@@ -1699,6 +1698,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers,
       final EventListener<?>... listeners) throws SignalException, MediaException, IllegalStateException {
+      
     if (isProcessed()) {
       throw new IllegalStateException("...");
     }
@@ -1725,6 +1725,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers, final Observer... observers)
       throws SignalException, MediaException, IllegalStateException {
+      
     if (isProcessed()) {
       throw new IllegalStateException("...");
     }
@@ -1750,9 +1751,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   public Call answer(final Map<String, String> headers, final EventListener<?>... listeners) throws SignalException,
       IllegalStateException {
-    final Call call = acceptCall(headers, listeners);
+      
+    if(!_accepted) {
+        acceptCall(headers, listeners);
+    }
 
-    final Joint joint = call.join();
+    final Joint joint = this.join();
     while (!joint.isDone()) {
       try {
         joint.get();
@@ -1765,15 +1769,17 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       }
     }
 
-    return call;
+    return this;
   }
 
   @Override
-  public Call answer(final Map<String, String> headers, final Observer... observer) throws SignalException,
-      IllegalStateException {
-    final Call call = acceptCall(headers, observer);
-
-    final Joint joint = call.join();
+  public Call answer(final Map<String, String> headers, final Observer... observer) throws SignalException, IllegalStateException {
+      
+    if(!_accepted) {
+      acceptCall(headers, observer);
+    }
+      
+    final Joint joint = this.join();
     while (!joint.isDone()) {
       try {
         joint.get();
@@ -1786,7 +1792,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       }
     }
 
-    return call;
+    return this;
   }
 
   // for invite event over==========
@@ -1821,6 +1827,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
   }
 
+  @SuppressWarnings("rawtypes")
   public void addObserver(final Observer observer) {
     if (observer != null) {
       if (observer instanceof EventListener) {

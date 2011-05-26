@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.media.mscontrol.Configuration;
+import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MsControlFactory;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -82,7 +83,6 @@ public class ConferenceTest extends TestCase {
 
   // ApplicationContextImpl is simple, no need to mock it.
   ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
-  
 
   MixerEndpoint address;
 
@@ -121,7 +121,7 @@ public class ConferenceTest extends TestCase {
           oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
 
-          oneOf(mixer).createMixerAdapter(with(any(Configuration.class)));
+          oneOf(mixer).addListener(with(any(MediaEventListener.class)));
           will(returnValue(null));
         }
       });
@@ -248,7 +248,7 @@ public class ConferenceTest extends TestCase {
           oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
 
-          oneOf(mixer).createMixerAdapter(with(any(Configuration.class)));
+          oneOf(mixer).addListener(with(any(MediaEventListener.class)));
           will(returnValue(null));
         }
       });

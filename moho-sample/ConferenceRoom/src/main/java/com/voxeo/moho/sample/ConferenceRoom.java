@@ -16,11 +16,16 @@ package com.voxeo.moho.sample;
 
 import java.util.Properties;
 
+import javax.media.mscontrol.EventType;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
+import javax.media.mscontrol.mixer.MediaMixer;
+import javax.media.mscontrol.mixer.MixerEvent;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.State;
@@ -28,6 +33,7 @@ import com.voxeo.moho.conference.Conference;
 import com.voxeo.moho.conference.ConferenceController;
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.conference.SimpleConferenceController;
+import com.voxeo.moho.event.ActiveSpeakerEvent;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.output.TextToSpeechResource;
@@ -60,6 +66,7 @@ public class ConferenceRoom implements Application {
   @State
   public void handleInvite(final Call inv) throws Exception {
     final Call call = inv.acceptCall(this);
+    call.setSupervised(true);
     MixerEndpoint end = (MixerEndpoint) _ctx.createEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT);
     end.setProperty("playTones", "true");
 
@@ -67,13 +74,24 @@ public class ConferenceRoom implements Application {
     p.setProperty("playTones", "false");
 
     if (conference == null) {
+      Parameters parameters = ((ExecutionContext) _ctx).getMSFactory().createParameters();
+      parameters.put(MediaMixer.ENABLED_EVENTS, new EventType[]{MixerEvent.ACTIVE_INPUTS_CHANGED});
+
       conference = _manager.createConference(end, null, inv.getInvitee().getName(), Integer.MAX_VALUE, _controller,
-          null);
+          parameters);
+      conference.addObservers(this);
     }
 
     conference.join(call, JoinType.BRIDGE, Direction.DUPLEX, p).get();
 
     call.setAttribute("conference", conference);
+  }
+
+  @State
+  public void handleActiveSpeaker(final ActiveSpeakerEvent env) throws Exception {
+    env.getActiveSpeakers();
+
+    conference.getMediaService().output("active speaker event received.");
   }
 
   @State

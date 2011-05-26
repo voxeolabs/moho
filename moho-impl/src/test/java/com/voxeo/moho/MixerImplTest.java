@@ -15,6 +15,7 @@
 package com.voxeo.moho;
 
 import javax.media.mscontrol.Configuration;
+import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MsControlFactory;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -87,7 +88,7 @@ public class MixerImplTest extends TestCase {
           oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
 
-          oneOf(mixer).createMixerAdapter(with(any(Configuration.class)));
+          oneOf(mixer).addListener(with(any(MediaEventListener.class)));
           will(returnValue(null));
         }
       });
@@ -169,7 +170,7 @@ public class MixerImplTest extends TestCase {
           oneOf(mediaSession).createMediaMixer(with(any(Configuration.class)), with(any(Parameters.class)));
           will(returnValue(mixer));
 
-          oneOf(mixer).createMixerAdapter(with(any(Configuration.class)));
+          oneOf(mixer).addListener(with(any(MediaEventListener.class)));
           will(returnValue(null));
 
           // release.
