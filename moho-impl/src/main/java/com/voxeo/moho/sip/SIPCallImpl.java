@@ -1698,10 +1698,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers,
       final EventListener<?>... listeners) throws SignalException, MediaException, IllegalStateException {
-      
-    if (isProcessed()) {
-      throw new IllegalStateException("...");
-    }
+    checkState();
     _accepted = true;
     _acceptedWithEarlyMedia = true;
     ((SIPIncomingCall) this).addListeners(listeners);
@@ -1725,10 +1722,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers, final Observer... observers)
       throws SignalException, MediaException, IllegalStateException {
-      
-    if (isProcessed()) {
-      throw new IllegalStateException("...");
-    }
+    checkState();
     _accepted = true;
     _acceptedWithEarlyMedia = true;
     ((SIPIncomingCall) this).addObservers(observers);
