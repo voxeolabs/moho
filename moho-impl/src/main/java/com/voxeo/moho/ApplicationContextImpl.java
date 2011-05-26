@@ -104,13 +104,11 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
           || addr.startsWith("<fax:")) {
         return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
       }
-      else {
-        throw new IllegalArgumentException("Unsupported format: " + addr);
-      }
     }
     catch (final Exception e) {
       throw new IllegalArgumentException(e);
     }
+    throw new IllegalArgumentException("Unsupported format: " + addr);
   }
   
   @Override
