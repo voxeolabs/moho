@@ -47,9 +47,9 @@ public class IMifiedDriver extends HttpServlet {
 
   protected ApplicationEventSource _appEventSource = null;
 
-  protected DefaultHttpClient httpClient = null;
+  public static DefaultHttpClient httpClient = null;
 
-  protected String imifiedApiURL = "https://www.imified.com/api/bot/";
+  public static String imifiedApiURL = "https://www.imified.com/api/bot/";
 
   @Override
   public void init(ServletConfig config) throws ServletException {
@@ -62,7 +62,6 @@ public class IMifiedDriver extends HttpServlet {
     if (config.getInitParameter("imifiedApiURL") != null) {
       imifiedApiURL = config.getInitParameter("imifiedApiURL");
     }
-    appContext.setImifiedApiURL(imifiedApiURL);
 
     HttpParams params = new BasicHttpParams();
     ConnManagerParams.setMaxTotalConnections(params, 20);
@@ -97,8 +96,6 @@ public class IMifiedDriver extends HttpServlet {
         return -1;
       }
     });
-
-    appContext.setHttpClient(httpClient);
 
     _appEventSource = new ApplicationEventSource(appContext, app);
   }
@@ -157,9 +154,9 @@ public class IMifiedDriver extends HttpServlet {
           LOG.debug("The parsed historyValue:" + history);
         }
 
-        IMifiedTextEventImpl event = new IMifiedTextEventImpl(_appEventSource, keyValues.get("channel"), keyValues
-            .get("botkey"), keyValues.get("userkey"), keyValues.get("user"), keyValues.get("network"), keyValues
-            .get("msg"), keyValues.get("step"), keyValues.get("to"), history);
+        IMifiedTextEventImpl event = new IMifiedTextEventImpl(_appEventSource, keyValues.get("channel"),
+            keyValues.get("botkey"), keyValues.get("userkey"), keyValues.get("user"), keyValues.get("network"),
+            keyValues.get("msg"), keyValues.get("step"), keyValues.get("to"), history);
         _appEventSource.dispatch(event);
       }
       catch (Exception ex) {

@@ -39,7 +39,6 @@ import com.voxeo.moho.event.SignalEvent;
 import com.voxeo.moho.event.TextEvent;
 import com.voxeo.moho.media.GenericMediaServiceFactory;
 import com.voxeo.moho.media.dialect.MediaDialect;
-import com.voxeo.moho.text.sip.SIPTextEventImpl;
 import com.voxeo.moho.util.SessionUtils;
 
 public class SIPController extends SipServlet {

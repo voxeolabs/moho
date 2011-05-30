@@ -27,11 +27,9 @@ import javax.sdp.SdpFactory;
 import javax.servlet.ServletContext;
 import javax.servlet.sip.SipFactory;
 
-import org.apache.http.impl.client.DefaultHttpClient;
-
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.sip.SIPEndpointImpl;
-import com.voxeo.moho.text.imified.ImifiedEndpointImpl;
+import com.voxeo.moho.textchannel.TextChannels;
 import com.voxeo.moho.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.voicexml.VoiceXMLEndpointImpl;
 
@@ -55,10 +53,6 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
 
   protected Map<String, String> _parameters = new ConcurrentHashMap<String, String>();
 
-  protected String _imifiedApiURL;
-
-  protected DefaultHttpClient _httpClient;
-
   protected ServletContext _servletContext;
 
   protected ThreadPoolExecutor _executor;
@@ -81,8 +75,7 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     return _application;
   }
 
-  @Override
-  public Endpoint getEndpoint(final String addr) {
+  public Endpoint getEndpoint(final String addr, String type) {
     if (addr == null) {
       throw new IllegalArgumentException("argument is null");
     }
@@ -97,12 +90,12 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
           || addr.startsWith("ftp://")) {
         return new VoiceXMLEndpointImpl(this, addr);
       }
-      else if (addr.startsWith("im:")) {
-        return new ImifiedEndpointImpl(this, addr.substring(addr.indexOf(":") + 1));
-      }
       else if (addr.startsWith("tel:") || addr.startsWith("fax:") || addr.startsWith("<tel:")
           || addr.startsWith("<fax:")) {
         return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
+      }
+      else if (type != null && TextChannels.getProvider(type) != null) {
+        return TextChannels.getProvider(type).createEndpoint(addr, this);
       }
     }
     catch (final Exception e) {
@@ -110,10 +103,20 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     }
     throw new IllegalArgumentException("Unsupported format: " + addr);
   }
-  
+
+  @Override
+  public Endpoint getEndpoint(final String addr) {
+    return getEndpoint(addr, null);
+  }
+
+  @Override
+  public Endpoint createEndpoint(String endpoint, String type) {
+    return getEndpoint(endpoint, type);
+  }
+
   @Override
   public Endpoint createEndpoint(String endpoint) {
-    return getEndpoint(endpoint);
+    return getEndpoint(endpoint, null);
   }
 
   @Override
@@ -182,25 +185,9 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
   public MediaServiceFactory getMediaServiceFactory() {
     return _msFactory;
   }
-  
+
   public void setMediaServiceFactory(MediaServiceFactory factory) {
     _msFactory = factory;
-  }
-
-  public String getImifiedApiURL() {
-    return _imifiedApiURL;
-  }
-
-  public void setImifiedApiURL(final String imifiedApiURL) {
-    this._imifiedApiURL = imifiedApiURL;
-  }
-
-  public DefaultHttpClient getHttpClient() {
-    return _httpClient;
-  }
-
-  public void setHttpClient(final DefaultHttpClient httpClient) {
-    _httpClient = httpClient;
   }
 
   @Override

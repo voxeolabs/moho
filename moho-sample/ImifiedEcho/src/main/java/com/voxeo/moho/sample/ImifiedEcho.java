@@ -4,10 +4,11 @@ import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.TextEvent;
-import com.voxeo.moho.imified.ImifiedEndpoint;
+import com.voxeo.moho.text.imified.ImifiedTextChannelProvider;
+import com.voxeo.moho.textchannel.TextChannels;
+import com.voxeo.moho.textchannel.imified.ImifiedEndpoint;
 
 public class ImifiedEcho implements Application {
-
   private String _name;
 
   private String _pwd;
@@ -19,6 +20,8 @@ public class ImifiedEcho implements Application {
   public void init(final ApplicationContext ctx) {
     _name = ctx.getParameter("username");
     _pwd = ctx.getParameter("password");
+
+    TextChannels.registerProvider(new ImifiedTextChannelProvider());
   }
 
   @State

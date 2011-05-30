@@ -1,4 +1,4 @@
-package com.voxeo.moho.text.sip;
+package com.voxeo.moho.sip;
 
 import java.io.IOException;
 
@@ -7,7 +7,6 @@ import javax.servlet.sip.SipServletRequest;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.sip.SIPEndpointImpl;
 import com.voxeo.moho.sip.SIPTextEvent;
 
 public class SIPTextEventImpl extends SIPTextEvent {

@@ -42,6 +42,8 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
 
   Endpoint createEndpoint(String addr);
 
+  Endpoint createEndpoint(String addr, String type);
+
   Application getApplication();
 
   ConferenceManager getConferenceManager();

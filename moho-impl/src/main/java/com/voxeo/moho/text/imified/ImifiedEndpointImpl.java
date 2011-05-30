@@ -11,13 +11,11 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ApplicationContext;
-import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.TextableEndpoint;
-import com.voxeo.moho.imified.ImifiedEndpoint;
+import com.voxeo.moho.textchannel.imified.ImifiedEndpoint;
 
 public class ImifiedEndpointImpl implements ImifiedEndpoint {
   private static final Logger LOG = Logger.getLogger(ImifiedEndpointImpl.class);
@@ -38,18 +36,10 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
   // bot password, should be set by application.
   protected String _imifiedPasswd;
 
-  private String _imifiedAPI;
-
-  private DefaultHttpClient _httpClient;
-
   public ImifiedEndpointImpl(final ApplicationContext ctx, final String key) {
     super();
     _key = key;
     _ctx = ctx;
-
-    final ApplicationContextImpl impl = (ApplicationContextImpl) ctx;
-    _imifiedAPI = impl.getImifiedApiURL();
-    _httpClient = impl.getHttpClient();
   }
 
   @Override
@@ -67,7 +57,7 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
       throw new IllegalArgumentException("The from endpoint is not an ImifiedEndpoint instance.");
     }
 
-    final HttpPost post = new HttpPost(_imifiedAPI);
+    final HttpPost post = new HttpPost(IMifiedDriver.imifiedApiURL);
 
     final String up = bot.getImifiedUserName() + ":" + bot.getImifiedPasswd();
     final String value = "Basic " + new String(Base64.encodeBase64(up.getBytes("UTF-8")), "UTF-8");
@@ -88,7 +78,7 @@ public class ImifiedEndpointImpl implements ImifiedEndpoint {
     }
     HttpEntity resEntity = null;
     try {
-      final HttpResponse response = _httpClient.execute(post);
+      final HttpResponse response = IMifiedDriver.httpClient.execute(post);
       resEntity = response.getEntity();
       final BufferedReader reader = new BufferedReader(new InputStreamReader(resEntity.getContent()));
 
