@@ -725,7 +725,7 @@ public class GenericMediaService implements MediaService {
             inputCompleteEvent.setConfidence(1.0F);
             inputCompleteEvent.setInterpretation(signalString);
             inputCompleteEvent.setUtterance(signalString);
-            inputCompleteEvent.setInputMode(InputCompleteEvent.InputMode.dtmf);
+            inputCompleteEvent.setInputMode(InputMode.dtmf);
           }
           else {
             final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
@@ -749,10 +749,10 @@ public class GenericMediaService implements MediaService {
                   final String inputmode = reco.get("_inputmode");
                   if (inputmode != null) {
                     if (inputmode.equalsIgnoreCase("speech") || inputmode.equalsIgnoreCase("voice")) {
-                      inputCompleteEvent.setInputMode(InputCompleteEvent.InputMode.voice);
+                      inputCompleteEvent.setInputMode(InputMode.voice);
                     }
                     else {
-                      inputCompleteEvent.setInputMode(InputCompleteEvent.InputMode.dtmf);
+                      inputCompleteEvent.setInputMode(InputMode.dtmf);
                     }
                   }
                 }
@@ -769,7 +769,7 @@ public class GenericMediaService implements MediaService {
           inputCompleteEvent.setConfidence(1.0F);
           inputCompleteEvent.setInterpretation(signalString);
           inputCompleteEvent.setUtterance(signalString);
-          inputCompleteEvent.setInputMode(InputCompleteEvent.InputMode.dtmf);
+          inputCompleteEvent.setInputMode(InputMode.dtmf);
         }
         if (_cmd.isSupervised()) {
           _parent.dispatch(inputCompleteEvent);
