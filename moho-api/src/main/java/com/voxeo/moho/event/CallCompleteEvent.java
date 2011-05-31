@@ -6,7 +6,7 @@ import com.voxeo.moho.utils.Event;
 public class CallCompleteEvent extends Event<Call> {
 
   public enum Cause {
-    DISCONNECT, CANCEL, BUSY, DECLINE, FORBIDDEN, TIMEOUT, ERROR, NEAR_END_DISCONNECT
+    DISCONNECT, CANCEL, BUSY, DECLINE, FORBIDDEN, TIMEOUT, ERROR, NEAR_END_DISCONNECT, REDIRECT
   }
 
   protected Cause _cause;

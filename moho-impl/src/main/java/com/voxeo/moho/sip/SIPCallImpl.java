@@ -153,7 +153,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     if (name == null) {
       return null;
     }
-    return (T)_attributes.get(name);
+    return (T) _attributes.get(name);
   }
 
   @Override
@@ -1630,6 +1630,9 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     checkState();
     _redirected = true;
     setSIPCallState(SIPCall.State.REDIRECTED);
+
+    terminate(CallCompleteEvent.Cause.REDIRECT, null);
+
     if (o instanceof SIPEndpoint) {
       final SipServletResponse res = _invite.createResponse(SipServletResponse.SC_MOVED_TEMPORARILY);
       res.setHeader("Contact", ((SIPEndpoint) o).getURI().toString());
@@ -1651,6 +1654,9 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     checkState();
     _rejected = true;
     setSIPCallState(SIPCall.State.REJECTED);
+
+    terminate(CallCompleteEvent.Cause.DECLINE, null);
+
     try {
       final SipServletResponse res = _invite.createResponse(reason == null ? Reason.DECLINE.getCode() : reason
           .getCode());
@@ -1745,9 +1751,9 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   public Call answer(final Map<String, String> headers, final EventListener<?>... listeners) throws SignalException,
       IllegalStateException {
-      
-    if(!_accepted) {
-        acceptCall(headers, listeners);
+
+    if (!_accepted) {
+      acceptCall(headers, listeners);
     }
 
     final Joint joint = this.join();
@@ -1767,12 +1773,13 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   }
 
   @Override
-  public Call answer(final Map<String, String> headers, final Observer... observer) throws SignalException, IllegalStateException {
-      
-    if(!_accepted) {
+  public Call answer(final Map<String, String> headers, final Observer... observer) throws SignalException,
+      IllegalStateException {
+
+    if (!_accepted) {
       acceptCall(headers, observer);
     }
-      
+
     final Joint joint = this.join();
     while (!joint.isDone()) {
       try {
