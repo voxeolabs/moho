@@ -13,11 +13,9 @@
  */
 package com.voxeo.moho.event;
 
-public class InputCompleteEvent extends MediaCompleteEvent {
+import com.voxeo.moho.media.InputMode;
 
-  public enum InputMode {
-    dtmf, voice
-  }
+public class InputCompleteEvent extends MediaCompleteEvent {
 
   public enum Cause {
     /** the input is terminated because the initial silence is too long */
