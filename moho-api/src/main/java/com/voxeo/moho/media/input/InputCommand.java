@@ -34,7 +34,7 @@ public class InputCommand implements Parameters {
 
   protected Grammar[] _grammars = new Grammar[0];
 
-  protected int _confidence = 30;
+  protected float _confidence = 0.3f;
 
   protected float _sensitivity = 0.5f;
 
@@ -121,7 +121,7 @@ public class InputCommand implements Parameters {
     return _grammars;
   }
 
-  public int getConfidence() {
+  public float getConfidence() {
     return _confidence;
   }
 
@@ -145,7 +145,7 @@ public class InputCommand implements Parameters {
     _recordURI = uri;
   }
 
-  public void setConfidence(final int confidence) {
+  public void setConfidence(final float confidence) {
     _confidence = confidence;
   }
 
