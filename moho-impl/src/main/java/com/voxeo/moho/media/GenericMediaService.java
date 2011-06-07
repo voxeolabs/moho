@@ -57,13 +57,13 @@ import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.InputDetectedEvent;
 import com.voxeo.moho.event.MediaCompleteEvent;
 import com.voxeo.moho.event.OutputCompleteEvent;
+import com.voxeo.moho.event.OutputCompleteEvent.Cause;
 import com.voxeo.moho.event.OutputPausedEvent;
 import com.voxeo.moho.event.OutputResumedEvent;
 import com.voxeo.moho.event.RecordCompleteEvent;
 import com.voxeo.moho.event.RecordPausedEvent;
 import com.voxeo.moho.event.RecordResumedEvent;
 import com.voxeo.moho.event.RecordStartedEvent;
-import com.voxeo.moho.event.OutputCompleteEvent.Cause;
 import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.media.input.Grammar;
 import com.voxeo.moho.media.input.InputCommand;
@@ -524,13 +524,14 @@ public class GenericMediaService implements MediaService {
     params.put(SignalDetector.MAX_DURATION, cmd.getMaxTimeout());
     params.put(SignalDetector.INITIAL_TIMEOUT, cmd.getInitialTimeout());
     params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterSigTimeout());
-    params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getConfidence());
+    params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getSensitivity());
 
     _dialect.setSpeechLanguage(params, cmd.getSpeechLanguage());
     _dialect.setSpeechTermChar(params, cmd.getTermChar());
     _dialect.setSpeechInputMode(params, cmd.getInputMode());
     _dialect.setDtmfHotwordEnabled(params, cmd.isDtmfHotword());
     _dialect.setDtmfTypeaheadEnabled(params, cmd.isDtmfTypeahead());
+    _dialect.setConfidence(params, cmd.getConfidence());
 
     Parameter[] patternKeys = null;
 
@@ -551,10 +552,10 @@ public class GenericMediaService implements MediaService {
         }
         else if ("digits".equals(uri.getScheme())) {
           try {
-              pattern = URLDecoder.decode(uri.getSchemeSpecificPart(), "UTF-8");
+            pattern = URLDecoder.decode(uri.getSchemeSpecificPart(), "UTF-8");
           }
           catch (UnsupportedEncodingException e) {
-              throw new IllegalStateException(e);
+            throw new IllegalStateException(e);
           }
         }
         else {
