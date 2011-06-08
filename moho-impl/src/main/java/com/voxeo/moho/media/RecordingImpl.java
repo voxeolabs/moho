@@ -39,6 +39,8 @@ public class RecordingImpl implements Recording {
 
   private Condition resumeActionResult = lock.newCondition();
 
+  private boolean _normalDisconnected = false;
+
   protected RecordingImpl(final MediaGroup group) {
     _group = group;
   }
@@ -170,5 +172,13 @@ public class RecordingImpl implements Recording {
 
   public synchronized boolean isPending() {
     return !_future.isDone();
+  }
+
+  public void normalDisconnect(boolean normal) {
+    _normalDisconnected = true;
+  }
+
+  public boolean isNormalDisconnect() {
+    return _normalDisconnected;
   }
 }

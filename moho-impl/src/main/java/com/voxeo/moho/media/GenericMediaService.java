@@ -650,7 +650,12 @@ public class GenericMediaService implements MediaService {
           }
         }
         else if (q == ResourceEvent.STOPPED) {
-          cause = Cause.CANCEL;
+          if (_output.isNormalDisconnect()) {
+            cause = Cause.DISCONNECT;
+          }
+          else {
+            cause = Cause.CANCEL;
+          }
         }
         final OutputCompleteEvent outputCompleteEvent = new OutputCompleteEvent(_parent, cause);
         _parent.dispatch(outputCompleteEvent);
@@ -710,7 +715,12 @@ public class GenericMediaService implements MediaService {
           cause = InputCompleteEvent.Cause.NO_MATCH;
         }
         else if (q == ResourceEvent.STOPPED) {
-          cause = InputCompleteEvent.Cause.CANCEL;
+          if (_input.isNormalDisconnect()) {
+            cause = InputCompleteEvent.Cause.DISCONNECT;
+          }
+          else {
+            cause = InputCompleteEvent.Cause.CANCEL;
+          }
         }
         else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED || patternMatched(e)) {
           cause = InputCompleteEvent.Cause.MATCH;
@@ -820,7 +830,12 @@ public class GenericMediaService implements MediaService {
           cause = RecordCompleteEvent.Cause.INI_TIMEOUT;
         }
         else if (q == ResourceEvent.STOPPED) {
-          cause = RecordCompleteEvent.Cause.CANCEL;
+          if (_recording.isNormalDisconnect()) {
+            cause = RecordCompleteEvent.Cause.DISCONNECT;
+          }
+          else {
+            cause = RecordCompleteEvent.Cause.CANCEL;
+          }
         }
         else if (q == ResourceEvent.RTC_TRIGGERED) {
           cause = RecordCompleteEvent.Cause.CANCEL;
@@ -843,7 +858,7 @@ public class GenericMediaService implements MediaService {
     }
   }
 
-  public void release() {
+  public void release(boolean isNormalDisconnect) {
     Iterator<MediaOperation<? extends MediaCompleteEvent>> ite = futures.iterator();
 
     while (ite.hasNext()) {
@@ -852,7 +867,7 @@ public class GenericMediaService implements MediaService {
       if (future instanceof RecordingImpl) {
         RecordingImpl recording = (RecordingImpl) future;
         if (recording.isPending()) {
-          recording.done(new RecordCompleteEvent(_parent, RecordCompleteEvent.Cause.UNKNOWN, 0));
+          recording.normalDisconnect(isNormalDisconnect);
         }
         recording.pauseActionDone();
         recording.resumeActionDone();
@@ -860,13 +875,13 @@ public class GenericMediaService implements MediaService {
       else if (future instanceof InputImpl) {
         InputImpl input = (InputImpl) future;
         if (input.isPending()) {
-          input.done(new InputCompleteEvent(_parent, InputCompleteEvent.Cause.UNKNOWN));
+          input.normalDisconnect(isNormalDisconnect);
         }
       }
       else {
         OutputImpl output = (OutputImpl) future;
         if (output.isPending()) {
-          output.done(new OutputCompleteEvent(_parent, OutputCompleteEvent.Cause.UNKNOWN));
+          output.normalDisconnect(isNormalDisconnect);
         }
         output.pauseActionDone();
         output.resumeActionDone();

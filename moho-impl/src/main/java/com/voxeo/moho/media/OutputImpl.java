@@ -43,6 +43,8 @@ public class OutputImpl implements Output {
   private Condition pauseActionResult = lock.newCondition();
 
   private Condition resumeActionResult = lock.newCondition();
+  
+  private boolean _normalDisconnected = false;
 
   protected OutputImpl(final MediaGroup group) {
     _group = group;
@@ -303,5 +305,13 @@ public class OutputImpl implements Output {
 
   public synchronized boolean isPending() {
     return !_future.isDone();
+  }
+  
+  public void normalDisconnect(boolean normal) {
+    _normalDisconnected = true;
+  }
+
+  public boolean isNormalDisconnect() {
+    return _normalDisconnected;
   }
 }

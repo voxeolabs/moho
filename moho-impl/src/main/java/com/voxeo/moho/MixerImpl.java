@@ -43,6 +43,7 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.MediaResourceDisconnectEvent;
 import com.voxeo.moho.event.Observer;
+import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.utils.Event;
 import com.voxeo.moho.utils.EventListener;
 
@@ -148,6 +149,12 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public synchronized void disconnect() {
+    try {
+      ((GenericMediaService) _service).release(true);
+    }
+    catch (final Exception e) {
+      LOG.warn("Exception when release media service", e);
+    }
     try {
       _mixer.release();
     }
@@ -596,7 +603,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getAttribute(String name) {
-      return (T)MixerImpl.this.getAttribute(name);
+      return (T) MixerImpl.this.getAttribute(name);
     }
 
     @Override

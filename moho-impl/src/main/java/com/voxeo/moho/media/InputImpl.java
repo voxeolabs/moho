@@ -29,6 +29,8 @@ public class InputImpl implements Input {
   protected MediaGroup _group;
 
   protected SettableResultFuture<InputCompleteEvent> _future = new SettableResultFuture<InputCompleteEvent>();
+  
+  private boolean _normalDisconnected = false;
 
   protected InputImpl(final MediaGroup group) {
     _group = group;
@@ -83,5 +85,13 @@ public class InputImpl implements Input {
 
   public synchronized boolean isPending() {
     return !_future.isDone();
+  }
+  
+  public void normalDisconnect(boolean normal) {
+    _normalDisconnected = true;
+  }
+
+  public boolean isNormalDisconnect() {
+    return _normalDisconnected;
   }
 }
