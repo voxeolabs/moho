@@ -831,7 +831,9 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       return;
     }
     if (_service != null) {
-      ((GenericMediaService) _service).release();
+      ((GenericMediaService) _service)
+          .release((cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) ? true
+              : false);
       _service = null;
     }
     final SIPCall.State old = getSIPCallState();
@@ -875,7 +877,9 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     _context.removeCall(getId());
 
     if (_service != null) {
-      ((GenericMediaService) _service).release();
+      ((GenericMediaService) _service)
+          .release((cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) ? true
+              : false);
       _service = null;
     }
     destroyNetworkConnection();

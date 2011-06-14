@@ -19,7 +19,7 @@ public class RecordCompleteEvent extends MediaCompleteEvent {
   private static final long serialVersionUID = -8757723338851029875L;
 
   public enum Cause {
-    TIMEOUT, ERROR, SILENCE, UNKNOWN, CANCEL, INI_TIMEOUT,
+    TIMEOUT, ERROR, SILENCE, UNKNOWN, CANCEL, INI_TIMEOUT, DISCONNECT
   }
 
   protected Cause _cause;
