@@ -15,19 +15,11 @@ package com.voxeo.moho.spi;
 
 import java.io.IOException;
 
-import javax.media.mscontrol.MsControlFactory;
-import javax.sdp.SdpFactory;
 import javax.servlet.ServletException;
-import javax.servlet.sip.SipFactory;
-import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 public interface SIPDriver extends ProtocolDriver {
-
-  void init(SpiFramework app, SipFactory sipF, SdpFactory sdpF, MsControlFactory mf, SipServlet servlet);
-
-  void destroy();
 
   void doRequest(final SipServletRequest req) throws ServletException, IOException;
 

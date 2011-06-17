@@ -16,14 +16,10 @@ package com.voxeo.moho.spi;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public interface HTTPDriver extends ProtocolDriver {
-
-  void init(SpiFramework app, HttpServlet servlet);
-  void destroy();
 
   void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException;
   void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException;

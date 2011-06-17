@@ -60,12 +60,13 @@ public class SIPDriverImpl implements SIPDriver {
   
   protected static final String[] SCHEMAS = new String[]{"sip", "tel", "sips", "<sip", "<tel", "<sips", "fax", "<fax:"};
 
-  public void init(SpiFramework app, SipFactory sipF, SdpFactory sdpF, MsControlFactory mf, SipServlet servlet) {
-    _app = app;
-    _sipFacory = sipF;
-    _sdpFactory = sdpF;
-    _mscFactory = mf;
-    _servlet = servlet;
+  @Override
+  public void init(SpiFramework framework) {
+    _app = framework;
+    _sipFacory = framework.getExecutionContext().getSipFactory();
+    _sdpFactory = framework.getExecutionContext().getSdpFactory();
+    _mscFactory = framework.getExecutionContext().getMSFactory();
+    _servlet = framework.getSIPController();
   }
 
   @Override

@@ -33,13 +33,14 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
-import com.voxeo.moho.conference.ConferenceMangerImpl;
+import com.voxeo.moho.conference.ConferenceDriverImpl;
 import com.voxeo.moho.event.ApplicationEventSource;
-import com.voxeo.moho.imified.IMifiedDriver;
 import com.voxeo.moho.media.GenericMediaServiceFactory;
 import com.voxeo.moho.media.dialect.MediaDialect;
+import com.voxeo.moho.spi.ConferenceDriver;
 import com.voxeo.moho.spi.ProtocolDriver;
 import com.voxeo.moho.spi.SIPDriver;
+import com.voxeo.moho.voicexml.VoiceXMLDriverImpl;
 
 public class SIPController extends SipServlet {
 
@@ -108,7 +109,6 @@ public class SIPController extends SipServlet {
           eventDispatcherThreadPoolSize);
 
       ctx.setMediaServiceFactory(new GenericMediaServiceFactory(mediaDialect));
-      ctx.setConferenceManager(new ConferenceMangerImpl(ctx));
 
       final Enumeration<String> e = getInitParameterNames();
       while (e.hasMoreElements()) {
@@ -118,17 +118,22 @@ public class SIPController extends SipServlet {
       }
 
       _app = new ApplicationEventSource(ctx, app);
+      _app.setSIPController(this);
       _app.registerDriver(ProtocolDriver.PROTOCOL_SIP, SIPDriverImpl.class.getName());
-      _app.registerDriver(ProtocolDriver.PROTOCOL_HTTP, IMifiedDriver.class.getName());
+      _app.registerDriver(ProtocolDriver.PROTOCOL_VXML, VoiceXMLDriverImpl.class.getName());
+      _app.registerDriver(ProtocolDriver.PROTOCOL_CONF, ConferenceDriverImpl.class.getName());
+      for (String name : _app.getProtocolFamilies()) {
+        ProtocolDriver d = _app.getDriverByProtocolFamily(name);
+        d.init(_app);
+      }
       ctx.setFramework(_app);
       getServletContext().setAttribute(ApplicationContext.APPLICATION, app);
       getServletContext().setAttribute(ApplicationContext.APPLICATION_CONTEXT, ctx);
       getServletContext().setAttribute(ApplicationContext.FRAMEWORK, _app);
-      
-      app.init(ctx);
-      
       _driver = (SIPDriver)_app.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_SIP);
-      _driver.init(_app, sipFactory, sdpFactory, mscFactory, this);
+      ConferenceDriver cd = (ConferenceDriver)_app.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_CONF);
+      ctx.setConferenceManager(cd.getManager());
+      app.init(ctx);
     }
     catch (final Throwable t) {
       LOG.error("Unable to initialize Moho:", t);

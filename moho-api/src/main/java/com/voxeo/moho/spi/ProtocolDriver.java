@@ -18,9 +18,13 @@ public interface ProtocolDriver {
   final String PROTOCOL_SIP = "sip";
   final String PROTOCOL_XMPP = "xmpp";
   final String PROTOCOL_HTTP = "http";
+  final String PROTOCOL_VXML = "vxml";
+  final String PROTOCOL_CONF = "mixer";
   
+  void init(SpiFramework framework);
   String getProtocolFamily();
   String[] getEndpointSchemas();
   SpiFramework getFramework();
   Endpoint createEndpoint(String addr);
+  void destroy();
 }

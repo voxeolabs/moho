@@ -18,6 +18,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.http.HttpServlet;
+import javax.servlet.sip.SipServlet;
+
 import com.voxeo.moho.Application;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.ProtocolDriver;
@@ -28,6 +31,8 @@ public class ApplicationEventSource extends DispatchableEventSource implements S
   protected Map<String, ProtocolDriver> _driversByProtocol = new HashMap<String, ProtocolDriver>();
   protected Map<String, ProtocolDriver> _driversBySchema = new HashMap<String, ProtocolDriver>();
   protected Application _app;
+  protected SipServlet _sip;
+  protected HttpServlet _http;
   
   public ApplicationEventSource(final ExecutionContext context, final Application application) {
     super(context, false);
@@ -95,5 +100,23 @@ public class ApplicationEventSource extends DispatchableEventSource implements S
   @Override
   public ExecutionContext getExecutionContext() {
     return _context;
+  }
+
+  @Override
+  public SipServlet getSIPController() {
+    return _sip;
+  }
+  
+  public void setSIPController(SipServlet sip) {
+    _sip = sip;
+  }
+
+  @Override
+  public HttpServlet getHTTPController() {
+    return _http;
+  }
+  
+  public void setHTTPController(HttpServlet http) {
+    _http = http;
   }
 }

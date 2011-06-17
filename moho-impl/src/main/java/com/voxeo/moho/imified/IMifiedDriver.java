@@ -54,8 +54,9 @@ public class IMifiedDriver implements HTTPDriver {
   protected final static String[] SCHEMAS = new String[]{"im"};
 
   @Override
-  public void init(SpiFramework framework, HttpServlet servlet) {
+  public void init(SpiFramework framework) {
     _appEventSource = framework;
+    HttpServlet servlet = framework.getHTTPController();
     
     if (servlet.getServletConfig().getInitParameter("imifiedApiURL") != null) {
       _imifiedApiURL = servlet.getServletConfig().getInitParameter("imifiedApiURL");

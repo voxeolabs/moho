@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.voxeo.moho.ApplicationContext;
+import com.voxeo.moho.event.ApplicationEventSource;
+import com.voxeo.moho.imified.IMifiedDriver;
 import com.voxeo.moho.spi.HTTPDriver;
 import com.voxeo.moho.spi.ProtocolDriver;
 import com.voxeo.moho.spi.SpiFramework;
@@ -25,8 +27,17 @@ public class HttpController extends HttpServlet {
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
     _framework = (SpiFramework) getServletContext().getAttribute(ApplicationContext.FRAMEWORK);
-    _driver = (HTTPDriver)_framework.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_SIP);
-    _driver.init(_framework, this);
+    if(_framework.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_HTTP) == null) {
+      try {
+        _framework.registerDriver(ProtocolDriver.PROTOCOL_HTTP, IMifiedDriver.class.getName());
+      }
+      catch (Exception e) {
+        throw new ServletException(e);
+      }
+    }
+    ((ApplicationEventSource)_framework).setHTTPController(this);
+    _driver = (HTTPDriver)_framework.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_HTTP);
+    _driver.init(_framework);
   }
 
   @Override
