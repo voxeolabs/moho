@@ -48,7 +48,7 @@ import com.voxeo.moho.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.utils.EventListener;
 import com.voxeo.moho.voicexml.VoiceXMLDriverImpl;
 
-public class ApplicationContextImpl extends DispatchableEventSource implements ExecutionContext, SpiFramework {
+public class ApplicationContextImpl extends DispatchableEventSource implements ExecutionContext, SpiFramework{
 
   private static final Logger LOG = Logger.getLogger(ApplicationContextImpl.class);
   

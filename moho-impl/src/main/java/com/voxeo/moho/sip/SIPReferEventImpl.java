@@ -36,7 +36,6 @@ import com.voxeo.moho.MediaException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription.Type;
-import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.event.MohoReferEvent;
 import com.voxeo.moho.util.SessionUtils;
 
@@ -113,12 +112,11 @@ public class SIPReferEventImpl extends MohoReferEvent implements SIPReferEvent {
   @Override
   public void forwardTo(final Endpoint endpoint, final Map<String, String> headers) throws SignalException,
       IllegalStateException {
-    if (source instanceof ApplicationEventSource && endpoint instanceof SIPEndpoint) {
+    if (source instanceof ApplicationContextImpl && endpoint instanceof SIPEndpoint) {
       this.checkState();
       _forwarded = true;
 
-      final ApplicationEventSource es = (ApplicationEventSource) source;
-      final ApplicationContextImpl appContext = (ApplicationContextImpl) es.getApplicationContext();
+      final ApplicationContextImpl appContext = (ApplicationContextImpl) source;
 
       final SipServletRequest req = appContext.getSipFactory().createRequest(_req.getApplicationSession(), "REFER",
           _req.getFrom(), ((SIPEndpoint) endpoint).getSipAddress());

@@ -29,7 +29,6 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContextImpl;
-import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.spi.ProtocolDriver;
 import com.voxeo.moho.spi.SIPDriver;
 
@@ -39,7 +38,7 @@ public class SIPController extends SipServlet {
 
   private static final Logger LOG = Logger.getLogger(SIPController.class);
 
-  protected ApplicationEventSource _app = null;
+  protected ApplicationContextImpl _ctx = null;
 
   protected String _applicationClass = null;
   
@@ -76,7 +75,7 @@ public class SIPController extends SipServlet {
 
       final ApplicationContextImpl ctx = new ApplicationContextImpl(app, mscFactory, this);
 
-      _driver = (SIPDriver)_app.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_SIP);
+      _driver = (SIPDriver)ctx.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_SIP);
       app.init(ctx);
     }
     catch (final Throwable t) {

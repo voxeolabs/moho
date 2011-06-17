@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.voxeo.moho.ApplicationContext;
-import com.voxeo.moho.event.ApplicationEventSource;
+import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.imified.IMifiedDriver;
 import com.voxeo.moho.spi.HTTPDriver;
 import com.voxeo.moho.spi.ProtocolDriver;
@@ -35,7 +35,7 @@ public class HttpController extends HttpServlet {
         throw new ServletException(e);
       }
     }
-    ((ApplicationEventSource)_framework).setHTTPController(this);
+    ((ApplicationContextImpl)_framework).setHTTPController(this);
     _driver = (HTTPDriver)_framework.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_HTTP);
     _driver.init(_framework);
   }
