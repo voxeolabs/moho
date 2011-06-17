@@ -7,16 +7,16 @@ import com.voxeo.moho.spi.SpiFramework;
 import com.voxeo.moho.spi.VoiceXMLDriver;
 
 public class VoiceXMLDriverImpl implements VoiceXMLDriver {
-  protected static final String[] SCHEMAS = new String[]{"file", "http", "https"};
+  protected static final String[] SCHEMAS = new String[]{"file", "http", "https", "ftp", "ftps"};
   protected SpiFramework _framework;
   
-  void init(SpiFramework framework) {
+  public void init(SpiFramework framework) {
     _framework = framework;
   }
   
   @Override
   public String getProtocolFamily() {
-    return "vxml";
+    return PROTOCOL_VXML;
   }
 
   @Override
@@ -37,6 +37,10 @@ public class VoiceXMLDriverImpl implements VoiceXMLDriver {
     catch(MalformedURLException e) {
       throw new IllegalArgumentException(e);
     }
+  }
+
+  @Override
+  public void destroy() {
   }
 
 }
