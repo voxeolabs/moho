@@ -42,12 +42,12 @@ public class MockServletContext implements ServletContext {
 
   @Override
   public ServletContext getContext(String arg0) {
-    return null;
+    return this;
   }
 
   @Override
   public String getContextPath() {
-    return null;
+    return "";
   }
 
   @Override

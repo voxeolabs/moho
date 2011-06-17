@@ -1,7 +1,9 @@
 package com.voxeo.moho.sip.fake;
 
 import javax.sdp.SdpFactory;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 
@@ -16,6 +18,13 @@ public class MockSipServlet extends SipServlet {
     _ctx = new MockServletContext();
     _ctx.setAttribute(SIP_FACTORY, _mockery.mock(SipFactory.class));
     _ctx.setAttribute("javax.servlet.sdp.SdpFactory", _mockery.mock(SdpFactory.class));
+    try {
+      init(new MockServletConfig(_ctx));
+    }
+    catch (ServletException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
   
   public ServletContext getServletContext() {
