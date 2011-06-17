@@ -27,7 +27,7 @@
     <module>Transfer</module>
     <module>MusicOnHold</module>
     <module>Echo</module>
-    <module>ImifiedEcho</module>
+    <!--module>ImifiedEcho</module-->
     <module>DefaultTestApp</module>
   </modules>
 
