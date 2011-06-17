@@ -81,6 +81,9 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     if (addr == null) {
       throw new IllegalArgumentException("argument is null");
     }
+    if (addr.startsWith("mscontrol://")) {
+      return new MixerEndpointImpl(this, addr);
+    }
 //      if (addr.startsWith("sip:") || addr.startsWith("sips:") || addr.startsWith("<sip:") || addr.startsWith("<sips:")) {
 //        return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
 //      }
