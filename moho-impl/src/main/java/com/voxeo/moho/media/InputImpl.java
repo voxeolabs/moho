@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -21,22 +21,21 @@ import java.util.concurrent.TimeoutException;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.signals.SignalDetector;
 
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.util.SettableResultFuture;
 
-public class InputImpl implements Input {
+public class InputImpl<T extends EventSource> implements Input<T> {
 
   protected MediaGroup _group;
 
-  protected SettableResultFuture<InputCompleteEvent> _future = new SettableResultFuture<InputCompleteEvent>();
-  
-  private boolean _normalDisconnected = false;
+  protected SettableResultFuture<InputCompleteEvent<T>> _future = new SettableResultFuture<InputCompleteEvent<T>>();
 
   protected InputImpl(final MediaGroup group) {
     _group = group;
   }
 
-  protected void done(final InputCompleteEvent event) {
+  protected void done(final InputCompleteEvent<T> event) {
     _future.setResult(event);
   }
 
@@ -63,12 +62,12 @@ public class InputImpl implements Input {
   }
 
   @Override
-  public InputCompleteEvent get() throws InterruptedException, ExecutionException {
+  public InputCompleteEvent<T> get() throws InterruptedException, ExecutionException {
     return _future.get();
   }
 
   @Override
-  public InputCompleteEvent get(final long timeout, final TimeUnit unit) throws InterruptedException,
+  public InputCompleteEvent<T> get(final long timeout, final TimeUnit unit) throws InterruptedException,
       ExecutionException, TimeoutException {
     return _future.get(timeout, unit);
   }
@@ -85,13 +84,5 @@ public class InputImpl implements Input {
 
   public synchronized boolean isPending() {
     return !_future.isDone();
-  }
-  
-  public void normalDisconnect(boolean normal) {
-    _normalDisconnected = true;
-  }
-
-  public boolean isNormalDisconnect() {
-    return _normalDisconnected;
   }
 }

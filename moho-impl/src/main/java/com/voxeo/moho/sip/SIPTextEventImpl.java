@@ -7,14 +7,27 @@ import javax.servlet.sip.SipServletRequest;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.MohoTextEvent;
 import com.voxeo.moho.sip.SIPTextEvent;
+import com.voxeo.moho.spi.ExecutionContext;
 
-public class SIPTextEventImpl extends SIPTextEvent {
+public class SIPTextEventImpl<T extends EventSource> extends MohoTextEvent<T> implements SIPTextEvent<T> {
 
-  public SIPTextEventImpl(final EventSource source, final SipServletRequest req) {
-    super(source, req);
+  protected SipServletRequest _req;
+
+  protected ExecutionContext _ctx;
+
+  protected SIPTextEventImpl(final T source, final SipServletRequest req) {
+    super(source);
+    _req = req;
+    _ctx = (ExecutionContext) source.getApplicationContext();
   }
 
+  @Override
+  public SipServletRequest getSipRequest() {
+    return _req;
+  }
+  
   @Override
   public String getText() {
     Object content = null;

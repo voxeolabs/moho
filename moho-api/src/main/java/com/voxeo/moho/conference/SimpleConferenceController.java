@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -107,7 +107,7 @@ public class SimpleConferenceController implements ConferenceController {
             throw new MediaException(e);
           }
         }
-        final Prompt prompt = ((Call) p).getMediaService().prompt(_enter, _pass, _repeat);
+        final Prompt<Call> prompt = ((Call) p).prompt(_enter, _pass, _repeat);
         if (_pass != null) {
           try {
             if (!prompt.getInput().get().hasMatch()) {
@@ -140,15 +140,15 @@ public class SimpleConferenceController implements ConferenceController {
       final Observer observer = new Observer() {
         @SuppressWarnings("unused")
         @State
-        public void handleEvent(final InputCompleteEvent event) {
+        public void handleEvent(final InputCompleteEvent<Call> event) {
           if (event.hasMatch()) {
             f.unjoin(p);
           }
         }
       };
-      call.addObservers(observer);
+      call.addObserver(observer);
       try {
-        call.getMediaService().input(_term);
+        call.input(_term);
       }
       catch (final MediaException e) {
         call.removeObserver(observer);
@@ -167,7 +167,7 @@ public class SimpleConferenceController implements ConferenceController {
     if (p instanceof Call && _exit != null) {
       final Call call = (Call) p;
       try {
-        call.getMediaService(true).output(_exit).get();
+        call.output(_exit).get();
       }
       catch (final InterruptedException e) {
         throw new MediaException(e);

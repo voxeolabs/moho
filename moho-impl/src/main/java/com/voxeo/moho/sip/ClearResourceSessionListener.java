@@ -4,7 +4,7 @@ import javax.servlet.sip.SipSessionEvent;
 import javax.servlet.sip.SipSessionListener;
 import javax.servlet.sip.annotation.SipListener;
 
-import com.voxeo.moho.event.CallCompleteEvent;
+import com.voxeo.moho.event.MohoCallCompleteEvent;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.util.SessionUtils;
 
@@ -21,7 +21,7 @@ public class ClearResourceSessionListener implements SipSessionListener {
     final EventSource source = SessionUtils.getEventSource(sipsessionevent.getSession());
 
     if (source != null && source instanceof SIPCallImpl) {
-      ((SIPCallImpl) source).disconnect(true, CallCompleteEvent.Cause.ERROR, null, null);
+      ((SIPCallImpl) source).disconnect(true, MohoCallCompleteEvent.Cause.ERROR, null, null);
     }
   }
 

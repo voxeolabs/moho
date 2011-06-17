@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -24,14 +24,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Recorder;
 
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.RecordCompleteEvent;
 import com.voxeo.moho.util.SettableResultFuture;
 
-public class RecordingImpl implements Recording {
+public class RecordingImpl<T extends EventSource> implements Recording<T> {
 
   protected MediaGroup _group;
 
-  protected SettableResultFuture<RecordCompleteEvent> _future = new SettableResultFuture<RecordCompleteEvent>();
+  protected SettableResultFuture<RecordCompleteEvent<T>> _future = new SettableResultFuture<RecordCompleteEvent<T>>();
 
   final Lock lock = new ReentrantLock();
 
@@ -39,13 +40,11 @@ public class RecordingImpl implements Recording {
 
   private Condition resumeActionResult = lock.newCondition();
 
-  private boolean _normalDisconnected = false;
-
   protected RecordingImpl(final MediaGroup group) {
     _group = group;
   }
 
-  protected void done(final RecordCompleteEvent event) {
+  protected void done(final RecordCompleteEvent<T> event) {
     _future.setResult(event);
   }
 
@@ -150,12 +149,12 @@ public class RecordingImpl implements Recording {
   }
 
   @Override
-  public RecordCompleteEvent get() throws InterruptedException, ExecutionException {
+  public RecordCompleteEvent<T> get() throws InterruptedException, ExecutionException {
     return _future.get();
   }
 
   @Override
-  public RecordCompleteEvent get(final long timeout, final TimeUnit unit) throws InterruptedException,
+  public RecordCompleteEvent<T> get(final long timeout, final TimeUnit unit) throws InterruptedException,
       ExecutionException, TimeoutException {
     return _future.get(timeout, unit);
   }
@@ -172,13 +171,5 @@ public class RecordingImpl implements Recording {
 
   public synchronized boolean isPending() {
     return !_future.isDone();
-  }
-
-  public void normalDisconnect(boolean normal) {
-    _normalDisconnected = true;
-  }
-
-  public boolean isNormalDisconnect() {
-    return _normalDisconnected;
   }
 }

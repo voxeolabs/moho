@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -15,7 +15,13 @@ package com.voxeo.moho.event;
 
 import com.voxeo.moho.media.InputMode;
 
-public class InputCompleteEvent extends MediaCompleteEvent {
+/**
+ * This event is fired when an {@link com.voxeo.moho.media.Input Input} is completed.
+ * 
+ * @author wchen
+ *
+ */
+public interface InputCompleteEvent<T extends EventSource> extends MediaCompleteEvent<T> {
 
   public enum Cause {
     /** the input is terminated because the initial silence is too long */
@@ -36,107 +42,27 @@ public class InputCompleteEvent extends MediaCompleteEvent {
     DISCONNECT, UNKNOWN
   }
 
-  private static final long serialVersionUID = 4354478901698920065L;
 
-  protected Cause _cause;
+  String getConcept();
 
-  protected String _concept;
+  String getInterpretation();
+  
+  String getUtterance();
+  
+  float getConfidence();
 
-  protected String _interpretation;
+  String getNlsml();
 
-  protected String _utterance;
+  String getTag();
 
-  protected float _confidence;
+  /**
+   * @return the cause of the completion
+   */
+  Cause getCause();
 
-  protected String _nlsml;
+  boolean hasMatch();
 
-  protected String _tag;
+  InputMode getInputMode();
 
-  protected boolean successful;
-
-  protected InputMode _inputMode;
-
-  public InputCompleteEvent(final EventSource source, final Cause cause) {
-    super(source);
-    _cause = cause;
-    if (_cause == Cause.MATCH) {
-      successful = true;
-    }
-  }
-
-  public String getConcept() {
-    return _concept;
-  }
-
-  public void setConcept(final String concept) {
-    this._concept = concept;
-  }
-
-  public String getInterpretation() {
-    return _interpretation;
-  }
-
-  public void setInterpretation(final String interpretation) {
-    this._interpretation = interpretation;
-  }
-
-  public String getUtterance() {
-    return _utterance;
-  }
-
-  public void setUtterance(final String utterance) {
-    this._utterance = utterance;
-  }
-
-  public float getConfidence() {
-    return _confidence;
-  }
-
-  public void setConfidence(final float confidence) {
-    this._confidence = confidence;
-  }
-
-  public String getNlsml() {
-    return _nlsml;
-  }
-
-  public void setNlsml(final String _nlsml) {
-    this._nlsml = _nlsml;
-  }
-
-  public String getTag() {
-    return _tag;
-  }
-
-  public void setTag(final String tag) {
-    _tag = tag;
-  }
-
-  public Cause getCause() {
-    return _cause;
-  }
-
-  public boolean hasMatch() {
-    return successful;
-  }
-
-  public InputMode getInputMode() {
-    return _inputMode;
-  }
-
-  public void setInputMode(InputMode inputMode) {
-    _inputMode = inputMode;
-  }
-
-  public String getValue() {
-    String retval = getConcept();
-    if (retval == null) {
-      retval = getUtterance();
-    }
-    if (retval == null) {
-      retval = getInterpretation();
-    }
-    return retval;
-  }
-
+  String getValue();
 }

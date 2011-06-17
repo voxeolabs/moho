@@ -1,0 +1,504 @@
+/**
+ * Copyright 2010-2011 Voxeo Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License.
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+package com.voxeo.moho.sip;
+
+import java.io.IOException;
+
+import javax.media.mscontrol.MsControlFactory;
+import javax.sdp.SdpFactory;
+import javax.servlet.ServletException;
+import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipServletResponse;
+
+import org.apache.log4j.Logger;
+
+import com.voxeo.moho.Call;
+import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.Framework;
+import com.voxeo.moho.IncomingCall;
+import com.voxeo.moho.Registration;
+import com.voxeo.moho.Subscription;
+import com.voxeo.moho.event.CallEvent;
+import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.NotifyEvent;
+import com.voxeo.moho.event.RegisterEvent;
+import com.voxeo.moho.event.RequestEvent;
+import com.voxeo.moho.event.SubscribeEvent;
+import com.voxeo.moho.event.TextEvent;
+import com.voxeo.moho.event.UnknownRequestEvent;
+import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.spi.SIPDriver;
+import com.voxeo.moho.spi.SpiFramework;
+import com.voxeo.moho.util.SessionUtils;
+
+public class SIPDriverImpl implements SIPDriver {
+
+  private static final Logger LOG = Logger.getLogger(SIPDriverImpl.class);
+
+  protected Framework _app = null;
+
+  protected SipFactory _sipFacory;
+
+  protected SdpFactory _sdpFactory;
+
+  protected MsControlFactory _mscFactory;
+  
+  protected SipServlet _servlet;
+  
+  protected static final String[] SCHEMAS = new String[]{"sip", "tel", "sips", "<sip", "<tel", "<sips", "fax", "<fax:"};
+
+  public void init(SpiFramework app, SipFactory sipF, SdpFactory sdpF, MsControlFactory mf, SipServlet servlet) {
+    _app = app;
+    _sipFacory = sipF;
+    _sdpFactory = sdpF;
+    _mscFactory = mf;
+    _servlet = servlet;
+  }
+
+  @Override
+  public void destroy() {
+    ((ExecutionContext) _app.getApplicationContext()).destroy();
+  }
+
+  @Override
+  public void doRequest(final SipServletRequest req) throws ServletException, IOException {
+    final String s = req.getMethod();
+    if ("INVITE".equals(s)) {
+      doInvite(req);
+    }
+    else if ("ACK".equals(s)) {
+      doAck(req);
+    }
+    else if ("OPTIONS".equals(s)) {
+      doOptions(req);
+    }
+    else if ("BYE".equals(s)) {
+      doBye(req);
+    }
+    else if ("CANCEL".equals(s)) {
+      doCancel(req);
+    }
+    else if ("REGISTER".equals(s)) {
+      doRegister(req);
+    }
+    else if ("SUBSCRIBE".equals(s)) {
+      doSubscribe(req);
+    }
+    else if ("NOTIFY".equals(s)) {
+      doNotify(req);
+    }
+    else if ("MESSAGE".equals(s)) {
+      doMessage(req);
+    }
+    else if ("INFO".equals(s)) {
+      doInfo(req);
+    }
+    else if ("UPDATE".equals(s)) {
+      doUpdate(req);
+    }
+    else if ("REFER".equals(s)) {
+      doRefer(req);
+    }
+    else if ("PUBLISH".equals(s)) {
+      doPublish(req);
+    }
+    else if ("PRACK".equals(s)) {
+      doPrack(req);
+    }
+    else {
+      doOthers(req);
+    }
+  }
+
+  protected void doInvite(final SipServletRequest req) throws ServletException, IOException {
+    if (req.isInitial()) {
+      final IncomingCall ev = new SIPIncomingCall((ExecutionContext) _app.getApplicationContext(), req);
+      _app.dispatch(ev);
+    }
+    else {
+      final EventSource source = SessionUtils.getEventSource(req);
+      if (source != null) {
+        source.dispatch(new SIPReInviteEventImpl((Call) source, req));
+      }
+    }
+  }
+
+  protected void doBye(final SipServletRequest req) throws ServletException, IOException {
+    final EventSource source = SessionUtils.getEventSource(req);
+    if (source != null) {
+      source.dispatch(new SIPHangupEventImpl((SIPCall) source, req));
+    }
+  }
+
+  protected void doAck(final SipServletRequest req) throws ServletException, IOException {
+    final EventSource source = SessionUtils.getEventSource(req);
+    if (source instanceof SIPCallImpl) {
+      final SIPCallImpl call = (SIPCallImpl) source;
+      try {
+        call.doAck(req);
+      }
+      catch (final Exception e) {
+        LOG.warn("", e);
+      }
+    }
+  }
+
+  protected void doPrack(final SipServletRequest req) throws ServletException, IOException {
+    final EventSource source = SessionUtils.getEventSource(req);
+    if (source instanceof SIPIncomingCall) {
+      final SIPIncomingCall call = (SIPIncomingCall) source;
+      try {
+        call.doPrack(req);
+      }
+      catch (final Exception e) {
+        LOG.warn("", e);
+      }
+    }
+  }
+
+  protected void doCancel(final SipServletRequest req) throws ServletException, IOException {
+    // final EventSource source = SessionUtils.getEventSource(req);
+    // if (source instanceof SIPIncomingCall) {
+    // final SIPIncomingCall call = (SIPIncomingCall) source;
+    // try {
+    // call.doCancel();
+    // }
+    // catch (final Exception e) {
+    // log.warn("", e);
+    // }
+    // }
+
+    final EventSource source = SessionUtils.getEventSource(req);
+    if (source != null) {
+      source.dispatch(new SIPHangupEventImpl((SIPCall) source, req));
+    }
+  }
+
+  protected void doRefer(final SipServletRequest req) throws ServletException, IOException {
+    EventSource source = null;
+    if (!req.isInitial()) {
+      source = SessionUtils.getEventSource(req);
+    }
+    if (source != null) {
+      if (source instanceof SIPCall) {
+        final CallEvent event = new SIPReferEventImpl((SIPCall) source, req);
+        source.dispatch(event);
+      }
+      else {
+        LOG.warn("SIP Refer is received on an unknown source: " + source);
+      }
+    }
+    else {
+      LOG.warn("SIP Refer is received as an initial message.");
+    }
+  }
+
+  protected void doNotify(final SipServletRequest req) throws ServletException, IOException {
+    EventSource source = null;
+    if (!req.isInitial()) {
+      source = SessionUtils.getEventSource(req);
+    }
+    if (source != null) {
+      final NotifyEvent<EventSource> event = new SIPNotifyEventImpl<EventSource>(source, req);
+      source.dispatch(event);
+    }
+    else {
+      final NotifyEvent<EventSource> event = new SIPNotifyEventImpl<EventSource>(_app, req);
+      _app.dispatch(event, new NoHandleHandler<EventSource>(event, req));
+    }
+  }
+
+  protected void doMessage(final SipServletRequest req) throws ServletException, IOException {
+    req.createResponse(200).send();
+    final String type = req.getContentType();
+    if (type != null && type.startsWith("text/")) {
+      EventSource source = null;
+      if (!req.isInitial()) {
+        source = SessionUtils.getEventSource(req);
+      }
+      if (source != null) {
+        final TextEvent<EventSource> event = new SIPTextEventImpl<EventSource>(source, req);
+        source.dispatch(event);
+      }
+      else {
+        final TextEvent<EventSource> event = new SIPTextEventImpl<EventSource>(_app, req);
+        _app.dispatch(event, new SessionDisposer(req));
+      }
+    }
+    else {
+      try {
+        req.getApplicationSession().invalidate();
+      }
+      catch (final Throwable t) {
+        ;
+      }
+    }
+  }
+
+  protected void doRegister(final SipServletRequest req) throws ServletException, IOException {
+    final RegisterEvent event = new SIPRegisterEventImpl(_app, req);
+    _app.dispatch(event, new NoHandleHandler<Framework>(event, req));
+  }
+
+  protected void doSubscribe(final SipServletRequest req) throws ServletException, IOException {
+    final SubscribeEvent event = new SIPSubscribeEventImpl(_app, req);
+    _app.dispatch(event, new NoHandleHandler<Framework>(event, req));
+  }
+
+  protected void doUpdate(final SipServletRequest req) throws ServletException, IOException {
+    doOthers(req);
+  }
+
+  protected void doOptions(final SipServletRequest req) throws ServletException, IOException {
+    doOthers(req);
+  }
+
+  protected void doInfo(final SipServletRequest req) throws ServletException, IOException {
+    doOthers(req);
+  }
+
+  protected void doPublish(final SipServletRequest req) throws ServletException, IOException {
+    doOthers(req);
+  }
+
+  protected void doOthers(final SipServletRequest req) {
+    EventSource source = null;
+    if (!req.isInitial()) {
+      source = SessionUtils.getEventSource(req);
+    }
+    if (source != null) {
+      if (source instanceof Call) {
+        final UnknownRequestEvent<Call> event = new SIPUnknownRequestEventImpl<Call>((Call) source, req);
+        source.dispatch(event);
+      }
+      else if (source instanceof Framework) {
+        final UnknownRequestEvent<Framework> event = new SIPUnknownRequestEventImpl<Framework>((Framework) source, req);
+        source.dispatch(event);
+      }
+      else {
+        final UnknownRequestEvent<EventSource> event = new SIPUnknownRequestEventImpl<EventSource>(source, req);
+        source.dispatch(event);
+      }
+    }
+    else {
+      final UnknownRequestEvent<Framework> event = new SIPUnknownRequestEventImpl<Framework>((Framework) source, req);
+      _app.dispatch(event, new NoHandleHandler<Framework>(event, req));
+    }
+  }
+
+  @Override
+  public void doResponse(final SipServletResponse res) throws ServletException, IOException {
+    final EventSource source = SessionUtils.getEventSource(res);
+    if (source != null) {
+      final int i = res.getStatus();
+      if (i < 200) {
+        doProvisionalResponse(res);
+      }
+      else if (i < 300) {
+        doSuccessResponse(res);
+      }
+      else if (res.isBranchResponse()) {
+        doBranchResponse(res);
+      }
+      else if (i < 400) {
+        doRedirectResponse(res);
+      }
+      else {
+        doErrorResponse(res);
+      }
+    }
+    else {
+      final SipServletRequest req = (SipServletRequest) SIPHelper.getLinkSIPMessage(res.getRequest());
+      if (req != null) {
+        final SipServletResponse newRes = req.createResponse(res.getStatus(), res.getReasonPhrase());
+        SIPHelper.copyContent(res, newRes);
+        newRes.send();
+      }
+    }
+  }
+  
+  protected void doBranchResponse(final SipServletResponse res) throws ServletException, IOException {
+    // do nothing right now
+  }
+
+  protected void doProvisionalResponse(final SipServletResponse res) throws ServletException, IOException {
+    final EventSource source = SessionUtils.getEventSource(res);
+    if (source != null) {
+      if (source instanceof SIPCall) {
+        final int status = res.getStatus();
+        if (status == SipServletResponse.SC_SESSION_PROGRESS) {
+          source.dispatch(new SIPEarlyMediaEventImpl((SIPCall) source, res));
+        }
+        else if (status != SipServletResponse.SC_TRYING) {
+          source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
+        }
+      }
+      else {
+        LOG.warn(res + " is received for a non SIP Call source.");
+      }
+    }
+  }
+
+  protected void doSuccessResponse(final SipServletResponse res) throws ServletException, IOException {
+    final EventSource source = SessionUtils.getEventSource(res);
+    if (source != null) {
+      if (source instanceof Call) {
+        source.dispatch(new SIPAnsweredEventImpl<Call>((SIPCall) source, res));
+        return;
+      }
+      else if (source instanceof Framework) {
+        source.dispatch(new SIPAnsweredEventImpl<Framework>((Framework) source, res));
+        return;
+      }
+      else if (source instanceof Registration) {
+        source.dispatch(new SIPAnsweredEventImpl<Registration>((Registration) source, res));
+        return;
+      }
+      else if (source instanceof Subscription) {
+        source.dispatch(new SIPAnsweredEventImpl<Subscription>((Subscription) source, res));
+        return;
+      }
+    }
+    LOG.warn(res + " is received for a unknow source: " + source);
+  }
+
+  protected void doRedirectResponse(final SipServletResponse res) throws ServletException, IOException {
+    final EventSource source = SessionUtils.getEventSource(res);
+    if (source != null) {
+      if (source instanceof Call) {
+        source.dispatch(new SIPRedirectEventImpl<Call>((SIPCall) source, res));
+        return;
+      }
+      else if (source instanceof Framework) {
+        source.dispatch(new SIPRedirectEventImpl<Framework>((Framework) source, res));
+        return;
+      }
+      else if (source instanceof Registration) {
+        source.dispatch(new SIPRedirectEventImpl<Registration>((Registration) source, res));
+        return;
+      }
+      else if (source instanceof Subscription) {
+        source.dispatch(new SIPRedirectEventImpl<Subscription>((Subscription) source, res));
+        return;
+      }
+    }
+    LOG.warn(res + " is received for a unknow source: " + source);
+  }
+
+  protected void doErrorResponse(final SipServletResponse res) throws ServletException, IOException {
+    final EventSource source = SessionUtils.getEventSource(res);
+    if (source instanceof SIPCallImpl) {
+      final SIPCallImpl call = (SIPCallImpl) source;
+      try {
+        call.doResponse(res, null);
+      }
+      catch (final Exception e) {
+        LOG.warn("", e);
+      }
+    }
+    else if (source instanceof Registration) {
+      source.dispatch(new SIPDeniedEventImpl<Registration>((Registration) source, res));
+    }
+    else if (source instanceof Subscription) {
+      source.dispatch(new SIPDeniedEventImpl<Subscription>((Subscription) source, res));
+    }
+    else {
+      LOG.info("Cannot found EventSource to handle error response: " + source);
+    }
+  }
+
+  private class NoHandleHandler<T extends EventSource> implements Runnable {
+
+    private RequestEvent<T> _event;
+
+    private SipServletRequest _req;
+
+    private boolean _invalidate = false;
+
+    public NoHandleHandler(final RequestEvent<T> event, final SipServletRequest req) {
+      this(event, req, false);
+    }
+
+    public NoHandleHandler(final RequestEvent<T> event, final SipServletRequest req, final boolean invalidate) {
+      _event = event;
+      _req = req;
+    }
+
+    public void run() {
+      if (!_event.isProcessed() && _req.isInitial() && !_req.isCommitted()) {
+        try {
+          _req.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR, "Request not handled by app").send();
+        }
+        catch (final Throwable t) {
+          LOG.warn("", t);
+        }
+      }
+      if (_invalidate) {
+        try {
+          _req.getApplicationSession().invalidate();
+        }
+        catch (final Throwable t) {
+          LOG.warn("", t);
+        }
+      }
+    }
+  }
+
+  private class SessionDisposer implements Runnable {
+
+    private SipServletRequest _req;
+
+    public SessionDisposer(final SipServletRequest req) {
+      _req = req;
+    }
+
+    @Override
+    public void run() {
+      if (_req.isInitial()) {
+        try {
+          _req.getApplicationSession().invalidate();
+        }
+        catch (final Throwable t) {
+          LOG.warn("", t);
+        }
+      }
+    }
+
+  }
+
+  @Override
+  public String getProtocolFamily() {
+    return PROTOCOL_SIP;
+  }
+
+  @Override
+  public String[] getEndpointSchemas() {
+    return SCHEMAS;
+  }
+
+  @Override
+  public SpiFramework getFramework() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Endpoint createEndpoint(String addr) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+}

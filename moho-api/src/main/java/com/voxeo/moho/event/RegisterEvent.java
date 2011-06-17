@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -17,40 +17,17 @@ package com.voxeo.moho.event;
 import java.util.Map;
 
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.SignalException;
+import com.voxeo.moho.Framework;
 
-public abstract class RegisterEvent extends SignalEvent implements RejectableEvent {
-
-  protected boolean _rejected = false;
-
-  protected RegisterEvent(final EventSource source) {
-    super(source);
+public interface RegisterEvent extends RequestEvent<Framework>, RedirectableEvent {
+  public interface Contact {
+    Endpoint getEndpoint();
+    int getExpiration();
   }
 
-  public abstract Endpoint getEndpoint();
+  Endpoint getEndpoint();
 
-  public abstract Endpoint[] getContacts();
+  Contact[] getContacts();
 
-  public abstract int getExpiration();
-
-  public abstract void accept(Endpoint[] contacts, int expiration, Map<String, String> headres);
-
-  public void accept(final Map<String, String> headers) throws SignalException, IllegalStateException {
-    accept(getContacts(), getExpiration(), headers);
-  }
-
-  public void reject(final Reason reason) throws SignalException {
-    this.reject(reason, null);
-  }
-
-  @Override
-  public boolean isRejected() {
-    return _rejected;
-  }
-
-  @Override
-  public boolean isProcessed() {
-    return isAccepted() || isRejected();
-  }
-
+  void accept(Contact[] contacts, Map<String, String> headres);
 }

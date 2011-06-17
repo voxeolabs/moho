@@ -3,12 +3,14 @@ package com.voxeo.moho.sample;
 import java.net.URI;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.State;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.event.RegisterEvent;
+import com.voxeo.moho.event.RegisterEvent.Contact;
 import com.voxeo.moho.event.TextEvent;
 
 public class Echo implements Application {
@@ -24,14 +26,16 @@ public class Echo implements Application {
 
   @State
   public void handleRegister(final RegisterEvent evt) {
-    if (evt.getExpiration() > 0) {
-      addresses.put(evt.getEndpoint().getURI(), evt.getContacts()[0]);
+    Contact contact = evt.getContacts()[0];
+    if (contact.getExpiration() > 0) {
+      addresses.put(evt.getEndpoint().getURI(), contact.getEndpoint());
     }
     else {
       addresses.remove(evt.getEndpoint().getURI());
     }
     evt.accept();
   }
+
 
   @State
   public void handleText(final TextEvent evt) throws Throwable {

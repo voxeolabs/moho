@@ -23,9 +23,9 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.URI;
 
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 
 // TODO AUTH INFO

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -21,6 +21,5 @@ import com.voxeo.moho.event.EventSource;
 
 public interface MediaServiceFactory {
 
-  MediaService create(final EventSource parent, final MediaSession session, Parameters params);
-
+  <T extends EventSource> MediaService<T> create(final T parent, final MediaSession session, Parameters params);
 }

@@ -48,16 +48,17 @@ import org.junit.Test;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.AutowiredEventListener;
-import com.voxeo.moho.event.CallCompleteEvent;
+import com.voxeo.moho.event.MohoCallCompleteEvent;
+import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPOutgoingCallTest extends TestCase {
 
@@ -298,7 +299,7 @@ public class SIPOutgoingCallTest extends TestCase {
    */
   public void testJoinWithSIPIOException2() {
     joinExceptionWithSIPExpectations2("testJoin");
-    sipcall.addListener(new AutowiredEventListener(new MyObserver()));
+    sipcall.addObserver(new MyObserver());
     // execute
     try {
       sipcall.join(Joinable.Direction.DUPLEX).get();
@@ -314,10 +315,10 @@ public class SIPOutgoingCallTest extends TestCase {
     mockery.assertIsSatisfied();
   }
 
-  public class MyObserver {
+  public class MyObserver implements Observer {
 
     @com.voxeo.moho.State
-    public void listenCallcomplete(CallCompleteEvent event) {
+    public void listenCallcomplete(MohoCallCompleteEvent event) {
       System.out.println("received==========>");
     }
   }
@@ -481,7 +482,7 @@ public class SIPOutgoingCallTest extends TestCase {
    */
   public void testJoinWithUnsuccessSipResp() {
     joinExceptionWithUnsuccessSipResp("testJoin");
-    sipcall.addListener(new AutowiredEventListener(new MyObserver()));
+    sipcall.addObserver(new MyObserver());
     // execute
     try {
       sipcall.join(Joinable.Direction.DUPLEX).get();

@@ -29,9 +29,7 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.utils.EnumEvent;
-import com.voxeo.moho.utils.Event;
 import com.voxeo.moho.utils.EventListener;
-import com.voxeo.moho.utils.IEvent;
 
 public class EventDispatcher {
 
@@ -180,24 +178,24 @@ public class EventDispatcher {
     }
   }
 
-  public <S extends EventSource, T extends IEvent<S>> Future<T> fire(final T event) {
+  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event) {
     return fire(event, false);
   }
 
-  public <S extends EventSource, T extends IEvent<S>> Future<T> fire(final T event, final boolean narrowType) {
+  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType) {
     return fire(event, narrowType, null);
   }
 
-  public <S extends EventSource, T extends IEvent<S>> Future<T> fire(final T event, final boolean narrowType,
+  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType,
       final Runnable afterExec) {
 
     final FutureTask<T> task = new FutureTask<T>(new Runnable() {
-      @SuppressWarnings("unchecked")
+      @SuppressWarnings({ "unchecked", "rawtypes" })
       public void run() {
         if (log.isTraceEnabled()) {
           log.trace("Firing event :" + event);
         }
-        Class<? extends IEvent> clazz = event.getClass();
+        Class<? extends Event> clazz = event.getClass();
         out: do {
           final List<Object> list = clazzListeners.get(clazz);
           if (list != null) {
@@ -215,13 +213,13 @@ public class EventDispatcher {
               }
             }
           }
-          clazz = (Class<? extends IEvent>) clazz.getSuperclass();
+          clazz = (Class<? extends Event>) clazz.getSuperclass();
         }
         while (narrowType && !clazz.equals(Object.class));
 
         out: if (event instanceof EnumEvent) {
           final EnumEvent<S, ? extends Enum<?>> enumEvent = (EnumEvent<S, ? extends Enum<?>>) event;
-          final List<Object> list = enumListeners.get(enumEvent.type);
+          final List<Object> list = enumListeners.get(enumEvent.getType());
           if (list != null) {
             for (final Object listener : list) {
               try {

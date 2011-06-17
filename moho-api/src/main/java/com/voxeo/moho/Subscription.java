@@ -48,10 +48,18 @@ public interface Subscription extends EventSource {
      */
     int getExpiration();
 
+    /**
+     * renew the subscription
+     */
     void renew();
     
     /**
      * @return the address of notifier
      */
     Endpoint getAddress();
+    
+    /**
+     * start the subscription
+     */
+    void subscribe();
 }

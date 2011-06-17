@@ -1,35 +1,34 @@
+/**
+ * Copyright 2010-2011 Voxeo Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License.
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+
 package com.voxeo.moho.event;
 
-import com.voxeo.moho.Call;
-import com.voxeo.moho.utils.Event;
-
-public class CallCompleteEvent extends Event<Call> {
+/**
+ * This is the <b>last</b> event to be fired on a {@link com.voxeo.moho.Call Call}. 
+ * When this event is fired, all the underlying resources for the 
+ * {@link com.voxeo.moho.Call Call} have been released.
+ * 
+ * @author wchen
+ *
+ */
+public interface CallCompleteEvent extends CallEvent {
 
   public enum Cause {
     DISCONNECT, CANCEL, BUSY, DECLINE, FORBIDDEN, TIMEOUT, ERROR, NEAR_END_DISCONNECT, REDIRECT
   }
 
-  protected Cause _cause;
-
-  protected Exception _exception;
-
-  public CallCompleteEvent(final Call source, final Cause cause) {
-    super(source);
-    _cause = cause;
-  }
-
-  public CallCompleteEvent(final Call source, final Cause cause, final Exception e) {
-    super(source);
-    _cause = cause;
-    _exception = e;
-  }
-
-  public Cause getCause() {
-    return _cause;
-  }
+  Cause getCause();
   
-  public Exception getException() {
-	  
-	  return _exception;
-  }
+  Exception getException();
 }

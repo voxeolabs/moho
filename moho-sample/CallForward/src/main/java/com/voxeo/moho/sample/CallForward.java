@@ -19,7 +19,7 @@ import javax.media.mscontrol.join.Joinable;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.BusyException;
-import com.voxeo.moho.Call;
+import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.State;
 import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.Participant.JoinType;
@@ -46,10 +46,11 @@ public class CallForward implements Application {
   }
 
   @State
-  public void handleInvite(final Call e) throws Exception {
-    final Call call = e.acceptCall(this);
+  public void handleInvite(final IncomingCall call) throws Exception {
+    call.addObserver(this);
+    call.accept();
     try {
-      call.join(e.getInvitee(), JoinType.DIRECT, Joinable.Direction.DUPLEX).get();
+      call.join(call.getInvitee(), JoinType.DIRECT, Joinable.Direction.DUPLEX).get();
     }
     catch (final Exception ex) {
       if (ex.getCause() instanceof BusyException) {

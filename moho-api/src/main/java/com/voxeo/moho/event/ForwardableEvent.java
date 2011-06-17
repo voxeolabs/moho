@@ -20,6 +20,13 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
 
+/**
+ * Marker interface for all the events that can be forwarded to another 
+ * {@link com.voxeo.moho.Call Call} or {@link com.voxeo.moho.Endpoint Endpoint}.
+ * 
+ * @author wchen
+ *
+ */
 public interface ForwardableEvent {
 
   boolean isForwarded();

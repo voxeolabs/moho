@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -15,7 +15,7 @@
 package com.voxeo.moho;
 
 /**
- * General purpose exception related to media process.
+ * General purpose exception related to media processing.
  */
 public class MediaException extends RuntimeException {
   private static final long serialVersionUID = -2699572839356318684L;

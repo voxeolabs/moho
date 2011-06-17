@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,37 +14,32 @@
 
 package com.voxeo.moho.event;
 
+/**
+ * This event is fired when an {@link com.voxeo.moho.media.Output Output} is completed.
+ * 
+ * @author wchen
+ *
+ */
+public interface OutputCompleteEvent<T extends EventSource> extends MediaCompleteEvent<T> {
+  public enum Cause {
+    /** the output is terminated by bargein */
+    BARGEIN,
+    /** the output is terminated by exceeding its max time allowed */
+    TIMEOUT,
+    /** the output is terminated by unknown error */
+    ERROR,
+    /** the output is canceled */
+    CANCEL,
+    /** the output is completed */
+    END,
+    /** the output is terminated because the source is disconnected */
+    DISCONNECT,
+    /** the output is terminated for unknown reason */
+    UNKNOWN
+  }
 
-public class OutputCompleteEvent extends MediaCompleteEvent {
-
-    private static final long serialVersionUID = 649357868605120409L;
-
-    public enum Cause {
-        /** the output is terminated by bargein */
-        BARGEIN,
-        /** the output is terminated by exceeding its max time allowed */
-        TIMEOUT,
-        /** the output is terminated by unknown error */
-        ERROR,
-        /** the output is canceled */
-        CANCEL,
-        /** the output is completed */
-        END,
-        /** the output is terminated because the source is disconnected */
-        DISCONNECT,
-        /** the output is terminated for unknown reason */
-        UNKNOWN
-    }
-
-    protected Cause _cause;
-
-    public OutputCompleteEvent(EventSource source, Cause cause) {
-        super(source);
-        _cause = cause;
-    }
-
-    public Cause getCause() {
-        return _cause;
-    }
-
+  /**
+   * @return the cause of the completion.
+   */
+  Cause getCause();
 }

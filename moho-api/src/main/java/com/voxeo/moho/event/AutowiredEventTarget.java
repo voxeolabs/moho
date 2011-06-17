@@ -22,7 +22,6 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.State;
-import com.voxeo.moho.utils.Event;
 import com.voxeo.moho.utils.EventListener;
 
 public class AutowiredEventTarget {
@@ -98,7 +97,7 @@ public class AutowiredEventTarget {
     for (final Map.Entry<String, String> entry : _definedStates.entrySet()) {
       final String defined = entry.getValue();
       if (defined != ANY_STATE) {
-        if (!defined.equals(event.source.getApplicationState(entry.getKey()))) {
+        if (!defined.equals(event.getSource().getApplicationState(entry.getKey()))) {
           return false;
         }
       }

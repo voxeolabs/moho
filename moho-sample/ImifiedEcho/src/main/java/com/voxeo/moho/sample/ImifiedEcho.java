@@ -4,7 +4,7 @@ import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.TextEvent;
-import com.voxeo.moho.text.imified.ImifiedTextChannelProvider;
+import com.voxeo.moho.imified.ImifiedTextChannelProvider;
 import com.voxeo.moho.textchannel.TextChannels;
 import com.voxeo.moho.textchannel.imified.ImifiedEndpoint;
 

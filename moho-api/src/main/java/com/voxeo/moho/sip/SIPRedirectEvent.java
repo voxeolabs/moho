@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -19,17 +19,13 @@ import javax.servlet.sip.SipServletResponse;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.RedirectEvent;
 
-public abstract class SIPRedirectEvent extends RedirectEvent {
-
-  protected SipServletResponse _res;
-
-  protected SIPRedirectEvent(final EventSource source, final SipServletResponse res) {
-    super(source);
-    _res = res;
-  }
-
-  public SipServletResponse getSipResponse() {
-    return _res;
-  }
-
+/**
+ * SIP specific {@link com.voxeo.moho.event.RedirectEvent RedirectEvent}.
+ * 
+ * @author wchen
+ *
+ * @param <T> the type of the event source
+ */
+public interface SIPRedirectEvent<T extends EventSource> extends RedirectEvent<T> {
+  SipServletResponse getSipResponse();
 }

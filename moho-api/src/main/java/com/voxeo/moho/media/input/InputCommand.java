@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -34,9 +34,7 @@ public class InputCommand implements Parameters {
 
   protected Grammar[] _grammars = new Grammar[0];
 
-  protected float _confidence = 0.3f;
-
-  protected float _sensitivity = 0.5f;
+  protected float _confidence = 0.5f;
 
   protected long _initialTimeout = Resource.FOREVER;
 
@@ -57,28 +55,28 @@ public class InputCommand implements Parameters {
   protected Map<Parameter, Object> _parametersExt = new HashMap<Parameter, Object>();
 
   protected Set<RTC> _rtcsExt = new HashSet<RTC>();
-
+  
   protected String _speechLanguage;
-
+  
   protected Character _termChar;
-
+  
   protected InputMode _inputMode;
-
+  
   protected boolean _dtmfHotword = false;
 
   protected boolean _dtmfTypeahead = false;
-
+  
   /**
    * if true, every DTMF (or word?) received generates an event
    */
   protected boolean _supervised = true;
 
+  
   /**
    * @param grammers
    *          can be simple string or string that starts with "#JSGF". if the
    *          string starts with "#JSGF", a JSGF grammar will be created.
-   * @deprecated Grammar type 'guessing' has been deprecated. Supply a Grammar
-   *             instance instead.
+   * @deprecated Grammar type 'guessing' has been deprecated. Supply a Grammar instance instead.
    */
   public InputCommand(String grammer) {
     if (grammer == null || grammer.length() == 0) {
@@ -125,10 +123,6 @@ public class InputCommand implements Parameters {
     return _confidence;
   }
 
-  public float getSensitivity() {
-    return _sensitivity;
-  }
-
   public boolean isRecord() {
     return _record;
   }
@@ -147,10 +141,6 @@ public class InputCommand implements Parameters {
 
   public void setConfidence(final float confidence) {
     _confidence = confidence;
-  }
-
-  public void setSensitivity(final float sensitivity) {
-    _sensitivity = sensitivity;
   }
 
   public long getInitialTimeout() {
@@ -318,5 +308,5 @@ public class InputCommand implements Parameters {
   public void setDtmfTypeahead(boolean dtmfTypeahead) {
     _dtmfTypeahead = dtmfTypeahead;
   }
-
+  
 }

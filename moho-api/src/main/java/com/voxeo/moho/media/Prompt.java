@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -15,6 +15,7 @@
 package com.voxeo.moho.media;
 
 import com.voxeo.moho.MediaException;
+import com.voxeo.moho.event.EventSource;
 
 /**
  * Prompt holds the results for one interaction -- output and input.
@@ -22,11 +23,11 @@ import com.voxeo.moho.MediaException;
  * @author wchen
  *
  */
-public interface Prompt {
+public interface Prompt<T extends EventSource> {
 
-  Input getInput() throws MediaException;
+  Input<T> getInput() throws MediaException;
 
-  Output getOutput() throws MediaException;
+  Output<T> getOutput() throws MediaException;
   
   String getResult() throws MediaException;
 

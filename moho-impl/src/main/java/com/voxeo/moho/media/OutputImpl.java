@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -25,14 +25,15 @@ import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Player;
 
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.OutputCompleteEvent;
 import com.voxeo.moho.util.SettableResultFuture;
 
-public class OutputImpl implements Output {
+public class OutputImpl<T extends EventSource> implements Output<T> {
 
   protected MediaGroup _group;
 
-  protected SettableResultFuture<OutputCompleteEvent> _future = new SettableResultFuture<OutputCompleteEvent>();
+  protected SettableResultFuture<OutputCompleteEvent<T>> _future = new SettableResultFuture<OutputCompleteEvent<T>>();
 
   final Lock lock = new ReentrantLock();
 
@@ -43,15 +44,13 @@ public class OutputImpl implements Output {
   private Condition pauseActionResult = lock.newCondition();
 
   private Condition resumeActionResult = lock.newCondition();
-  
-  private boolean _normalDisconnected = false;
 
   protected OutputImpl(final MediaGroup group) {
     _group = group;
   }
 
-  protected void done(final OutputCompleteEvent event) {
-    _future.setResult(event);
+  protected void done(final OutputCompleteEvent<T> outputCompleteEvent) {
+    _future.setResult(outputCompleteEvent);
   }
 
   @Override
@@ -283,12 +282,12 @@ public class OutputImpl implements Output {
   }
 
   @Override
-  public OutputCompleteEvent get() throws InterruptedException, ExecutionException {
+  public OutputCompleteEvent<T> get() throws InterruptedException, ExecutionException {
     return _future.get();
   }
 
   @Override
-  public OutputCompleteEvent get(final long timeout, final TimeUnit unit) throws InterruptedException,
+  public OutputCompleteEvent<T> get(final long timeout, final TimeUnit unit) throws InterruptedException,
       ExecutionException, TimeoutException {
     return _future.get(timeout, unit);
   }
@@ -305,13 +304,5 @@ public class OutputImpl implements Output {
 
   public synchronized boolean isPending() {
     return !_future.isDone();
-  }
-  
-  public void normalDisconnect(boolean normal) {
-    _normalDisconnected = true;
-  }
-
-  public boolean isNormalDisconnect() {
-    return _normalDisconnected;
   }
 }

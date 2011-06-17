@@ -24,13 +24,11 @@ import javax.servlet.sip.URI;
 
 import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.Subscription.Type;
-import com.voxeo.moho.event.Observer;
-import com.voxeo.moho.utils.EventListener;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPEndpointImpl implements SIPEndpoint {
 
@@ -85,35 +83,29 @@ public class SIPEndpointImpl implements SIPEndpoint {
     throw new IllegalArgumentException(_address.toString());
   }
 
-  public Call call(final Endpoint caller, final Map<String, String> headers, final EventListener<?>... listeners)
-      throws SignalException {
-    final SIPOutgoingCall retval = new SIPOutgoingCall(_ctx, ((SIPEndpoint) caller), this, headers);
-    retval.addListeners(listeners);
-    return retval;
-  }
+//  public Call call(final Endpoint caller, final Map<String, String> headers, final EventListener<?>... listeners)
+//      throws SignalException {
+//    final SIPOutgoingCall retval = new SIPOutgoingCall(_ctx, ((SIPEndpoint) caller), this, headers);
+//    retval.addListeners(listeners);
+//    return retval;
+//  }
 
   @Override
-  public Call call(final Endpoint caller, final Map<String, String> headers, final Observer... observers) {
-    final SIPOutgoingCall retval = new SIPOutgoingCall(_ctx, ((SIPEndpoint) caller), this, headers);
-    retval.addObservers(observers);
-    return retval;
+  public Call call(final Endpoint caller, final Map<String, String> headers) {
+    return new SIPOutgoingCall(_ctx, ((SIPEndpoint) caller), this, headers);
   }
 
-  public Subscription subscribe(final Endpoint caller, final Type type, final int expiration,
-      final EventListener<?>... listeners) throws SignalException {
-    final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
-    retval.subscribe();
-    retval.addListeners(listeners);
-    return retval;
-  }
+//  public Subscription subscribe(final Endpoint caller, final Type type, final int expiration,
+//      final EventListener<?>... listeners) throws SignalException {
+//    final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
+//    retval.subscribe();
+//    retval.addListeners(listeners);
+//    return retval;
+//  }
 
   @Override
-  public Subscription subscribe(final Endpoint caller, final Type type, final int expiration,
-      final Observer... observers) {
-    final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
-    retval.subscribe();
-    retval.addObservers(observers);
-    return retval;
+  public Subscription subscribe(final Endpoint caller, final Type type, final int expiration) {
+    return new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
   }
 
   @Override
@@ -137,22 +129,17 @@ public class SIPEndpointImpl implements SIPEndpoint {
 
   @Override
   public Call call(String caller) {
-    return call(caller, (Observer[]) null);
-  }
-
-  @Override
-  public Call call(String caller, Observer... observers) {
-    Endpoint endpoint = _ctx.createEndpoint(caller);
-    return call(endpoint, null, observers);
+    return call(caller, null);
   }
 
   @Override
   public Call call(Endpoint caller) {
-    return call(caller, null, (Observer[]) null);
+    return call(caller, null);
   }
 
   @Override
-  public Call call(Endpoint caller, Observer... observers) {
-    return call(caller, null, observers);
+  public Call call(String caller, final Map<String, String> headers) {
+    Endpoint endpoint = _ctx.createEndpoint(caller);
+    return call(endpoint, headers);
   }
 }

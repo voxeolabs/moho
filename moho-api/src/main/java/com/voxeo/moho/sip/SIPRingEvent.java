@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -16,19 +16,17 @@ package com.voxeo.moho.sip;
 
 import javax.servlet.sip.SipServletResponse;
 
-import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.RingEvent;
 
-public abstract class SIPRingEvent extends RingEvent {
-
-  protected SipServletResponse _res;
-
-  protected SIPRingEvent(final EventSource source, final SipServletResponse res) {
-    super(source);
-    _res = res;
-  }
-
-  public SipServletResponse getSipResponse() {
-    return _res;
-  }
+/**
+ * SIP specific {@com.voxeo.moho.event.RingEvent RingEvent}.
+ * 
+ * @author wchen
+ *
+ */
+public interface SIPRingEvent extends RingEvent {
+  /**
+   * @return the SIP 180 response.
+   */
+  SipServletResponse getSipResponse();
 }

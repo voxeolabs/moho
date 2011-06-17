@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.voxeo.moho;
 import java.util.Map;
 
 /**
+ * Generic interface for configuration parameter storage.
  * 
  * @author zhuwillie
  *

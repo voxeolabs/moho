@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -15,7 +15,6 @@
 package com.voxeo.moho.queue;
 
 import com.voxeo.moho.Call;
-import com.voxeo.moho.event.EventSource;
 
 /**
  * DequeueEvent is fired when an item is dequeued from the queue.
@@ -23,17 +22,9 @@ import com.voxeo.moho.event.EventSource;
  * @author wchen
  *
  */
-public class DequeueEvent extends QueueEvent {
-  protected Call _item;
-
-  public DequeueEvent(EventSource source, Call item) {
-    super(source);
-  }
-  
+public interface DequeueEvent extends QueueEvent {  
   /**
    * @return the item being dequeued.
    */
-  public Call getItem() {
-    return _item;
-  }
+  Call getItem();
 }

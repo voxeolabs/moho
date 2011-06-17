@@ -14,17 +14,13 @@
 
 package com.voxeo.moho.queue;
 
-import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.utils.Event;
+import com.voxeo.moho.event.Event;
 
 /**
- * Base class for queue related events.
+ * This event fires when there is an enqueue/dequeue activity on the queue
  * 
  * @author wchen
  *
  */
-public abstract class QueueEvent extends Event<EventSource> {
-  public QueueEvent(final EventSource source) {
-    super(source);
-  }
+public interface QueueEvent extends Event<CallQueue> {
 }

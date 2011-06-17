@@ -32,11 +32,11 @@ import org.jmock.lib.legacy.ClassImposteriser;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Subscription.Type;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipSession;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPSubscriptionImplTest extends TestCase {
 

@@ -22,7 +22,7 @@ import javax.media.mscontrol.mediagroup.MediaGroup;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
-import com.voxeo.moho.Call;
+import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.media.output.AudioURIResource;
@@ -48,15 +48,16 @@ public class CallRingBack implements Application {
   }
 
   @State
-  public void handleInvite(final Call e) {
-    final Call call = e.acceptCallWithEarlyMedia(this);
+  public void handleInvite(final IncomingCall call) {
+    call.addObserver(this);
+    call.acceptWithEarlyMedia();
 
     // set RTC, if the user press any button, stop the play.
     final OutputCommand outcommand = new OutputCommand(new AudioURIResource(_media));
 
     outcommand.addRTC(MediaGroup.SIGDET_STOPPLAY);
 
-    call.getMediaService().prompt(outcommand, null, 30);
-    call.join(e.getInvitee(), JoinType.BRIDGE, Joinable.Direction.DUPLEX);
+    call.prompt(outcommand, null, 30);
+    call.join(call.getInvitee(), JoinType.BRIDGE, Joinable.Direction.DUPLEX);
   }
 }

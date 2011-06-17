@@ -21,6 +21,8 @@ import java.util.Properties;
 
 import javax.media.mscontrol.MsControlFactory;
 
+import com.voxeo.moho.spi.ExecutionContext;
+
 public class MixerEndpointImpl implements MixerEndpoint {
 
   protected ExecutionContext _context;

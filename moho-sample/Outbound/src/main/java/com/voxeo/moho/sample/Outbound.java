@@ -24,7 +24,6 @@ import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.utils.EventListener;
 
 public class Outbound implements Application {
 
@@ -47,8 +46,8 @@ public class Outbound implements Application {
 
       @Override
       public void run() {
-        final Call c1 = _party1.call(_local, (EventListener<?>) null);
-        final Call c2 = _party2.call(_local, (EventListener<?>) null);
+        final Call c1 = _party1.call(_local);
+        final Call c2 = _party2.call(_local);
         c1.join(c2, JoinType.DIRECT, Direction.DUPLEX);
       }
     }, time);

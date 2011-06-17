@@ -153,9 +153,9 @@ public class NLSMLParser {
 
   private static Element getFirstChildElementIntern(final Node node, final QName nodeName) {
     Element childElement = null;
-    final Iterator it = getChildElementsIntern(node, nodeName).iterator();
+    final Iterator<Element> it = getChildElementsIntern(node, nodeName).iterator();
     if (it.hasNext()) {
-      childElement = (Element) it.next();
+      childElement = it.next();
     }
     return childElement;
   }

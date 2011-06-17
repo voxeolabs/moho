@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -16,36 +16,94 @@ package com.voxeo.moho.event;
 
 import java.util.Map;
 
+import javax.servlet.sip.SipServletResponse;
+
 import com.voxeo.moho.SignalException;
 
 /**
- * This interface designate that the <code>accept</code> method can be invoked.
+ * This interface marks an event which can be accepted or rejected by the application.
+ * An AcceptableEvent will be automatically accepted if no action is taken by the application.
  */
 public interface AcceptableEvent {
+  public enum Reason {
+    BUSY {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_BUSY_HERE;
+      }
+    },
 
+    DECLINE {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_DECLINE;
+      }
+    },
+
+    FORBIDEN {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_FORBIDDEN;
+      }
+    },
+
+    ERROR {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_SERVER_INTERNAL_ERROR;
+      }
+    };
+
+    public abstract int getCode();
+
+  }
+
+  /**
+   * @return true if this event has been accepted.
+   */
   boolean isAccepted();
 
   /**
-   * Accept the event.
-   * 
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
+   * @return true if this event has been rejected.
    */
-  void accept() throws SignalException, IllegalStateException;
+  boolean isRejected();
 
   /**
-   * Accept the event with additional headers.
+   * When the event is accepted, 
+   * Moho sends positive response to the event based on underlying signaling protocol
+   * e.g. 200 OK in SIP.
    * 
-   * @param headers
-   *          additional signaling protocol specific headers to be sent with the
-   *          response.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
+   * @throws SignalException when any signaling error occurs.
    */
-  void accept(final Map<String, String> headers) throws SignalException, IllegalStateException;
+  void accept() throws SignalException;  
+
+  /**
+  /**
+   * When the event is accepted with additional header, 
+   * Moho sends positive response based on underlying signaling protocol
+   * e.g. 200 OK in SIP, with additional protocol specific headers.
+   * 
+   * @param headers additional signaling protocol specific headers to be sent with the response.
+   * @throws SignalException when any signaling error occurs.
+   */
+  void accept(final Map<String, String> headers) throws SignalException;
+
+  /**
+   * When the event is rejected,
+   * Moho sends negative response based on the underlying signaling protocol.
+   * @param reason the reason to reject the event.
+   * @throws SignalException when any signaling error occurs.
+   */
+  void reject(Reason reason) throws SignalException;
+
+  /**
+   * When the event is rejected,
+   * Moho sends negative response based on the underlying signaling protocol, 
+   * with additional protocol specific headers.
+   * @param reason the reason to reject the event.
+   * @param headers additional signaling protocol specific headers to be sent with the response.
+   * @throws SignalException when any signaling error occurs.
+   */
+  void reject(Reason reason, Map<String, String> headers) throws SignalException;
 
 }

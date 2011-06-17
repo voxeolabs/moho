@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -19,13 +19,11 @@ import java.util.concurrent.Future;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.AttributeStore;
 import com.voxeo.moho.ExceptionHandler;
-import com.voxeo.moho.utils.Event;
-import com.voxeo.moho.utils.EventListener;
 import com.voxeo.moho.utils.Identifiable;
 
 /**
  * <p>
- * An EventSource is an object that can generate {@link com.voxeo.util.Event
+ * An EventSource is an object that can generate {@link Event
  * Event} in Moho. Applications can set application defined state on EventSource
  * by calling {@link #setApplicationState(String) setApplicationState(String)}
  * for single state or {@link #setApplicationState(String,String)
@@ -37,9 +35,7 @@ import com.voxeo.moho.utils.Identifiable;
  * from EventSource is always based on application defined state.
  * </p>
  * <p>
- * Both {@link Observer Observer} and {@link com.voxeo.util.EventListener
- * EventListener} can be added to an EventSource to listen for events. The main
- * difference is EventListener is strong-typed while Observer is weak-typed.
+ * {@link Observer Observer} can be added to an EventSource to listen for events.
  * </p>
  * 
  * @author wchen
@@ -84,75 +80,13 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
   ApplicationContext getApplicationContext();
 
   /**
-   * Add an event observer to this event source. If the same observer has been
-   * added, it is a NOP.
-   * 
-   * @param observer
-   *          the event observer to be added.
-   * @deprecated use addObservers(Observer... observers)
-   */
-  void addObserver(Observer observer);
-
-  /**
    * Add an event observers to this event source. If the same observers has been
    * added, it is a NOP.
    * 
    * @param observers
    *          the event observers to be added.
    */
-  void addObservers(Observer... observers);
-
-  /**
-   * Add an event listener to this event source. If the same listener has been
-   * added, it is a NOP.
-   * 
-   * @param listener
-   *          the event listener to be added
-   *@deprecated use addObservers(Observer... observers)
-   */
-  void addListener(EventListener<?> listener);
-
-  /**
-   * Add an event listener to this event source. If the same listener has been
-   * added, it is a NOP.
-   * 
-   * @param listeners
-   *          the event listeners to be added
-   * @deprecated use addObservers(Observer... observers)
-   */
-  void addListeners(EventListener<?>... listeners);
-
-  /**
-   * Add an event listener to this event source. Only events which are
-   * assignable to <code>type</code> are invoked. If the same listener has been
-   * added, it is a NOP.
-   * 
-   * @param listener
-   *          the event listener to be added
-   *@deprecated use addObservers(Observer... observers)
-   */
-  <E extends Event<?>, T extends EventListener<E>> void addListener(Class<E> type, T listener);
-
-  /**
-   * Add an event listener to this event source. Only events which are
-   * assignable to <code>type</code> are invoked. If the same listener has been
-   * added, it is a NOP.
-   * 
-   * @param listener
-   *          the event listener to be added
-   * @deprecated use addObservers(Observer... observers)
-   */
-  <E extends Event<?>, T extends EventListener<E>> void addListeners(Class<E> type, T... listener);
-
-  /**
-   * remove the application listener to this event source. if the listener has
-   * not been added before, it is a NOP.
-   * 
-   * @param listener
-   *          the event listener to be added
-   * @deprecated use removeObserver(Observer listener)
-   */
-  void removeListener(EventListener<?> listener);
+  void addObserver(Observer... observers);
 
   /**
    * remove the application listener to this event source. if the listener has

@@ -19,10 +19,11 @@ import javax.media.mscontrol.join.Joinable;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.IncomingCall;
+import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.State;
-import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.ReferEvent;
+import com.voxeo.moho.event.MohoReferEvent;
 
 /**
  * Transfer: support unattended transfer and attended transfer. for unattended
@@ -45,17 +46,19 @@ public class Transfer implements Application {
   }
 
   @State
-  public void handleInvite(final Call e) {
-    final Call call = e.acceptCall(this);
+  public void handleInvite(final IncomingCall call) {
+    call.addObserver(this);
     call.setSupervised(true);
-    final Call outgoingCall = e.getInvitee().call(e.getInvitor(), this);
+    call.accept();
+    final Call outgoingCall = call.getInvitee().call(call.getInvitor());
+    outgoingCall.addObserver(this);
     outgoingCall.setSupervised(true);
     call.join(outgoingCall, JoinType.DIRECT, Joinable.Direction.DUPLEX);
     outgoingCall.setApplicationState("wait");
   }
 
   @State("wait")
-  public void transfer(final ReferEvent ev) throws SignalException {
+  public void transfer(final MohoReferEvent ev) throws SignalException {
     // you can do your own things here. if you need not do this, you can just
     // remove this method, so you need not set the call in 'supervised' mode in
     // the above handleInvite method.

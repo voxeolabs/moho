@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -24,38 +24,33 @@ import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Participant.JoinType;
 
 /**
- * This represents a SIP REFER transfer request.
+ * This event is fired when a call has been referred to another {@link com.voxeo.moho.Endpoint Endpoint}.
  * 
  * @author wchen
  */
-public abstract class ReferEvent extends SignalEvent implements ForwardableEvent {
-
-  private static final long serialVersionUID = 4342028709927637088L;
-
-  protected boolean _forwarded = false;
+public interface ReferEvent extends CallEvent, AcceptableEvent, ForwardableEvent {
 
   public enum TransferType {
     BRIDGE, BLIND
   }
 
-  protected ReferEvent(final EventSource source) {
-    super(source);
-  }
+  /**
+   * @return the referred address.
+   */
+  CallableEndpoint getReferee();
 
-  public abstract CallableEndpoint getReferee();
-
-  public abstract CallableEndpoint getReferredBy();
-
-  public abstract Call accept(final JoinType type, final Direction direction, final Map<String, String> headers)
-      throws SignalException;
-
-  @Override
-  public boolean isForwarded() {
-    return _forwarded;
-  }
-
-  @Override
-  public boolean isProcessed() {
-    return isAccepted() || isForwarded();
-  }
+  /**
+   * @return who made the referral.
+   */
+  CallableEndpoint getReferredBy();
+  
+  /**
+   * Accept the event to make the call to connected to the referred address.
+   * @param type whether to connect the call to the referred address with bridged media or direct media. 
+   * @param direction whether to connect the call to the referred address with duplex or half-plex media.
+   * @param headers additional protocol specific headers to be sent when connecting to the referred address
+   * @return
+   * @throws SignalException
+   */
+  Call accept(final JoinType type, final Direction direction, final Map<String, String> headers) throws SignalException;
 }

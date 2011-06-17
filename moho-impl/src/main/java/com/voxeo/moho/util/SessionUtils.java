@@ -20,9 +20,9 @@ import javax.servlet.sip.SipSession;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class SessionUtils {
 

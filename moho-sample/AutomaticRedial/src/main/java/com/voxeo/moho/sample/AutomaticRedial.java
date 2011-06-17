@@ -23,6 +23,7 @@ import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.Participant.JoinType;
@@ -45,29 +46,30 @@ public class AutomaticRedial implements Application {
   }
 
   @State
-  public void handleInvite(final Call event) throws Exception {
-    Call call = event.acceptCall();
+  public void handleInvite(final IncomingCall call) throws Exception {
+    call.accept();
     try {
-      call.join(event.getInvitee(), JoinType.DIRECT, Direction.DUPLEX).get();
+      call.join(call.getInvitee(), JoinType.DIRECT, Direction.DUPLEX).get();
     }
     catch (final Exception ex) {
       if (ex.getCause() instanceof BusyException) {
-        final Subscription subscribe = event.getInvitee().subscribe(event.getInvitor(), Subscription.Type.DIALOG, 3600,
-            this);
+        final Subscription subscribe = call.getInvitee().subscribe(call.getInvitor(), Subscription.Type.DIALOG, 3600);
+        subscribe.addObserver(this);
         subscribe.setApplicationState("waitNotify");
         subscribe.setAttribute("call", call);
+        subscribe.subscribe();
         call.join().get();
-        call.getMediaService().prompt(_prompt, null, 30);
+        call.prompt(_prompt, null, 30);
       }
       throw ex;
     }
   }
 
   @State("waitNotify")
-  public void notify(final NotifyEvent ev) {
+  public void notify(final NotifyEvent<Subscription> ev) {
     if (ev.getEventType() == Subscription.Type.DIALOG) {
       if (ev.getResourceState().equalsIgnoreCase("Terminated")) {
-        final Subscription s = (Subscription) ev.source;
+        final Subscription s = ev.getSource();
         final Call call = (Call) s.getAttribute("call");
         final Endpoint address = s.getAddress();
         call.join((CallableEndpoint) address, JoinType.DIRECT, Joinable.Direction.DUPLEX);

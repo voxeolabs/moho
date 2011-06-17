@@ -23,36 +23,15 @@ import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.MediaEvent;
+import com.voxeo.moho.event.Event;
 import com.voxeo.moho.event.Observer;
-import com.voxeo.moho.utils.Event;
-import com.voxeo.moho.utils.EventListener;
 
 public class MockEventSource implements EventSource {
 
-  private List<MediaEvent> receivedEvents;
+  private List<MediaEvent<?>> receivedEvents;
 
-  final public List<MediaEvent> getReceivedEvents() {
+  final public List<MediaEvent<?>> getReceivedEvents() {
     return receivedEvents;
-  }
-
-  @Override
-  public void addListener(EventListener<?> listener) {
-
-  }
-
-  @Override
-  public <E extends Event<?>, T extends EventListener<E>> void addListener(Class<E> type, T listener) {
-
-  }
-
-  @Override
-  public void addListeners(EventListener<?>... listener) {
-
-  }
-
-  @Override
-  public <E extends Event<?>, T extends EventListener<E>> void addListeners(Class<E> type, T... listener) {
-
   }
 
   @Override
@@ -79,11 +58,6 @@ public class MockEventSource implements EventSource {
   }
 
   @Override
-  public void removeListener(EventListener<?> listener) {
-
-  }
-
-  @Override
   public void removeObserver(Observer listener) {
 
   }
@@ -105,12 +79,6 @@ public class MockEventSource implements EventSource {
   }
 
   @Override
-  public Object getAttribute(String name) {
-
-    return null;
-  }
-
-  @Override
   public Map<String, Object> getAttributeMap() {
 
     return null;
@@ -122,27 +90,28 @@ public class MockEventSource implements EventSource {
   }
 
   @Override
-  public void addObserver(Observer observer) {
-
-  }
-
-  @Override
-  public void addObservers(Observer... observers) {
+  public void addObserver(Observer... observers) {
 
   }
 
   @Override
   final public <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event, Runnable r) {
     if (receivedEvents == null) {
-      receivedEvents = new ArrayList<MediaEvent>();
+      receivedEvents = new ArrayList<MediaEvent<?>>();
     }
 
-    receivedEvents.add((MediaEvent) event);
+    receivedEvents.add((MediaEvent<?>) event);
     return null;
   }
 
   @Override
   public void addExceptionHandler(ExceptionHandler... handlers) {
     
+  }
+
+  @Override
+  public <T> T getAttribute(String name) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

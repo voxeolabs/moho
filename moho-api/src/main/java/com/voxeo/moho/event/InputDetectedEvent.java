@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,19 +14,15 @@
 
 package com.voxeo.moho.event;
 
-public class InputDetectedEvent extends MediaNotificationEvent {
+/**
+ * If the {@link com.voxeo.moho.Call Call} is in the supervised mode,
+ * this event is fired when some input -- DTMF or speech -- is detected
+ * to give the application greater control of the {@link com.voxeo.moho.media.Input Input}.
+ * 
+ * @author wchen
+ *
+ */
+public interface InputDetectedEvent<T extends EventSource> extends MediaNotificationEvent<T> {
 
-  private static final long serialVersionUID = -1309218764486052886L;
-
-  protected String _input = null;
-
-  public InputDetectedEvent(final EventSource source, final String input) {
-    super(source);
-    _input = input;
-  }
-
-  public String getInput() {
-    return _input;
-  }
-
+  String getInput();
 }

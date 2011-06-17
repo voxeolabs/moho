@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -17,14 +17,16 @@ package com.voxeo.moho.sip;
 import javax.servlet.sip.SipServletRequest;
 
 import com.voxeo.moho.event.CancelEvent;
-import com.voxeo.moho.event.EventSource;
 
-public abstract class SIPCancelEvent extends CancelEvent {
-
-  protected SipServletRequest _req;
-
-  protected SIPCancelEvent(EventSource source, final SipServletRequest req) {
-    super(source);
-    _req = req;
-  }
+/**
+ * SIP specific {@link com.voxeo.moho.event.CancelEvent CancelEvent}.
+ * 
+ * @author wchen
+ *
+ */
+public interface SIPCancelEvent extends CancelEvent {
+  /**
+   * @return the SIP CANCEL request.
+   */
+  SipServletRequest getSipRequest();
 }

@@ -246,7 +246,7 @@ public class GenericMediaServiceTest extends TestCase {
     try {
       recording = service.record(url);
 
-      event = recording.get();
+      event = (RecordCompleteEvent) recording.get();
     }
     catch (final Exception ex) {
       ex.printStackTrace();
@@ -259,7 +259,7 @@ public class GenericMediaServiceTest extends TestCase {
     // verify event is dispatched.
     assertTrue(parent.getReceivedEvents().get(0) instanceof RecordStartedEvent);
     assertTrue(parent.getReceivedEvents().get(1) instanceof RecordCompleteEvent);
-    assertTrue(((RecordCompleteEvent) parent.getReceivedEvents().get(1)).getCause() == RecordCompleteEvent.Cause.SILENCE);
+    assertTrue(((RecordCompleteEvent<?>) parent.getReceivedEvents().get(1)).getCause() == RecordCompleteEvent.Cause.SILENCE);
     assertTrue(recorder.listeners.size() == 0);
     mockery.assertIsSatisfied();
   }
@@ -446,7 +446,7 @@ public class GenericMediaServiceTest extends TestCase {
 
       recording.stop();
 
-      event = recording.get();
+      event = (RecordCompleteEvent) recording.get();
     }
     catch (final Exception ex) {
       ex.printStackTrace();
@@ -550,7 +550,7 @@ public class GenericMediaServiceTest extends TestCase {
 
     OutputCompleteEvent completEvent = null;
     try {
-      completEvent = output.get();
+      completEvent = (OutputCompleteEvent) output.get();
     }
     catch (final Exception ex) {
       ex.printStackTrace();
@@ -727,7 +727,7 @@ public class GenericMediaServiceTest extends TestCase {
 
       output.stop();
 
-      event = output.get();
+      event = (OutputCompleteEvent) output.get();
     }
     catch (final Exception ex) {
       ex.printStackTrace();
@@ -785,7 +785,6 @@ public class GenericMediaServiceTest extends TestCase {
           oneOf(dialect).setSpeechInputMode(parameters, null);
           oneOf(dialect).setDtmfHotwordEnabled(parameters, false);
           oneOf(dialect).setDtmfTypeaheadEnabled(parameters, false);
-          oneOf(dialect).setConfidence(parameters, 0.3f);
 
           oneOf(signalDetector).receiveSignals(with(equal(-1)), with(any(Parameter[].class)),
               with(new TypeSafeMatcher<RTC[]>() {
@@ -833,7 +832,7 @@ public class GenericMediaServiceTest extends TestCase {
     final Input input = service.input("123");
     InputCompleteEvent event = null;
     try {
-      event = input.get();
+      event = (InputCompleteEvent) input.get();
     }
     catch (final Exception ex) {
       ex.printStackTrace();

@@ -21,26 +21,25 @@ import javax.media.mscontrol.join.Joinable.Direction;
 
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
-import com.voxeo.moho.ExecutionContext;
-import com.voxeo.moho.MediaService;
 import com.voxeo.moho.Mixer;
 import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.OutputCommand;
+import com.voxeo.moho.spi.ExecutionContext;
 
 /**
  * <p>
- * SimpleQueue allows a {@link com.voxeo.moho.Call Call} to be parked on the
+ * SimpleQueue allows a {@link com.voxeo.moho.MohoCall Call} to be parked on the
  * queue. While on the queue, the queue will render the audio into to the call.
  * </p>
  * <p>
- * If the audio is shared, each {@link com.voxeo.moho.Call Call} will be
+ * If the audio is shared, each {@link com.voxeo.moho.MohoCall Call} will be
  * hearing the same audio streams at the same time, like radio broadcasting.
  * <p>
  * <p>
- * Otherwise, each {@link com.voxeo.moho.Call Call} will get its own streams of
+ * Otherwise, each {@link com.voxeo.moho.MohoCall Call} will get its own streams of
  * audio.
  * </p>
  * 
@@ -99,11 +98,10 @@ public class SimpleQueue extends DispatchableEventSource implements CallQueue {
         }
       }
       else {
-        final MediaService ms = e.getMediaService();
-        ms.output(_output);
+        e.output(_output);
         // probably need listener here to repeat the output
       }
-      dispatch(new EnqueueEvent(this, e));
+      dispatch(new EnqueueEventImpl(this, e));
       return true;
     }
     return false;
@@ -121,7 +119,7 @@ public class SimpleQueue extends DispatchableEventSource implements CallQueue {
       if (_shared) {
         c.unjoin(_mixer);
       }
-      dispatch(new DequeueEvent(this, c));
+      dispatch(new DequeueEventImpl(this, c));
     }
     return c;
   }
@@ -129,7 +127,7 @@ public class SimpleQueue extends DispatchableEventSource implements CallQueue {
   @Override
   public boolean remove(final Call o) {
     if (_queue.remove(o)) {
-      dispatch(new DequeueEvent(this, o));
+      dispatch(new DequeueEventImpl(this, o));
       return true;
     }
     return false;
@@ -158,11 +156,10 @@ public class SimpleQueue extends DispatchableEventSource implements CallQueue {
   @Override
   public void init() {
     if (_shared) {
-      final MixerEndpoint e = (MixerEndpoint) this.getApplicationContext().getEndpoint(
+      final MixerEndpoint e = (MixerEndpoint) this.getApplicationContext().createEndpoint(
           MixerEndpoint.DEFAULT_MIXER_ENDPOINT);
       _mixer = e.create(null);
-      final MediaService ms = _mixer.getMediaService();
-      ms.output(_output);
+      _mixer.output(_output);
       // probably put a listener here to repeat the output
     }
   }

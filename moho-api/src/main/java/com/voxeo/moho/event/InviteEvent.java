@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -16,121 +16,20 @@ package com.voxeo.moho.event;
 
 import java.util.Map;
 
-import com.voxeo.moho.Call;
-import com.voxeo.moho.CallableEndpoint;
-import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.SignalException;
 
 /**
- * Invitation is an incoming call alert. This is a key event to start the call
- * control.
+ * This event is fired when there is any incoming {@link com.voxeo.moho.Call Call}.
  * 
  * @author wchen
  */
-public abstract class InviteEvent extends SignalEvent implements RejectableEvent, RedirectableEvent {
-
-  private static final long serialVersionUID = 8264519475273617594L;
-
-  protected boolean _acceptedWithEarlyMedia = false;
-
-  protected boolean _rejected = false;
-
-  protected boolean _redirected = false;
-
-  protected InviteEvent() {
-    super(null);
-  }
+public interface InviteEvent extends CallEvent, AcceptableEvent, RedirectableEvent {
 
   /**
-   * @return the address that sends the invitation
+   * @return true if the invitation is accepted with early media
    */
-  public abstract Endpoint getInvitor();
-
-  /**
-   * @return the address that is supposed to receive invitation
-   */
-  public abstract CallableEndpoint getInvitee();
-
-  public boolean isAcceptedWithEarlyMedia() {
-    return _acceptedWithEarlyMedia;
-  }
-
-  @Override
-  public boolean isRedirected() {
-    return _redirected;
-  }
-
-  @Override
-  public boolean isRejected() {
-    return _rejected;
-  }
-
-  @Override
-  public boolean isProcessed() {
-    return isAccepted() || isAcceptedWithEarlyMedia() || isRejected() || isRedirected();
-  }
-
-  /**
-   * Accept the event.
-   * 
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public Call acceptCall() {
-    return this.acceptCall((Observer) null);
-  }
-
-  /**
-   * Accept the event.
-   * 
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public Call acceptCall(final Map<String, String> headers) {
-    return this.acceptCall((Map<String, String>) null, (Observer) null);
-  }
-
-  /**
-   * Accept the invitation with a set of {@link Observer Observer}s.
-   * 
-   * @param observers
-   *          the {@link Observer Observer}s to be added to the {@link Call
-   *          Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public Call acceptCall(final Observer... observers) throws SignalException, IllegalStateException {
-    return this.acceptCall(null, observers);
-  }
-
-  /**
-   * Accept the invitation with a set of {@link Observer Observer}s and
-   * additional headers.
-   * 
-   * @param headers
-   *          additional signaling protocol specific headers to be sent with the
-   *          response.
-   * @param observer
-   *          the {@link Observer Observer}s s to be added to the {@link Call
-   *          Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public abstract Call acceptCall(final Map<String, String> headers, final Observer... observer)
-      throws SignalException, IllegalStateException;
+  boolean isAcceptedWithEarlyMedia();
 
   /**
    * accept the invitation with early media (SIP 183)
@@ -139,154 +38,53 @@ public abstract class InviteEvent extends SignalEvent implements RejectableEvent
    *           when there is any signal error.
    * @throws MediaException
    *           when there is any media server error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
    */
-  public Call acceptCallWithEarlyMedia() throws SignalException, MediaException, IllegalStateException {
-    return this.acceptCallWithEarlyMedia((Map<String, String>) null);
-  }
+  void acceptWithEarlyMedia() throws SignalException, MediaException;
 
   /**
    * accept the invitation with early media (SIP 183)
    * 
-   * @param headers
-   *          additional signaling protocol specific headers to be sent with the
-   *          response.
-   * @return the {@link Call Call} resulted by accepting the invitation.
    * @throws SignalException
    *           when there is any signal error.
    * @throws MediaException
    *           when there is any media server error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
    */
-  public Call acceptCallWithEarlyMedia(final Map<String, String> headers) throws SignalException, MediaException,
-      IllegalStateException {
-    return this.acceptCallWithEarlyMedia(headers, (Observer) null);
-  }
-
+  void acceptWithEarlyMedia(Observer... observer) throws SignalException, MediaException;
+  
   /**
    * accept the invitation with early media (SIP 183)
    * 
-   * @param observers
-   *          the {@link Observer Observer}s s to be added to the {@link Call
-   *          Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws MediaException
-   *           when there is any media server error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
+   * @param headers additional signaling protocol specific headers to be sent with the early media response.
+   * @throws SignalException when signaling error occurs during call setups.
+   * @throws MediaException when media error occurs during early media negotiation.
    */
-  public Call acceptCallWithEarlyMedia(final Observer... observers) throws SignalException, MediaException,
-      IllegalStateException {
-    return this.acceptCallWithEarlyMedia(null, observers);
-  }
+  void acceptWithEarlyMedia(final Map<String, String> headers) throws SignalException, MediaException;
 
-  /**
-   * accept the invitation with early media (SIP 183)
-   * 
-   * @param headers
-   *          additional signaling protocol specific headers to be sent with the
-   *          response.
-   * @param observers
-   *          the {@link Observer Observer}s s to be added to the {@link Call
-   *          Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws MediaException
-   *           when there is any media server error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public abstract Call acceptCallWithEarlyMedia(final Map<String, String> headers, final Observer... observers)
-      throws SignalException, MediaException, IllegalStateException;
 
-  /**
-   * redirect the INVITE to others via 302
-   * 
-   * @param other
-   *          the other endpoint
-   * @throws SignalException
-   *           when there is any signal error.
-   */
-  public void redirect(final Endpoint other) throws SignalException, IllegalArgumentException {
-    this.redirect(other, null);
-  }
-
-  /**
-   * reject the invitation with reason
-   * 
-   * @param reason
-   * @throws SignalException
-   *           when there is any signal error.
-   */
-  public void reject(final Reason reason) throws SignalException {
-    this.reject(reason, null);
-  }
-
+  void accept(Observer... observer) throws SignalException;
+  
   /**
    * Accept the call and join the call to media server.
+   * Please note this is a synchronized operation -- 
+   * operation doesn't return until the call is completely joined to the media server,
+   * or an exception is thrown.
    * 
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
+   * @throws SignalException when signaling error occurs during call setups.
+   * @throws MediaException when media error occurs during media negotiation.
    */
-  public Call answer() {
-    return this.answer((Observer) null);
-  }
+  void answer() throws SignalException, MediaException;
+  
+  void answer(Observer... observer) throws SignalException, MediaException;
 
   /**
-   * Accept the call and join the call to media server.
+   * Accept the call with additional protocol specific headers and join the call to media server.
+   * Please note this is a synchronized operation -- 
+   * operation doesn't return until the call is completely joined to the media server,
+   * or an exception is thrown.
    * 
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
+   * @param headers the protocol specific headers to be sent with the response.
+   * @throws SignalException when signaling error occurs during call setups.
+   * @throws MediaException when media error occurs during media negotiation.
    */
-  public Call answer(final Map<String, String> headers) {
-    return this.answer((Map<String, String>) null, (Observer) null);
-  }
-
-  /**
-   * Accept the invitation with a set of {@link Observer Observer}s and join the
-   * call to media server.
-   * 
-   * @param observers
-   *          the {@link Observer Observer}s to be added to the {@link Call
-   *          Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public Call answer(final Observer... observers) throws SignalException, IllegalStateException {
-    return this.answer(null, observers);
-  }
-
-  /**
-   * Accept the invitation with a set of {@link Observer Observer}s and
-   * additional headers and join the call to media server.
-   * 
-   * @param headers
-   *          additional signaling protocol specific headers to be sent with the
-   *          response.
-   * @param observer
-   *          the {@link Observer Observer}s s to be added to the {@link Call
-   *          Call}
-   * @return the {@link Call Call} resulted by accepting the invitation.
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws IllegalStateException
-   *           when the event has been accpeted.
-   */
-  public abstract Call answer(final Map<String, String> headers, final Observer... observer) throws SignalException,
-      IllegalStateException;
-
+  void answer(final Map<String, String> headers) throws SignalException, MediaException;
 }

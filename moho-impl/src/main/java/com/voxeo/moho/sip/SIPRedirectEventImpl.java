@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -18,13 +18,23 @@ import java.util.Map;
 
 import javax.servlet.sip.SipServletResponse;
 
+import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.MohoRedirectEvent;
 
-public class SIPRedirectEventImpl extends SIPRedirectEvent {
+public class SIPRedirectEventImpl<T extends EventSource> extends MohoRedirectEvent<T> implements SIPRedirectEvent<T> {
 
-  protected SIPRedirectEventImpl(final EventSource source, final SipServletResponse res) {
-    super(source, res);
+  protected SipServletResponse _res;
+
+  protected SIPRedirectEventImpl(final T source, final SipServletResponse res) {
+    super(source);
+    _res = res;
+  }
+
+  @Override
+  public SipServletResponse getSipResponse() {
+    return _res;
   }
 
   @Override
@@ -40,5 +50,31 @@ public class SIPRedirectEventImpl extends SIPRedirectEvent {
         throw new SignalException(e);
       }
     }
+    else {
+      //TODO other source such as Subscrption
+    }
+  }
+
+  @Override
+  public boolean isPermanent() {
+    return _res.getStatus() == SipServletResponse.SC_MOVED_PERMANENTLY;
+  }
+
+  @Override
+  public Endpoint getEndpoint() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Endpoint[] getEndpoints() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void reject(Reason reason, Map<String, String> headers) throws SignalException {
+    // TODO Auto-generated method stub
+    
   }
 }

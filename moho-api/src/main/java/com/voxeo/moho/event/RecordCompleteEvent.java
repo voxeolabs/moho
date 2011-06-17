@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,35 +14,24 @@
 
 package com.voxeo.moho.event;
 
-public class RecordCompleteEvent extends MediaCompleteEvent {
-
-  private static final long serialVersionUID = -8757723338851029875L;
-
+/**
+ * This event is fired when a {@link com.voxeo.moho.media.Recording Recording} is completed.
+ * 
+ * @author wchen
+ *
+ */
+public interface RecordCompleteEvent<T extends EventSource> extends MediaCompleteEvent<T> {
   public enum Cause {
-    TIMEOUT, ERROR, SILENCE, UNKNOWN, CANCEL, INI_TIMEOUT, DISCONNECT
+    TIMEOUT, ERROR, SILENCE, UNKNOWN, CANCEL, INI_TIMEOUT,
   }
-
-  protected Cause _cause;
-
-  protected long _duration;
-
-  public RecordCompleteEvent(final EventSource source, final Cause cause, long duration) {
-    super(source);
-    _cause = cause;
-    _duration = duration;
-  }
-
-  public Cause getCause() {
-    return _cause;
-  }
+//test
+  /**
+   * @return the cause of the completion.
+   */
+  Cause getCause();
 
   /**
-   * Returns the length of the recording, in milliseconds. This length does not
-   * include any omitted silence.
-   * 
-   * @return the length of the recording, in milliseconds.
+   * @return the length of the recording in milliseconds without omitted silence.
    */
-  public long getDuration() {
-    return _duration;
-  }
+  long getDuration();
 }

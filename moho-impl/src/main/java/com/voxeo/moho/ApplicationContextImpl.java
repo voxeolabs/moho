@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -28,24 +28,24 @@ import javax.servlet.ServletContext;
 import javax.servlet.sip.SipFactory;
 
 import com.voxeo.moho.conference.ConferenceManager;
-import com.voxeo.moho.sip.SIPEndpointImpl;
-import com.voxeo.moho.textchannel.TextChannels;
+import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.spi.ProtocolDriver;
+import com.voxeo.moho.spi.SpiFramework;
 import com.voxeo.moho.util.Utils.DaemonThreadFactory;
-import com.voxeo.moho.voicexml.VoiceXMLEndpointImpl;
 
 public class ApplicationContextImpl extends AttributeStoreImpl implements ExecutionContext {
 
   protected Application _application;
 
   protected MsControlFactory _mcFactory;
+  
+  protected MediaServiceFactory _msFactory;
 
   protected ConferenceManager _confMgr;
 
   protected SipFactory _sipFactory;
 
   protected SdpFactory _sdpFactory;
-
-  protected MediaServiceFactory _msFactory;
 
   protected String _controller;
 
@@ -56,6 +56,8 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
   protected ServletContext _servletContext;
 
   protected ThreadPoolExecutor _executor;
+  
+  protected SpiFramework _framework;
 
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipFactory sip,
       final SdpFactory sdp, final String controller, final ServletContext servletContext, final int threadPoolSize) {
@@ -75,38 +77,36 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     return _application;
   }
 
-  public Endpoint getEndpoint(final String addr, String type) {
+  private Endpoint getEndpoint(final String addr, String type) {
     if (addr == null) {
       throw new IllegalArgumentException("argument is null");
     }
-    try {
-      if (addr.startsWith("sip:") || addr.startsWith("sips:") || addr.startsWith("<sip:") || addr.startsWith("<sips:")) {
-        return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
+//      if (addr.startsWith("sip:") || addr.startsWith("sips:") || addr.startsWith("<sip:") || addr.startsWith("<sips:")) {
+//        return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
+//      }
+//      else if (addr.startsWith("mscontrol://")) {
+//        return new MixerEndpointImpl(this, addr);
+//      }
+//      else if (addr.startsWith("file://") || addr.startsWith("http://") || addr.startsWith("https://")
+//          || addr.startsWith("ftp://")) {
+//        return new VoiceXMLEndpointImpl(this, addr);
+//      }
+//      else if (addr.startsWith("tel:") || addr.startsWith("fax:") || addr.startsWith("<tel:")
+//          || addr.startsWith("<fax:")) {
+//        return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
+//      }
+//      else if (type != null && TextChannels.getProvider(type) != null) {
+//        return TextChannels.getProvider(type).createEndpoint(addr, this);
+//      }
+      String schema = addr.split(":")[0];
+      if (schema == null || schema.trim().length() == 0) {
+        throw new IllegalArgumentException("Address must be in the form of URL or <URL>.");
       }
-      else if (addr.startsWith("mscontrol://")) {
-        return new MixerEndpointImpl(this, addr);
+      ProtocolDriver driver = _framework.getDriverByEndpointSechma(schema);
+      if (driver == null) {
+        throw new IllegalArgumentException("No suitable driver for this address format.");
       }
-      else if (addr.startsWith("file://") || addr.startsWith("http://") || addr.startsWith("https://")
-          || addr.startsWith("ftp://")) {
-        return new VoiceXMLEndpointImpl(this, addr);
-      }
-      else if (addr.startsWith("tel:") || addr.startsWith("fax:") || addr.startsWith("<tel:")
-          || addr.startsWith("<fax:")) {
-        return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
-      }
-      else if (type != null && TextChannels.getProvider(type) != null) {
-        return TextChannels.getProvider(type).createEndpoint(addr, this);
-      }
-    }
-    catch (final Exception e) {
-      throw new IllegalArgumentException(e);
-    }
-    throw new IllegalArgumentException("Unsupported format: " + addr);
-  }
-
-  @Override
-  public Endpoint getEndpoint(final String addr) {
-    return getEndpoint(addr, null);
+      return driver.createEndpoint(addr);
   }
 
   @Override
@@ -182,15 +182,6 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
   }
 
   @Override
-  public MediaServiceFactory getMediaServiceFactory() {
-    return _msFactory;
-  }
-
-  public void setMediaServiceFactory(MediaServiceFactory factory) {
-    _msFactory = factory;
-  }
-
-  @Override
   public ServletContext getServletContext() {
     return _servletContext;
   }
@@ -200,9 +191,30 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     return getServletContext().getRealPath(path);
   }
 
+  @Override
   public void destroy() {
     getApplication().destroy();
     _executor.shutdown();
+  }
+  
+  @Override
+  public MediaServiceFactory getMediaServiceFactory() {
+    return _msFactory;
+  }
+
+  @Override
+  public void setMediaServiceFactory(MediaServiceFactory factory) {
+    _msFactory = factory;
+  }
+
+  @Override
+  public SpiFramework getFramework() {
+    return _framework;
+  }
+
+  @Override
+  public void setFramework(SpiFramework framework) {
+    _framework = framework;
   }
 
 }

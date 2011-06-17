@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -20,25 +20,23 @@ import java.util.Map;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 
-import com.voxeo.moho.event.InviteEvent;
-
 /**
  * <p>
- * A call is a leg of communication from an Endpoint to the Moho application.
+ * A call is a leg of communication from an {@link Endpoint Endpoint} to the Moho application.
  * The leg must have signal controlled by the Moho application, optionally media
  * as well.
  * </p>
  * <p>
  * A call is an {@link com.voxeo.moho.event.EventSource EventSource} that
- * generates both {@link com.voxeo.moho.event.SignalEvent SignalEvent} and
- * {@link com.voxeo.moho.event.MediaEvent MediaEvent}. However, all the events
+ * generates both {@link com.voxeo.moho.event.CallEvent CallEvent} and
+ * {@link com.voxeo.moho.event.MohoMediaEvent MediaEvent}. However, all the events
  * from a call are dispatched in a single thread to simplify application
  * programming.
  * </p>
  * 
  * @author wchen
  */
-public abstract class Call extends InviteEvent implements MultiStreamParticipant {
+public interface Call extends MultiStreamParticipant, MediaService<Call> {
   public enum State {
     /** the Call object is initialized **/
     INITIALIZED,
@@ -59,26 +57,26 @@ public abstract class Call extends InviteEvent implements MultiStreamParticipant
     FAILED
   }
 
-  protected Call() {
-    super();
-  }
+  /**
+   * @return the address that sends the invitation
+   */
+  Endpoint getInvitor();
+
+  /**
+   * @return the address that is supposed to receive invitation
+   */
+  CallableEndpoint getInvitee();
 
   /**
    * join the call to media server in
    * {@link javax.media.mscontrol.join.Joinable.Direction.DUPLEX}.
-   * 
-   * @throws IllegalStateException
-   *           if the call has been disconnected.
    */
-  public abstract Joint join();
+  Joint join();
 
   /**
    * join the call to media server in the specified direction.
-   * 
-   * @throws IllegalStateException
-   *           if the call has been disconnected.
    */
-  public abstract Joint join(Direction direction);
+  Joint join(Direction direction);
 
   /**
    * Connect this participant to the specified endpoint. The signaling protocol
@@ -93,10 +91,8 @@ public abstract class Call extends InviteEvent implements MultiStreamParticipant
    *          whether the media is full duplex or half-duplex between the two
    *          participants
    * @return the participant of the specified endpoint
-   * @throws IllegalStateException
-   *           if the call has been released.
    */
-  public abstract Joint join(CallableEndpoint other, Participant.JoinType type, Direction direction);
+  Joint join(CallableEndpoint other, Participant.JoinType type, Direction direction);
 
   /**
    * Connect this participant to the specified endpoint. The signaling protocol
@@ -113,92 +109,76 @@ public abstract class Call extends InviteEvent implements MultiStreamParticipant
    * @param headers
    *          the additional protocol specific headers sent to the endpoint.
    * @return the participant of the specified endpoint
-   * @throws IllegalStateException
-   *           if the call has been released.
    */
-  public abstract Joint join(CallableEndpoint other, Participant.JoinType type, Direction direction,
-      Map<String, String> headers);
+  Joint join(CallableEndpoint other, Participant.JoinType type, Direction direction, Map<String, String> headers);
 
   /**
    * supervised mode delivers more events to the listener
    * 
    * @return whether this call is supervised or not.
    */
-  public abstract boolean isSupervised();
+  boolean isSupervised();
 
   /**
    * @param supervised
    *          true if to turn on supervised mode
    */
-  public abstract void setSupervised(boolean supervised);
-
-  /**
-   * return the media service attached to the call
-   * 
-   * @param reinvite
-   *          whether Moho Framework should automatically re-invites the call to
-   *          {@link Participant.JoinType#BRIDGE Bridge} mode if the call is
-   *          currently joined in {@link Participant.JoinType#DIRECT Direct}
-   *          mode.
-   * @throws MediaException
-   *           when there is media server error.
-   * @throws IllegalStateException
-   *           when the call is {@link Participant.JoinType#DIRECT Direct} mode
-   *           but reinvite is false or if the call is not answered.
-   */
-  public abstract MediaService getMediaService(boolean reinvite);
-
-  /**
-   * return the media service attached to the call. Equivalent of
-   * {@link #getMediaService(boolean) getMediaService(true)}.
-   * 
-   * @throws MediaException
-   *           when there is media server error.
-   * @throws IllegalStateException
-   *           when the call is {@link Participant.JoinType#DIRECT Direct} mode
-   *           but reinvite is false or if the call is not answered.
-   */
-  public abstract MediaService getMediaService();
+  void setSupervised(boolean supervised);
 
   /**
    * @return the current signaling state of the call
    */
-  public abstract State getCallState();
+  State getCallState();
 
   /**
    * @return the peer participant (from call control point of view)
    */
-  public abstract Call[] getPeers();
+  Call[] getPeers();
 
   /**
    * mute the endpoint, make it listen-only.
    */
-  public abstract void mute();
+  void mute();
 
   /**
-   * unmute the endpoint
+   * unmute this call
    */
-  public abstract void unmute();
+  void unmute();
 
   /**
-   * hold the endpoint
+   * hold this call
    */
-  public abstract void hold();
+  void hold();
 
   /**
    * send a sendrecv SDP and resume to send media data.
    */
-  public abstract void unhold();
+  void unhold();
+  
+  /**
+   * disconnect this call.
+   */
+  void hangup();
 
   /**
-   * disconnect this participant with headers.
+   * disconnect this call with headers.
    */
-  public abstract void disconnect(Map<String, String> headers);
-
-  public abstract String getHeader(String name);
-
-  public abstract ListIterator<String> getHeaders(String name);
+  void hangup(Map<String, String> headers);
   
-  public abstract Iterator<String> getHeaderNames();
-
+  /**
+   * @param name the name of the protocol specific header of the initial call setup message.
+   * @return the value of the named header in this invitation. The first value if there are multiple values.
+   */
+  String getHeader(String name);
+  
+  /**
+   * @param name the name of the protocol specific header of the initial call setup message.
+   * @return iterator for all the values of the named header.
+   */
+  ListIterator<String> getHeaders(String name);
+  
+  /**
+   * @return iterator for all the names of the protocol specific headers in the initial call setup message.
+   */
+  Iterator<String> getHeaderNames();
 }

@@ -37,7 +37,6 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Call.State;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.fake.MockParameters;
@@ -47,6 +46,7 @@ import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPInviteEventImplTest extends TestCase {
 
@@ -152,10 +152,11 @@ public class SIPInviteEventImplTest extends TestCase {
 
     // execute
     final SIPIncomingCall invite = new SIPIncomingCall(appContext, inviteReq);
-    final Call call = invite.acceptCall(ob);
+    invite.addObserver(ob);
+    invite.accept();
 
     // assert
-    assertTrue(call.getCallState() == State.ACCEPTED);
+    assertTrue(invite.getCallState() == State.ACCEPTED);
     mockery.assertIsSatisfied();
   }
 
@@ -232,10 +233,11 @@ public class SIPInviteEventImplTest extends TestCase {
 
     // execute
     final SIPIncomingCall invite = new SIPIncomingCall(appContext, inviteReq);
-    final Call call = invite.acceptCallWithEarlyMedia(ob);
+    invite.addObserver(ob);
+    invite.acceptWithEarlyMedia();
 
     // assert
-    assertTrue(call.getCallState() == State.INPROGRESS);
+    assertTrue(invite.getCallState() == State.INPROGRESS);
     mockery.assertIsSatisfied();
   }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,11 +14,11 @@
 
 package com.voxeo.moho.event;
 
-
-public class MediaCompleteEvent extends MediaEvent {
-
-    public MediaCompleteEvent(EventSource source) {
-        super(source);
-    }
-
+/**
+ * This interface marks all the event related the completion of a media operation.
+ * 
+ * @author wchen
+ *
+ */
+public interface MediaCompleteEvent<T extends EventSource> extends MediaEvent<T> {
 }

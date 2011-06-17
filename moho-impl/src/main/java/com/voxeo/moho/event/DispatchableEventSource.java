@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -23,9 +23,8 @@ import java.util.concurrent.Future;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.AttributeStoreImpl;
 import com.voxeo.moho.ExceptionHandler;
-import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.Utils;
-import com.voxeo.moho.utils.Event;
 import com.voxeo.moho.utils.EventListener;
 
 /**
@@ -61,7 +60,7 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
 
   public void addListener(final EventListener<?> listener) {
     if (listener != null) {
-      _dispatcher.addListener(Event.class, listener);
+      _dispatcher.addListener(MohoEvent.class, listener);
     }
   }
 
@@ -73,13 +72,13 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
     }
   }
 
-  public <E extends Event<?>, T extends EventListener<E>> void addListener(final Class<E> type, final T listener) {
+  public <E extends MohoEvent<?>, T extends EventListener<E>> void addListener(final Class<E> type, final T listener) {
     if (listener != null) {
       _dispatcher.addListener(type, listener);
     }
   }
 
-  public <E extends Event<?>, T extends EventListener<E>> void addListeners(final Class<E> type, final T... listeners) {
+  public <E extends MohoEvent<?>, T extends EventListener<E>> void addListeners(final Class<E> type, final T... listeners) {
     if (listeners != null) {
       for (final T listener : listeners) {
         this.addListener(type, listener);
@@ -87,12 +86,11 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
     }
   }
 
-  @SuppressWarnings("unchecked")
-  @Override
+  @SuppressWarnings("rawtypes")
   public void addObserver(final Observer observer) {
     if (observer != null) {
       if (observer instanceof EventListener) {
-        EventListener l = (EventListener) observer;
+        EventListener<?> l = (EventListener<?>) observer;
         Class claz = Utils.getGenericType(observer);
         if (claz == null) {
           claz = Event.class;
@@ -102,14 +100,14 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
       else {
         final AutowiredEventListener autowire = new AutowiredEventListener(observer);
         if (_observers.putIfAbsent(observer, autowire) == null) {
-          _dispatcher.addListener(Event.class, autowire);
+          _dispatcher.addListener(MohoEvent.class, autowire);
         }
       }
     }
   }
 
   @Override
-  public void addObservers(final Observer... observers) {
+  public void addObserver(final Observer... observers) {
     if (observers != null) {
       for (final Observer o : observers) {
         addObserver(o);
@@ -117,16 +115,14 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
     }
   }
 
-  @Override
   public void removeListener(final EventListener<?> listener) {
     _dispatcher.removeListener(listener);
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public void removeObserver(final Observer listener) {
     if (listener instanceof EventListener) {
-      _dispatcher.removeListener((EventListener) listener);
+      _dispatcher.removeListener((EventListener<?>) listener);
     }
     else {
       final AutowiredEventListener autowiredEventListener = _observers.remove(listener);

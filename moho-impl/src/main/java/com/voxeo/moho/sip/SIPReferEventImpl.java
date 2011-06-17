@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -33,20 +33,22 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.MediaException;
-import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription.Type;
 import com.voxeo.moho.event.ApplicationEventSource;
-import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.MohoReferEvent;
 import com.voxeo.moho.util.SessionUtils;
-import com.voxeo.moho.utils.EventListener;
 
-public class SIPReferEventImpl extends SIPReferEvent {
+public class SIPReferEventImpl extends MohoReferEvent implements SIPReferEvent {
 
   private static final Logger LOG = Logger.getLogger(SIPReferEventImpl.class);
 
-  protected SIPReferEventImpl(final EventSource source, final SipServletRequest req) {
-    super(source, req);
+  protected SipServletRequest _req;
+
+  protected SIPReferEventImpl(final SIPCall source, final SipServletRequest req) {
+    super(source);
+    _req = req;
   }
 
   @Override
@@ -73,13 +75,7 @@ public class SIPReferEventImpl extends SIPReferEvent {
   }
 
   @Override
-  public void forwardTo(final Call call) throws SignalException, IllegalStateException {
-    forwardTo(call, null);
-  }
-
-  @Override
-  public synchronized void forwardTo(final Call call, final Map<String, String> headers) throws SignalException,
-      IllegalStateException {
+  public synchronized void forwardTo(final Call call, final Map<String, String> headers) throws SignalException {
     if (!(call instanceof SIPCall)) {
       throw new UnsupportedOperationException("Cannot forward to non-SIPCall.");
     }
@@ -190,7 +186,7 @@ public class SIPReferEventImpl extends SIPReferEvent {
     return null;
   }
 
-  private SIPCallImpl transfer(final SIPCallImpl call, final JoinType type, final Direction direction,
+  private SIPCall transfer(final SIPCallImpl call, final JoinType type, final Direction direction,
       final Map<String, String> headers) throws IOException, SignalException, MediaException {
     String replaces = null;
     try {
@@ -229,8 +225,7 @@ public class SIPReferEventImpl extends SIPReferEvent {
 
     final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
 
-    final SIPOutgoingCall newCall = (SIPOutgoingCall) getReferee().call(peer.getAddress(), reqHeaders,
-        (EventListener<?>) null);
+    final SIPOutgoingCall newCall = (SIPOutgoingCall) getReferee().call(peer.getAddress(), reqHeaders);
     if (call.getLastPeer() instanceof SIPCallImpl) {
       peer.unjoin(call);
       peer.join(newCall, type, direction);
@@ -255,5 +250,16 @@ public class SIPReferEventImpl extends SIPReferEvent {
     catch (final IOException t) {
       LOG.error("IOException when sending notify message.", t);
     }
+  }
+  
+
+  public SipServletRequest getSipRequest() {
+    return _req;
+  }
+
+  @Override
+  public void reject(Reason reason, Map<String, String> headers) throws SignalException {
+    // TODO Auto-generated method stub
+    
   }
 }

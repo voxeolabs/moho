@@ -17,6 +17,7 @@ package com.voxeo.moho.sample;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.InputCompleteEvent;
@@ -38,20 +39,17 @@ public class SampleAutowire implements Application {
   private GameServer game;
 
   @State
-  public void handleInvite(final Call invite) throws Exception {
-    final Call call = invite.acceptCall();
+  public void handleInvite(final IncomingCall call) throws Exception {
+    call.accept();
     call.join().get();
+    game = new DemoGameServer(call);
 
-    final MediaService media = call.getMediaService();
-
-    game = new DemoGameServer(media);
-
-    final Prompt agePrompt = media.prompt("Welcome phone sweeper. "
+    final Prompt<Call> agePrompt = call.prompt("Welcome phone sweeper. "
         + "Press 1 if you are over 18, press 2 if you are under 18.", "1,2", 0);
 
-    final Input input = agePrompt.getInput();
+    final Input<Call> input = agePrompt.getInput();
     if (!"1".equals(input.get().getConcept())) {
-      final Output o = media.output("Sorry, you're too young");
+      final Output<Call> o = call.output("Sorry, you're too young");
       o.get();
       call.disconnect();
       return;
@@ -60,15 +58,15 @@ public class SampleAutowire implements Application {
     final GameController gameController = new GameController();
     call.addObserver(gameController);
 
-    media.output("Ready Go");
-    media.input(new DigitInputCommand());
+    call.output("Ready Go");
+    call.input(new DigitInputCommand());
 
   }
 
   public class GameController implements Observer {
 
     @State
-    public void onDigit(final InputCompleteEvent event) {
+    public void onDigit(final InputCompleteEvent<Call> event) {
       if (event.hasMatch() && event.getConcept() != null) {
 
         final int command = Integer.parseInt(event.getConcept());
@@ -94,9 +92,9 @@ public class SampleAutowire implements Application {
 
   class DemoGameServer implements GameServer {
 
-    private MediaService _media;
+    private MediaService<Call> _media;
 
-    public DemoGameServer(final MediaService media) {
+    public DemoGameServer(final MediaService<Call> media) {
       _media = media;
     }
 

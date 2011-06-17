@@ -41,18 +41,18 @@ import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.ExceptionHandler;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.State;
-import com.voxeo.moho.event.DisconnectEvent;
+import com.voxeo.moho.event.MohoHangupEvent;
+import com.voxeo.moho.event.Event;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
+import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.utils.EventListener;
-import com.voxeo.moho.utils.IEvent;
 
 public class SIPIncomingCallTest extends TestCase {
 
@@ -153,7 +153,7 @@ public class SIPIncomingCallTest extends TestCase {
 
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
     // prepare
-    final DisconnectEvent disconnectEvent = mockery.mock(DisconnectEvent.class);
+    final MohoHangupEvent disconnectEvent = mockery.mock(MohoHangupEvent.class);
 
     sipcall.setSupervised(true);
     mockery.checking(new Expectations() {
@@ -169,7 +169,7 @@ public class SIPIncomingCallTest extends TestCase {
     // execute test.
 
     sipcall.addObserver(new MyOListener());
-    final Future<DisconnectEvent> future = sipcall.dispatch(disconnectEvent);
+    final Future<MohoHangupEvent> future = sipcall.dispatch(disconnectEvent);
 
     // verify result
     assert future != null;
@@ -185,16 +185,16 @@ public class SIPIncomingCallTest extends TestCase {
     mockery.assertIsSatisfied();
   }
 
-  class MyListener implements EventListener<DisconnectEvent> {
+  class MyListener implements EventListener<MohoHangupEvent> {
     @Override
-    public void onEvent(DisconnectEvent event) throws Exception {
+    public void onEvent(MohoHangupEvent event) throws Exception {
       //invoked = true;
     }
   }
   
   class MyOListener extends MyListener{
     @Override
-    public void onEvent(DisconnectEvent event) throws Exception {
+    public void onEvent(MohoHangupEvent event) throws Exception {
       invoked = true;
     }
   }
@@ -208,7 +208,7 @@ public class SIPIncomingCallTest extends TestCase {
     final MyExceptionHandler handler = new MyExceptionHandler();
     sipcall.addExceptionHandler(handler);
     // prepare
-    final DisconnectEvent disconnectEvent = mockery.mock(DisconnectEvent.class);
+    final MohoHangupEvent disconnectEvent = mockery.mock(MohoHangupEvent.class);
 
     sipcall.setSupervised(true);
     mockery.checking(new Expectations() {
@@ -222,7 +222,7 @@ public class SIPIncomingCallTest extends TestCase {
     // execute test.
 
     sipcall.addObserver(new ThrowExceptionApp());
-    final Future<DisconnectEvent> future = sipcall.dispatch(disconnectEvent);
+    final Future<MohoHangupEvent> future = sipcall.dispatch(disconnectEvent);
 
     // verify result
     assert future != null;
@@ -242,7 +242,7 @@ public class SIPIncomingCallTest extends TestCase {
     Exception ex;
 
     @Override
-    public boolean handle(final Exception ex, final IEvent<?> event) {
+    public boolean handle(final Exception ex, final Event<?> event) {
       this.ex = ex;
       return false;
     }
@@ -250,7 +250,7 @@ public class SIPIncomingCallTest extends TestCase {
 
   class ThrowExceptionApp implements Application {
     @State
-    public void handleDisconnect(final DisconnectEvent event) throws Exception {
+    public void handleDisconnect(final MohoHangupEvent event) throws Exception {
       throw new Exception("test exception");
     }
 
@@ -267,7 +267,7 @@ public class SIPIncomingCallTest extends TestCase {
 
   class TestApp implements Application {
     @State
-    public void handleDisconnect(final DisconnectEvent event) {
+    public void handleDisconnect(final MohoHangupEvent event) {
       invoked = true;
     }
 
@@ -2748,8 +2748,7 @@ public class SIPIncomingCallTest extends TestCase {
                 @Override
                 public void run() {
                   try {
-                    final SIPSuccessEventImpl respEvent = new SIPSuccessEventImpl(sipcall, sipReInviteResp);
-                    respEvent.accept();
+                    final SIPAnsweredEventImpl respEvent = new SIPAnsweredEventImpl(sipcall, sipReInviteResp);
                     // sipcall.doResponse(sipReInviteResp, null);
                   }
                   catch (final Exception e) {
@@ -3054,7 +3053,7 @@ public class SIPIncomingCallTest extends TestCase {
       sipcall.join().get();
       assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
       sipcall.setSupervised(true);
-      sipcall.dispatch(new SIPDisconnectEventImpl(sipcall, byeReq)).get();
+      sipcall.dispatch(new SIPHangupEventImpl(sipcall, byeReq)).get();
     }
     catch (final Exception ex) {
       ex.printStackTrace();

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -11,13 +11,36 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-
 package com.voxeo.moho.event;
 
-public abstract class RedirectEvent extends SignalEvent {
+import com.voxeo.moho.Endpoint;
 
-  protected RedirectEvent(final EventSource source) {
-    super(source);
-  }
-
+/**
+ * This event is fired when a redirect response is received.
+ * 
+ * @author wchen
+ *
+ * @param <T>
+ */
+public interface RedirectEvent<T extends EventSource> extends ResponseEvent<T>, AcceptableEvent {
+  /**
+   * @return true if the target is moved permanently
+   */
+  boolean isPermanent();
+  
+  /**
+   * @return the new location of the target. The first one will be returned if there are multiple new locatins.
+   */
+  Endpoint getEndpoint();
+  
+  /**
+   * @return all the new locations of the target
+   */
+  Endpoint[] getEndpoints();
+  
+  /**
+   * @return true if this redirect has been processed.
+   */
+  boolean isProcessed();
+  
 }

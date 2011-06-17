@@ -40,13 +40,13 @@ import org.jmock.lib.legacy.ClassImposteriser;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContextImpl;
-import com.voxeo.moho.Call;
-import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.MohoCall;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.DisconnectEvent;
+import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockMediaSession;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.media.fake.MockVxmlDialog;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class VoiceXMLDialogImplTest extends TestCase {
 
@@ -114,12 +114,12 @@ public class VoiceXMLDialogImplTest extends TestCase {
     }
 
     // create vXMLDialog.
-    vXMLendPoint = (VoiceXMLEndpoint) appContext.getEndpoint(documentURL);
+    vXMLendPoint = (VoiceXMLEndpoint) appContext.createEndpoint(documentURL);
 
     vXMLDialog = (VoiceXMLDialogImpl) vXMLendPoint.create(null);
 
     // mock the call
-    final Call call = mockery.mock(Call.class);
+    final MohoCall call = mockery.mock(MohoCall.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
     try {
       mockery.checking(new Expectations() {
@@ -338,7 +338,7 @@ public class VoiceXMLDialogImplTest extends TestCase {
 
     // excute
     // create dialog.
-    vXMLendPoint = (VoiceXMLEndpoint) appContext.getEndpoint(documentURL);
+    vXMLendPoint = (VoiceXMLEndpoint) appContext.createEndpoint(documentURL);
 
     vXMLDialog = (VoiceXMLDialogImpl) vXMLendPoint.create(null);
 
@@ -368,6 +368,6 @@ public class VoiceXMLDialogImplTest extends TestCase {
   }
 
   interface TestApp extends Application {
-    public void handleDisconnect(DisconnectEvent event);
+    public void handleDisconnect(MohoHangupEvent event);
   }
 }

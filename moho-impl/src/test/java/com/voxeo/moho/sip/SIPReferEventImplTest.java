@@ -33,7 +33,6 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
 import com.voxeo.moho.sip.fake.MockAddress;
@@ -41,6 +40,7 @@ import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPReferEventImplTest extends TestCase {
 

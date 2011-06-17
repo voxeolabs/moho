@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,10 +14,11 @@
 
 package com.voxeo.moho.event;
 
-public class RecordStartedEvent extends MediaNotificationEvent {
-
-  public RecordStartedEvent(final EventSource source) {
-    super(source);
-  }
-
+/**
+ * This event is fired when {@link com.voxeo.moho.media.Recording Recording} is started.
+ * 
+ * @author wchen
+ *
+ */
+public interface RecordStartedEvent<T extends EventSource> extends MediaNotificationEvent<T> {
 }

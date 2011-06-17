@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -34,8 +34,9 @@ import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
 
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.DisconnectEvent;
+import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockMediaSession;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class MixerImplTest extends TestCase {
 
@@ -98,11 +99,11 @@ public class MixerImplTest extends TestCase {
     }
 
     // create mixer.
-    address = (MixerEndpoint) appContext.getEndpoint("mscontrol://test");
+    address = (MixerEndpoint) appContext.createEndpoint("mscontrol://test");
     mohoMixer = (MixerImpl) address.create(null);
 
     // mock the call
-    final Call call = mockery.mock(Call.class);
+    final MohoCall call = mockery.mock(MohoCall.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
 
     try {
@@ -186,7 +187,7 @@ public class MixerImplTest extends TestCase {
     }
 
     // create mixer.
-    address = (MixerEndpoint) appContext.getEndpoint("mscontrol://test");
+    address = (MixerEndpoint) appContext.createEndpoint("mscontrol://test");
     mohoMixer = (MixerImpl) address.create(null);
 
     // disconnect.
@@ -197,6 +198,6 @@ public class MixerImplTest extends TestCase {
   }
 
   interface TestApp extends Application {
-    public void handleDisconnect(DisconnectEvent event);
+    public void handleDisconnect(MohoHangupEvent event);
   }
 }

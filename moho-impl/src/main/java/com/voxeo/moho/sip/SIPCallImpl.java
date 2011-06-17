@@ -1,28 +1,23 @@
 /**
- * Copyright 2010 Voxeo Corporation Licensed under the Apache License, Version
- * 2.0 (the "License"); you may not use this file except in compliance with the
- * License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
- * or agreed to in writing, software distributed under the License is
- * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the specific language
+ * Copyright 2010-2011 Voxeo Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License.
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -47,16 +42,14 @@ import javax.servlet.sip.SipSessionsUtil;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.CanceledException;
-import com.voxeo.moho.DisconnectedException;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.ExceptionHandler;
-import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.HangupException;
 import com.voxeo.moho.JoinData;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.JoineeData;
@@ -65,36 +58,27 @@ import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.MixerImpl;
+import com.voxeo.moho.MohoCall;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.RedirectException;
 import com.voxeo.moho.RejectException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.TimeoutException;
-import com.voxeo.moho.event.AutowiredEventListener;
-import com.voxeo.moho.event.AutowiredEventTarget;
 import com.voxeo.moho.event.CallCompleteEvent;
-import com.voxeo.moho.event.EarlyMediaEvent;
-import com.voxeo.moho.event.EventDispatcher;
-import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.ForwardableEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
-import com.voxeo.moho.event.Observer;
-import com.voxeo.moho.event.SignalEvent;
+import com.voxeo.moho.event.MohoCallCompleteEvent;
+import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.media.GenericMediaService;
+import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
-import com.voxeo.moho.util.Utils;
-import com.voxeo.moho.utils.Event;
-import com.voxeo.moho.utils.EventListener;
 
-public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<SdpPortManagerEvent> {
+public abstract class SIPCallImpl extends MohoCall implements SIPCall, MediaEventListener<SdpPortManagerEvent> {
 
   private static final Logger LOG = Logger.getLogger(SIPCallImpl.class);
 
   protected SIPCall.State _cstate;
-
-  protected boolean _isSupervised;
 
   protected SIPEndpoint _address;
 
@@ -110,13 +94,11 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   protected NetworkConnection _network;
 
-  protected MediaService _service;
+  protected MediaService<Call> _service;
 
   protected JoinDelegate _joinDelegate;
 
   protected SIPCallDelegate _callDelegate;
-
-  protected List<Call> _peers = new ArrayList<Call>(0);
 
   protected JoineeData _joinees = new JoineeData();
 
@@ -126,58 +108,10 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   protected Exception _exception;
 
-  // invite event
-  protected CallableEndpoint _caller;
-
-  protected CallableEndpoint _callee;
-
-  // dispatchable event source
-  protected String _id;
-
-  protected Map<String, String> _states = new ConcurrentHashMap<String, String>();
-
-  protected ExecutionContext _context;
-
-  protected EventDispatcher _dispatcher = new EventDispatcher();
-
-  protected ConcurrentHashMap<Observer, AutowiredEventListener> _observers = new ConcurrentHashMap<Observer, AutowiredEventListener>();
-
   protected SIPCallImpl _bridgeJoiningPeer;
 
-  // attribute store
-  private Map<String, Object> _attributes = new ConcurrentHashMap<String, Object>();
-
-  @Override
-  @SuppressWarnings("unchecked")
-  public <T> T getAttribute(final String name) {
-    if (name == null) {
-      return null;
-    }
-    return (T) _attributes.get(name);
-  }
-
-  @Override
-  public Map<String, Object> getAttributeMap() {
-    return new HashMap<String, Object>(_attributes);
-  }
-
-  @Override
-  public void setAttribute(final String name, final Object value) {
-    if (value == null) {
-      _attributes.remove(name);
-    }
-    else {
-      _attributes.put(name, value);
-    }
-  }
-
-  // attribute store over
-
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
-    _context = context;
-    _dispatcher.setExecutor(getThreadPool(), true);
-    _id = UUID.randomUUID().toString();
-
+    super(context);
     _caller = new SIPEndpointImpl(context, req.getFrom());
     _callee = new SIPEndpointImpl(context, req.getTo());
 
@@ -216,10 +150,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   }
 
   protected SIPCallImpl(final ExecutionContext context) {
-    _context = context;
-    _dispatcher.setExecutor(getThreadPool(), true);
-    _id = UUID.randomUUID().toString();
-    context.addCall(this);
+    super(context);
     _cstate = SIPCall.State.INITIALIZED;
   }
 
@@ -266,10 +197,8 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       case ANSWERED:
         return Call.State.CONNECTED;
       case FAILED:
-      case REJECTED:
         return Call.State.FAILED;
       case DISCONNECTED:
-      case REDIRECTED:
         return Call.State.DISCONNECTED;
     }
     return null;
@@ -279,9 +208,9 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   public synchronized SIPCall.State getSIPCallState() {
     return _cstate;
   }
-
+  
   @Override
-  public synchronized MediaService getMediaService(final boolean reinvite) throws IllegalStateException, MediaException {
+  protected synchronized MediaService<Call> getMediaService(final boolean reinvite) throws MediaException {
     if (getSIPCallState() != SIPCall.State.ANSWERED && getSIPCallState() != SIPCall.State.PROGRESSED) {
       throw new IllegalStateException();
     }
@@ -324,7 +253,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
           _media.setParameters(params);
         }
 
-        _service = _context.getMediaServiceFactory().create(this, _media, params);
+        _service = _context.getMediaServiceFactory().create((Call)this, _media, params);
         _service.getMediaGroup().join(direction, _network);
       }
       else if (reinvite) {
@@ -337,63 +266,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     return _service;
   }
 
-  @Override
-  public boolean isSupervised() {
-    return _isSupervised;
-  }
-
-  @Override
-  public void setSupervised(final boolean supervised) {
-    _isSupervised = supervised;
-  }
-
-  @Override
-  public <S extends EventSource, T extends Event<S>> Future<T> dispatch(final T event) {
-    Future<T> retval = null;
-    if (!(event instanceof SignalEvent)) {
-      retval = this.internalDispatch(event);
-    }
-    else {
-      final Runnable acceptor = new Runnable() {
-        @Override
-        public void run() {
-          if (!((SignalEvent) event).isProcessed()) {
-            try {
-              if (event instanceof EarlyMediaEvent) {
-                ((EarlyMediaEvent) event).reject(null);
-              }
-              else {
-                ((SignalEvent) event).accept();
-              }
-            }
-            catch (final SignalException e) {
-              LOG.warn("", e);
-            }
-          }
-        }
-      };
-      if (isSupervised() || event instanceof ForwardableEvent) {
-        retval = this.dispatch(event, acceptor);
-      }
-      else {
-        acceptor.run();
-      }
-      // retval = super.dispatch(event, acceptor);
-    }
-    return retval;
-  }
-
-  @Override
-  public synchronized Endpoint getAddress() {
-    return _address;
-  }
-
-  @Override
-  public Call[] getPeers() {
-    synchronized (_peers) {
-      return _peers.toArray(new Call[_peers.size()]);
-    }
-  }
 
   @Override
   public SipSession getSipSession() {
@@ -405,17 +277,12 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   }
 
   @Override
-  public MediaService getMediaService() throws IllegalStateException, MediaException {
-    return getMediaService(false);
-  }
-
-  @Override
   public void disconnect() {
     this.disconnect(false, CallCompleteEvent.Cause.NEAR_END_DISCONNECT, null, null);
   }
 
   @Override
-  public void disconnect(Map<String, String> headers) {
+  public void hangup(Map<String, String> headers) {
     this.disconnect(false, CallCompleteEvent.Cause.NEAR_END_DISCONNECT, null, headers);
   }
 
@@ -502,21 +369,11 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   }
 
   @Override
-  public Joint join() {
-    return join(Joinable.Direction.DUPLEX);
-  }
-
-  @Override
-  public Joint join(final CallableEndpoint other, final JoinType type, final Direction direction) {
-    return join(other, type, direction, null);
-  }
-
-  @Override
   public Joint join(final CallableEndpoint other, final JoinType type, final Direction direction,
       final Map<String, String> headers) {
     Participant p = null;
     try {
-      p = other.call(getAddress(), headers, (EventListener<?>) null);
+      p = other.call(getAddress(), headers);
     }
     catch (final Exception e) {
       return new JointImpl(_context.getExecutor(), new JointImpl.DummyJoinWorker(SIPCallImpl.this, p, e));
@@ -535,7 +392,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
         JoinCompleteEvent event = null;
         try {
           doJoin(direction);
-          event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.JOINED);
+          event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.JOINED);
         }
         catch (final Exception e) {
           _exception = e;
@@ -578,7 +435,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
           if (isTerminated()) {
             SIPCallImpl.this
-                .dispatch(new CallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR, _exception));
+                .dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR, _exception));
           }
         }
         return event;
@@ -620,7 +477,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
           else {
             doJoin(other, type, direction);
           }
-          event = new JoinCompleteEvent(SIPCallImpl.this, other, Cause.JOINED);
+          event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.JOINED);
         }
         catch (final Exception e) {
           event = handleJoinException(e);
@@ -646,7 +503,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
           if (isTerminated()) {
             SIPCallImpl.this
-                .dispatch(new CallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR, _exception));
+                .dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR, _exception));
           }
         }
         return event;
@@ -695,7 +552,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     }
     else {
       if (_joinDelegate != null) {
-        _joinDelegate.setException(new DisconnectedException());
+        _joinDelegate.setException(new HangupException());
       }
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
       terminate(CallCompleteEvent.Cause.DISCONNECT, null);
@@ -831,9 +688,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       return;
     }
     if (_service != null) {
-      ((GenericMediaService) _service)
-          .release((cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) ? true
-              : false);
+      ((GenericMediaService<Call>) _service).release();
       _service = null;
     }
     final SIPCall.State old = getSIPCallState();
@@ -877,9 +732,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     _context.removeCall(getId());
 
     if (_service != null) {
-      ((GenericMediaService) _service)
-          .release((cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) ? true
-              : false);
+      ((GenericMediaService<Call>) _service).release();
       _service = null;
     }
     destroyNetworkConnection();
@@ -917,7 +770,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
             + (getSipSession() != null ? getSipSession().getCallId() : ""));
       }
       this.notifyAll();
-      this.dispatch(new CallCompleteEvent(this, cause, exception));
+      this.dispatch(new MohoCallCompleteEvent(this, cause, exception));
     }
     _callDelegate = null;
   }
@@ -1407,7 +1260,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
           LOG.warn("InterruptedException when wait hold, the HoldState " + getHoldState());
         }
       }
-
     }
     catch (final MsControlException e) {
       setHoldState(HoldState.None);
@@ -1461,7 +1313,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
           LOG.warn("InterruptedException when wait mute, the MuteState " + getMuteState());
         }
       }
-
     }
     catch (final IOException e) {
       setMuteState(HoldState.None);
@@ -1485,7 +1336,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     if (_holdState != HoldState.Held) {
       return;
     }
-
     if (_operationInProcess) {
       throw new IllegalStateException("other operation in process.");
     }
@@ -1506,7 +1356,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
           LOG.warn("InterruptedException when wait unhold, the HoldState " + getHoldState());
         }
       }
-
     }
     catch (final MsControlException e) {
       setHoldState(oldHoldState);
@@ -1576,25 +1425,25 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   private JoinCompleteEvent handleJoinException(final Exception e) {
     JoinCompleteEvent event = null;
     if (e instanceof BusyException) {
-      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.BUSY, e);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.BUSY, e);
     }
     else if (e instanceof TimeoutException) {
-      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.TIMEOUT, e);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.TIMEOUT, e);
     }
     else if (e instanceof RedirectException) {
-      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.REDIRECT, e);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.REDIRECT, e);
     }
     else if (e instanceof RejectException) {
-      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.REJECT, e);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.REJECT, e);
     }
     else if (e instanceof CanceledException) {
-      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.CANCELED, e);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.CANCELED, e);
     }
-    else if (e instanceof DisconnectedException) {
-      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.DISCONNECTED, e);
+    else if (e instanceof HangupException) {
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.DISCONNECTED, e);
     }
     else {
-      event = new JoinCompleteEvent(SIPCallImpl.this, null, Cause.ERROR, e);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.ERROR, e);
     }
     return event;
   }
@@ -1631,295 +1480,6 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   }
 
   @Override
-  public synchronized void redirect(final Endpoint o, final Map<String, String> headers) throws SignalException,
-      IllegalArgumentException {
-    checkState();
-    _redirected = true;
-    setSIPCallState(SIPCall.State.REDIRECTED);
-
-    terminate(CallCompleteEvent.Cause.REDIRECT, null);
-
-    if (o instanceof SIPEndpoint) {
-      final SipServletResponse res = _invite.createResponse(SipServletResponse.SC_MOVED_TEMPORARILY);
-      res.setHeader("Contact", ((SIPEndpoint) o).getURI().toString());
-      SIPHelper.addHeaders(res, headers);
-      try {
-        res.send();
-      }
-      catch (final IOException e) {
-        throw new SignalException(e);
-      }
-    }
-    else {
-      throw new IllegalArgumentException("Unable to redirect the call to a non-SIP participant.");
-    }
-  }
-
-  @Override
-  public synchronized void reject(final Reason reason, final Map<String, String> headers) throws SignalException {
-    checkState();
-    _rejected = true;
-    setSIPCallState(SIPCall.State.REJECTED);
-
-    terminate(CallCompleteEvent.Cause.DECLINE, null);
-
-    try {
-      final SipServletResponse res = _invite.createResponse(reason == null ? Reason.DECLINE.getCode() : reason
-          .getCode());
-      SIPHelper.addHeaders(res, headers);
-      res.send();
-    }
-    catch (final IOException e) {
-      throw new SignalException(e);
-    }
-  }
-
-  @Override
-  public void accept(final Map<String, String> headers) throws SignalException, IllegalStateException {
-    acceptCall(headers);
-  }
-
-  public synchronized Call acceptCall(final Map<String, String> headers, final EventListener<?>... listeners)
-      throws SignalException, IllegalStateException {
-    checkState();
-    _accepted = true;
-    ((SIPIncomingCall) this).addListeners(listeners);
-    try {
-      ((SIPIncomingCall) this).doInvite(headers);
-      return this;
-    }
-    catch (final Exception e) {
-      throw new SignalException(e);
-    }
-  }
-
-  @Override
-  public synchronized Call acceptCall(final Map<String, String> headers, final Observer... observers)
-      throws SignalException, IllegalStateException {
-    checkState();
-    _accepted = true;
-    ((SIPIncomingCall) this).addObservers(observers);
-    try {
-      ((SIPIncomingCall) this).doInvite(headers);
-      return this;
-    }
-    catch (final Exception e) {
-      throw new SignalException(e);
-    }
-  }
-
-  public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers,
-      final EventListener<?>... listeners) throws SignalException, MediaException, IllegalStateException {
-    checkState();
-    _accepted = true;
-    _acceptedWithEarlyMedia = true;
-    ((SIPIncomingCall) this).addListeners(listeners);
-    try {
-      ((SIPIncomingCall) this).doInviteWithEarlyMedia(headers);
-      return this;
-    }
-    catch (final Exception e) {
-      if (e instanceof SignalException) {
-        throw (SignalException) e;
-      }
-      else if (e instanceof MediaException) {
-        throw (MediaException) e;
-      }
-      else {
-        throw new SignalException(e);
-      }
-    }
-  }
-
-  @Override
-  public synchronized Call acceptCallWithEarlyMedia(final Map<String, String> headers, final Observer... observers)
-      throws SignalException, MediaException, IllegalStateException {
-    checkState();
-    _accepted = true;
-    _acceptedWithEarlyMedia = true;
-    ((SIPIncomingCall) this).addObservers(observers);
-    try {
-      ((SIPIncomingCall) this).doInviteWithEarlyMedia(headers);
-      return this;
-    }
-    catch (final Exception e) {
-      if (e instanceof SignalException) {
-        throw (SignalException) e;
-      }
-      else if (e instanceof MediaException) {
-        throw (MediaException) e;
-      }
-      else {
-        throw new SignalException(e);
-      }
-    }
-  }
-
-  public Call answer(final Map<String, String> headers, final EventListener<?>... listeners) throws SignalException,
-      IllegalStateException {
-
-    if (!_accepted) {
-      acceptCall(headers, listeners);
-    }
-
-    final Joint joint = this.join();
-    while (!joint.isDone()) {
-      try {
-        joint.get();
-      }
-      catch (final InterruptedException e) {
-        // ignore
-      }
-      catch (final ExecutionException e) {
-        throw new SignalException(e.getCause());
-      }
-    }
-
-    return this;
-  }
-
-  @Override
-  public Call answer(final Map<String, String> headers, final Observer... observer) throws SignalException,
-      IllegalStateException {
-
-    if (!_accepted) {
-      acceptCall(headers, observer);
-    }
-
-    final Joint joint = this.join();
-    while (!joint.isDone()) {
-      try {
-        joint.get();
-      }
-      catch (final InterruptedException e) {
-        // ignore
-      }
-      catch (final ExecutionException e) {
-        throw new SignalException(e.getCause());
-      }
-    }
-
-    return this;
-  }
-
-  // for invite event over==========
-
-  // for dispatchable eventsource=========
-  public void addListener(final EventListener<?> listener) {
-    if (listener != null) {
-      _dispatcher.addListener(Event.class, listener);
-    }
-  }
-
-  public void addListeners(final EventListener<?>... listeners) {
-    if (listeners != null) {
-      for (final EventListener<?> listener : listeners) {
-        this.addListener(listener);
-      }
-    }
-  }
-
-  public <E extends Event<?>, T extends EventListener<E>> void addListener(final Class<E> type, final T listener) {
-    if (listener != null) {
-      _dispatcher.addListener(type, listener);
-    }
-  }
-
-  @Override
-  public <E extends Event<?>, T extends EventListener<E>> void addListeners(final Class<E> type, final T... listeners) {
-    if (listeners != null) {
-      for (final T listener : listeners) {
-        this.addListener(type, listener);
-      }
-    }
-  }
-
-  @SuppressWarnings("rawtypes")
-  public void addObserver(final Observer observer) {
-    if (observer != null) {
-      if (observer instanceof EventListener) {
-        EventListener l = (EventListener) observer;
-        Class claz = Utils.getGenericType(observer);
-        if (claz == null) {
-          claz = Event.class;
-        }
-        _dispatcher.addListener(claz, l);
-      }
-      else {
-        final AutowiredEventListener autowire = new AutowiredEventListener(observer);
-        if (_observers.putIfAbsent(observer, autowire) == null) {
-          _dispatcher.addListener(Event.class, autowire);
-        }
-      }
-
-    }
-  }
-
-  @Override
-  public void addObservers(final Observer... observers) {
-    if (observers != null) {
-      for (final Observer o : observers) {
-        addObserver(o);
-      }
-    }
-  }
-
-  @Override
-  public void removeListener(final EventListener<?> listener) {
-    _dispatcher.removeListener(listener);
-  }
-
-  @Override
-  public void removeObserver(final Observer listener) {
-    final AutowiredEventListener autowiredEventListener = _observers.remove(listener);
-    if (autowiredEventListener != null) {
-      _dispatcher.removeListener(autowiredEventListener);
-    }
-  }
-
-  public <S extends EventSource, T extends Event<S>> Future<T> internalDispatch(final T event) {
-    return _dispatcher.fire(event, true, null);
-  }
-
-  @Override
-  public <S extends EventSource, T extends Event<S>> Future<T> dispatch(final T event, final Runnable afterExec) {
-    return _dispatcher.fire(event, true, afterExec);
-  }
-
-  @Override
-  public String getId() {
-    return _id;
-  }
-
-  @Override
-  public ApplicationContext getApplicationContext() {
-    return _context;
-  }
-
-  @Override
-  public String getApplicationState() {
-    return _states.get(AutowiredEventTarget.DEFAULT_FSM);
-  }
-
-  @Override
-  public void setApplicationState(final String state) {
-    _states.put(AutowiredEventTarget.DEFAULT_FSM, state);
-  }
-
-  public String getApplicationState(final String FSM) {
-    return _states.get(FSM);
-  }
-
-  @Override
-  public void setApplicationState(final String FSM, final String state) {
-    _states.put(FSM, state);
-  }
-
-  protected Executor getThreadPool() {
-    return _context.getExecutor();
-  }
-
-  @Override
   public void addExceptionHandler(final ExceptionHandler... handlers) {
     _dispatcher.addExceptionHandler(handlers);
   }
@@ -1933,5 +1493,11 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   public void setBridgeJoiningPeer(final SIPCallImpl bridgeJoiningPeer) {
     _bridgeJoiningPeer = bridgeJoiningPeer;
   }
+
+  @Override
+  public synchronized Endpoint getAddress() {
+    return _address;
+  }
+
 
 }

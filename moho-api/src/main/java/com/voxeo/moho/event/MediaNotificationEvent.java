@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,13 +14,11 @@
 
 package com.voxeo.moho.event;
 
-
-public class MediaNotificationEvent extends MediaEvent {
-
-    private static final long serialVersionUID = 9143509160467968696L;
-
-    public MediaNotificationEvent(EventSource source) {
-        super(source);
-    }
-
+/**
+ * This interface marks all the events for notifying the status of media operations.
+ * 
+ * @author wchen
+ *
+ */
+public interface MediaNotificationEvent<T extends EventSource> extends MediaEvent<T> {
 }

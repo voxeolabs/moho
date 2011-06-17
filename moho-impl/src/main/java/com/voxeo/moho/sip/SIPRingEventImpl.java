@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,32 +14,25 @@
 
 package com.voxeo.moho.sip;
 
-import java.util.Map;
-
 import javax.servlet.sip.SipServletResponse;
 
-import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.MohoRingEvent;
 
-public class SIPRingEventImpl extends SIPRingEvent {
+public class SIPRingEventImpl extends MohoRingEvent implements SIPRingEvent {
 
-  protected SIPRingEventImpl(final EventSource source, final SipServletResponse res) {
-    super(source, res);
+  protected SipServletResponse _res;
+
+  protected SIPRingEventImpl(final SIPCall source, final SipServletResponse res) {
+    super(source);
+    _res = res;
+  }
+
+  public SipServletResponse getSipResponse() {
+    return _res;
   }
 
   @Override
-  public synchronized void accept(final Map<String, String> headers) throws SignalException {
-    this.checkState();
-    _accepted = true;
-    if (this.source instanceof SIPCallImpl) {
-      final SIPCallImpl call = (SIPCallImpl) this.source;
-      try {
-        call.doResponse(_res, headers);
-      }
-      catch (final Exception e) {
-        throw new SignalException(e);
-      }
-    }
+  public boolean isProcessed() {
+    return true;
   }
-
 }

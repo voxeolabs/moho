@@ -16,9 +16,8 @@ package com.voxeo.moho.event;
 
 /**
  * <p>
- * Observer is a weak-typed listener that can listen on both {@link SignalEvent}
- * and {@link MediaEvent}. Moho supports dispatching event to Observers based
- * on event type and state.
+ * Observer is a weak-typed listener that can listen on both {@link Event}. 
+ * Moho supports dispatching event to Observers based on event type and state.
  * </p>
  * <p>
  * The best way to understand Observer is to look at an example.

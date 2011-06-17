@@ -8,7 +8,6 @@
 		<groupId>com.voxeo.moho</groupId>
 		<artifactId>moho-parent</artifactId>
 		<version>0.7-SNAPSHOT</version>
-		<!--test-->
 	</parent>
 
 	<scm>

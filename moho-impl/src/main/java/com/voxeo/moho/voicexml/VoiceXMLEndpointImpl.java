@@ -20,7 +20,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 
-import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class VoiceXMLEndpointImpl implements VoiceXMLEndpoint {
 

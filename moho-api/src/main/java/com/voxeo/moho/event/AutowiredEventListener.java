@@ -22,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.voxeo.moho.State;
-import com.voxeo.moho.utils.Event;
 import com.voxeo.moho.utils.EventListener;
 
 /**

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,10 +14,11 @@
 
 package com.voxeo.moho.event;
 
-public abstract class RingEvent extends SignalEvent {
-
-  protected RingEvent(final EventSource source) {
-    super(source);
-  }
-
+/**
+ * This event is fired when the ringing response is received for an outbound {@link com.voxeo.moho.MohoCall Call}.
+ * 
+ * @author wchen
+ *
+ */
+public interface RingEvent extends CallEvent {
 }

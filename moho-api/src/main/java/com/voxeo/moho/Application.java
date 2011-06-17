@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -30,9 +30,8 @@ import com.voxeo.moho.event.Observer;
  * <li>lifecycle management by implementing
  * {@link com.voxeo.moho.Application#init(ApplicationContext) init} and
  * {@link com.voxeo.moho.Application#destroy() destroy} methods</li>
- * <li>observing inbound calls by implementing a method that takes a type of
- * {@link com.voxeo.moho.event.SignalEvent SignalEvent}. See
- * {@link com.voxeo.moho.event.Observer Observer} for information about the
+ * <li>observing inbound calls by implementing a method that takes a
+ * {@link Call}. See {@link com.voxeo.moho.event.Observer Observer} for information about the
  * method signature requirements.</li>
  * </ul>
  * </block>
@@ -50,8 +49,8 @@ import com.voxeo.moho.event.Observer;
  *       // initialize application
  *     }
  *     
- *     public void myInviteHandler(InviteEvent invitation) {
- *        Call call = invitation.accept();
+ *     public void myCallHandler(Call call) {
+ *        call.answer();
  *     }
  *     
  *     public destroy() {
