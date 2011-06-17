@@ -19,6 +19,7 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.sdp.SdpFactory;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletResponse;
 
 import junit.framework.TestCase;
@@ -37,6 +38,7 @@ import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
 import com.voxeo.moho.sip.fake.MockAddress;
 import com.voxeo.moho.sip.fake.MockServletContext;
+import com.voxeo.moho.sip.fake.MockSipServlet;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
@@ -54,21 +56,18 @@ public class SIPReferEventImplTest extends TestCase {
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
 
   // JSR289 mock
-  SipFactory sipFactory = mockery.mock(SipFactory.class);
-
-  SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
-
+  SipServlet servlet = new MockSipServlet(mockery);
   MockSipSession session = mockery.mock(MockSipSession.class);
-
   MockSipServletRequest referReq = mockery.mock(MockSipServletRequest.class);
-
   MockServletContext servletContext = mockery.mock(MockServletContext.class);
 
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+  SipFactory sipFactory = appContext.getSipFactory();
+  SdpFactory sdpFactory = appContext.getSdpFactory();
 
   SIPEndpoint referedEnd = mockery.mock(SIPEndpoint.class, "referedEnd");
 

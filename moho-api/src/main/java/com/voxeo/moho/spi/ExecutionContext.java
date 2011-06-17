@@ -32,10 +32,6 @@ public interface ExecutionContext extends ApplicationContext {
   
   MediaServiceFactory getMediaServiceFactory();
   
-  void setMediaServiceFactory(MediaServiceFactory factory);
-  
-  void setFramework(SpiFramework framework);
-  
   SpiFramework getFramework();
 
   void destroy();

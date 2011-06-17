@@ -21,10 +21,9 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManager;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
-import javax.sdp.SdpFactory;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
-import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 
 import junit.framework.TestCase;
@@ -44,10 +43,11 @@ import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.State;
-import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.event.Event;
+import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.fake.MockServletContext;
+import com.voxeo.moho.sip.fake.MockSipServlet;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
@@ -64,31 +64,22 @@ public class SIPIncomingCallTest extends TestCase {
 
   // JSR309 mock
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
-
   MediaSession mediaSession = mockery.mock(MediaSession.class);
-
   NetworkConnection network = mockery.mock(NetworkConnection.class);
-
   SdpPortManager sdpManager = mockery.mock(SdpPortManager.class);
 
   // JSR289 mock
-  SipFactory sipFactory = mockery.mock(SipFactory.class);
-
-  SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
-
+  SipServlet servlet = new MockSipServlet(mockery);
   SipApplicationSession appSession = mockery.mock(SipApplicationSession.class);
-
   MockSipSession session = mockery.mock(MockSipSession.class);
-
   MockSipServletRequest initInviteReq = mockery.mock(MockSipServletRequest.class);
-
   MockServletContext servletContext = mockery.mock(MockServletContext.class);
 
   // Moho
   TestApp app;
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
 
   Address fromAddr = mockery.mock(Address.class, "fromAddr");
 

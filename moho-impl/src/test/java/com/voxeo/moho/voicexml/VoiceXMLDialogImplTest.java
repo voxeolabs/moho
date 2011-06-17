@@ -25,8 +25,7 @@ import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.vxml.VxmlDialogEvent;
-import javax.sdp.SdpFactory;
-import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
 
 import junit.framework.TestCase;
 
@@ -46,6 +45,7 @@ import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockMediaSession;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.media.fake.MockVxmlDialog;
+import com.voxeo.moho.sip.fake.MockSipServlet;
 import com.voxeo.moho.spi.ExecutionContext;
 
 public class VoiceXMLDialogImplTest extends TestCase {
@@ -58,21 +58,17 @@ public class VoiceXMLDialogImplTest extends TestCase {
 
   // JSR309 mock
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
-
   MockMediaSession mediaSession = mockery.mock(MockMediaSession.class);
-
   MockVxmlDialog dialog = mockery.mock(MockVxmlDialog.class);
 
   // JSR289 mock
-  SipFactory sipFactory = mockery.mock(SipFactory.class);
-
-  SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
-
+  SipServlet servlet = new MockSipServlet(mockery);
+  
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
 
   VoiceXMLEndpoint vXMLendPoint;
 

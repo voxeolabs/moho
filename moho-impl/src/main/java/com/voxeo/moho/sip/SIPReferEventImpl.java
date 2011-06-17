@@ -134,7 +134,7 @@ public class SIPReferEventImpl extends MohoReferEvent implements SIPReferEvent {
             appContext, _req.getFrom()), endpoint);
         //TODO should set event listener or observer.
         final SipSession outSession = req.getSession();
-        outSession.setHandler(appContext.getController());
+        outSession.setHandler(appContext.getSIPController().getServletName());
         SessionUtils.setEventSource(outSession, retval);
 
         req.send();

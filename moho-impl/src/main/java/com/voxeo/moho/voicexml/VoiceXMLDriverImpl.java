@@ -8,6 +8,7 @@ import com.voxeo.moho.spi.VoiceXMLDriver;
 
 public class VoiceXMLDriverImpl implements VoiceXMLDriver {
   protected static final String[] SCHEMAS = new String[]{"file", "http", "https", "ftp", "ftps"};
+  
   protected SpiFramework _framework;
   
   public void init(SpiFramework framework) {

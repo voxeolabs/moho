@@ -15,7 +15,10 @@
 package com.voxeo.moho;
 
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.SynchronousQueue;
@@ -25,17 +28,38 @@ import java.util.concurrent.TimeUnit;
 import javax.media.mscontrol.MsControlFactory;
 import javax.sdp.SdpFactory;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
 
+import org.apache.log4j.Logger;
+
+import com.voxeo.moho.conference.ConferenceDriverImpl;
 import com.voxeo.moho.conference.ConferenceManager;
-import com.voxeo.moho.event.ApplicationEventSource;
+import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.media.GenericMediaServiceFactory;
+import com.voxeo.moho.media.dialect.MediaDialect;
+import com.voxeo.moho.sip.SIPDriverImpl;
+import com.voxeo.moho.spi.ConferenceDriver;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.ProtocolDriver;
 import com.voxeo.moho.spi.SpiFramework;
 import com.voxeo.moho.util.Utils.DaemonThreadFactory;
+import com.voxeo.moho.utils.EventListener;
+import com.voxeo.moho.voicexml.VoiceXMLDriverImpl;
 
-public class ApplicationContextImpl extends AttributeStoreImpl implements ExecutionContext {
+public class ApplicationContextImpl extends DispatchableEventSource implements ExecutionContext, SpiFramework {
 
+  private static final Logger LOG = Logger.getLogger(ApplicationContextImpl.class);
+  
+  protected Map<String, ProtocolDriver> _driversByProtocol = new HashMap<String, ProtocolDriver>();
+  
+  protected Map<String, ProtocolDriver> _driversBySchema = new HashMap<String, ProtocolDriver>();
+
+  protected SipServlet _sip;
+
+  protected HttpServlet _http;  
+  
   protected Application _application;
 
   protected MsControlFactory _mcFactory;
@@ -48,8 +72,6 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
 
   protected SdpFactory _sdpFactory;
 
-  protected String _controller;
-
   protected Map<String, Call> _calls = new ConcurrentHashMap<String, Call>();
 
   protected Map<String, String> _parameters = new ConcurrentHashMap<String, String>();
@@ -57,22 +79,75 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
   protected ServletContext _servletContext;
 
   protected ThreadPoolExecutor _executor;
-  
-  protected SpiFramework _framework;
 
-  public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipFactory sip,
-      final SdpFactory sdp, final String controller, final ServletContext servletContext, final int threadPoolSize) {
+  @SuppressWarnings("unchecked")
+  public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipServlet servlet) {
+    super();
+    _context = this;
     _application = app;
     _mcFactory = mc;
-    _sipFactory = sip;
-    _sdpFactory = sdp;
-    _controller = controller;
-    _servletContext = servletContext;
+    _sip = servlet;
+    _servletContext = _sip.getServletContext();
+    _sipFactory = (SipFactory) _servletContext.getAttribute(SipServlet.SIP_FACTORY);
+    _sdpFactory = (SdpFactory) _servletContext.getAttribute("javax.servlet.sdp.SdpFactory");
+    final Enumeration<String> e = _servletContext.getInitParameterNames();
+    while (e.hasMoreElements()) {
+      final String name = e.nextElement();
+      final String value = _servletContext.getInitParameter(name);
+      setParameter(name, value);
+    }
+    Class<? extends MediaDialect> mediaDialectClass = com.voxeo.moho.media.dialect.GenericDialect.class;
+    final String mediaDialectClassName = getParameter("mediaDialectClass");
+    final MediaDialect mediaDialect = null;
+    try {
+      if (mediaDialectClassName != null) {
+        mediaDialectClass = (Class<? extends MediaDialect>) Class.forName(mediaDialectClassName);
+      }
+      mediaDialectClass.newInstance();
+    }
+    catch(Exception ex) {
+      LOG.error("Moho is unable to create media dialect (" + mediaDialectClassName + ")", ex);
+    }
+    LOG.info("Moho is creating media service with dialect (" + mediaDialect + ").");
+    _msFactory = new GenericMediaServiceFactory(mediaDialect);
 
-    _executor = new ThreadPoolExecutor(threadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
-        new SynchronousQueue<Runnable>(), new DaemonThreadFactory("MohoContext"));
+    try {
+      registerDriver(ProtocolDriver.PROTOCOL_SIP, SIPDriverImpl.class.getName());
+      registerDriver(ProtocolDriver.PROTOCOL_VXML, VoiceXMLDriverImpl.class.getName());
+      registerDriver(ProtocolDriver.PROTOCOL_CONF, ConferenceDriverImpl.class.getName());
+    }
+    catch (Exception ex) {
+      LOG.error("Moho is unable to register drivers: " + ex, ex);
+    }
+    for (String name : getProtocolFamilies()) {
+      ProtocolDriver d = getDriverByProtocolFamily(name);
+      LOG.info("Moho is initializing driver[" + d + "]");
+      d.init(this);
+    }
     
-    _framework = new ApplicationEventSource(this, _application);
+    ConferenceDriver cd = (ConferenceDriver)getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_CONF);
+    setConferenceManager(cd.getManager());
+
+    getServletContext().setAttribute(ApplicationContext.APPLICATION, app);
+    getServletContext().setAttribute(ApplicationContext.APPLICATION_CONTEXT, this);
+    getServletContext().setAttribute(ApplicationContext.FRAMEWORK, this);
+    
+    if (app instanceof EventListener<?>) {
+      addListener((EventListener<?>)app);
+    }
+    else {
+      addObserver(app);
+    }
+    
+    int eventDispatcherThreadPoolSize = 50;
+    final String eventDipatcherThreadPoolSizePara = getParameter("eventDispatcherThreadPoolSize");
+    if (eventDipatcherThreadPoolSizePara != null) {
+      eventDispatcherThreadPoolSize = Integer.valueOf(eventDipatcherThreadPoolSizePara);
+    }
+    LOG.info("Moho is creating event dispatcher with " + eventDispatcherThreadPoolSize + " threads.");
+    _executor = new ThreadPoolExecutor(eventDispatcherThreadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
+        new SynchronousQueue<Runnable>(), new DaemonThreadFactory("MohoContext"));
+    _dispatcher.setExecutor(_executor, false);
   }
 
   @Override
@@ -83,9 +158,6 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
   private Endpoint getEndpoint(final String addr, String type) {
     if (addr == null) {
       throw new IllegalArgumentException("argument is null");
-    }
-    if (addr.startsWith("mscontrol://")) {
-      return new MixerEndpointImpl(this, addr);
     }
 //      if (addr.startsWith("sip:") || addr.startsWith("sips:") || addr.startsWith("<sip:") || addr.startsWith("<sips:")) {
 //        return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
@@ -108,7 +180,7 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
       if (schema == null || schema.trim().length() == 0) {
         throw new IllegalArgumentException("Address must be in the form of URL or <URL>.");
       }
-      ProtocolDriver driver = _framework.getDriverByEndpointSechma(schema);
+      ProtocolDriver driver = getDriverByEndpointSechma(schema);
       if (driver == null) {
         throw new IllegalArgumentException("No suitable driver for this address format.");
       }
@@ -174,10 +246,6 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
     return Collections.unmodifiableMap(_parameters);
   }
 
-  public String getController() {
-    return _controller;
-  }
-
   public void setParameter(final String name, final String value) {
     _parameters.put(name, value);
   }
@@ -209,18 +277,79 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
   }
 
   @Override
-  public void setMediaServiceFactory(MediaServiceFactory factory) {
-    _msFactory = factory;
-  }
-
-  @Override
   public SpiFramework getFramework() {
-    return _framework;
+    return this;
   }
 
   @Override
-  public void setFramework(SpiFramework framework) {
-    _framework = framework;
+  public void registerDriver(String protocol, String className) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    ProtocolDriver driver = createProvider(className);
+    registerDriver(driver);
+  }
+  
+  protected void registerDriver(ProtocolDriver driver) {
+    String protocol = driver.getProtocolFamily();
+    _driversByProtocol.put(protocol, driver);
+    for(String schema : driver.getEndpointSchemas()) {
+      _driversBySchema.put(schema, driver);
+    }
+  }
+  
+  @SuppressWarnings("rawtypes")
+  private ProtocolDriver createProvider(String name) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+    Class clz = null;
+    try {
+      clz = this.getClass().getClassLoader().loadClass(name);
+    }
+    catch (final Throwable t) {
+      clz = Thread.currentThread().getContextClassLoader().loadClass(name);
+    }
+    return (ProtocolDriver) clz.newInstance();
+  }
+
+  @Override
+  public String[] getProtocolFamilies() {
+    Set<String> s = _driversByProtocol.keySet();
+    return s.toArray(new String[s.size()]);
+  }
+
+  @Override
+  public String[] getEndpointSchemas() {
+    Set<String> s = _driversBySchema.keySet();
+    return s.toArray(new String[s.size()]);
+  }
+
+  @Override
+  public ProtocolDriver getDriverByProtocolFamily(String protocol) {
+    return _driversByProtocol.get(protocol);
+  }
+
+  @Override
+  public ProtocolDriver getDriverByEndpointSechma(String schema) {
+    return _driversBySchema.get(schema);
+  }
+
+  @Override
+  public ExecutionContext getExecutionContext() {
+    return _context;
+  }
+
+  @Override
+  public SipServlet getSIPController() {
+    return _sip;
+  }
+  
+  public void setSIPController(SipServlet sip) {
+    _sip = sip;
+  }
+
+  @Override
+  public HttpServlet getHTTPController() {
+    return _http;
+  }
+  
+  public void setHTTPController(HttpServlet http) {
+    _http = http;
   }
 
 }

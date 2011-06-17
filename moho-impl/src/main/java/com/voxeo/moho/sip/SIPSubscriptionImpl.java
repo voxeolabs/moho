@@ -116,7 +116,7 @@ public class SIPSubscriptionImpl extends DispatchableEventSource implements SIPS
       }
 
       _session = req.getSession();
-      _session.setHandler(((ApplicationContextImpl) getApplicationContext()).getController());
+      _session.setHandler(((ApplicationContextImpl) getApplicationContext()).getSIPController().getServletName());
 
       SessionUtils.setEventSource(_session, this);
       if (uri != null) {

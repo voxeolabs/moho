@@ -31,6 +31,7 @@ import javax.sdp.SdpFactory;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
@@ -49,12 +50,12 @@ import org.junit.Test;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.AutowiredEventListener;
 import com.voxeo.moho.event.MohoCallCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
+import com.voxeo.moho.sip.fake.MockSipServlet;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
@@ -78,21 +79,18 @@ public class SIPOutgoingCallTest extends TestCase {
   SdpPortManager sdpManager = mockery.mock(SdpPortManager.class);
 
   // JSR289 mock
-  SipFactory sipFactory = mockery.mock(SipFactory.class);
-
-  SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
-
+  SipServlet servlet = new MockSipServlet(mockery);
   SipApplicationSession appSession = mockery.mock(SipApplicationSession.class);
-
   MockSipSession session = mockery.mock(MockSipSession.class);
-
   MockSipServletRequest initInviteReq = mockery.mock(MockSipServletRequest.class);
 
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+  SipFactory sipFactory = appContext.getSipFactory();
+  SdpFactory sdpFactory = appContext.getSdpFactory();
 
   SIPEndpoint from = mockery.mock(SIPEndpoint.class, "from");;
 

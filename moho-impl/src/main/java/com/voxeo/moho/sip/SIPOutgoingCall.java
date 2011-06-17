@@ -184,7 +184,7 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
     SessionUtils.setEventSource(_signal, this);
 
     try {
-      _signal.setHandler(((ApplicationContextImpl) getApplicationContext()).getController());
+      _signal.setHandler(((ApplicationContextImpl) getApplicationContext()).getSIPController().getServletName());
     }
     catch (final Exception e) {
       throw new SignalException(e);
