@@ -48,7 +48,6 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.CanceledException;
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.HangupException;
 import com.voxeo.moho.JoinData;
 import com.voxeo.moho.JoinWorker;
@@ -1477,11 +1476,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   @Override
   public CallableEndpoint getInvitee() {
     return _callee;
-  }
-
-  @Override
-  public void addExceptionHandler(final ExceptionHandler... handlers) {
-    _dispatcher.addExceptionHandler(handlers);
   }
 
   // for dispatchable eventsource over=========

@@ -518,11 +518,6 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       MixerImpl.this.unjoin(other);
     }
 
-    @Override
-    public void addExceptionHandler(ExceptionHandler... handlers) {
-      MixerImpl.this.addExceptionHandler(handlers);
-    }
-
 //    private void addListener(EventListener<?> listener) {
 //      MixerImpl.this.addListener(listener);
 //    }

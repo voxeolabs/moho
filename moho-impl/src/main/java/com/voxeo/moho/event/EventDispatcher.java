@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -27,7 +27,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.utils.EnumEvent;
 import com.voxeo.moho.utils.EventListener;
 
@@ -50,8 +49,6 @@ public class EventDispatcher {
   private Queue<FutureTask<?>> _queue = new LinkedList<FutureTask<?>>();
 
   private boolean processorRunning = false;
-
-  private List<ExceptionHandler> exceptionHandlers = new CopyOnWriteArrayList<ExceptionHandler>();
 
   public EventDispatcher() {
   }
@@ -185,6 +182,17 @@ public class EventDispatcher {
   public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType) {
     return fire(event, narrowType, null);
   }
+  
+  protected Class<?> getEventType(Class<?> clazz) {
+    while(clazz != null) {
+      for(Class<?> intf : clazz.getInterfaces()) {
+        if (Event.class.isAssignableFrom(intf)) {
+          return intf;
+        }
+      }
+    }
+    return Event.class;
+  }
 
   public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType,
       final Runnable afterExec) {
@@ -197,19 +205,17 @@ public class EventDispatcher {
         }
         Class<? extends Event> clazz = event.getClass();
         out: do {
-          final List<Object> list = clazzListeners.get(clazz);
+          final List<Object> list = clazzListeners.get(getEventType(clazz));
           if (list != null) {
             for (final Object listener : list) {
               try {
                 ((EventListener<T>) listener).onEvent(event);
               }
               catch (Exception ex) {
-                log.warn("Uncaught exception in event handler");
-                for (final ExceptionHandler handler : exceptionHandlers) {
-                  if (!handler.handle(ex, event)) {
-                    break out;
-                  }
-                }
+                log.warn(ex + " is uncaught when handling " + event);
+                log.debug(ex + " is uncaught when handling " + event, ex);
+                HandleUncaughtException(ex, event);
+                break out;
               }
             }
           }
@@ -226,12 +232,10 @@ public class EventDispatcher {
                 ((EventListener<T>) listener).onEvent(event);
               }
               catch (Exception ex) {
-                log.warn("Uncaught exception in event handler");
-                for (final ExceptionHandler handler : exceptionHandlers) {
-                  if (!handler.handle(ex, event)) {
-                    break out;
-                  }
-                }
+                log.warn(ex + " is uncaught when handling " + event);
+                log.debug(ex + " is uncaught when handling " + event, ex);
+                HandleUncaughtException(ex, event);
+                break out;
               }
             }
           }
@@ -293,10 +297,9 @@ public class EventDispatcher {
     this.executor = executor;
     this.needOrder = order;
   }
-
-  public void addExceptionHandler(ExceptionHandler... handlers) {
-    for (final ExceptionHandler e : handlers) {
-      exceptionHandlers.add(e);
-    }
+  
+  protected <S extends EventSource> Future<Event<S>> HandleUncaughtException(Exception ex, Event<S> evt) {
+    Event<S> newEvt = new UncaughtExceptionEventImpl<S>(evt.getSource(), ex, evt);
+    return fire(newEvt);
   }
 }

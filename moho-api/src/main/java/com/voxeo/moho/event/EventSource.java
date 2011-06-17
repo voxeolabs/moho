@@ -18,7 +18,6 @@ import java.util.concurrent.Future;
 
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.AttributeStore;
-import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.utils.Identifiable;
 
 /**
@@ -114,12 +113,4 @@ public interface EventSource extends Identifiable<String>, AttributeStore {
    * @return a @{link java.util.concurrent.Future} for the dispatching.
    */
   <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event, Runnable afterExec);
-
-  /**
-   * register an Exception listener with the EventSource
-   * 
-   * @param handlers
-   *          the ExceptionHandler
-   */
-  void addExceptionHandler(ExceptionHandler... handlers);
 }

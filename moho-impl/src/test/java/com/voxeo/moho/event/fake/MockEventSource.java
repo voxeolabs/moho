@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.concurrent.Future;
 
 import com.voxeo.moho.ApplicationContext;
-import com.voxeo.moho.ExceptionHandler;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.MediaEvent;
 import com.voxeo.moho.event.Event;
@@ -102,11 +101,6 @@ public class MockEventSource implements EventSource {
 
     receivedEvents.add((MediaEvent<?>) event);
     return null;
-  }
-
-  @Override
-  public void addExceptionHandler(ExceptionHandler... handlers) {
-    
   }
 
   @Override
