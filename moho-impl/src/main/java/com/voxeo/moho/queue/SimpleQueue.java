@@ -31,15 +31,15 @@ import com.voxeo.moho.spi.ExecutionContext;
 
 /**
  * <p>
- * SimpleQueue allows a {@link com.voxeo.moho.MohoCall Call} to be parked on the
+ * SimpleQueue allows a {@link com.voxeo.moho.CallImpl Call} to be parked on the
  * queue. While on the queue, the queue will render the audio into to the call.
  * </p>
  * <p>
- * If the audio is shared, each {@link com.voxeo.moho.MohoCall Call} will be
+ * If the audio is shared, each {@link com.voxeo.moho.CallImpl Call} will be
  * hearing the same audio streams at the same time, like radio broadcasting.
  * <p>
  * <p>
- * Otherwise, each {@link com.voxeo.moho.MohoCall Call} will get its own streams of
+ * Otherwise, each {@link com.voxeo.moho.CallImpl Call} will get its own streams of
  * audio.
  * </p>
  * 

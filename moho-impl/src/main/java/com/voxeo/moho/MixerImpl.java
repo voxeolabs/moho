@@ -226,7 +226,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
     }
 
-    if (other instanceof MohoCall) {
+    if (other instanceof CallImpl) {
       Joint joint = null;
       if (isClampDtmf(null)) {
         try {
@@ -372,7 +372,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
     }
 
-    if (other instanceof MohoCall) {
+    if (other instanceof CallImpl) {
       Joint joint = null;
       if (isClampDtmf(props)) {
         try {

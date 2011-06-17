@@ -103,7 +103,7 @@ public class MixerImplTest extends TestCase {
     mohoMixer = (MixerImpl) address.create(null);
 
     // mock the call
-    final MohoCall call = mockery.mock(MohoCall.class);
+    final CallImpl call = mockery.mock(CallImpl.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
 
     try {

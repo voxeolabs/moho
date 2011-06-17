@@ -39,7 +39,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContextImpl;
-import com.voxeo.moho.MohoCall;
+import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockMediaSession;
@@ -115,7 +115,7 @@ public class VoiceXMLDialogImplTest extends TestCase {
     vXMLDialog = (VoiceXMLDialogImpl) vXMLendPoint.create(null);
 
     // mock the call
-    final MohoCall call = mockery.mock(MohoCall.class);
+    final CallImpl call = mockery.mock(CallImpl.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
     try {
       mockery.checking(new Expectations() {

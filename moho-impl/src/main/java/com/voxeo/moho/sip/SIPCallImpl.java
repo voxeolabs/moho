@@ -58,7 +58,7 @@ import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.MixerImpl;
-import com.voxeo.moho.MohoCall;
+import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.RedirectException;
@@ -74,7 +74,7 @@ import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 
-public abstract class SIPCallImpl extends MohoCall implements SIPCall, MediaEventListener<SdpPortManagerEvent> {
+public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEventListener<SdpPortManagerEvent> {
 
   private static final Logger LOG = Logger.getLogger(SIPCallImpl.class);
 
