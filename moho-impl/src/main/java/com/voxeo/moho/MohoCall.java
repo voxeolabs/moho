@@ -141,22 +141,27 @@ public abstract class MohoCall implements Call {
    * return the media service attached to the call
    * 
    * @param reinvite
-   *          whether Moho Framework should automatically re-invites the call to {@link Participant.JoinType#BRIDGE Bridge} mode if the call is currently joined in {@link Participant.JoinType#DIRECT
-   *          Direct} mode.
+   *          whether Moho Framework should automatically re-invites the call to
+   *          {@link Participant.JoinType#BRIDGE Bridge} mode if the call is
+   *          currently joined in {@link Participant.JoinType#DIRECT Direct}
+   *          mode.
    * @throws MediaException
    *           when there is media server error.
    * @throws IllegalStateException
-   *           when the call is {@link Participant.JoinType#DIRECT Direct} mode but reinvite is false or if the call is not answered.
+   *           when the call is {@link Participant.JoinType#DIRECT Direct} mode
+   *           but reinvite is false or if the call is not answered.
    */
   protected abstract MediaService<Call> getMediaService(boolean reinvite);
 
   /**
-   * return the media service attached to the call. Equivalent of {@link #getMediaService(boolean) getMediaService(true)}.
+   * return the media service attached to the call. Equivalent of
+   * {@link #getMediaService(boolean) getMediaService(true)}.
    * 
    * @throws MediaException
    *           when there is media server error.
    * @throws IllegalStateException
-   *           when the call is {@link Participant.JoinType#DIRECT Direct} mode but reinvite is false or if the call is not answered.
+   *           when the call is {@link Participant.JoinType#DIRECT Direct} mode
+   *           but reinvite is false or if the call is not answered.
    */
   protected MediaService<Call> getMediaService() {
     return getMediaService(true);
@@ -168,31 +173,24 @@ public abstract class MohoCall implements Call {
   }
 
   @SuppressWarnings("rawtypes")
-  public void addObserver(final Observer observer) {
-    if (observer != null) {
-      if (observer instanceof EventListener) {
-        EventListener l = (EventListener) observer;
-        Class claz = Utils.getGenericType(observer);
-        if (claz == null) {
-          claz = Event.class;
-        }
-        _dispatcher.addListener(claz, l);
-      }
-      else {
-        final AutowiredEventListener autowire = new AutowiredEventListener(observer);
-        if (_observers.putIfAbsent(observer, autowire) == null) {
-          _dispatcher.addListener(Event.class, autowire);
-        }
-      }
-
-    }
-  }
-
   @Override
   public void addObserver(final Observer... observers) {
     if (observers != null) {
-      for (final Observer o : observers) {
-        addObserver(o);
+      for (final Observer observer : observers) {
+        if (observer instanceof EventListener) {
+          EventListener l = (EventListener) observer;
+          Class claz = Utils.getGenericType(observer);
+          if (claz == null) {
+            claz = Event.class;
+          }
+          _dispatcher.addListener(claz, l);
+        }
+        else {
+          final AutowiredEventListener autowire = new AutowiredEventListener(observer);
+          if (_observers.putIfAbsent(observer, autowire) == null) {
+            _dispatcher.addListener(Event.class, autowire);
+          }
+        }
       }
     }
   }

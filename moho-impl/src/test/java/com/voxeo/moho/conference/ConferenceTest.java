@@ -44,6 +44,7 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MixerEndpoint;
+import com.voxeo.moho.MohoCall;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.HangupEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
@@ -145,7 +146,7 @@ public class ConferenceTest extends TestCase {
     assertTrue(mohoConference.getOccupiedSeats() == 0);
 
     // mock the call
-    final Call call = mockery.mock(Call.class);
+    final MohoCall call = mockery.mock(MohoCall.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
     final Prompt<Call> prompt = mockery.mock(Prompt.class);
     final Input<Call> input = mockery.mock(Input.class);

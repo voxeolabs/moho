@@ -28,6 +28,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.sip.SipFactory;
 
 import com.voxeo.moho.conference.ConferenceManager;
+import com.voxeo.moho.event.ApplicationEventSource;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.ProtocolDriver;
 import com.voxeo.moho.spi.SpiFramework;
@@ -70,6 +71,8 @@ public class ApplicationContextImpl extends AttributeStoreImpl implements Execut
 
     _executor = new ThreadPoolExecutor(threadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
         new SynchronousQueue<Runnable>(), new DaemonThreadFactory("MohoContext"));
+    
+    _framework = new ApplicationEventSource(this, _application);
   }
 
   @Override
