@@ -26,19 +26,9 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-public class MockServletContext implements ServletContext {
-  private Hashtable<String, Object> _attributes = new Hashtable<String, Object>();
+public class MockServletContext extends AttributeStore implements ServletContext {
+
   private Hashtable<String, String> _parameters = new Hashtable<String, String>();
-
-  @Override
-  final public Object getAttribute(String arg0) {
-    return _attributes.get(arg0);
-  }
-
-  @Override
-  public Enumeration getAttributeNames() {
-    return _attributes.keys();
-  }
 
   @Override
   public ServletContext getContext(String arg0) {
@@ -51,12 +41,18 @@ public class MockServletContext implements ServletContext {
   }
 
   @Override
-  public String getInitParameter(String arg0) {
+  final public String getInitParameter(String arg0) {
+    if (_parameters == null) {
+      _parameters = new Hashtable<String, String>();
+    }
     return _parameters.get(arg0);
   }
 
   @Override
-  public Enumeration getInitParameterNames() {
+  final public Enumeration getInitParameterNames() {
+    if (_parameters == null) {
+      _parameters = new Hashtable<String, String>();
+    }
     return _parameters.keys();
   }
 
@@ -144,15 +140,4 @@ public class MockServletContext implements ServletContext {
   public void log(String arg0, Throwable arg1) {
 
   }
-
-  @Override
-  final public void removeAttribute(String arg0) {
-    _attributes.remove(arg0);
-  }
-
-  @Override
-  final public void setAttribute(String arg0, Object arg1) {
-    _attributes.put(arg0, arg1);
-  }
-
 }

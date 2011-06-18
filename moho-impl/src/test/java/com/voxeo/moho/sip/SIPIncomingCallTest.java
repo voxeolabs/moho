@@ -11,7 +11,9 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlFactory;
@@ -64,15 +66,22 @@ public class SIPIncomingCallTest extends TestCase {
 
   // JSR309 mock
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
+
   MediaSession mediaSession = mockery.mock(MediaSession.class);
+
   NetworkConnection network = mockery.mock(NetworkConnection.class);
+
   SdpPortManager sdpManager = mockery.mock(SdpPortManager.class);
 
   // JSR289 mock
   SipServlet servlet = new MockSipServlet(mockery);
+
   SipApplicationSession appSession = mockery.mock(SipApplicationSession.class);
+
   MockSipSession session = mockery.mock(MockSipSession.class);
+
   MockSipServletRequest initInviteReq = mockery.mock(MockSipServletRequest.class);
+
   ServletContext servletContext = servlet.getServletContext();
 
   // Moho
@@ -150,10 +159,11 @@ public class SIPIncomingCallTest extends TestCase {
     sipcall.setSupervised(true);
     mockery.checking(new Expectations() {
       {
-        // TODO
-//        oneOf(app).handleDisconnect(disconnectEvent);
+        allowing(disconnectEvent).isAccepted();
+        will(returnValue(false));
+        allowing(disconnectEvent).isRejected();
+        will(returnValue(false));
         oneOf(disconnectEvent).accept();
-
       }
     });
 
@@ -179,11 +189,11 @@ public class SIPIncomingCallTest extends TestCase {
   class MyListener implements EventListener<HangupEvent> {
     @Override
     public void onEvent(HangupEvent event) throws Exception {
-      //invoked = true;
+      // invoked = true;
     }
   }
-  
-  class MyOListener extends MyListener{
+
+  class MyOListener extends MyListener {
     @Override
     public void onEvent(HangupEvent event) throws Exception {
       invoked = true;
@@ -202,14 +212,18 @@ public class SIPIncomingCallTest extends TestCase {
     sipcall.setSupervised(true);
     mockery.checking(new Expectations() {
       {
+        allowing(disconnectEvent).getSource();
+        will(returnValue(sipcall));
+        allowing(disconnectEvent).isAccepted();
+        will(returnValue(false));
+        allowing(disconnectEvent).isRejected();
+        will(returnValue(false));
         oneOf(disconnectEvent).accept();
-
       }
     });
-
     // execute test.
-
-    sipcall.addObserver(new ThrowExceptionApp());
+    ThrowExceptionApp app = new ThrowExceptionApp();
+    sipcall.addObserver(app);
     final Future<HangupEvent> future = sipcall.dispatch(disconnectEvent);
 
     // verify result
@@ -221,20 +235,29 @@ public class SIPIncomingCallTest extends TestCase {
       ex.printStackTrace();
       fail(ex.getMessage());
     }
+    try {
+      app.cdl.await(5, TimeUnit.SECONDS);
+    }
+    catch (InterruptedException e) {
+      e.printStackTrace();
+    }
 
-    //assertTrue(handler.ex.getMessage().equalsIgnoreCase("test exception"));
+    assertTrue(app.cdl.getCount() == 0);
     mockery.assertIsSatisfied();
   }
 
   class ThrowExceptionApp implements Application {
+
+    public CountDownLatch cdl = new CountDownLatch(1);
+
     @State
     public void handleDisconnect(final HangupEvent event) throws Exception {
       throw new Exception("test exception");
     }
-    
+
     @State
     public void handleUncaughtException(final UncaughtExceptionEvent<Call> event) {
-      //TODO verify
+      cdl.countDown();
     }
 
     @Override
@@ -770,7 +793,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinOutgoingCallBridgeAfterJoin() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -798,7 +821,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinAnsweredOutgoingCallBridge() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -921,7 +944,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testAnsweredJoinOutgoingCallBridgeAfterJoin() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -1180,7 +1203,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinIncomingCallBridgeAfterJoin() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -1210,7 +1233,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinAnsweredIncomingCallBridgeAfterJoin() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -1440,7 +1463,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinAnsweredOutgoingCallDirectInitReqNoSDP() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -2070,7 +2093,7 @@ public class SIPIncomingCallTest extends TestCase {
 
   // ================join incomingcall direct
   /**
-   * 
+   *
    */
   public void testJoinincomingCallDirect() {
 
@@ -2265,7 +2288,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinincomingCallDirectAfterJoin() {
 
@@ -2519,7 +2542,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinAnsweredincomingCallDirectAfterJoin() {
 
@@ -2731,7 +2754,8 @@ public class SIPIncomingCallTest extends TestCase {
                 @Override
                 public void run() {
                   try {
-                    final SIPAnsweredEventImpl<Call> respEvent = new SIPAnsweredEventImpl<Call>(sipcall, sipReInviteResp);
+                    final SIPAnsweredEventImpl<Call> respEvent = new SIPAnsweredEventImpl<Call>(sipcall,
+                        sipReInviteResp);
                     sipcall.doResponse(sipReInviteResp, null);
                   }
                   catch (final Exception e) {
@@ -2778,7 +2802,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinAnsweredincomingCallDirect() {
 

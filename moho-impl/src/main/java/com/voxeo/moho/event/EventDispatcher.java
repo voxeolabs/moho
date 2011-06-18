@@ -293,6 +293,6 @@ public class EventDispatcher {
   
   protected <S extends EventSource> Future<Event<S>> HandleUncaughtException(Exception ex, Event<S> evt) {
     Event<S> newEvt = new UncaughtExceptionEventImpl<S>(evt.getSource(), ex, evt);
-    return fire(newEvt);
+    return fire(newEvt,true);
   }
 }

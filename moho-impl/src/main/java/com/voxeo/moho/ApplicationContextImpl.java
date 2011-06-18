@@ -48,22 +48,22 @@ import com.voxeo.moho.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.utils.EventListener;
 import com.voxeo.moho.voicexml.VoiceXMLDriverImpl;
 
-public class ApplicationContextImpl extends DispatchableEventSource implements ExecutionContext, SpiFramework{
+public class ApplicationContextImpl extends DispatchableEventSource implements ExecutionContext, SpiFramework {
 
   private static final Logger LOG = Logger.getLogger(ApplicationContextImpl.class);
-  
+
   protected Map<String, ProtocolDriver> _driversByProtocol = new HashMap<String, ProtocolDriver>();
-  
+
   protected Map<String, ProtocolDriver> _driversBySchema = new HashMap<String, ProtocolDriver>();
 
   protected SipServlet _sip;
 
-  protected HttpServlet _http;  
-  
+  protected HttpServlet _http;
+
   protected Application _application;
 
   protected MsControlFactory _mcFactory;
-  
+
   protected MediaServiceFactory _msFactory;
 
   protected ConferenceManager _confMgr;
@@ -98,14 +98,14 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     }
     Class<? extends MediaDialect> mediaDialectClass = com.voxeo.moho.media.dialect.GenericDialect.class;
     final String mediaDialectClassName = getParameter("mediaDialectClass");
-    final MediaDialect mediaDialect = null;
+    MediaDialect mediaDialect = null;
     try {
       if (mediaDialectClassName != null) {
         mediaDialectClass = (Class<? extends MediaDialect>) Class.forName(mediaDialectClassName);
       }
-      mediaDialectClass.newInstance();
+      mediaDialect = mediaDialectClass.newInstance();
     }
-    catch(Exception ex) {
+    catch (Exception ex) {
       LOG.error("Moho is unable to create media dialect (" + mediaDialectClassName + ")", ex);
     }
     LOG.info("Moho is creating media service with dialect (" + mediaDialect + ").");
@@ -124,21 +124,21 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       LOG.info("Moho is initializing driver[" + d + "]");
       d.init(this);
     }
-    
-    ConferenceDriver cd = (ConferenceDriver)getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_CONF);
+
+    ConferenceDriver cd = (ConferenceDriver) getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_CONF);
     setConferenceManager(cd.getManager());
 
     getServletContext().setAttribute(ApplicationContext.APPLICATION, app);
     getServletContext().setAttribute(ApplicationContext.APPLICATION_CONTEXT, this);
     getServletContext().setAttribute(ApplicationContext.FRAMEWORK, this);
-    
+
     if (app instanceof EventListener<?>) {
-      addListener((EventListener<?>)app);
+      addListener((EventListener<?>) app);
     }
     else {
       addObserver(app);
     }
-    
+
     int eventDispatcherThreadPoolSize = 50;
     final String eventDipatcherThreadPoolSizePara = getParameter("eventDispatcherThreadPoolSize");
     if (eventDipatcherThreadPoolSizePara != null) {
@@ -159,32 +159,35 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     if (addr == null) {
       throw new IllegalArgumentException("argument is null");
     }
-//      if (addr.startsWith("sip:") || addr.startsWith("sips:") || addr.startsWith("<sip:") || addr.startsWith("<sips:")) {
-//        return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
-//      }
-//      else if (addr.startsWith("mscontrol://")) {
-//        return new MixerEndpointImpl(this, addr);
-//      }
-//      else if (addr.startsWith("file://") || addr.startsWith("http://") || addr.startsWith("https://")
-//          || addr.startsWith("ftp://")) {
-//        return new VoiceXMLEndpointImpl(this, addr);
-//      }
-//      else if (addr.startsWith("tel:") || addr.startsWith("fax:") || addr.startsWith("<tel:")
-//          || addr.startsWith("<fax:")) {
-//        return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
-//      }
-//      else if (type != null && TextChannels.getProvider(type) != null) {
-//        return TextChannels.getProvider(type).createEndpoint(addr, this);
-//      }
-      String schema = addr.split(":")[0];
-      if (schema == null || schema.trim().length() == 0) {
-        throw new IllegalArgumentException("Address must be in the form of URL or <URL>.");
-      }
-      ProtocolDriver driver = getDriverByEndpointSechma(schema);
-      if (driver == null) {
-        throw new IllegalArgumentException("No suitable driver for this address format.");
-      }
-      return driver.createEndpoint(addr);
+    // if (addr.startsWith("sip:") || addr.startsWith("sips:") ||
+    // addr.startsWith("<sip:") || addr.startsWith("<sips:")) {
+    // return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
+    // }
+    // else if (addr.startsWith("mscontrol://")) {
+    // return new MixerEndpointImpl(this, addr);
+    // }
+    // else if (addr.startsWith("file://") || addr.startsWith("http://") ||
+    // addr.startsWith("https://")
+    // || addr.startsWith("ftp://")) {
+    // return new VoiceXMLEndpointImpl(this, addr);
+    // }
+    // else if (addr.startsWith("tel:") || addr.startsWith("fax:") ||
+    // addr.startsWith("<tel:")
+    // || addr.startsWith("<fax:")) {
+    // return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
+    // }
+    // else if (type != null && TextChannels.getProvider(type) != null) {
+    // return TextChannels.getProvider(type).createEndpoint(addr, this);
+    // }
+    String schema = addr.split(":")[0];
+    if (schema == null || schema.trim().length() == 0) {
+      throw new IllegalArgumentException("Address must be in the form of URL or <URL>.");
+    }
+    ProtocolDriver driver = getDriverByEndpointSechma(schema);
+    if (driver == null) {
+      throw new IllegalArgumentException("No suitable driver for this address format.");
+    }
+    return driver.createEndpoint(addr);
   }
 
   @Override
@@ -270,7 +273,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     getApplication().destroy();
     _executor.shutdown();
   }
-  
+
   @Override
   public MediaServiceFactory getMediaServiceFactory() {
     return _msFactory;
@@ -282,21 +285,23 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   }
 
   @Override
-  public void registerDriver(String protocol, String className) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+  public void registerDriver(String protocol, String className) throws ClassNotFoundException, InstantiationException,
+      IllegalAccessException {
     ProtocolDriver driver = createProvider(className);
     registerDriver(driver);
   }
-  
+
   protected void registerDriver(ProtocolDriver driver) {
     String protocol = driver.getProtocolFamily();
     _driversByProtocol.put(protocol, driver);
-    for(String schema : driver.getEndpointSchemas()) {
+    for (String schema : driver.getEndpointSchemas()) {
       _driversBySchema.put(schema, driver);
     }
   }
-  
+
   @SuppressWarnings("rawtypes")
-  private ProtocolDriver createProvider(String name) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+  private ProtocolDriver createProvider(String name) throws ClassNotFoundException, InstantiationException,
+      IllegalAccessException {
     Class clz = null;
     try {
       clz = this.getClass().getClassLoader().loadClass(name);
@@ -338,7 +343,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   public SipServlet getSIPController() {
     return _sip;
   }
-  
+
   public void setSIPController(SipServlet sip) {
     _sip = sip;
   }
@@ -347,7 +352,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   public HttpServlet getHTTPController() {
     return _http;
   }
-  
+
   public void setHTTPController(HttpServlet http) {
     _http = http;
   }

@@ -207,7 +207,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   public synchronized SIPCall.State getSIPCallState() {
     return _cstate;
   }
-  
+
   @Override
   protected synchronized MediaService<Call> getMediaService(final boolean reinvite) throws MediaException {
     if (getSIPCallState() != SIPCall.State.ANSWERED && getSIPCallState() != SIPCall.State.PROGRESSED) {
@@ -237,7 +237,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         // ignore.
       }
       if (joinables != null && joinables.length > 0) {
-        direction = Direction.RECV;
+        if (!(_service != null && joinables.length == 1 && joinables[0] == _service.getMediaGroup())) {
+          direction = Direction.RECV;
+        }
       }
 
       if (_service == null) {
@@ -252,7 +254,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           _media.setParameters(params);
         }
 
-        _service = _context.getMediaServiceFactory().create((Call)this, _media, params);
+        _service = _context.getMediaServiceFactory().create((Call) this, _media, params);
         _service.getMediaGroup().join(direction, _network);
       }
       else if (reinvite) {
@@ -264,7 +266,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     return _service;
   }
-
 
   @Override
   public SipSession getSipSession() {
@@ -433,8 +434,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           SIPCallImpl.this.dispatch(event);
 
           if (isTerminated()) {
-            SIPCallImpl.this
-                .dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR, _exception));
+            SIPCallImpl.this.dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR,
+                _exception));
           }
         }
         return event;
@@ -501,8 +502,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           SIPCallImpl.this.dispatch(event);
 
           if (isTerminated()) {
-            SIPCallImpl.this
-                .dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR, _exception));
+            SIPCallImpl.this.dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR,
+                _exception));
           }
         }
         return event;
@@ -1492,6 +1493,5 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   public synchronized Endpoint getAddress() {
     return _address;
   }
-
 
 }

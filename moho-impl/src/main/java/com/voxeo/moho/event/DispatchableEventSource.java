@@ -103,7 +103,7 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
       else {
         final AutowiredEventListener autowire = new AutowiredEventListener(observer);
         if (_observers.putIfAbsent(observer, autowire) == null) {
-          _dispatcher.addListener(MohoEvent.class, autowire);
+          _dispatcher.addListener(Event.class, autowire);
         }
       }
     }

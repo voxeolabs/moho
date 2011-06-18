@@ -16,9 +16,6 @@ package com.voxeo.moho.sip.fake;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -29,9 +26,7 @@ import javax.servlet.sip.SipSession;
 import javax.servlet.sip.URI;
 import javax.servlet.sip.ar.SipApplicationRoutingRegion;
 
-public class MockSipSession implements SipSession {
-
-  private Map<String, Object> _attributes;
+public class MockSipSession extends AttributeStore implements SipSession {
 
   private ServletContext servletContext;
 
@@ -39,26 +34,11 @@ public class MockSipSession implements SipSession {
 
   @Override
   public SipServletRequest createRequest(String s) throws IllegalStateException, IllegalArgumentException {
-
     return null;
   }
 
   @Override
   public SipApplicationSession getApplicationSession() {
-
-    return null;
-  }
-
-  @Override
-  final public Object getAttribute(String s) throws NullPointerException, IllegalStateException {
-    if (_attributes == null) {
-      _attributes = new ConcurrentHashMap<String, Object>();
-    }
-    return _attributes.get(s);
-  }
-
-  @Override
-  public Enumeration<String> getAttributeNames() throws IllegalStateException {
 
     return null;
   }
@@ -147,22 +127,6 @@ public class MockSipSession implements SipSession {
   public boolean isValid() {
 
     return false;
-  }
-
-  @Override
-  public void removeAttribute(String s) throws IllegalStateException {
-    if (_attributes == null) {
-      _attributes = new ConcurrentHashMap<String, Object>();
-    }
-    _attributes.remove(s);
-  }
-
-  @Override
-  final public void setAttribute(String s, Object obj) throws NullPointerException, IllegalStateException {
-    if (_attributes == null) {
-      _attributes = new ConcurrentHashMap<String, Object>();
-    }
-    _attributes.put(s, obj);
   }
 
   @Override

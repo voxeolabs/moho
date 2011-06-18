@@ -6,29 +6,29 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
 public class MockServletConfig implements ServletConfig {
-  ServletContext _ctx; 
-  
+  ServletContext _ctx;
+
   public MockServletConfig(ServletContext ctx) {
     _ctx = ctx;
   }
 
   @Override
-  public String getInitParameter(String arg0) {
+  final public String getInitParameter(String arg0) {
     return _ctx.getInitParameter(arg0);
   }
 
   @Override
-  public Enumeration getInitParameterNames() {
+  final public Enumeration getInitParameterNames() {
     return _ctx.getInitParameterNames();
   }
 
   @Override
-  public ServletContext getServletContext() {
+  final public ServletContext getServletContext() {
     return _ctx;
   }
 
   @Override
-  public String getServletName() {
+  final public String getServletName() {
     return "test";
   }
 

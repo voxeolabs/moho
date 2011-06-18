@@ -33,13 +33,15 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.event.AcceptableEvent;
 import com.voxeo.moho.event.AutowiredEventListener;
 import com.voxeo.moho.event.AutowiredEventTarget;
+import com.voxeo.moho.event.CallEvent;
 import com.voxeo.moho.event.EarlyMediaEvent;
 import com.voxeo.moho.event.Event;
 import com.voxeo.moho.event.EventDispatcher;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.ForwardableEvent;
-import com.voxeo.moho.event.MohoCallEvent;
+import com.voxeo.moho.event.MohoEarlyMediaEvent;
 import com.voxeo.moho.event.Observer;
+import com.voxeo.moho.event.RequestEvent;
+import com.voxeo.moho.event.ResponseEvent;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Output;
 import com.voxeo.moho.media.Prompt;
@@ -286,31 +288,38 @@ public abstract class CallImpl implements Call {
   @Override
   public <S extends EventSource, T extends Event<S>> Future<T> dispatch(final T event) {
     Future<T> retval = null;
-    if (!(event instanceof Event)) {
+    if (!(event instanceof CallEvent) && !(event instanceof RequestEvent) && !(event instanceof ResponseEvent)) {
       retval = this.internalDispatch(event);
     }
     else {
       final Runnable acceptor = new Runnable() {
         @Override
         public void run() {
-          if (event instanceof MohoCallEvent) {
-            if (!((MohoCallEvent) event).isProcessed()) {
+          if (event instanceof EarlyMediaEvent) {
+            if (!((MohoEarlyMediaEvent) event).isProcessed()) {
               try {
-                if (event instanceof EarlyMediaEvent) {
-                  ((EarlyMediaEvent) event).reject(null);
-                }
-                else if (event instanceof AcceptableEvent) {
-                  ((AcceptableEvent) event).accept();
-                }
+                ((EarlyMediaEvent) event).reject(null);
               }
               catch (final SignalException e) {
                 LOG.warn(e);
               }
             }
           }
+
+          else if (event instanceof AcceptableEvent) {
+            if (!((AcceptableEvent) event).isAccepted() && !((AcceptableEvent) event).isRejected()) {
+              try {
+                ((AcceptableEvent) event).accept();
+              }
+              catch (final SignalException e) {
+                LOG.warn(e);
+              }
+            }
+          }
+
         }
       };
-      if (isSupervised() || event instanceof ForwardableEvent) {
+      if (isSupervised() || event instanceof CallEvent || event instanceof RequestEvent) {
         retval = this.dispatch(event, acceptor);
       }
       else {
