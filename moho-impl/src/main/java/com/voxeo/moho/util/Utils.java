@@ -19,6 +19,7 @@ import java.lang.reflect.Type;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.voxeo.moho.event.Event;
 import com.voxeo.moho.utils.EventListener;
 
 public class Utils {
@@ -40,6 +41,19 @@ public class Utils {
     }
     return null;
   }
+  
+  public static Class<?> getEventType(Class<?> clazz) {
+    do {
+      for(Class<?> intf : clazz.getInterfaces()) {
+        if (Event.class.isAssignableFrom(intf)) {
+          return intf;
+        }
+      }
+      clazz = clazz.getSuperclass();
+    } while (clazz != null);
+    return null;
+  }
+
 
   public static class DaemonThreadFactory implements ThreadFactory {
     private ThreadGroup group;

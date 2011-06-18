@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.voxeo.moho.State;
+import com.voxeo.moho.util.Utils;
 import com.voxeo.moho.utils.EventListener;
 
 /**
@@ -109,6 +110,7 @@ public class AutowiredEventListener implements EventListener<Event<EventSource>>
   @SuppressWarnings("unchecked")
   public void onEvent(final Event<EventSource> event) throws Exception {
     Class<? extends Event<EventSource>> clz = (Class<? extends Event<EventSource>>) event.getClass();
+    clz = (Class<? extends Event<EventSource>>) Utils.getEventType(clz);
     do {
       final List<AutowiredEventTarget> targets = _listeners.get(clz);
       if (targets != null) {
@@ -118,7 +120,7 @@ public class AutowiredEventListener implements EventListener<Event<EventSource>>
           }
         }
       }
-      clz = (Class<? extends Event<EventSource>>) clz.getSuperclass();
+      clz = (Class<? extends Event<EventSource>>) Utils.getEventType(clz);
     }
     while (clz != null && !clz.equals(Object.class));
   }

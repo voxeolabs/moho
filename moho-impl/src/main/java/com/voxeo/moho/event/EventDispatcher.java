@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.util.Utils;
 import com.voxeo.moho.utils.EnumEvent;
 import com.voxeo.moho.utils.EventListener;
 
@@ -183,18 +184,6 @@ public class EventDispatcher {
     return fire(event, narrowType, null);
   }
   
-  protected Class<?> getEventType(Class<?> clazz) {
-    do {
-      for(Class<?> intf : clazz.getInterfaces()) {
-        if (Event.class.isAssignableFrom(intf)) {
-          return intf;
-        }
-      }
-      clazz = clazz.getSuperclass();
-    } while (clazz != null);
-    return null;
-  }
-
   public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType,
       final Runnable afterExec) {
 
@@ -205,7 +194,7 @@ public class EventDispatcher {
           LOG.trace("Firing event :" + event);
         }
         // clazz is a subtype of the Event interface or Event itself.
-        Class<?> clazz = getEventType(event.getClass());
+        Class<?> clazz = Utils.getEventType(event.getClass());
         if (clazz != null) {
           out: do {
             final List<Object> list = clazzListeners.get(clazz);
@@ -222,7 +211,7 @@ public class EventDispatcher {
                 }
               }
             }
-            clazz = getEventType(clazz);
+            clazz = Utils.getEventType(clazz);
           }
           while (narrowType && clazz != null);
         }
