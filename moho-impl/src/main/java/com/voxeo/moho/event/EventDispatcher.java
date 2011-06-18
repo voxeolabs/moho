@@ -192,7 +192,7 @@ public class EventDispatcher {
       }
       clazz = clazz.getSuperclass();
     } while (clazz != null);
-    return Event.class;
+    return null;
   }
 
   public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType,
@@ -204,25 +204,28 @@ public class EventDispatcher {
         if (LOG.isTraceEnabled()) {
           LOG.trace("Firing event :" + event);
         }
+        // clazz is a subtype of the Event interface or Event itself.
         Class<?> clazz = getEventType(event.getClass());
-        out: do {
-          final List<Object> list = clazzListeners.get(clazz);
-          if (list != null) {
-            for (final Object listener : list) {
-              try {
-                ((EventListener<T>) listener).onEvent(event);
-              }
-              catch (Exception ex) {
-                LOG.warn(ex + " is uncaught when handling " + event);
-                LOG.debug(ex + " is uncaught when handling " + event, ex);
-                HandleUncaughtException(ex, event);
-                break out;
+        if (clazz != null) {
+          out: do {
+            final List<Object> list = clazzListeners.get(clazz);
+            if (list != null) {
+              for (final Object listener : list) {
+                try {
+                  ((EventListener<T>) listener).onEvent(event);
+                }
+                catch (Exception ex) {
+                  LOG.warn(ex + " is uncaught when handling " + event);
+                  LOG.debug(ex + " is uncaught when handling " + event, ex);
+                  HandleUncaughtException(ex, event);
+                  break out;
+                }
               }
             }
+            clazz = getEventType(clazz);
           }
-          clazz = (Class<?>) clazz.getSuperclass();
+          while (narrowType && clazz != null);
         }
-        while (narrowType && clazz != null);
 
         out: if (event instanceof EnumEvent) {
           final EnumEvent<S, ? extends Enum<?>> enumEvent = (EnumEvent<S, ? extends Enum<?>>) event;
