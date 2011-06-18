@@ -32,7 +32,7 @@ import com.voxeo.moho.utils.EventListener;
 
 public class EventDispatcher {
 
-  private static final Logger log = Logger.getLogger(EventDispatcher.class);
+  private static final Logger LOG = Logger.getLogger(EventDispatcher.class);
 
   private ConcurrentHashMap<Class<?>, List<Object>> clazzListeners = new ConcurrentHashMap<Class<?>, List<Object>>();
 
@@ -184,13 +184,14 @@ public class EventDispatcher {
   }
   
   protected Class<?> getEventType(Class<?> clazz) {
-    while(clazz != null) {
+    do {
       for(Class<?> intf : clazz.getInterfaces()) {
         if (Event.class.isAssignableFrom(intf)) {
           return intf;
         }
       }
-    }
+      clazz = clazz.getSuperclass();
+    } while (clazz != null);
     return Event.class;
   }
 
@@ -198,30 +199,30 @@ public class EventDispatcher {
       final Runnable afterExec) {
 
     final FutureTask<T> task = new FutureTask<T>(new Runnable() {
-      @SuppressWarnings({ "unchecked", "rawtypes" })
+      @SuppressWarnings({ "unchecked"})
       public void run() {
-        if (log.isTraceEnabled()) {
-          log.trace("Firing event :" + event);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("Firing event :" + event);
         }
-        Class<? extends Event> clazz = event.getClass();
+        Class<?> clazz = getEventType(event.getClass());
         out: do {
-          final List<Object> list = clazzListeners.get(getEventType(clazz));
+          final List<Object> list = clazzListeners.get(clazz);
           if (list != null) {
             for (final Object listener : list) {
               try {
                 ((EventListener<T>) listener).onEvent(event);
               }
               catch (Exception ex) {
-                log.warn(ex + " is uncaught when handling " + event);
-                log.debug(ex + " is uncaught when handling " + event, ex);
+                LOG.warn(ex + " is uncaught when handling " + event);
+                LOG.debug(ex + " is uncaught when handling " + event, ex);
                 HandleUncaughtException(ex, event);
                 break out;
               }
             }
           }
-          clazz = (Class<? extends Event>) clazz.getSuperclass();
+          clazz = (Class<?>) clazz.getSuperclass();
         }
-        while (narrowType && !clazz.equals(Object.class));
+        while (narrowType && clazz != null);
 
         out: if (event instanceof EnumEvent) {
           final EnumEvent<S, ? extends Enum<?>> enumEvent = (EnumEvent<S, ? extends Enum<?>>) event;
@@ -232,8 +233,8 @@ public class EventDispatcher {
                 ((EventListener<T>) listener).onEvent(event);
               }
               catch (Exception ex) {
-                log.warn(ex + " is uncaught when handling " + event);
-                log.debug(ex + " is uncaught when handling " + event, ex);
+                LOG.warn(ex + " is uncaught when handling " + event);
+                LOG.debug(ex + " is uncaught when handling " + event, ex);
                 HandleUncaughtException(ex, event);
                 break out;
               }
@@ -287,7 +288,7 @@ public class EventDispatcher {
           task.get();
         }
         catch (Throwable t) {
-          log.info("Throwable when processing task.", t);
+          LOG.info("Throwable when processing task.", t);
         }
       }
     }
