@@ -18,6 +18,7 @@ import java.io.IOException;
 import javax.media.mscontrol.MsControlFactory;
 import javax.sdp.SdpFactory;
 import javax.servlet.ServletException;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
@@ -55,10 +56,10 @@ public class SIPDriverImpl implements SIPDriver {
   protected SdpFactory _sdpFactory;
 
   protected MsControlFactory _mscFactory;
-  
+
   protected SipServlet _servlet;
-  
-  protected static final String[] SCHEMAS = new String[]{"sip", "tel", "sips", "<sip", "<tel", "<sips", "fax", "<fax:"};
+
+  protected static final String[] SCHEMAS = new String[] {"sip", "tel", "sips", "<sip", "<tel", "<sips", "fax", "<fax:"};
 
   @Override
   public void init(SpiFramework framework) {
@@ -330,7 +331,7 @@ public class SIPDriverImpl implements SIPDriver {
       }
     }
   }
-  
+
   protected void doBranchResponse(final SipServletResponse res) throws ServletException, IOException {
     // do nothing right now
   }
@@ -492,14 +493,24 @@ public class SIPDriverImpl implements SIPDriver {
 
   @Override
   public SpiFramework getFramework() {
-    // TODO Auto-generated method stub
-    return null;
+    return (SpiFramework) _app;
   }
 
   @Override
   public Endpoint createEndpoint(String addr) {
-    // TODO Auto-generated method stub
+    try {
+      if (addr.startsWith("sip:") || addr.startsWith("sips:") || addr.startsWith("<sip:") || addr.startsWith("<sips:")) {
+        return new SIPEndpointImpl((ExecutionContext) _app, _sipFacory.createAddress(addr));
+      }
+      else if (addr.startsWith("tel:") || addr.startsWith("fax:") || addr.startsWith("<tel:")
+          || addr.startsWith("<fax:")) {
+        return new SIPEndpointImpl((ExecutionContext) _app, _sipFacory.createAddress(addr));
+      }
+    }
+    catch (ServletParseException e) {
+      LOG.error("", e);
+      throw new IllegalArgumentException("not a legal sip address:" + addr, e);
+    }
     return null;
   }
-
 }
