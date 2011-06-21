@@ -12,15 +12,29 @@
  * governing permissions and limitations under the License.
  */package com.voxeo.moho.reg;
 
+import java.util.Collection;
+import java.util.Iterator;
+
+import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.event.RegisterEvent.Contact;
 
 /**
- * A RegistrarController can listen on registrar events and act upon.
+ * This encapsulates the storage (e.g. database) for the {@link Registrar Registrar}.
  * 
  * @author wchen
  *
  */
-public interface RegistrarController {
-  void onExpire(Contact contact);
-  void onRegister(Contact contact);
+public interface RegistrarStore {
+  void startTx();
+  void commitTx();
+  void rollbackTx();
+  void add(Endpoint addr, Contact contact);
+  void update(Endpoint addr, Contact contact);
+  void remove(Endpoint addr, Contact contact);
+  void remove(Endpoint addr);
+  Collection<Contact> getContacts(Endpoint addr);
+  Iterator<Endpoint> getEndpoints();
+  Contact getContact(Endpoint addr, Endpoint contact);
+  boolean isExisting(Endpoint addr, Contact contact);
+  boolean isExisting(Endpoint addr);
 }

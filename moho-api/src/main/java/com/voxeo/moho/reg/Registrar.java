@@ -13,6 +13,7 @@
  */
 package com.voxeo.moho.reg;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 import com.voxeo.moho.Endpoint;
@@ -25,6 +26,9 @@ import com.voxeo.moho.event.RegisterEvent;
  *
  */
 public interface Registrar {
+  void addController(RegistrarController controller);
+  void removeController(RegistrarController controller);
+  Iterator<RegistrarController> getControllers();
   void doRegister(RegisterEvent event);
-  Iterator<RegisterEvent.Contact> getContacts(Endpoint aor);
+  Collection <RegisterEvent.Contact> getContacts(Endpoint aor);
 }

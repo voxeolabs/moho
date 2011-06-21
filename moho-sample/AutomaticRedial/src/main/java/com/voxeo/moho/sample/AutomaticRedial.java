@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -46,7 +46,7 @@ public class AutomaticRedial implements Application {
   }
 
   @State
-  public void handleInvite(final IncomingCall call) throws Exception {
+  public void handleIncomingCall(final IncomingCall call) throws Exception {
     call.accept();
     try {
       call.join(call.getInvitee(), JoinType.DIRECT, Direction.DUPLEX).get();

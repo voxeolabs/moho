@@ -79,7 +79,7 @@ public class BlackList implements Application {
   }
 
   @State
-  public void handleInvite(final IncomingCall call) throws Exception {
+  public void handleIncomingCall(final IncomingCall call) throws Exception {
     final Endpoint caller = call.getInvitor();
     final CallableEndpoint callee = call.getInvitee();
     final List<String> blacklist = _blacklists.get(callee.getName());
@@ -88,8 +88,7 @@ public class BlackList implements Application {
       return;
     }
 
-    call.accept();
-    call.join().get();
+    call.answer();
     call.output(_prompt).get();
     call.join(callee, JoinType.DIRECT, Joinable.Direction.DUPLEX).get();
   }

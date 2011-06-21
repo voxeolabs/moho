@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletParseException;
@@ -40,14 +41,21 @@ public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegist
   protected Contact[] _contacts;
   
   protected Endpoint _endpoint;
+  
+  protected long _creationTime;
 
-  class ContactImpl implements Contact {
-    Endpoint _endpoint;
+  class ContactImpl implements SIPContact {
+    SIPEndpoint _endpoint;
     int _expiration;
+    int _cseq;
+    String _callID;
 
-    ContactImpl(Endpoint ep, int expiration) {
+    ContactImpl(SIPEndpoint ep, int expiration, String callID, int cseq) {
       _endpoint = ep;
       _expiration = expiration;
+      _creationTime = System.currentTimeMillis();
+      _callID = callID;
+      _cseq = cseq;
     }
 
     @Override
@@ -74,7 +82,7 @@ public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegist
     public boolean equals(Object o) {
       if (o instanceof Contact) {
         Contact c = (Contact) o;
-        if (!_endpoint.equals(((Contact) o).getEndpoint())) {
+        if (!_endpoint.equals(c.getEndpoint())) {
           return false;
         }
         if (_expiration != c.getExpiration()) {
@@ -83,6 +91,26 @@ public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegist
         return true;
       }
       return false;
+    }
+
+    @Override
+    public boolean isWildCard() {
+      return _endpoint.isWildCard();
+    }
+
+    @Override
+    public boolean isExpired() {
+      return (System.currentTimeMillis() - _creationTime) > (_expiration * 1000L);
+    }
+
+    @Override
+    public int getCSeq() {
+      return _cseq;
+    }
+
+    @Override
+    public String getCallID() {
+      return _callID;
     }
   }
 
@@ -110,14 +138,15 @@ public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegist
       try {
         final ListIterator<Address> headers = _req.getAddressHeaders("Contact");
         int expiration = _req.getExpires();
+        int cseq = Integer.parseInt(new StringTokenizer(_req.getHeader("CSeq").trim()).nextToken());;
         while (headers.hasNext()) {
           Address addr = headers.next();
-          Endpoint ep = new SIPEndpointImpl(_ctx, addr);
+          SIPEndpoint ep = new SIPEndpointImpl(_ctx, addr);
           int exp = addr.getExpires();
           if (exp == 0) {
             exp = expiration;
           }
-          Contact contact = new ContactImpl(ep, exp);
+          Contact contact = new ContactImpl(ep, exp, _req.getCallId(), cseq);
           retval.add(contact);
         }
       }

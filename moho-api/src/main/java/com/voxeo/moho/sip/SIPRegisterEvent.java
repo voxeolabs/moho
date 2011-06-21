@@ -25,5 +25,10 @@ import com.voxeo.moho.event.RegisterEvent;
  *
  */
 public interface SIPRegisterEvent extends RegisterEvent {
+  public interface SIPContact extends Contact {
+    int getCSeq();
+    String getCallID();
+  }
+  
   SipServletRequest getSipRequest();
 }

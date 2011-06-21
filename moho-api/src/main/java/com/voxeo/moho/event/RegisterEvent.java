@@ -23,6 +23,8 @@ public interface RegisterEvent extends RequestEvent<Framework>, RedirectableEven
   public interface Contact {
     Endpoint getEndpoint();
     int getExpiration();
+    boolean isWildCard();
+    boolean isExpired();
   }
 
   Endpoint getEndpoint();
