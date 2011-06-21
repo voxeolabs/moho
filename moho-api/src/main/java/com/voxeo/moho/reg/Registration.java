@@ -12,7 +12,7 @@
  * governing permissions and limitations under the License.
  */
 
-package com.voxeo.moho;
+package com.voxeo.moho.reg;
 
 import com.voxeo.moho.event.EventSource;
 

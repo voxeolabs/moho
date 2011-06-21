@@ -14,8 +14,8 @@
 
 package com.voxeo.moho.sip;
 
-import com.voxeo.moho.Registration;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.reg.Registration;
 
 public interface SIPRegistration extends EventSource, Registration {
 

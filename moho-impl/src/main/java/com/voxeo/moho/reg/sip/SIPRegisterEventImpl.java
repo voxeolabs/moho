@@ -12,7 +12,7 @@
  * governing permissions and limitations under the License.
  */
 
-package com.voxeo.moho.sip;
+package com.voxeo.moho.reg.sip;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,11 +25,16 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
 
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.MohoRegisterEvent;
+import com.voxeo.moho.sip.SIPEndpoint;
+import com.voxeo.moho.sip.SIPEndpointImpl;
+import com.voxeo.moho.sip.SIPHelper;
+import com.voxeo.moho.sip.SIPRegisterEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegisterEvent {
@@ -43,8 +48,10 @@ public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegist
   protected Endpoint _endpoint;
   
   protected long _creationTime;
+  
+  protected String _domain;
 
-  class ContactImpl implements SIPContact {
+  public class ContactImpl implements SIPContact {
     SIPEndpoint _endpoint;
     int _expiration;
     int _cseq;
@@ -61,6 +68,10 @@ public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegist
     @Override
     public Endpoint getEndpoint() {
       return _endpoint;
+    }
+    
+    public void setExpiration(int exp) {
+      _expiration = exp;
     }
 
     @Override
@@ -114,11 +125,12 @@ public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegist
     }
   }
 
-  protected SIPRegisterEventImpl(final Framework source, final SipServletRequest req) {
+  public SIPRegisterEventImpl(final Framework source, final SipServletRequest req) {
     super(source);
     _req = req;
     _ctx = (ExecutionContext) source.getApplicationContext();
     _endpoint = new SIPEndpointImpl(_ctx, _req.getFrom());
+    _domain = ((SipURI)req.getRequestURI()).getHost();
   }
 
   @Override
@@ -208,5 +220,10 @@ public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegist
     else {
       throw new IllegalArgumentException("Unable to redirect the call to a non-SIP participant.");
     }
+  }
+
+  @Override
+  public String getDomain() {
+    return _domain;
   }
 }

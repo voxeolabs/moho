@@ -5,10 +5,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.event.RegisterEvent.Contact;
+import com.voxeo.moho.reg.RegisterEvent.Contact;
 
 public class MemoryRegistrarStore implements RegistrarStore {
   HashMap<Endpoint, HashMap<Endpoint, Contact>> _tables = new HashMap<Endpoint, HashMap<Endpoint, Contact>>(); 
@@ -184,5 +185,13 @@ public class MemoryRegistrarStore implements RegistrarStore {
       }
       return true;
     }
+  }
+
+  @Override
+  public void init(Properties props) {
+  }
+
+  @Override
+  public void destroy() {
   }
 }

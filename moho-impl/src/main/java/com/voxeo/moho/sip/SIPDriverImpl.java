@@ -23,6 +23,8 @@ import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
+import javax.servlet.sip.URI;
 
 import org.apache.log4j.Logger;
 
@@ -30,16 +32,17 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.IncomingCall;
-import com.voxeo.moho.Registration;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.event.CallEvent;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.NotifyEvent;
-import com.voxeo.moho.event.RegisterEvent;
 import com.voxeo.moho.event.RequestEvent;
 import com.voxeo.moho.event.SubscribeEvent;
 import com.voxeo.moho.event.TextEvent;
 import com.voxeo.moho.event.UnknownRequestEvent;
+import com.voxeo.moho.reg.RegisterEvent;
+import com.voxeo.moho.reg.Registration;
+import com.voxeo.moho.reg.sip.SIPRegisterEventImpl;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.SIPDriver;
 import com.voxeo.moho.spi.SpiFramework;
@@ -251,8 +254,16 @@ public class SIPDriverImpl implements SIPDriver {
   }
 
   protected void doRegister(final SipServletRequest req) throws ServletException, IOException {
-    final RegisterEvent event = new SIPRegisterEventImpl(_app, req);
-    _app.dispatch(event, new NoHandleHandler<Framework>(event, req));
+    URI uri = req.getRequestURI();
+    if (uri.isSipURI()) {
+      SipURI suri = (SipURI)uri;
+      if (suri.getUser() == null) {
+        final RegisterEvent event = new SIPRegisterEventImpl(_app, req);
+        _app.dispatch(event, new NoHandleHandler<Framework>(event, req));
+        return;
+      }
+    }
+    req.createResponse(SipServletResponse.SC_BAD_REQUEST, "Invalid Request URI").send();
   }
 
   protected void doSubscribe(final SipServletRequest req) throws ServletException, IOException {

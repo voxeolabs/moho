@@ -14,9 +14,10 @@
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Properties;
 
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.event.RegisterEvent.Contact;
+import com.voxeo.moho.reg.RegisterEvent.Contact;
 
 /**
  * This encapsulates the storage (e.g. database) for the {@link Registrar Registrar}.
@@ -25,6 +26,7 @@ import com.voxeo.moho.event.RegisterEvent.Contact;
  *
  */
 public interface RegistrarStore {
+  void init(Properties props);
   void startTx();
   void commitTx();
   void rollbackTx();
@@ -37,4 +39,5 @@ public interface RegistrarStore {
   Contact getContact(Endpoint addr, Endpoint contact);
   boolean isExisting(Endpoint addr, Contact contact);
   boolean isExisting(Endpoint addr);
+  void destroy();
 }
