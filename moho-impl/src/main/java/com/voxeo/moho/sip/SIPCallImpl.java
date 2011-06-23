@@ -283,7 +283,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   @Override
   public synchronized MediaService getMediaService(final boolean reinvite) throws IllegalStateException, MediaException {
     if (getSIPCallState() != SIPCall.State.ANSWERED && getSIPCallState() != SIPCall.State.PROGRESSED) {
-      throw new IllegalStateException();
+      throw new IllegalStateException("The call has not been answered or there was no progress in the call");
     }
     if (_network == null) {
       if (reinvite) {
