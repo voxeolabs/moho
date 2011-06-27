@@ -300,7 +300,11 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
         // ignore
       }
       catch (final ExecutionException e) {
-        throw new SignalException(e.getCause());
+        Throwable cause = e.getCause();
+        if (cause instanceof SignalException) {
+          throw (SignalException)cause;
+        }
+        throw new SignalException(cause);
       }
     }
 

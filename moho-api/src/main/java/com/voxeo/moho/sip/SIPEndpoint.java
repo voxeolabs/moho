@@ -31,4 +31,6 @@ public interface SIPEndpoint extends CallableEndpoint, TextableEndpoint {
   SipURI getSipURI() throws IllegalArgumentException;
 
   Address getSipAddress();
+  
+  boolean isWildCard();
 }

@@ -102,6 +102,9 @@ public class SIPReferEventImplTest extends TestCase {
 
         allowing(referedAddr).clone();
         will(returnValue(referedAddr));
+        
+        allowing(referedAddr).isWildcard();
+        will(returnValue(false));  
 
         allowing(originAddr).clone();
         will(returnValue(originAddr));
@@ -220,7 +223,7 @@ public class SIPReferEventImplTest extends TestCase {
     final SIPReferEventImpl referEvent = new SIPReferEventImpl(call, referReq);
 
     // TODO why have public void accept(final Map<String, String> headers)
-    final Call newCall = referEvent.accept(JoinType.DIRECT, Direction.DUPLEX, null);
+    referEvent.accept(JoinType.DIRECT, Direction.DUPLEX, null);
 
     mockery.assertIsSatisfied();
   }

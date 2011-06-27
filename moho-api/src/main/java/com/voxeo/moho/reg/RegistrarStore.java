@@ -10,30 +10,34 @@
  * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
- */
-package com.voxeo.moho.reg;
+ */package com.voxeo.moho.reg;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Properties;
 
 import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.reg.RegisterEvent.Contact;
 
 /**
- * The interface encapsulates a Registrar functionality.
+ * This encapsulates the storage (e.g. database) for the {@link Registrar Registrar}.
  * 
  * @author wchen
  *
  */
-public interface Registrar {
-  final String STORE_IMPL = "com.voxeo.moho.reg.store.impl";
-  final String MAX_EXPIRE = "com.voxeo.moho.reg.expire.max";
-  final String DOMAINS = "com.voxeo.moho.reg.domains";
+public interface RegistrarStore {
   void init(Properties props);
-  void addController(RegistrarController controller);
-  void removeController(RegistrarController controller);
-  Iterator<RegistrarController> getControllers();
-  void doRegister(RegisterEvent event);
-  Collection <RegisterEvent.Contact> getContacts(Endpoint aor);
+  void startTx();
+  void commitTx();
+  void rollbackTx();
+  void add(Endpoint addr, Contact contact);
+  void update(Endpoint addr, Contact contact);
+  void remove(Endpoint addr, Contact contact);
+  void remove(Endpoint addr);
+  Collection<Contact> getContacts(Endpoint addr);
+  Iterator<Endpoint> getEndpoints();
+  Contact getContact(Endpoint addr, Endpoint contact);
+  boolean isExisting(Endpoint addr, Contact contact);
+  boolean isExisting(Endpoint addr);
   void destroy();
 }

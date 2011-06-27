@@ -14,77 +14,10 @@
 
 package com.voxeo.moho.event;
 
-import java.util.Map;
-
-import com.voxeo.moho.MediaException;
-import com.voxeo.moho.SignalException;
-
 /**
- * This event is fired when there is any incoming {@link com.voxeo.moho.Call Call}.
+ * Deprecated type, using IncomingCall instead.
  * 
  * @author wchen
  */
 public interface InviteEvent extends CallEvent, AcceptableEvent, RedirectableEvent {
-
-  /**
-   * @return true if the invitation is accepted with early media
-   */
-  boolean isAcceptedWithEarlyMedia();
-
-  /**
-   * accept the invitation with early media (SIP 183)
-   * 
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws MediaException
-   *           when there is any media server error.
-   */
-  void acceptWithEarlyMedia() throws SignalException, MediaException;
-
-  /**
-   * accept the invitation with early media (SIP 183)
-   * 
-   * @throws SignalException
-   *           when there is any signal error.
-   * @throws MediaException
-   *           when there is any media server error.
-   */
-  void acceptWithEarlyMedia(Observer... observer) throws SignalException, MediaException;
-  
-  /**
-   * accept the invitation with early media (SIP 183)
-   * 
-   * @param headers additional signaling protocol specific headers to be sent with the early media response.
-   * @throws SignalException when signaling error occurs during call setups.
-   * @throws MediaException when media error occurs during early media negotiation.
-   */
-  void acceptWithEarlyMedia(final Map<String, String> headers) throws SignalException, MediaException;
-
-
-  void accept(Observer... observer) throws SignalException;
-  
-  /**
-   * Accept the call and join the call to media server.
-   * Please note this is a synchronized operation -- 
-   * operation doesn't return until the call is completely joined to the media server,
-   * or an exception is thrown.
-   * 
-   * @throws SignalException when signaling error occurs during call setups.
-   * @throws MediaException when media error occurs during media negotiation.
-   */
-  void answer() throws SignalException, MediaException;
-  
-  void answer(Observer... observer) throws SignalException, MediaException;
-
-  /**
-   * Accept the call with additional protocol specific headers and join the call to media server.
-   * Please note this is a synchronized operation -- 
-   * operation doesn't return until the call is completely joined to the media server,
-   * or an exception is thrown.
-   * 
-   * @param headers the protocol specific headers to be sent with the response.
-   * @throws SignalException when signaling error occurs during call setups.
-   * @throws MediaException when media error occurs during media negotiation.
-   */
-  void answer(final Map<String, String> headers) throws SignalException, MediaException;
 }

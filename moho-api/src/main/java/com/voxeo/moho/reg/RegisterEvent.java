@@ -12,17 +12,21 @@
  * governing permissions and limitations under the License.
  */
 
-package com.voxeo.moho.event;
+package com.voxeo.moho.reg;
 
 import java.util.Map;
 
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
+import com.voxeo.moho.event.RedirectableEvent;
+import com.voxeo.moho.event.RequestEvent;
 
 public interface RegisterEvent extends RequestEvent<Framework>, RedirectableEvent {
   public interface Contact {
     Endpoint getEndpoint();
     int getExpiration();
+    boolean isWildCard();
+    boolean isExpired();
   }
 
   Endpoint getEndpoint();

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -92,6 +92,9 @@ public class SIPEndpointImpl implements SIPEndpoint {
 
   @Override
   public Call call(final Endpoint caller, final Map<String, String> headers) {
+    if (isWildCard()) {
+      throw new IllegalArgumentException(this + " is an unreachable wildcard address.");
+    }
     return new SIPOutgoingCall(_ctx, ((SIPEndpoint) caller), this, headers);
   }
 
@@ -105,6 +108,9 @@ public class SIPEndpointImpl implements SIPEndpoint {
 
   @Override
   public Subscription subscribe(final Endpoint caller, final Type type, final int expiration) {
+    if (isWildCard()) {
+      throw new IllegalArgumentException(this + " is an unreachable wildcard address.");
+    }
     return new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
   }
 
@@ -115,6 +121,9 @@ public class SIPEndpointImpl implements SIPEndpoint {
 
   @Override
   public void sendText(final TextableEndpoint from, final String text, final String type) throws IOException {
+    if (isWildCard()) {
+      throw new IllegalArgumentException(this + " is an unreachable wildcard address.");
+    }
     // TODO improve
     final SipServletRequest req = _ctx.getSipFactory().createRequest(_ctx.getSipFactory().createApplicationSession(),
         "MESSAGE", ((SIPEndpoint) from).getSipAddress(), _address);
@@ -141,5 +150,10 @@ public class SIPEndpointImpl implements SIPEndpoint {
   public Call call(String caller, final Map<String, String> headers) {
     Endpoint endpoint = _ctx.createEndpoint(caller);
     return call(endpoint, headers);
+  }
+
+  @Override
+  public boolean isWildCard() {
+    return _address.isWildcard();
   }
 }

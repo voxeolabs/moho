@@ -16,14 +16,21 @@ package com.voxeo.moho.sip;
 
 import javax.servlet.sip.SipServletRequest;
 
-import com.voxeo.moho.event.RegisterEvent;
+import com.voxeo.moho.reg.RegisterEvent;
 
 /**
- * SIP specific {@link com.voxeo.moho.even.RegisterEvent RegisterEvent}
+ * SIP specific {@link com.voxeo.moho.reg.even.RegisterEvent RegisterEvent}
  * 
  * @author wchen
  *
  */
 public interface SIPRegisterEvent extends RegisterEvent {
+  public interface SIPContact extends Contact {
+    int getCSeq();
+    String getCallID();
+  }
+  
+  String getDomain();
+  
   SipServletRequest getSipRequest();
 }
