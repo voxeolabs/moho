@@ -14,6 +14,8 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.media.mscontrol.MsControlFactory;
 import javax.sdp.SdpFactory;
@@ -34,6 +36,7 @@ import com.voxeo.moho.Registration;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.event.CallEvent;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.MohoInputDetectedEvent;
 import com.voxeo.moho.event.NotifyEvent;
 import com.voxeo.moho.event.RegisterEvent;
 import com.voxeo.moho.event.RequestEvent;
@@ -269,7 +272,29 @@ public class SIPDriverImpl implements SIPDriver {
   }
 
   protected void doInfo(final SipServletRequest req) throws ServletException, IOException {
-    doOthers(req);
+    req.createResponse(200).send();
+    final String type = req.getContentType();
+    if (type != null && type.equalsIgnoreCase("application/dtmf-relay") || type.equalsIgnoreCase("application/dtmf")) {
+      EventSource source = SessionUtils.getEventSource(req);
+      if (source != null && source instanceof Call) {
+        final MohoInputDetectedEvent<Call> event = new MohoInputDetectedEvent<Call>((Call) source, getDTMFValue(req));
+        source.dispatch(event);
+      }
+    }
+  }
+
+  private String getDTMFValue(SipServletRequest req) throws IOException {
+    final String type = req.getContentType();
+    String content = new String(req.getRawContent(), "UTF-8").trim();
+    if (type.equalsIgnoreCase("application/dtmf-relay")) {
+      Matcher matcher = DtmfRelayPattern.pattern.matcher(content);
+      return matcher.group(1);
+    }
+    return content;
+  }
+
+  private static class DtmfRelayPattern {
+    public static Pattern pattern = Pattern.compile("Signal\\s*=\\s*([\\d|A|B|C|D|\\*|#])");
   }
 
   protected void doPublish(final SipServletRequest req) throws ServletException, IOException {
