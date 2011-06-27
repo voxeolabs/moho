@@ -294,7 +294,7 @@ public class GenericMediaService implements MediaService {
       params.put(Player.JUMP_TIME, output.getJumpTime());
       params.put(Player.START_IN_PAUSED_MODE, output.isStartInPausedMode());
       
-      params.put(Player.ENABLED_EVENTS, new EventType[] {PlayerEvent.SPEED_CHANGED, PlayerEvent.VOLUME_CHANGED});
+      params.put(Player.ENABLED_EVENTS, new EventType[] {PlayerEvent.SPEED_CHANGED, PlayerEvent.VOLUME_CHANGED, PlayerEvent.RESUMED, PlayerEvent.PAUSED});
 
       _dialect.setTextToSpeechVoice(params, output.getVoiceName());
 
