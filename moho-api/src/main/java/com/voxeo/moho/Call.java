@@ -113,19 +113,6 @@ public interface Call extends MultiStreamParticipant, MediaService<Call> {
   Joint join(CallableEndpoint other, Participant.JoinType type, Direction direction, Map<String, String> headers);
 
   /**
-   * supervised mode delivers more events to the listener
-   * 
-   * @return whether this call is supervised or not.
-   */
-  boolean isSupervised();
-
-  /**
-   * @param supervised
-   *          true if to turn on supervised mode
-   */
-  void setSupervised(boolean supervised);
-
-  /**
    * @return the current signaling state of the call
    */
   State getCallState();

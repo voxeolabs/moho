@@ -109,7 +109,7 @@ public class AutowiredEventTarget {
         _method.invoke(_observer, new Object[] {event});
       }
       catch (final Exception e) {
-        log.error("", e);
+        log.error("Got Exception when invoking Application.", e);
         if (e instanceof InvocationTargetException
             && ((InvocationTargetException) e).getTargetException() instanceof Exception) {
           throw (Exception) ((InvocationTargetException) e).getTargetException();
