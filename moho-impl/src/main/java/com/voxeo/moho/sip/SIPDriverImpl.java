@@ -259,7 +259,7 @@ public class SIPDriverImpl implements SIPDriver {
   protected void doRegister(final SipServletRequest req) throws ServletException, IOException {
     URI uri = req.getRequestURI();
     if (uri.isSipURI()) {
-      SipURI suri = (SipURI)uri;
+      SipURI suri = (SipURI) uri;
       if (suri.getUser() == null) {
         final RegisterEvent event = new SIPRegisterEventImpl(_app, req);
         _app.dispatch(event, new NoHandleHandler<Framework>(event, req));
@@ -381,6 +381,15 @@ public class SIPDriverImpl implements SIPDriver {
           source.dispatch(new SIPEarlyMediaEventImpl((SIPCall) source, res));
         }
         else if (status != SipServletResponse.SC_TRYING) {
+          if (source instanceof SIPCallImpl) {
+            final SIPCallImpl call = (SIPCallImpl) source;
+            try {
+              call.doResponse(res, null);
+            }
+            catch (final Exception e) {
+              LOG.warn("", e);
+            }
+          }
           source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
         }
       }
@@ -393,7 +402,14 @@ public class SIPDriverImpl implements SIPDriver {
   protected void doSuccessResponse(final SipServletResponse res) throws ServletException, IOException {
     final EventSource source = SessionUtils.getEventSource(res);
     if (source != null) {
-      if (source instanceof Call) {
+      if (source instanceof SIPCallImpl) {
+        final SIPCallImpl call = (SIPCallImpl) source;
+        try {
+          call.doResponse(res, null);
+        }
+        catch (final Exception e) {
+          LOG.warn("", e);
+        }
         source.dispatch(new SIPAnsweredEventImpl<Call>((SIPCall) source, res));
         return;
       }
@@ -446,6 +462,7 @@ public class SIPDriverImpl implements SIPDriver {
       catch (final Exception e) {
         LOG.warn("", e);
       }
+      source.dispatch(new SIPDeniedEventImpl<Call>((SIPCall) source, res));
     }
     else if (source instanceof Registration) {
       source.dispatch(new SIPDeniedEventImpl<Registration>((Registration) source, res));
