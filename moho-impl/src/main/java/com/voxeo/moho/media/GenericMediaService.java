@@ -293,7 +293,7 @@ public class GenericMediaService implements MediaService {
       params.put(Player.JUMP_PLAYLIST_INCREMENT, output.getJumpPlaylistIncrement());
       params.put(Player.JUMP_TIME, output.getJumpTime());
       params.put(Player.START_IN_PAUSED_MODE, output.isStartInPausedMode());
-      
+
       params.put(Player.ENABLED_EVENTS, new EventType[] {PlayerEvent.SPEED_CHANGED, PlayerEvent.VOLUME_CHANGED});
 
       _dialect.setTextToSpeechVoice(params, output.getVoiceName());
@@ -527,6 +527,10 @@ public class GenericMediaService implements MediaService {
     params.put(SignalDetector.INITIAL_TIMEOUT, cmd.getInitialTimeout());
     params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterSigTimeout());
     params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getSensitivity());
+
+    if (cmd.isSupervised()) {
+      params.put(SignalDetector.ENABLED_EVENTS, new EventType[] {SignalDetectorEvent.SIGNAL_DETECTED});
+    }
 
     _dialect.setSpeechLanguage(params, cmd.getSpeechLanguage());
     _dialect.setSpeechTermChar(params, cmd.getTermChar());
