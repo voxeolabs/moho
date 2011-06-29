@@ -155,7 +155,7 @@ public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegist
           Address addr = headers.next();
           SIPEndpoint ep = new SIPEndpointImpl(_ctx, addr);
           int exp = addr.getExpires();
-          if (exp == 0) {
+          if (exp <= 0) {
             exp = expiration;
           }
           Contact contact = new ContactImpl(ep, exp, _req.getCallId(), cseq);
