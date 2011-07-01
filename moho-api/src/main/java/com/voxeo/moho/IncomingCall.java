@@ -99,4 +99,7 @@ public interface IncomingCall extends Call, InviteEvent {
    * @see {@link IncomingCall#answer() answer()}
    */
   void answer(final Map<String, String> headers) throws SignalException, MediaException;
+  
+  void proxyTo(boolean recordRoute, boolean parallel, Endpoint... destinations) throws SignalException;
+
 }

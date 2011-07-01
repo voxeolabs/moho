@@ -14,14 +14,21 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
+import javax.servlet.sip.Address;
+import javax.servlet.sip.Proxy;
 import javax.servlet.sip.Rel100Exception;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.TooManyHopsException;
+import javax.servlet.sip.URI;
 
 import org.apache.log4j.Logger;
 
@@ -202,7 +209,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   protected boolean _rejected = false;
 
   protected boolean _redirected = false;
-  
+
   protected boolean _accepted = false;
 
   @Override
@@ -224,7 +231,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   public synchronized boolean isAccepted() {
     return _accepted;
   }
-  
+
   protected synchronized boolean isProcessed() {
     return isAccepted() || isAcceptedWithEarlyMedia() || isRejected() || isRedirected();
   }
@@ -261,9 +268,10 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
       throw new SignalException(e);
     }
   }
-  
+
   @Override
-  public synchronized void acceptWithEarlyMedia(final Map<String, String> headers) throws SignalException, MediaException {
+  public synchronized void acceptWithEarlyMedia(final Map<String, String> headers) throws SignalException,
+      MediaException {
     checkState();
     _accepted = true;
     _acceptedWithEarlyMedia = true;
@@ -302,7 +310,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
       catch (final ExecutionException e) {
         Throwable cause = e.getCause();
         if (cause instanceof SignalException) {
-          throw (SignalException)cause;
+          throw (SignalException) cause;
         }
         throw new SignalException(cause);
       }
@@ -310,7 +318,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
 
     return;
   }
-  
+
   @Override
   public synchronized void redirect(final Endpoint o, final Map<String, String> headers) throws SignalException {
     checkState();
@@ -367,7 +375,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
 
   @Override
   public void accept() throws SignalException {
-    accept((Map<String, String>)null);
+    accept((Map<String, String>) null);
   }
 
   @Override
@@ -386,5 +394,39 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   public void answer(Observer... observer) throws SignalException, MediaException {
     addObserver(observer);
     answer();
+  }
+
+  @Override
+  public void proxyTo(boolean recordRoute, boolean parallel, Endpoint... endpoints) throws SignalException {
+    if (endpoints == null || endpoints.length == 0) {
+      throw new IllegalArgumentException("Illegal endpoints");
+    }
+    try {
+      Proxy proxy = _invite.getProxy();
+
+      proxy.setParallel(parallel);
+      proxy.setRecordRoute(recordRoute);
+      proxy.setSupervised(false);
+
+      List<URI> uris = new LinkedList<URI>();
+      for (Endpoint endpoint : endpoints) {
+        if (endpoint.getURI() == null) {
+          throw new IllegalArgumentException("Illegal endpoints:" + endpoint);
+        }
+        Address address = getApplicationContext().getSipFactory().createAddress(endpoint.getURI().toString());
+        uris.add(address.getURI());
+      }
+
+      proxy.proxyTo(uris);
+    }
+    catch (TooManyHopsException e) {
+      LOG.error("", e);
+      throw new SignalException(e);
+    }
+    catch (ServletParseException e) {
+      LOG.error("", e);
+      throw new SignalException(e);
+    }
+
   }
 }
