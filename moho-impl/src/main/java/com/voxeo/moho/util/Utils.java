@@ -23,7 +23,7 @@ import com.voxeo.moho.utils.EventListener;
 
 public class Utils {
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   public static Class getGenericType(final Object o) {
     for (Class clz = o.getClass(); clz != null && !clz.equals(Object.class); clz = clz.getSuperclass()) {
       for (final Type type : clz.getGenericInterfaces()) {

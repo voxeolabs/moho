@@ -34,6 +34,7 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.conference.ConferenceMangerImpl;
 import com.voxeo.moho.event.ApplicationEventSource;
+import com.voxeo.moho.event.DtmfRelayEvent;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.SignalEvent;
 import com.voxeo.moho.event.TextEvent;
@@ -114,7 +115,7 @@ public class SIPController extends SipServlet {
       ctx.setMediaServiceFactory(new GenericMediaServiceFactory(mediaDialect));
       ctx.setConferenceManager(new ConferenceMangerImpl(ctx));
 
-      final Enumeration e = getInitParameterNames();
+      final Enumeration<?> e = getInitParameterNames();
       while (e.hasMoreElements()) {
         final String name = (String) e.nextElement();
         final String value = getInitParameter(name);
@@ -359,7 +360,16 @@ public class SIPController extends SipServlet {
 
   @Override
   protected void doInfo(final SipServletRequest req) throws ServletException, IOException {
-    doOthers(req);
+    String contentType = req.getContentType();
+    if (contentType != null && "application/dtmf-relay".equals(contentType)) {
+        String contents = new String((byte[]) req.getContent());
+        EventSource source = SessionUtils.getEventSource(req);
+        DtmfRelayEvent event = new DtmfRelayEvent(source, contents);
+        source.dispatch(event);
+    }
+    else {
+        doOthers(req);
+    }
   }
 
   @Override
@@ -451,6 +461,7 @@ public class SIPController extends SipServlet {
     }
   }
 
+  
   private class NoHandleHandler implements Runnable {
 
     private SignalEvent _event;

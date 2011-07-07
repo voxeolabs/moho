@@ -153,7 +153,7 @@ public class NLSMLParser {
 
   private static Element getFirstChildElementIntern(final Node node, final QName nodeName) {
     Element childElement = null;
-    final Iterator it = getChildElementsIntern(node, nodeName).iterator();
+    final Iterator<?> it = getChildElementsIntern(node, nodeName).iterator();
     if (it.hasNext()) {
       childElement = (Element) it.next();
     }
@@ -229,24 +229,4 @@ public class NLSMLParser {
     }
   }
 
-  public static void main(String[] args) {
-    try {
-      List<Map<String, String>> nlsml = NLSMLParser
-          .parse("<?xml version=\"1.0\"?><result grammar=\"0@28113c18.vxmlgrammar\"><interpretation grammar=\"0@28113c18.vxmlgrammar\" confidence=\"48\"><input mode=\"speech\">blue</input></interpretation></result>");
-      for (final Map<String, String> reco : nlsml) {
-        final String conf = reco.get("_confidence");
-        if (conf != null) {
-          System.out.println(conf);
-        }
-        final String interpretation = reco.get("_interpretation");
-        if (interpretation != null) {
-          System.out.println(interpretation);
-        }
-      }
-    }
-    catch (Exception e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-  }
 }
