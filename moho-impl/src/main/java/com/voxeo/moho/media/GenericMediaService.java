@@ -528,6 +528,10 @@ public class GenericMediaService implements MediaService {
     params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterSigTimeout());
     params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getSensitivity());
 
+    if (cmd.isSupervised()) {
+      params.put(SignalDetector.ENABLED_EVENTS, new EventType[] {SignalDetectorEvent.SIGNAL_DETECTED});
+    }
+
     _dialect.setSpeechLanguage(params, cmd.getSpeechLanguage());
     _dialect.setSpeechTermChar(params, cmd.getTermChar());
     _dialect.setSpeechInputMode(params, cmd.getInputMode());
