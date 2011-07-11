@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 import com.voxeo.moho.Endpoint;
@@ -188,7 +187,7 @@ public class MemoryRegistrarStore implements RegistrarStore {
   }
 
   @Override
-  public void init(Properties props) {
+  public void init(Map<String, String> props) {
   }
 
   @Override

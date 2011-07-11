@@ -3,7 +3,7 @@ package com.voxeo.moho.reg;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Properties;
+import java.util.Map;
 
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.event.AcceptableEvent.Reason;
@@ -16,7 +16,7 @@ public class RegistrarImpl implements Registrar, Runnable {
   protected RegistrarStore _store;
   protected Collection<RegistrarController> _controllers = new ArrayList<RegistrarController>();
   protected int _maxExpiration = 60000;
-  protected Properties _props;
+  protected Map<String, String> _props;
   protected boolean _running = false;
   protected Thread _runner;
 
@@ -136,10 +136,10 @@ public class RegistrarImpl implements Registrar, Runnable {
   }
 
   @Override
-  public void init(Properties props) {
+  public void init(Map<String, String> props) {
     _props = props;
 
-    String storeImpl = props.getProperty(STORE_IMPL);
+    String storeImpl = props.get(STORE_IMPL);
     if (storeImpl == null) {
       storeImpl = MemoryRegistrarStore.class.getName();
     }
@@ -151,7 +151,7 @@ public class RegistrarImpl implements Registrar, Runnable {
       throw new IllegalArgumentException("Invalidate Registrar Store implementation: " + e);
     }
 
-    String max = props.getProperty(MAX_EXPIRE);
+    String max = props.get(MAX_EXPIRE);
     if (max != null) {
       this._maxExpiration = Integer.parseInt(max);
     }

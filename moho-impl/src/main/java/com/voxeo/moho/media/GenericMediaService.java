@@ -294,7 +294,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       params.put(Player.AUDIO_CODEC, output.getCodec());
       params.put(Player.FILE_FORMAT, output.getFormat());
       params.put(Player.JUMP_PLAYLIST_INCREMENT, output.getJumpPlaylistIncrement());
-      params.put(Player.JUMP_TIME, output.getJumpTime());
+      params.put(Player.JUMP_TIME, output.getMoveTime());
       params.put(Player.START_IN_PAUSED_MODE, output.isStartInPausedMode());
 
       _dialect.setTextToSpeechVoice(params, output.getVoiceName());

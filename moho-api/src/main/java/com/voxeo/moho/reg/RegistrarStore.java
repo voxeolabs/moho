@@ -14,7 +14,7 @@
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Properties;
+import java.util.Map;
 
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.reg.RegisterEvent.Contact;
@@ -26,7 +26,7 @@ import com.voxeo.moho.reg.RegisterEvent.Contact;
  *
  */
 public interface RegistrarStore {
-  void init(Properties props);
+  void init(Map<String, String> props);
   void startTx();
   void commitTx();
   void rollbackTx();
