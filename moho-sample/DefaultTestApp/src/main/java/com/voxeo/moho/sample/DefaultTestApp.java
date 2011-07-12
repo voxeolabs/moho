@@ -23,6 +23,7 @@ import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
+import com.voxeo.moho.media.output.OutputCommand.BargeinType;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.reg.RegisterEvent;
@@ -70,7 +71,6 @@ public class DefaultTestApp implements Application {
     call.setApplicationState("main-menu");
     final OutputCommand output = new OutputCommand(new TextToSpeechResource(
         "Press or say  1 for testing TTS, Press or say 2 for testing Recording"));
-    output.setBargein(true);
     final InputCommand input = new InputCommand(new Grammar[] {new SimpleGrammar("1,2"), new SimpleGrammar("one,two")});
     call.prompt(output, input, 0);
   }
@@ -99,7 +99,7 @@ public class DefaultTestApp implements Application {
           call.setAttribute("RecordFileLocation", recordURI);
           final OutputCommand output = new OutputCommand(new TextToSpeechResource(
               "Please record your message after the beep, Press hash to stop record."));
-          output.setBargein(true);
+          output.setBargeinType(BargeinType.ANY);
           final RecordCommand recordCommand = new RecordCommand(recordURI);
           recordCommand.setPrompt(output);
           call.input("#");

@@ -71,7 +71,6 @@ public class SimpleQueue extends DispatchableEventSource implements CallQueue {
     super((ExecutionContext) ctx);
     _queue = queue;
     _output = new OutputCommand(res);
-    _output.setBargein(false);
     _output.setRepeatInterval(Integer.MAX_VALUE);
     _shared = shared;
   }

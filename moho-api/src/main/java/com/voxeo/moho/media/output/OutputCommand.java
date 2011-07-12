@@ -49,8 +49,6 @@ import org.apache.log4j.Logger;
  * 
  * @author wchen
  *
- * TODO: 
- *   move forward/backward on TTS resource.
  */
 public class OutputCommand implements Parameters {
 
@@ -58,37 +56,58 @@ public class OutputCommand implements Parameters {
 
   /**
    * How media server should behave when it receives an {@link OutputCommand OutputCommand} 
-   * while it is playing other {@link AudibleResource AudibleResource}.
+   * while it is busy rendering other {@link OutputCommand OutputCommand}s.
    *
    */
   public enum BehaviorIfBusy {
     /**
-     * media server should queue up this command and play later.
+     * This command should be queued up and be played later based on FIFO.
      */
     QUEUE, 
     /**
-     * media server should stop playing what it is playing
-     * but play this command immediately.
+     * This command interrupts other {@link OutputCommand OutputCommand} and should be rendered right away.
      */
     STOP, 
     /**
-     * media server should continue playing what it is  playing 
-     * but return an error for this command.
+     * Error will be returned.
      */
     ERROR
+  }
+  
+  /**
+   * When kind of input should interrupt this command.
+   *
+   */
+  public enum BargeinType {
+    /**
+     * DTMF input should interrupt this command.
+     */
+    DTMF,
+    /**
+     * Speech input should interrupt this command.
+     */
+    SPEECH,
+    /**
+     * Any input should interrupt this command.
+     */
+    ANY,
+    /**
+     * This command should not be interrupted by this command.
+     */
+    NONE
   }
 
   protected AudibleResource[] _resources;
 
   protected BehaviorIfBusy _behavior = BehaviorIfBusy.QUEUE;
 
-  protected boolean _bargein = false;
+  protected BargeinType _bargein = BargeinType.NONE;
   
   protected String _voiceName;
 
-  protected int _maxtime = Resource.FOREVER;
+  protected long _maxtime = Resource.FOREVER;
 
-  protected int _offset = 0;
+  protected long _offset = 0;
 
   protected int _volumeUnit = 3;
 
@@ -96,13 +115,13 @@ public class OutputCommand implements Parameters {
 
   protected Value _format = FileFormatConstants.INFERRED;
 
-  protected int _repeatInterval = 0;
+  protected long _repeatInterval = 0;
 
   protected int _repeatTimes = 0;
 
   protected int _jumpPlaylistIncrement = 1;
 
-  protected int _jumpTime = 5000;
+  protected long _jumpTime = 5000;
 
   protected boolean _startInPausedMode = false;
 
@@ -115,7 +134,9 @@ public class OutputCommand implements Parameters {
   protected Set<RTC> _rtcsExt = new HashSet<RTC>();
 
   /**
-   * @param textOrURL
+   * Construct OutputCommand with simple URL for media content or text for text-to-speech.
+   * 
+   * @param textOrURL either an URL or text
    */
   public OutputCommand(String textOrURL) {
     if (textOrURL == null || textOrURL.length() == 0) {
@@ -141,12 +162,23 @@ public class OutputCommand implements Parameters {
     }
   }
 
+  /**
+   * Construct OutputCommand with an {@link AudibleResource AudibleResource}.
+   * 
+   * @param resource the {@link AudibleResource AudibleResource}
+   */
   public OutputCommand(final AudibleResource resource) {
     if (resource != null) {
       _resources = new AudibleResource[] {resource};
     }
   }
 
+  /**
+   * Construct OutputCommand with an array of {@link AudibleResource AudibleResource}.
+   * This array forms a play list.
+   * 
+   * @param resources {@link AudibleResource AudibleResource}s
+   */
   public OutputCommand(final AudibleResource[] resources) {
     _resources = resources;
   }
@@ -182,14 +214,14 @@ public class OutputCommand implements Parameters {
   /**
    * @return Whether this command should be stopped when the other end speaks
    */
-  public boolean isBargein() {
+  public BargeinType getBargeinType() {
     return _bargein;
   }
 
   /**
    * @param bargein true if this command should be stopped when the other end speaks
    */
-  public void setBargein(final boolean bargein) {
+  public void setBargeinType(final BargeinType bargein) {
     _bargein = bargein;
   }
 
@@ -208,7 +240,7 @@ public class OutputCommand implements Parameters {
    * set the max timeout of each {@link AudibleResource AudibleResource} in this command.
    * @param maxtime the max timeout in milliseconds.
    */
-  public void setMaxtime(final int maxtime) {
+  public void setMaxtime(final long maxtime) {
     if (maxtime <= 0) {
       throw new IllegalArgumentException("Timeout must be a positive integer.");
     }
@@ -218,7 +250,7 @@ public class OutputCommand implements Parameters {
   /**
    * @return The starting offset, in milliseconds, of each {@link AudibleResource AudibleResource} in this command.
    */
-  public int getOffset() {
+  public long getStartingOffset() {
     return _offset;
   }
 
@@ -226,7 +258,7 @@ public class OutputCommand implements Parameters {
    * Set the starting offset of each {@link AudibleResource AudibleResource} in this command.
    * @param offset the starting offset in millisecond.
    */
-  public void setOffset(final int offset) {
+  public void setStartingOffset(final long offset) {
     if (offset < 0) {
       throw new IllegalArgumentException("Offset can not be a negative integer.");
     }
@@ -293,7 +325,7 @@ public class OutputCommand implements Parameters {
    * Only applicable when {link {@link #getRepeatTimes() getRepeatTimes()} is greater than 1.
    * The default value is 0.
    */
-  public int getRepeatInterval() {
+  public long getRepeatInterval() {
     return _repeatInterval;
   }
 
@@ -301,7 +333,7 @@ public class OutputCommand implements Parameters {
    * set the interval between each repetition of this command.
    * @param interval in milliseconds.
    */
-  public void setRepeatInterval(final int interval) {
+  public void setRepeatInterval(final long interval) {
     if (interval < 0) {
       throw new IllegalArgumentException("Repeat Interval can not be a negative integer.");
     }
@@ -335,7 +367,7 @@ public class OutputCommand implements Parameters {
    * 
    * @see com.voxeo.moho.media.Output#move(boolean, long)
    */
-  public int getMoveTime() {
+  public long getMoveTime() {
     return _jumpTime;
   }
 
@@ -343,7 +375,7 @@ public class OutputCommand implements Parameters {
    * Set the unit of move time in milliseconds.
    * @param jumpTime
    */
-  public void setMoveTime(int jumpTime) {
+  public void setMoveTime(long jumpTime) {
     if (jumpTime < 0) {
       throw new IllegalArgumentException("Time can not be a negative integer.");
     }

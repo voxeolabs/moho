@@ -110,7 +110,8 @@ public class RegistrarImpl implements Registrar, Runnable {
     while (_running) {
       Iterator<Endpoint> i = _store.getEndpoints();
       Endpoint ep = null;
-      while ((ep = i.next()) != null && _running) {
+      while (_running && i.hasNext()) {
+        ep = i.next();
         try {
           _store.startTx();
           Collection<Contact> contacts = _store.getContacts(ep);

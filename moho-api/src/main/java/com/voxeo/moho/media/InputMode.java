@@ -13,8 +13,23 @@
  */
 package com.voxeo.moho.media;
 
+/**
+ * what kind of input the associated {@link InputCommand InputCommand} expects.
+ * 
+ * @author wchen
+ *
+ */
 public enum InputMode {
-
-    DTMF, SPEECH, ANY
-
+  /**
+   * DTMF input
+   */
+  DTMF, 
+  /**
+   * Speech input
+   */
+  SPEECH, 
+  /**
+   * Any input
+   */
+  ANY
 }
