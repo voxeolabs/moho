@@ -94,10 +94,10 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     _servletContext = _sip.getServletContext();
     _sipFactory = (SipFactory) _servletContext.getAttribute(SipServlet.SIP_FACTORY);
     _sdpFactory = (SdpFactory) _servletContext.getAttribute("javax.servlet.sdp.SdpFactory");
-    final Enumeration<String> e = _servletContext.getInitParameterNames();
+    final Enumeration<String> e = servlet.getInitParameterNames();
     while (e.hasMoreElements()) {
       final String name = e.nextElement();
-      final String value = _servletContext.getInitParameter(name);
+      final String value = servlet.getInitParameter(name);
       setParameter(name, value);
     }
     Class<? extends MediaDialect> mediaDialectClass = com.voxeo.moho.media.dialect.GenericDialect.class;

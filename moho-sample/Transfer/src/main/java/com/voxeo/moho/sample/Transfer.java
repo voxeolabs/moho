@@ -48,11 +48,9 @@ public class Transfer implements Application {
   @State
   public void handleInvite(final IncomingCall call) {
     call.addObserver(this);
-    call.setSupervised(true);
     call.accept();
     final Call outgoingCall = call.getInvitee().call(call.getInvitor());
     outgoingCall.addObserver(this);
-    outgoingCall.setSupervised(true);
     call.join(outgoingCall, JoinType.DIRECT, Joinable.Direction.DUPLEX);
     outgoingCall.setApplicationState("wait");
   }

@@ -32,7 +32,7 @@ public interface Output<T extends EventSource> extends MediaOperation<T, OutputC
    * @param direction forward if true, otherwise rewind
    * @param time the time period to be forwarded or rewinded.
    */
-  void move(boolean direction, int time);
+  void move(boolean direction, long time);
 
   /**
    * Stop what is being played right now and jump to another {@link AudibleResource AudibleResource}

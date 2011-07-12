@@ -28,6 +28,12 @@ import javax.media.mscontrol.resource.Resource;
 
 import com.voxeo.moho.media.InputMode;
 
+/**
+ * Media command to recognize the input based on a set of grammars.
+ * 
+ * @author wchen
+ *
+ */
 public class InputCommand implements Parameters {
 
   protected int _signalNumber = -1;

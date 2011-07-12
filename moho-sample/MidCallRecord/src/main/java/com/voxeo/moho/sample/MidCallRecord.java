@@ -45,11 +45,9 @@ public class MidCallRecord implements Application {
   public void handleInvite(final IncomingCall partyA) throws Exception {
     partyA.addObserver(this);
     partyA.accept();
-    partyA.setSupervised(true);
 
     final Call partyB = partyA.getInvitee().call(partyA.getInvitor());
     partyB.addObserver(this);
-    partyB.setSupervised(true);
 
     partyA.join(partyB, JoinType.BRIDGE, Direction.DUPLEX).get();
 

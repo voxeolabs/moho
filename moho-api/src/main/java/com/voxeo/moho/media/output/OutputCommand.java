@@ -49,6 +49,8 @@ import org.apache.log4j.Logger;
  * 
  * @author wchen
  *
+ * TODO: 
+ *   move forward/backward on TTS resource.
  */
 public class OutputCommand implements Parameters {
 
@@ -84,7 +86,7 @@ public class OutputCommand implements Parameters {
   
   protected String _voiceName;
 
-  protected int _timeout = Resource.FOREVER;
+  protected int _maxtime = Resource.FOREVER;
 
   protected int _offset = 0;
 
@@ -198,19 +200,19 @@ public class OutputCommand implements Parameters {
    * 
    * @return the max timeout in milliseconds.
    */
-  public int getTimeout() {
-    return _timeout;
+  public long getMaxtime() {
+    return _maxtime;
   }
 
   /**
    * set the max timeout of each {@link AudibleResource AudibleResource} in this command.
-   * @param timeout the max timeout in milliseconds.
+   * @param maxtime the max timeout in milliseconds.
    */
-  public void setTimeout(final int timeout) {
-    if (timeout <= 0) {
+  public void setMaxtime(final int maxtime) {
+    if (maxtime <= 0) {
       throw new IllegalArgumentException("Timeout must be a positive integer.");
     }
-    _timeout = timeout;
+    _maxtime = maxtime;
   }
 
   /**
@@ -329,9 +331,9 @@ public class OutputCommand implements Parameters {
 
   /**
    * @return The unit of the move time, in milliseconds, 
-   * when {@link com.voxeo.moho.media.Output#move(boolean, int) Output.move(direction, time)} is invoked.
+   * when {@link com.voxeo.moho.media.Output#move(boolean, long) Output.move(direction, time)} is invoked.
    * 
-   * @see com.voxeo.moho.media.Output#move(boolean, int)
+   * @see com.voxeo.moho.media.Output#move(boolean, long)
    */
   public int getMoveTime() {
     return _jumpTime;
@@ -517,5 +519,4 @@ public class OutputCommand implements Parameters {
   public void setVoiceName(String voiceName) {
       _voiceName = voiceName;
   }
-  
 }

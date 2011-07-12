@@ -20,9 +20,9 @@ import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.IncomingCall;
+import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.State;
 import com.voxeo.moho.TimeoutException;
-import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.sip.SIPEndpoint;
 
 public class CallForward implements Application {
@@ -59,7 +59,6 @@ public class CallForward implements Application {
       else if (ex.getCause() instanceof TimeoutException) {
         call.join(_timeoutTarget, JoinType.DIRECT, Joinable.Direction.DUPLEX);
       }
-      throw ex;
     }
   }
 }

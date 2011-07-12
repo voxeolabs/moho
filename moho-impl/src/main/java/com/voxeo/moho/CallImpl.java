@@ -276,16 +276,6 @@ public abstract class CallImpl implements Call {
   }
 
   @Override
-  public boolean isSupervised() {
-    return _isSupervised;
-  }
-
-  @Override
-  public void setSupervised(final boolean supervised) {
-    _isSupervised = supervised;
-  }
-
-  @Override
   public <S extends EventSource, T extends Event<S>> Future<T> dispatch(final T event) {
     Future<T> retval = null;
     if (!(event instanceof CallEvent) && !(event instanceof RequestEvent) && !(event instanceof ResponseEvent)) {
@@ -319,13 +309,7 @@ public abstract class CallImpl implements Call {
 
         }
       };
-      if (isSupervised() || event instanceof CallEvent || event instanceof RequestEvent) {
-        retval = this.dispatch(event, acceptor);
-      }
-      else {
-        acceptor.run();
-      }
-      // retval = super.dispatch(event, acceptor);
+      retval = this.dispatch(event, acceptor);
     }
     return retval;
   }

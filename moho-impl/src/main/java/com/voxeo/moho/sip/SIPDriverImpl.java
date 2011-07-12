@@ -14,6 +14,8 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.media.mscontrol.MsControlFactory;
 import javax.sdp.SdpFactory;
@@ -35,6 +37,7 @@ import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.event.CallEvent;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.MohoInputDetectedEvent;
 import com.voxeo.moho.event.NotifyEvent;
 import com.voxeo.moho.event.RequestEvent;
 import com.voxeo.moho.event.SubscribeEvent;
@@ -256,7 +259,7 @@ public class SIPDriverImpl implements SIPDriver {
   protected void doRegister(final SipServletRequest req) throws ServletException, IOException {
     URI uri = req.getRequestURI();
     if (uri.isSipURI()) {
-      SipURI suri = (SipURI)uri;
+      SipURI suri = (SipURI) uri;
       if (suri.getUser() == null) {
         final RegisterEvent event = new SIPRegisterEventImpl(_app, req);
         _app.dispatch(event, new NoHandleHandler<Framework>(event, req));
@@ -280,7 +283,29 @@ public class SIPDriverImpl implements SIPDriver {
   }
 
   protected void doInfo(final SipServletRequest req) throws ServletException, IOException {
-    doOthers(req);
+    req.createResponse(200).send();
+    final String type = req.getContentType();
+    if (type != null && type.equalsIgnoreCase("application/dtmf-relay") || type.equalsIgnoreCase("application/dtmf")) {
+      EventSource source = SessionUtils.getEventSource(req);
+      if (source != null && source instanceof Call) {
+        final MohoInputDetectedEvent<Call> event = new MohoInputDetectedEvent<Call>((Call) source, getDTMFValue(req));
+        source.dispatch(event);
+      }
+    }
+  }
+
+  private String getDTMFValue(SipServletRequest req) throws IOException {
+    final String type = req.getContentType();
+    String content = new String(req.getRawContent(), "UTF-8").trim();
+    if (type.equalsIgnoreCase("application/dtmf-relay")) {
+      Matcher matcher = DtmfRelayPattern.pattern.matcher(content);
+      return matcher.group(1);
+    }
+    return content;
+  }
+
+  private static class DtmfRelayPattern {
+    public static Pattern pattern = Pattern.compile("Signal\\s*=\\s*([\\d|A|B|C|D|\\*|#])");
   }
 
   protected void doPublish(final SipServletRequest req) throws ServletException, IOException {
@@ -356,6 +381,15 @@ public class SIPDriverImpl implements SIPDriver {
           source.dispatch(new SIPEarlyMediaEventImpl((SIPCall) source, res));
         }
         else if (status != SipServletResponse.SC_TRYING) {
+          if (source instanceof SIPCallImpl) {
+            final SIPCallImpl call = (SIPCallImpl) source;
+            try {
+              call.doResponse(res, null);
+            }
+            catch (final Exception e) {
+              LOG.warn("", e);
+            }
+          }
           source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
         }
       }
@@ -368,7 +402,14 @@ public class SIPDriverImpl implements SIPDriver {
   protected void doSuccessResponse(final SipServletResponse res) throws ServletException, IOException {
     final EventSource source = SessionUtils.getEventSource(res);
     if (source != null) {
-      if (source instanceof Call) {
+      if (source instanceof SIPCallImpl) {
+        final SIPCallImpl call = (SIPCallImpl) source;
+        try {
+          call.doResponse(res, null);
+        }
+        catch (final Exception e) {
+          LOG.warn("", e);
+        }
         source.dispatch(new SIPAnsweredEventImpl<Call>((SIPCall) source, res));
         return;
       }
@@ -421,6 +462,7 @@ public class SIPDriverImpl implements SIPDriver {
       catch (final Exception e) {
         LOG.warn("", e);
       }
+      source.dispatch(new SIPDeniedEventImpl<Call>((SIPCall) source, res));
     }
     else if (source instanceof Registration) {
       source.dispatch(new SIPDeniedEventImpl<Registration>((Registration) source, res));

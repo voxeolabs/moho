@@ -68,7 +68,6 @@ public class ConferenceRoom implements Application {
   public void handleInvite(final IncomingCall call) throws Exception {
     call.addObserver(this);
     call.accept();
-    call.setSupervised(true);
     MixerEndpoint end = (MixerEndpoint) _ctx.createEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT);
     end.setProperty("playTones", "true");
 

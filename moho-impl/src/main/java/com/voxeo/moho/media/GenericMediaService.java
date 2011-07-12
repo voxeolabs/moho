@@ -288,7 +288,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       else {
         params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.FALSE);
       }
-      params.put(Player.MAX_DURATION, output.getTimeout());
+      params.put(Player.MAX_DURATION, output.getMaxtime());
       params.put(Player.START_OFFSET, output.getOffset());
       params.put(Player.VOLUME_CHANGE, output.getVolumeUnit());
       params.put(Player.AUDIO_CODEC, output.getCodec());
@@ -728,7 +728,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
             inputCompleteEvent.setConfidence(1.0F);
             inputCompleteEvent.setInterpretation(signalString);
             inputCompleteEvent.setUtterance(signalString);
-            inputCompleteEvent.setInputMode(InputMode.dtmf);
+            inputCompleteEvent.setInputMode(InputMode.DTMF);
           }
           else {
             final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
@@ -752,10 +752,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
                   final String inputmode = reco.get("_inputmode");
                   if (inputmode != null) {
                     if (inputmode.equalsIgnoreCase("speech") || inputmode.equalsIgnoreCase("voice")) {
-                      inputCompleteEvent.setInputMode(InputMode.voice);
+                      inputCompleteEvent.setInputMode(InputMode.SPEECH);
                     }
                     else {
-                      inputCompleteEvent.setInputMode(InputMode.dtmf);
+                      inputCompleteEvent.setInputMode(InputMode.DTMF);
                     }
                   }
                 }
@@ -772,7 +772,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           inputCompleteEvent.setConfidence(1.0F);
           inputCompleteEvent.setInterpretation(signalString);
           inputCompleteEvent.setUtterance(signalString);
-          inputCompleteEvent.setInputMode(InputMode.dtmf);
+          inputCompleteEvent.setInputMode(InputMode.DTMF);
         }
         if (_cmd.isSupervised()) {
           _parent.dispatch(inputCompleteEvent);

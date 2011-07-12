@@ -9,9 +9,9 @@ import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.State;
 import com.voxeo.moho.TextableEndpoint;
+import com.voxeo.moho.event.TextEvent;
 import com.voxeo.moho.reg.RegisterEvent;
 import com.voxeo.moho.reg.RegisterEvent.Contact;
-import com.voxeo.moho.event.TextEvent;
 
 public class Echo implements Application {
 

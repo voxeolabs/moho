@@ -53,8 +53,6 @@ public class MusicOnHold implements Application {
     call.accept();
     final Call outgoingCall = call.getInvitee().call(call.getInvitor());
     outgoingCall.addObserver(this);
-    outgoingCall.setSupervised(true);
-    call.setSupervised(true);
     call.join(outgoingCall, JoinType.BRIDGE, Joinable.Direction.DUPLEX);
   }
 

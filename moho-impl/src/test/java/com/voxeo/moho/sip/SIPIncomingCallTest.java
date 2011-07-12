@@ -156,7 +156,6 @@ public class SIPIncomingCallTest extends TestCase {
     // prepare
     final HangupEvent disconnectEvent = mockery.mock(HangupEvent.class);
 
-    sipcall.setSupervised(true);
     mockery.checking(new Expectations() {
       {
         allowing(disconnectEvent).isAccepted();
@@ -209,7 +208,6 @@ public class SIPIncomingCallTest extends TestCase {
     // prepare
     final HangupEvent disconnectEvent = mockery.mock(HangupEvent.class);
 
-    sipcall.setSupervised(true);
     mockery.checking(new Expectations() {
       {
         allowing(disconnectEvent).getSource();
@@ -3059,7 +3057,6 @@ public class SIPIncomingCallTest extends TestCase {
     try {
       sipcall.join().get();
       assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
-      sipcall.setSupervised(true);
       sipcall.dispatch(new SIPHangupEventImpl(sipcall, byeReq)).get();
     }
     catch (final Exception ex) {
@@ -3155,7 +3152,6 @@ public class SIPIncomingCallTest extends TestCase {
       sipcall.join().get();
 
       assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
-      sipcall.setSupervised(true);
       sipcall.dispatch(new SIPReInviteEventImpl(sipcall, reInviteReq)).get();
     }
     catch (final Exception ex) {
