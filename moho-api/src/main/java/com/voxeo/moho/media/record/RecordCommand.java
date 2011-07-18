@@ -114,7 +114,7 @@ public class RecordCommand {
    * START_BEEP Boolean indicating whether subsequent record will be preceded
    * with a beep. Default: Boolean.TRUE
    */
-  protected boolean _startBeep = true;
+  protected boolean _startBeep = false;
 
   /**
    * START_IN_PAUSED_MODE Boolean indicating whether subsequent record will
