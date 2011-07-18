@@ -19,10 +19,10 @@ import javax.servlet.sip.SipSession;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 
 public class SIPSubscriptionImpl extends DispatchableEventSource implements SIPSubscription {
@@ -93,6 +93,7 @@ public class SIPSubscriptionImpl extends DispatchableEventSource implements SIPS
     }
   }
 
+  @Override
   public void subscribe() {
     subscribe(_from, _to, _uri, _expiration);
   }
@@ -115,7 +116,7 @@ public class SIPSubscriptionImpl extends DispatchableEventSource implements SIPS
       }
 
       _session = req.getSession();
-      _session.setHandler(((ApplicationContextImpl) getApplicationContext()).getController());
+      _session.setHandler(((ApplicationContextImpl) getApplicationContext()).getSIPController().getServletName());
 
       SessionUtils.setEventSource(_session, this);
       if (uri != null) {

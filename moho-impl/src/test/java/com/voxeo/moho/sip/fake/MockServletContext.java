@@ -18,8 +18,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Hashtable;
 import java.util.Set;
 
 import javax.servlet.RequestDispatcher;
@@ -27,40 +26,34 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 
-public class MockServletContext implements ServletContext {
-  private Map<String, Object> _attributes;
+public class MockServletContext extends AttributeStore implements ServletContext {
 
-  @Override
-  final public Object getAttribute(String arg0) {
-    if (_attributes == null) {
-      _attributes = new HashMap<String, Object>();
-    }
-    return _attributes.get(arg0);
-  }
-
-  @Override
-  public Enumeration getAttributeNames() {
-    return null;
-  }
+  private Hashtable<String, String> _parameters = new Hashtable<String, String>();
 
   @Override
   public ServletContext getContext(String arg0) {
-    return null;
+    return this;
   }
 
   @Override
   public String getContextPath() {
-    return null;
+    return "";
   }
 
   @Override
-  public String getInitParameter(String arg0) {
-    return null;
+  final public String getInitParameter(String arg0) {
+    if (_parameters == null) {
+      _parameters = new Hashtable<String, String>();
+    }
+    return _parameters.get(arg0);
   }
 
   @Override
-  public Enumeration getInitParameterNames() {
-    return null;
+  final public Enumeration getInitParameterNames() {
+    if (_parameters == null) {
+      _parameters = new Hashtable<String, String>();
+    }
+    return _parameters.keys();
   }
 
   @Override
@@ -85,7 +78,7 @@ public class MockServletContext implements ServletContext {
 
   @Override
   public String getRealPath(String arg0) {
-    return null;
+    return "";
   }
 
   @Override
@@ -120,7 +113,7 @@ public class MockServletContext implements ServletContext {
 
   @Override
   public String getServletContextName() {
-    return null;
+    return "";
   }
 
   @Override
@@ -147,21 +140,4 @@ public class MockServletContext implements ServletContext {
   public void log(String arg0, Throwable arg1) {
 
   }
-
-  @Override
-  final public void removeAttribute(String arg0) {
-    if (_attributes == null) {
-      _attributes = new HashMap<String, Object>();
-    }
-    _attributes.remove(arg0);
-  }
-
-  @Override
-  final public void setAttribute(String arg0, Object arg1) {
-    if (_attributes == null) {
-      _attributes = new HashMap<String, Object>();
-    }
-    _attributes.put(arg0, arg1);
-  }
-
 }

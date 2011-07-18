@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,12 +14,13 @@
 
 package com.voxeo.moho.event;
 
-public abstract class SubscribeEvent extends SignalEvent {
+import com.voxeo.moho.Framework;
 
-  private static final long serialVersionUID = 1589156147263808129L;
-
-  protected SubscribeEvent(final EventSource source) {
-    super(source);
-  }
-
+/**
+ * This event is fired when a subscribe request is received.
+ * 
+ * @author wchen
+ *
+ */
+public interface SubscribeEvent extends RequestEvent<Framework>, RedirectableEvent {
 }

@@ -1,33 +1,49 @@
 /**
- * Copyright 2010 Voxeo Corporation Licensed under the Apache License, Version
- * 2.0 (the "License"); you may not use this file except in compliance with the
- * License. You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
- * or agreed to in writing, software distributed under the License is
- * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the specific language
+ * Copyright 2010-2011 Voxeo Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License.
+ *
+ * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
+import javax.servlet.sip.Address;
+import javax.servlet.sip.Proxy;
 import javax.servlet.sip.Rel100Exception;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.TooManyHopsException;
+import javax.servlet.sip.URI;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.Call;
 import com.voxeo.moho.CanceledException;
-import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.IncomingCall;
+import com.voxeo.moho.Joint;
 import com.voxeo.moho.MediaException;
+import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.CallCompleteEvent;
+import com.voxeo.moho.event.Observer;
+import com.voxeo.moho.spi.ExecutionContext;
 
-public class SIPIncomingCall extends SIPCallImpl {
+public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
 
   private static final Logger LOG = Logger.getLogger(SIPIncomingCall.class);
 
@@ -188,4 +204,229 @@ public class SIPIncomingCall extends SIPCallImpl {
     }
   }
 
+  protected boolean _acceptedWithEarlyMedia = false;
+
+  protected boolean _rejected = false;
+
+  protected boolean _redirected = false;
+
+  protected boolean _accepted = false;
+
+  @Override
+  public synchronized boolean isAcceptedWithEarlyMedia() {
+    return _acceptedWithEarlyMedia;
+  }
+
+  @Override
+  public synchronized boolean isRedirected() {
+    return _redirected;
+  }
+
+  @Override
+  public synchronized boolean isRejected() {
+    return _rejected;
+  }
+
+  @Override
+  public synchronized boolean isAccepted() {
+    return _accepted;
+  }
+
+  protected synchronized boolean isProcessed() {
+    return isAccepted() || isAcceptedWithEarlyMedia() || isRejected() || isRedirected();
+  }
+
+  @Override
+  public void acceptWithEarlyMedia() throws SignalException, MediaException {
+    this.acceptWithEarlyMedia((Map<String, String>) null);
+  }
+
+  @Override
+  public void redirect(final Endpoint other) throws SignalException {
+    this.redirect(other, null);
+  }
+
+  @Override
+  public void reject(final Reason reason) throws SignalException {
+    this.reject(reason, null);
+  }
+
+  @Override
+  public void answer() {
+    this.answer((Map<String, String>) null);
+  }
+
+  @Override
+  public synchronized void accept(final Map<String, String> headers) throws SignalException {
+    checkState();
+    _accepted = true;
+    try {
+      ((SIPIncomingCall) this).doInvite(headers);
+      return;
+    }
+    catch (final Exception e) {
+      throw new SignalException(e);
+    }
+  }
+
+  @Override
+  public synchronized void acceptWithEarlyMedia(final Map<String, String> headers) throws SignalException,
+      MediaException {
+    checkState();
+    _accepted = true;
+    _acceptedWithEarlyMedia = true;
+    try {
+      ((SIPIncomingCall) this).doInviteWithEarlyMedia(headers);
+      return;
+    }
+    catch (final Exception e) {
+      if (e instanceof SignalException) {
+        throw (SignalException) e;
+      }
+      else if (e instanceof MediaException) {
+        throw (MediaException) e;
+      }
+      else {
+        throw new SignalException(e);
+      }
+    }
+  }
+
+  @Override
+  public void answer(final Map<String, String> headers) throws SignalException {
+
+    if (!_accepted) {
+      accept(headers);
+    }
+
+    final Joint joint = this.join();
+    while (!joint.isDone()) {
+      try {
+        joint.get();
+      }
+      catch (final InterruptedException e) {
+        // ignore
+      }
+      catch (final ExecutionException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof SignalException) {
+          throw (SignalException) cause;
+        }
+        throw new SignalException(cause);
+      }
+    }
+
+    return;
+  }
+
+  @Override
+  public synchronized void redirect(final Endpoint o, final Map<String, String> headers) throws SignalException {
+    checkState();
+    _redirected = true;
+    setSIPCallState(SIPCall.State.REDIRECTED);
+
+    terminate(CallCompleteEvent.Cause.REDIRECT, null);
+
+    if (o instanceof SIPEndpoint) {
+      final SipServletResponse res = _invite.createResponse(SipServletResponse.SC_MOVED_TEMPORARILY);
+      res.setHeader("Contact", ((SIPEndpoint) o).getURI().toString());
+      SIPHelper.addHeaders(res, headers);
+      try {
+        res.send();
+      }
+      catch (final IOException e) {
+        throw new SignalException(e);
+      }
+    }
+    else {
+      throw new IllegalArgumentException("Unable to redirect the call to a non-SIP participant.");
+    }
+  }
+
+  @Override
+  public synchronized void reject(final Reason reason, final Map<String, String> headers) throws SignalException {
+    checkState();
+    _rejected = true;
+    setSIPCallState(SIPCall.State.REJECTED);
+
+    terminate(CallCompleteEvent.Cause.DECLINE, null);
+
+    try {
+      final SipServletResponse res = _invite.createResponse(reason == null ? Reason.DECLINE.getCode() : reason
+          .getCode());
+      SIPHelper.addHeaders(res, headers);
+      res.send();
+    }
+    catch (final IOException e) {
+      throw new SignalException(e);
+    }
+  }
+
+  protected synchronized void checkState() {
+    if (isProcessed()) {
+      throw new IllegalStateException("Event is already processed and can not be processed.");
+    }
+  }
+
+  @Override
+  public Call getSource() {
+    return this;
+  }
+
+  @Override
+  public void accept() throws SignalException {
+    accept((Map<String, String>) null);
+  }
+
+  @Override
+  public void acceptWithEarlyMedia(Observer... observer) throws SignalException, MediaException {
+    addObserver(observer);
+    acceptWithEarlyMedia();
+  }
+
+  @Override
+  public void accept(Observer... observer) throws SignalException {
+    addObserver(observer);
+    accept();
+  }
+
+  @Override
+  public void answer(Observer... observer) throws SignalException, MediaException {
+    addObserver(observer);
+    answer();
+  }
+
+  @Override
+  public void proxyTo(boolean recordRoute, boolean parallel, Endpoint... endpoints) throws SignalException {
+    if (endpoints == null || endpoints.length == 0) {
+      throw new IllegalArgumentException("Illegal endpoints");
+    }
+    try {
+      Proxy proxy = _invite.getProxy();
+
+      proxy.setParallel(parallel);
+      proxy.setRecordRoute(recordRoute);
+      proxy.setSupervised(false);
+
+      List<URI> uris = new LinkedList<URI>();
+      for (Endpoint endpoint : endpoints) {
+        if (endpoint.getURI() == null) {
+          throw new IllegalArgumentException("Illegal endpoints:" + endpoint);
+        }
+        Address address = getApplicationContext().getSipFactory().createAddress(endpoint.getURI().toString());
+        uris.add(address.getURI());
+      }
+
+      proxy.proxyTo(uris);
+    }
+    catch (TooManyHopsException e) {
+      LOG.error("", e);
+      throw new SignalException(e);
+    }
+    catch (ServletParseException e) {
+      LOG.error("", e);
+      throw new SignalException(e);
+    }
+
+  }
 }

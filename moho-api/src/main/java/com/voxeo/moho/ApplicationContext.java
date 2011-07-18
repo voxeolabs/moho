@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,9 +14,13 @@
 
 package com.voxeo.moho;
 
+import javax.media.mscontrol.MsControlFactory;
+import javax.sdp.SdpFactory;
 import javax.servlet.ServletContext;
+import javax.servlet.sip.SipFactory;
 
 import com.voxeo.moho.conference.ConferenceManager;
+import com.voxeo.moho.reg.Registrar;
 
 /**
  * <p>
@@ -25,7 +29,7 @@ import com.voxeo.moho.conference.ConferenceManager;
  * <ul>
  * <li>access to application configuration parameters</li>
  * <li>storage for application runtime attribute data</li>
- * <li>object factory for endpoint</li>
+ * <li>object factory for @{link Endpoint}</li>
  * <li>access to the conference manager</li>
  * </ul>
  * 
@@ -37,19 +41,42 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
 
   String APPLICATION_CONTEXT = "com.voxeo.moho.application.context";
 
-  @Deprecated
-  Endpoint getEndpoint(String addr);
+  String FRAMEWORK = "com.voxeo.moho.framework";
 
+  /**
+   * @return the underlying Java Media Control factory.
+   */
+  MsControlFactory getMSFactory();
+
+  /**
+   * @return the underlying SIP factory.
+   */
+  SipFactory getSipFactory();
+
+  /**
+   * @return the uderlying SDP factory.
+   */
+  SdpFactory getSdpFactory();
+
+  /**
+   * @param addr the address of an endpoint
+   * @return the parsed {@link Endpoint Endpoint} object
+   */
   Endpoint createEndpoint(String addr);
 
+  /**
+   * @param addr the address of an endpoint
+   * @return the parsed {@link Endpoint Endpoint} object
+   */
   Endpoint createEndpoint(String addr, String type);
 
   Application getApplication();
 
   ConferenceManager getConferenceManager();
+  
+  Registrar getRegistrar();
 
   ServletContext getServletContext();
 
   String getRealPath(String path);
-
 }

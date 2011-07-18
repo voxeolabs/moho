@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,23 +14,33 @@
 
 package com.voxeo.moho.sip;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.Call;
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.MohoReInviteEvent;
 
-public class SIPReInviteEventImpl extends SIPReInviteEvent {
+public class SIPReInviteEventImpl extends MohoReInviteEvent implements SIPReInviteEvent {
 
   private static final Logger LOG = Logger.getLogger(SIPReInviteEventImpl.class);
 
   protected Boolean isHold;
 
-  protected SIPReInviteEventImpl(final EventSource source, final SipServletRequest req) {
-    super(source, req);
+  protected SipServletRequest _req;
+
+  protected SIPReInviteEventImpl(final Call source, final SipServletRequest req) {
+    super(source);
+    _req = req;
+  }
+
+  public SipServletRequest getSipRequest() {
+    return _req;
   }
 
   @Override
@@ -47,7 +57,7 @@ public class SIPReInviteEventImpl extends SIPReInviteEvent {
   }
 
   @Override
-  public boolean isHold() {
+  public synchronized boolean isHold() {
     if (isHold == null) {
       try {
         final byte[] content = SIPHelper.getRawContentWOException(_req);
@@ -66,5 +76,21 @@ public class SIPReInviteEventImpl extends SIPReInviteEvent {
       isHold = false;
     }
     return isHold;
+  }
+
+  @Override
+  public synchronized void reject(Reason reason, Map<String, String> headers) throws SignalException {
+    checkState();
+    _rejected = true;
+
+    try {
+      final SipServletResponse res = _req.createResponse(reason == null ? Reason.DECLINE.getCode() : reason
+          .getCode());
+      SIPHelper.addHeaders(res, headers);
+      res.send();
+    }
+    catch (final IOException e) {
+      throw new SignalException(e);
+    }
   }
 }

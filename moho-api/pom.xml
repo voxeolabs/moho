@@ -128,6 +128,7 @@
                 ${basedir}/src/main/javadoc/
               </javadocDirectory>
               <docfilessubdirs>true</docfilessubdirs>
+              <show>public</show>
             </configuration>
             <goals>
               <goal>jar</goal>

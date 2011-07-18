@@ -21,8 +21,8 @@ import java.util.Set;
 
 import javax.media.mscontrol.Parameters;
 
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.MixerEndpoint;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class ConferenceMangerImpl implements ConferenceManager {
 

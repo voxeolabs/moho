@@ -20,9 +20,9 @@ import javax.media.mscontrol.MsControlFactory;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
-import javax.sdp.SdpFactory;
+import javax.servlet.ServletContext;
 import javax.servlet.sip.Address;
-import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletResponse;
 
 import junit.framework.TestCase;
@@ -36,17 +36,16 @@ import org.jmock.lib.legacy.ClassImposteriser;
 
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
-import com.voxeo.moho.Call;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Call.State;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.media.fake.MockSdpPortManager;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
-import com.voxeo.moho.sip.fake.MockServletContext;
+import com.voxeo.moho.sip.fake.MockSipServlet;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPInviteEventImplTest extends TestCase {
 
@@ -58,29 +57,21 @@ public class SIPInviteEventImplTest extends TestCase {
 
   // JSR309 mock
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
-
   MediaSession mediaSession = mockery.mock(MediaSession.class);
-
   NetworkConnection network = mockery.mock(NetworkConnection.class);
-
   MockSdpPortManager sdpManager = mockery.mock(MockSdpPortManager.class);
 
   // JSR289 mock
-  SipFactory sipFactory = mockery.mock(SipFactory.class);
-
-  SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
-
+  SipServlet servlet = new MockSipServlet(mockery);
   MockSipSession session = mockery.mock(MockSipSession.class);
-
   MockSipServletRequest inviteReq = mockery.mock(MockSipServletRequest.class);
-
-  MockServletContext servletContext = mockery.mock(MockServletContext.class);
+  ServletContext servletContext = servlet.getServletContext();
 
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
 
   Address fromAddr = mockery.mock(Address.class, "fromAddr");
 
@@ -152,10 +143,11 @@ public class SIPInviteEventImplTest extends TestCase {
 
     // execute
     final SIPIncomingCall invite = new SIPIncomingCall(appContext, inviteReq);
-    final Call call = invite.acceptCall(ob);
+    invite.addObserver(ob);
+    invite.accept();
 
     // assert
-    assertTrue(call.getCallState() == State.ACCEPTED);
+    assertTrue(invite.getCallState() == State.ACCEPTED);
     mockery.assertIsSatisfied();
   }
 
@@ -232,10 +224,11 @@ public class SIPInviteEventImplTest extends TestCase {
 
     // execute
     final SIPIncomingCall invite = new SIPIncomingCall(appContext, inviteReq);
-    final Call call = invite.acceptCallWithEarlyMedia(ob);
+    invite.addObserver(ob);
+    invite.acceptWithEarlyMedia();
 
     // assert
-    assertTrue(call.getCallState() == State.INPROGRESS);
+    assertTrue(invite.getCallState() == State.INPROGRESS);
     mockery.assertIsSatisfied();
   }
 

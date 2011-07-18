@@ -16,20 +16,8 @@ package com.voxeo.moho.sip;
 
 import javax.servlet.sip.SipServletRequest;
 
-import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.ReferEvent;
 
-public abstract class SIPReferEvent extends ReferEvent {
-
-  protected SipServletRequest _req;
-
-  protected SIPReferEvent(final EventSource source, final SipServletRequest req) {
-    super(source);
-    _req = req;
-  }
-
-  public SipServletRequest getSipRequest() {
-    return _req;
-  }
-
+public interface SIPReferEvent extends ReferEvent {
+  SipServletRequest getSipRequest();
 }

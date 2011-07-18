@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -16,8 +16,6 @@ package com.voxeo.moho;
 
 import java.util.Map;
 
-import com.voxeo.moho.event.Observer;
-
 /**
  * An type of Endpoint that be can be called.
  * 
@@ -25,39 +23,55 @@ import com.voxeo.moho.event.Observer;
  */
 public interface CallableEndpoint extends Endpoint {
   /**
-   * Make a call to this address. TODO: what state is the returned Call in?
-   * ACCEPTED? CONNECTED? (ACCEPTED)
+   * Create a {@link Call} to this address.
+   * The call has yet been made until {@link Call} is joined to the media server or another {@link Endpoint}. 
    * 
-   * @param caller
-   * @param headers
-   * @param observer
-   * @return outbound call made to this endpoint
+   * @param caller the address of the caller
+   * @return the {@link Call} this address.
    */
-  Call call(Endpoint caller, Map<String, String> headers, Observer... observers);
-
-  Call call(String caller);
-
   Call call(Endpoint caller);
 
-  Call call(Endpoint caller, Observer... observers);
-
-  Call call(String caller, Observer... observers);
+  /**
+   * Create a {@link Call} to this address.
+   * The call has yet been made until {@link Call} is joined to the media server or another {@link Endpoint}. 
+   * 
+   * @param caller the address of the caller
+   * @param headers the additional protocol headers to be sent to the caller when the call is made.
+   * @return the {@link Call} this address.
+   */
+  Call call(Endpoint caller, Map<String, String> headers);
 
   /**
-   * Create a subscription to this address
+   * Create a {@link Call} to this address.
+   * The call has yet been made until {@link Call} is joined to the media server or another {@link Endpoint}. 
    * 
-   * @param caller
-   * @param type
-   *          the event type of the subscription
+   * @param caller the address of the caller
+   * @return the {@link Call} this address.
+   */
+  Call call(String caller);
+
+  /**
+   * Create a {@link Call} to this address.
+   * The call has yet been made until {@link Call} is joined to the media server or another {@link Endpoint}. 
+   * 
+   * @param caller the address of the caller
+   * @param headers the additional protocol headers to be sent to the caller when the call is made.
+   * @return the {@link Call} this address.
+   */
+  Call call(String caller, Map<String, String> headers);
+
+
+  /**
+   * Create a subscription to this address.
+   * 
+   * @param subscriber the address of the subscriber.
+   * @param type the event type of the subscription
    * @param expiration
    *          the expiration time in seconds
-   * @param observers
-   *          the observers for this subscription
    * @return the subscription made to this endpoint
    * @throws SignalException
    *           when there is any signal error.
-   * @throws MediaException
-   *           when there is any media server error.
    */
-  Subscription subscribe(Endpoint caller, Subscription.Type type, int expiration, Observer... observers);
+  //TODO delay the subscription until renew() is called.
+  Subscription subscribe(Endpoint subscriber, Subscription.Type type, int expiration);
 }

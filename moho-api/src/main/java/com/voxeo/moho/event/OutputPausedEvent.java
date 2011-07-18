@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,10 +14,11 @@
 
 package com.voxeo.moho.event;
 
-public class OutputPausedEvent extends MediaNotificationEvent {
-
-  public OutputPausedEvent(EventSource source) {
-    super(source);
-  }
-
+/**
+ * This event is fired when an {@link com.voxeo.moho.media.Output Output} is paused.
+ * 
+ * @author wchen
+ *
+ */
+public interface OutputPausedEvent<T extends EventSource> extends MediaNotificationEvent<T> {
 }

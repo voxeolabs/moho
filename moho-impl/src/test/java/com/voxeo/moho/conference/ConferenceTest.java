@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -29,6 +29,7 @@ import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.sdp.SdpFactory;
 import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
 
 import junit.framework.TestCase;
 
@@ -42,14 +43,13 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MixerEndpoint;
+import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.DisconnectEvent;
+import com.voxeo.moho.event.HangupEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.Observer;
-import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Prompt;
 import com.voxeo.moho.media.fake.MockMediaSession;
@@ -57,6 +57,8 @@ import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
+import com.voxeo.moho.sip.fake.MockSipServlet;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class ConferenceTest extends TestCase {
 
@@ -68,21 +70,19 @@ public class ConferenceTest extends TestCase {
 
   // JSR309 mock
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
-
   MockMediaSession mediaSession = mockery.mock(MockMediaSession.class);
-
   MediaMixer mixer = mockery.mock(MediaMixer.class);
 
   // JSR289 mock
-  SipFactory sipFactory = mockery.mock(SipFactory.class);
-
-  SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
+  SipServlet servlet = new MockSipServlet(mockery);
 
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+  SipFactory sipFactory = appContext.getSipFactory();
+  SdpFactory sdpFactory = appContext.getSdpFactory();
 
   MixerEndpoint address;
 
@@ -99,7 +99,7 @@ public class ConferenceTest extends TestCase {
         will(returnValue(props));
       }
     });
-    address = (MixerEndpoint) appContext.getEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT);
+    address = (MixerEndpoint) appContext.createEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT);
   }
 
   protected void tearDown() throws Exception {
@@ -146,12 +146,11 @@ public class ConferenceTest extends TestCase {
     assertTrue(mohoConference.getOccupiedSeats() == 0);
 
     // mock the call
-    final Call call = mockery.mock(Call.class);
+    final CallImpl call = mockery.mock(CallImpl.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
-    final GenericMediaService mediaService = mockery.mock(GenericMediaService.class);
-    final Prompt prompt = mockery.mock(Prompt.class);
-    final Input input = mockery.mock(Input.class);
-    final InputCompleteEvent event = mockery.mock(InputCompleteEvent.class);
+    final Prompt<Call> prompt = mockery.mock(Prompt.class);
+    final Input<Call> input = mockery.mock(Input.class);
+    final InputCompleteEvent<Call> event = mockery.mock(InputCompleteEvent.class);
 
     try {
       mockery.checking(new Expectations() {
@@ -159,13 +158,7 @@ public class ConferenceTest extends TestCase {
           allowing(call).getMediaObject();
           will(returnValue(callNet));
 
-          allowing(call).getMediaService();
-          will(returnValue(mediaService));
-
-          allowing(call).getMediaService(with(any(Boolean.class)));
-          will(returnValue(mediaService));
-
-          oneOf(mediaService).prompt(with(same(promptCommand)), with(same(passCommand)), with(equal(3)));
+          oneOf(call).prompt(with(same(promptCommand)), with(same(passCommand)), with(equal(3)));
           will(returnValue(prompt));
 
           allowing(prompt).getInput();
@@ -175,8 +168,8 @@ public class ConferenceTest extends TestCase {
           allowing(event).hasMatch();
           will(returnValue(true));
 
-          oneOf(call).addObservers(with(any(Observer.class)));
-          oneOf(mediaService).input(exitCommand);
+          oneOf(call).addObserver(with(any(Observer.class)));
+          oneOf(call).input(exitCommand);
 
           // join
           oneOf(call).join(mohoConference, JoinType.BRIDGE, Direction.DUPLEX);
@@ -197,7 +190,7 @@ public class ConferenceTest extends TestCase {
           oneOf(mixer).unjoin(callNet);
           oneOf(call).unjoin(mohoConference);
 
-          oneOf(mediaService).output(with(same(exitAnnouncement)));
+          oneOf(call).output(with(same(exitAnnouncement)));
         }
       });
     }
@@ -275,10 +268,9 @@ public class ConferenceTest extends TestCase {
     // mock the call
     final Call call = mockery.mock(Call.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
-    final GenericMediaService mediaService = mockery.mock(GenericMediaService.class);
-    final Prompt prompt = mockery.mock(Prompt.class);
-    final Input input = mockery.mock(Input.class);
-    final InputCompleteEvent event = mockery.mock(InputCompleteEvent.class);
+    final Prompt<Call> prompt = mockery.mock(Prompt.class);
+    final Input<Call> input = mockery.mock(Input.class);
+    final InputCompleteEvent<Call> event = mockery.mock(InputCompleteEvent.class);
 
     try {
       mockery.checking(new Expectations() {
@@ -286,10 +278,7 @@ public class ConferenceTest extends TestCase {
           allowing(call).getMediaObject();
           will(returnValue(callNet));
 
-          allowing(call).getMediaService();
-          will(returnValue(mediaService));
-
-          oneOf(mediaService).prompt(with(same(promptCommand)), with(same(passCommand)), with(equal(3)));
+          oneOf(call).prompt(with(same(promptCommand)), with(same(passCommand)), with(equal(3)));
           will(returnValue(prompt));
 
           allowing(prompt).getInput();
@@ -323,6 +312,6 @@ public class ConferenceTest extends TestCase {
   }
 
   interface TestApp extends Application {
-    public void handleDisconnect(DisconnectEvent event);
+    public void handleDisconnect(HangupEvent event);
   }
 }

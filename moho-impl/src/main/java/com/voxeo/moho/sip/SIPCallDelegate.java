@@ -27,7 +27,7 @@ import javax.sdp.SessionDescription;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public abstract class SIPCallDelegate {
 

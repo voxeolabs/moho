@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -21,8 +21,8 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 /**
  * A
  * <code>Joint<code> represents the result of the asynchronous <code>join</code>
- * operation on {@link Participant}. Extends the <code>Future</code> interface,
- * so can be used to check if the <code>join</code> operation is complete, to
+ * operation on {@link Participant}. It extends the <code>Future</code> interface, 
+ * which allows the application toe check if the operation is complete, to
  * wait for its completion, and to retrieve the result of the operation.
  */
 public interface Joint extends Future<JoinCompleteEvent> {

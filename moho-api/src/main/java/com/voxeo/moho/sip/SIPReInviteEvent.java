@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -16,20 +16,14 @@ package com.voxeo.moho.sip;
 
 import javax.servlet.sip.SipServletRequest;
 
-import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.ReInviteEvent;
 
-public abstract class SIPReInviteEvent extends ReInviteEvent {
-
-  protected SipServletRequest _req;
-
-  protected SIPReInviteEvent(final EventSource source, final SipServletRequest req) {
-    super(source);
-    _req = req;
-  }
-
-  public SipServletRequest getSipRequest() {
-    return _req;
-  }
-
+/**
+ * SIP specific {@link com.voxeo.moho.event.ReInviteEvent ReInivteEvent}.
+ * 
+ * @author wchen
+ *
+ */
+public interface SIPReInviteEvent extends ReInviteEvent {
+  SipServletRequest getSipRequest();
 }

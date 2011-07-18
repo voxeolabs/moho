@@ -7,14 +7,22 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.MohoEarlyMediaEvent;
 
-public class SIPEarlyMediaEventImpl extends SIPEarlyMediaEvent {
+public class SIPEarlyMediaEventImpl extends MohoEarlyMediaEvent implements SIPEarlyMediaEvent {
 
-  protected SIPEarlyMediaEventImpl(final EventSource source, final SipServletResponse res) {
-    super(source, res);
+  protected SipServletResponse _res;
+
+  protected SIPEarlyMediaEventImpl(final SIPCall source, final SipServletResponse res) {
+    super(source);
+    _res = res;
   }
 
+  @Override
+  public SipServletResponse getSipResponse() {
+    return _res;
+  }
+  
   @Override
   public void reject(final Reason reason) throws SignalException {
     reject(reason, null);

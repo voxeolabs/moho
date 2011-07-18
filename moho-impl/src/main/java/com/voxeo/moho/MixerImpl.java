@@ -11,6 +11,7 @@
 
 package com.voxeo.moho;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +29,7 @@ import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.JoinableStream.StreamType;
+import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.mixer.MixerAdapter;
 import javax.media.mscontrol.mixer.MixerEvent;
@@ -36,16 +38,23 @@ import javax.media.mscontrol.spi.DriverManager;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.event.ActiveSpeakerEvent;
 import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.event.Event;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
-import com.voxeo.moho.event.MediaResourceDisconnectEvent;
+import com.voxeo.moho.event.MohoActiveSpeakerEvent;
+import com.voxeo.moho.event.MohoJoinCompleteEvent;
+import com.voxeo.moho.event.MohoMediaResourceDisconnectEvent;
 import com.voxeo.moho.event.Observer;
-import com.voxeo.moho.media.GenericMediaService;
-import com.voxeo.moho.utils.Event;
-import com.voxeo.moho.utils.EventListener;
+import com.voxeo.moho.media.Input;
+import com.voxeo.moho.media.Output;
+import com.voxeo.moho.media.Prompt;
+import com.voxeo.moho.media.Recording;
+import com.voxeo.moho.media.input.InputCommand;
+import com.voxeo.moho.media.output.OutputCommand;
+import com.voxeo.moho.media.record.RecordCommand;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer {
 
@@ -53,7 +62,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   protected MixerEndpoint _address;
 
-  protected MediaService _service;
+  protected MediaService<Mixer> _service;
 
   protected MediaSession _media;
 
@@ -132,11 +141,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   }
 
   @Override
-  public synchronized MediaService getMediaService() throws MediaException, IllegalStateException {
+  public synchronized MediaService<Mixer> getMediaService() throws MediaException, IllegalStateException {
     checkState();
     if (_service == null) {
       try {
-        _service = _context.getMediaServiceFactory().create(this, _media, null);
+        _service = (MediaService<Mixer>) _context.getMediaServiceFactory().create((Mixer)this, _media, null);
         _service.getMediaGroup().join(Direction.DUPLEX, _mixer);
         return _service;
       }
@@ -149,12 +158,6 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public synchronized void disconnect() {
-    try {
-      ((GenericMediaService) _service).release(true);
-    }
-    catch (final Exception e) {
-      LOG.warn("Exception when release media service", e);
-    }
     try {
       _mixer.release();
     }
@@ -169,7 +172,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
     _media = null;
 
-    this.dispatch(new MediaResourceDisconnectEvent(this));
+    this.dispatch(new MohoMediaResourceDisconnectEvent<Mixer>(this));
   }
 
   @Override
@@ -223,7 +226,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
     }
 
-    if (other instanceof Call) {
+    if (other instanceof CallImpl) {
       Joint joint = null;
       if (isClampDtmf(null)) {
         try {
@@ -270,11 +273,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
                 ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, null);
               }
 
-              event = new JoinCompleteEvent(MixerImpl.this, other, Cause.JOINED);
+              event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.JOINED);
             }
           }
           catch (final Exception e) {
-            event = new JoinCompleteEvent(MixerImpl.this, other, Cause.ERROR, e);
+            event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.ERROR, e);
             throw new MediaException(e);
           }
           finally {
@@ -369,7 +372,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
     }
 
-    if (other instanceof Call) {
+    if (other instanceof CallImpl) {
       Joint joint = null;
       if (isClampDtmf(props)) {
         try {
@@ -416,11 +419,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
                 ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, null);
               }
 
-              event = new JoinCompleteEvent(MixerImpl.this, other, Cause.JOINED);
+              event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.JOINED);
             }
           }
           catch (final Exception e) {
-            event = new JoinCompleteEvent(MixerImpl.this, other, Cause.ERROR, e);
+            event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.ERROR, e);
             throw new MediaException(e);
           }
           finally {
@@ -446,7 +449,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
 
     @Override
-    public MediaService getMediaService() {
+    public MediaService<Mixer> getMediaService() {
       return MixerImpl.this.getMediaService();
     }
 
@@ -515,39 +518,29 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       MixerImpl.this.unjoin(other);
     }
 
-    @Override
-    public void addExceptionHandler(ExceptionHandler... handlers) {
-      MixerImpl.this.addExceptionHandler(handlers);
-    }
+//    private void addListener(EventListener<?> listener) {
+//      MixerImpl.this.addListener(listener);
+//    }
+//
+//    private <E extends Event<?>, T extends EventListener<E>> void addListener(Class<E> type, T listener) {
+//      MixerImpl.this.addListener(type, listener);
+//    }
+//
+//    private void addListeners(EventListener<?>... listeners) {
+//      MixerImpl.this.addListeners(listeners);
+//    }
+//
+//    private <E extends Event<?>, T extends EventListener<E>> void addListeners(Class<E> type, T... listener) {
+//      MixerImpl.this.addListeners(type, listener);
+//    }
+//
+//    private void addObserver(Observer observer) {
+//      MixerImpl.this.addObserver(observer);
+//    }
 
     @Override
-    public void addListener(EventListener<?> listener) {
-      MixerImpl.this.addListener(listener);
-    }
-
-    @Override
-    public <E extends Event<?>, T extends EventListener<E>> void addListener(Class<E> type, T listener) {
-      MixerImpl.this.addListener(type, listener);
-    }
-
-    @Override
-    public void addListeners(EventListener<?>... listeners) {
-      MixerImpl.this.addListeners(listeners);
-    }
-
-    @Override
-    public <E extends Event<?>, T extends EventListener<E>> void addListeners(Class<E> type, T... listener) {
-      MixerImpl.this.addListeners(type, listener);
-    }
-
-    @Override
-    public void addObserver(Observer observer) {
-      MixerImpl.this.addObserver(observer);
-    }
-
-    @Override
-    public void addObservers(Observer... observers) {
-      MixerImpl.this.addObservers(observers);
+    public void addObserver(Observer... observers) {
+      MixerImpl.this.addObserver(observers);
     }
 
     @Override
@@ -575,10 +568,9 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       return MixerImpl.this.getApplicationState(FSM);
     }
 
-    @Override
-    public void removeListener(EventListener<?> listener) {
-      MixerImpl.this.removeListener(listener);
-    }
+//    private void removeListener(EventListener<?> listener) {
+//      MixerImpl.this.removeListener(listener);
+//    }
 
     @Override
     public void removeObserver(Observer listener) {
@@ -603,7 +595,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getAttribute(String name) {
-      return (T) MixerImpl.this.getAttribute(name);
+      return (T)MixerImpl.this.getAttribute(name);
     }
 
     @Override
@@ -629,6 +621,61 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     public MixerImpl getMixer() {
       return MixerImpl.this;
     }
+
+    @Override
+    public Output<Mixer> output(String text) throws MediaException {
+      return getMediaService().output(text);
+    }
+
+    @Override
+    public Output<Mixer> output(URI media) throws MediaException {
+      return getMediaService().output(media);
+    }
+
+    @Override
+    public Output<Mixer> output(OutputCommand output) throws MediaException {
+      return getMediaService().output(output);
+    }
+
+    @Override
+    public Prompt<Mixer> prompt(String text, String grammar, int repeat) throws MediaException {
+      return getMediaService().prompt(text, grammar, repeat);
+    }
+
+    @Override
+    public Prompt<Mixer> prompt(URI media, String grammar, int repeat) throws MediaException {
+      return getMediaService().prompt(media, grammar, repeat);
+    }
+
+    @Override
+    public Prompt<Mixer> prompt(OutputCommand output, InputCommand input, int repeat) throws MediaException {
+      return getMediaService().prompt(output, input, repeat);
+    }
+
+    @Override
+    public Input<Mixer> input(String grammar) throws MediaException {
+      return getMediaService().input(grammar);
+    }
+
+    @Override
+    public Input<Mixer> input(InputCommand input) throws MediaException {
+      return getMediaService().input(input);
+    }
+
+    @Override
+    public Recording<Mixer> record(URI recording) throws MediaException {
+      return getMediaService().record(recording);
+    }
+
+    @Override
+    public Recording<Mixer> record(RecordCommand command) throws MediaException {
+      return getMediaService().record(command);
+    }
+
+    @Override
+    public MediaGroup getMediaGroup() {
+      return getMediaService().getMediaGroup();
+    }
   }
 
   // listener for Active speaker event.
@@ -648,10 +695,65 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
           if (activeSpeakers.size() > 0) {
             MixerImpl.this
-                .dispatch(new ActiveSpeakerEvent(MixerImpl.this, activeSpeakers.toArray(new Participant[] {})));
+                .dispatch(new MohoActiveSpeakerEvent(MixerImpl.this, activeSpeakers.toArray(new Participant[] {})));
           }
         }
       }
     }
+  }
+
+  @Override
+  public Output<Mixer> output(String text) throws MediaException {
+    return getMediaService().output(text);
+  }
+
+  @Override
+  public Output<Mixer> output(URI media) throws MediaException {
+    return getMediaService().output(media);
+  }
+
+  @Override
+  public Output<Mixer> output(OutputCommand output) throws MediaException {
+    return getMediaService().output(output);
+  }
+
+  @Override
+  public Prompt<Mixer> prompt(String text, String grammar, int repeat) throws MediaException {
+    return getMediaService().prompt(text, grammar, repeat);
+  }
+
+  @Override
+  public Prompt<Mixer> prompt(URI media, String grammar, int repeat) throws MediaException {
+    return getMediaService().prompt(media, grammar, repeat);
+  }
+
+  @Override
+  public Prompt<Mixer> prompt(OutputCommand output, InputCommand input, int repeat) throws MediaException {
+    return getMediaService().prompt(output, input, repeat);
+  }
+
+  @Override
+  public Input<Mixer> input(String grammar) throws MediaException {
+    return getMediaService().input(grammar);
+  }
+
+  @Override
+  public Input<Mixer> input(InputCommand input) throws MediaException {
+    return getMediaService().input(input);
+  }
+
+  @Override
+  public Recording<Mixer> record(URI recording) throws MediaException {
+    return getMediaService().record(recording);
+  }
+
+  @Override
+  public Recording<Mixer> record(RecordCommand command) throws MediaException {
+    return getMediaService().record(command);
+  }
+
+  @Override
+  public MediaGroup getMediaGroup() {
+    return getMediaService().getMediaGroup();
   }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -16,9 +16,10 @@ package com.voxeo.moho.media;
 
 import java.util.concurrent.Future;
 
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.MediaCompleteEvent;
 
-public interface MediaOperation<T extends MediaCompleteEvent> extends Future<T> {
+public interface MediaOperation<S extends EventSource, T extends MediaCompleteEvent<S>> extends Future<T> {
 
   /**
    * stop the current media operation, such as {@link Input Input} and {@link Output Output}.

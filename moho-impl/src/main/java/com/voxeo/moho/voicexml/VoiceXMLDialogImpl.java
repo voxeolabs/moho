@@ -34,7 +34,6 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.JoineeData;
 import com.voxeo.moho.Joint;
@@ -44,8 +43,10 @@ import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
-import com.voxeo.moho.event.MediaResourceDisconnectEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
+import com.voxeo.moho.event.MohoJoinCompleteEvent;
+import com.voxeo.moho.event.MohoMediaResourceDisconnectEvent;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer {
 
@@ -155,7 +156,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
     }
     _media = null;
 
-    this.dispatch(new MediaResourceDisconnectEvent(this));
+    this.dispatch(new MohoMediaResourceDisconnectEvent<Dialog>(this));
   }
 
   @Override
@@ -205,11 +206,11 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
               _dialog.join(direction, (Joinable) other.getMediaObject());
               _joinees.add(other, type, direction);
               ((ParticipantContainer) other).addParticipant(VoiceXMLDialogImpl.this, type, direction, null);
-              event = new JoinCompleteEvent(VoiceXMLDialogImpl.this, other, Cause.JOINED);
+              event = new MohoJoinCompleteEvent(VoiceXMLDialogImpl.this, other, Cause.JOINED);
             }
           }
           catch (final Exception e) {
-            event = new JoinCompleteEvent(VoiceXMLDialogImpl.this, other, Cause.ERROR, e);
+            event = new MohoJoinCompleteEvent(VoiceXMLDialogImpl.this, other, Cause.ERROR, e);
             throw new MediaException(e);
           }
           finally {

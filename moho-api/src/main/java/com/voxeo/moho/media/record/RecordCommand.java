@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -114,7 +114,7 @@ public class RecordCommand {
    * START_BEEP Boolean indicating whether subsequent record will be preceded
    * with a beep. Default: Boolean.TRUE
    */
-  protected boolean _startBeep = true;
+  protected boolean _startBeep = false;
 
   /**
    * START_IN_PAUSED_MODE Boolean indicating whether subsequent record will

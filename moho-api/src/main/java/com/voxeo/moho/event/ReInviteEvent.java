@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,13 +14,15 @@
 
 package com.voxeo.moho.event;
 
-public abstract class ReInviteEvent extends SignalEvent {
-
-  private static final long serialVersionUID = -5799403770063917475L;
-
-  protected ReInviteEvent(final EventSource source) {
-    super(source);
-  }
-
-  public abstract boolean isHold();
+/**
+ * This event is fired when the {@link com.voxeo.moho.Call Call} is re-invited with different session description.
+ * 
+ * @author wchen
+ *
+ */
+public interface ReInviteEvent extends CallEvent, AcceptableEvent {
+  /**
+   * @return  true if this event is to hold the media.
+   */
+  boolean isHold();
 }

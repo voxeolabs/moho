@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 package com.voxeo.moho.media;
 
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputCompleteEvent;
 
 /**
@@ -23,6 +24,6 @@ import com.voxeo.moho.event.InputCompleteEvent;
  * @author wchen
  *
  */
-public interface Input extends MediaOperation<InputCompleteEvent> {
+public interface Input<T extends EventSource> extends MediaOperation<T, InputCompleteEvent<T>> {
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -16,35 +16,17 @@ package com.voxeo.moho.event;
 
 import com.voxeo.moho.Subscription;
 
-public abstract class NotifyEvent extends SignalEvent implements ForwardableEvent {
-
-  private static final long serialVersionUID = 1538596617421252364L;
+public interface NotifyEvent<T extends EventSource> extends RequestEvent<T>, ForwardableEvent {
 
   /** RFC 3265 */
   public enum SubscriptionState {
     ACTIVE, PENDING, TERMINATED
   }
 
-  protected boolean _forwarded = false;
+  Subscription.Type getEventType();
 
-  protected NotifyEvent(final EventSource source) {
-    super(source);
-  }
-
-  public abstract Subscription.Type getEventType();
-
-  public abstract SubscriptionState getSubscriptionState();
+  SubscriptionState getSubscriptionState();
 
   // TODO the state string for dialog, presence, refer event package.
-  public abstract String getResourceState();
-
-  @Override
-  public boolean isForwarded() {
-    return _forwarded;
-  }
-
-  @Override
-  public boolean isProcessed() {
-    return isAccepted() || isForwarded();
-  }
+  String getResourceState();
 }

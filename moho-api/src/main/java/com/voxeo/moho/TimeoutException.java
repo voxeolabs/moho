@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -15,7 +15,18 @@
 package com.voxeo.moho;
 
 /**
- * Thrown when the called Endpoint return a request timeout signal.
+ * <p>This exception is thrown when application has made a blocking outbound call (see below) 
+ * and the call has timed out without responses.</p>
+ * <blockqoute><pre><code>
+ *  ApplicationContext context = ...; // context is available when the application is initialized.
+ *  CallableEndpoint callee = (CallableEndponint) context.createEndpoint("sip:john@acme.com");
+ *  try {
+ *    callee.call("sip:doe@acme.com").join().get();
+ *  }
+ *  catch(TimeoutException e) { 
+ *    // do something
+ *  }
+ *  </code></pre></blockquote>
  */
 public class TimeoutException extends SignalException {
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -28,15 +28,19 @@ import javax.media.mscontrol.resource.Resource;
 
 import com.voxeo.moho.media.InputMode;
 
+/**
+ * Media command to recognize the input based on a set of grammars.
+ * 
+ * @author wchen
+ *
+ */
 public class InputCommand implements Parameters {
 
   protected int _signalNumber = -1;
 
   protected Grammar[] _grammars = new Grammar[0];
 
-  protected float _confidence = 0.3f;
-
-  protected float _sensitivity = 0.5f;
+  protected float _minConfidence = 0.5f;
 
   protected long _initialTimeout = Resource.FOREVER;
 
@@ -57,28 +61,28 @@ public class InputCommand implements Parameters {
   protected Map<Parameter, Object> _parametersExt = new HashMap<Parameter, Object>();
 
   protected Set<RTC> _rtcsExt = new HashSet<RTC>();
-
-  protected String _speechLanguage;
-
-  protected Character _termChar;
-
+  
+  protected String _recognizer;
+  
+  protected Character _terminator;
+  
   protected InputMode _inputMode;
-
+  
   protected boolean _dtmfHotword = false;
 
   protected boolean _dtmfTypeahead = false;
-
+  
   /**
    * if true, every DTMF (or word?) received generates an event
    */
   protected boolean _supervised = true;
 
+  
   /**
    * @param grammers
    *          can be simple string or string that starts with "#JSGF". if the
    *          string starts with "#JSGF", a JSGF grammar will be created.
-   * @deprecated Grammar type 'guessing' has been deprecated. Supply a Grammar
-   *             instance instead.
+   * @deprecated Grammar type 'guessing' has been deprecated. Supply a Grammar instance instead.
    */
   public InputCommand(String grammer) {
     if (grammer == null || grammer.length() == 0) {
@@ -87,17 +91,30 @@ public class InputCommand implements Parameters {
     _grammars = new Grammar[] {Grammar.create(grammer)};
   }
 
+  /**
+   * Construct command with multiple grammars
+   * 
+   * @param grammars
+   */
   public InputCommand(final Grammar... grammars) {
     if (grammars != null && grammars.length > 0) {
       _grammars = grammars;
     }
   }
 
-  public long getInterSigTimeout() {
+  /**
+   * @return the timeout to determine the end of DTMF input
+   */
+  public long getInterDigitsTimeout() {
     return _interSigTimeout;
   }
 
-  public void setInterSigTimeout(final long time) {
+  /**
+   * Set the inter digits timeout for DTMF.
+   * 
+   * @param time the timeout value in millisecond.
+   */
+  public void setInterDigitsTimeout(final long time) {
     _interSigTimeout = time;
   }
 
@@ -109,24 +126,40 @@ public class InputCommand implements Parameters {
     _buffering = buffering;
   }
 
-  public int getSignalNumber() {
+  /**
+   * @return the number of DMTF digits this command expects. 
+   * Once reached, this command is considered as complete and 
+   * {@link com.voxeo.moho.event.InputCompleteEvent InputCompleteEvent} will fire.
+   */
+  public int getNumberOfDigits() {
     return _signalNumber;
   }
 
-  public void setSignalNumber(final int num) {
-    _signalNumber = num;
+  /**
+   * Set the number of DTMF digits this command expects. By default, the value is -1 which means unlimited.
+   * @param num a negative number means unlimited.
+   */
+  public void setNumberOfDigits(final int num) {
+    if (num < 0) {
+      _signalNumber = -1;
+    }
+    else {
+      _signalNumber = num;
+    }
   }
 
+  /**
+   * @return the grammars for this command.
+   */
   public Grammar[] getGrammars() {
     return _grammars;
   }
 
-  public float getConfidence() {
-    return _confidence;
-  }
-
-  public float getSensitivity() {
-    return _sensitivity;
+  /**
+   * @return the minimum confidence required for the recognizer to recognize the speech based on the grammar.
+   */
+  public float getMinConfidence() {
+    return _minConfidence;
   }
 
   public boolean isRecord() {
@@ -145,26 +178,46 @@ public class InputCommand implements Parameters {
     _recordURI = uri;
   }
 
-  public void setConfidence(final float confidence) {
-    _confidence = confidence;
+  /**
+   * Set the minimum confidence required for the recognizer to recognize the speech based on the grammar.
+   * @param confidence a float between 0 and 1.
+   */
+  public void setMinConfidence(final float confidence) {
+    if (confidence < 0) {
+      throw new IllegalArgumentException("Confidence must be greater than 0.");
+    }
+    if (confidence > 1) {
+      throw new IllegalArgumentException("Confidence must be less than 1.");
+    }
+    _minConfidence = confidence;
   }
 
-  public void setSensitivity(final float sensitivity) {
-    _sensitivity = sensitivity;
-  }
-
+  /**
+   * @return the timeout to determine no digits will be entered.
+   */
   public long getInitialTimeout() {
     return _initialTimeout;
   }
 
+  /**
+   * Set the timeout value to determine no digits will be entered.
+   * @param time the timeout value in milliseconds.
+   */
   public void setInitialTimeout(final long time) {
     _initialTimeout = time;
   }
 
+  /**
+   * @return the max time to wait for the completion of the input.
+   */
   public long getMaxTimeout() {
     return _maxTimeout;
   }
 
+  /**
+   * Set the max time to wait for the completion of the input
+   * @param time the time in milliseconds.
+   */
   public void setMaxTimeout(final long time) {
     _maxTimeout = time;
   }
@@ -177,26 +230,51 @@ public class InputCommand implements Parameters {
     return _supervised;
   }
 
-  public String getSpeechLanguage() {
-    return _speechLanguage;
+  /**
+   * @return the name of the speech recognizer will be used. 
+   * The interpretation is JSR 309 driver specific.
+   */
+  public String getRecognizer() {
+    return _recognizer;
   }
 
-  public void setSpeechLanguage(String speechLanguage) {
-    this._speechLanguage = speechLanguage;
+  /**
+   * Set the name of the speech recognizer.
+   * 
+   * @param recognizer
+   */
+  public void setRecognizer(String recognizer) {
+    this._recognizer = recognizer;
   }
 
-  public Character getTermChar() {
-    return _termChar;
+  /**
+   * @return The terminating character of the input.
+   */
+  public Character getTerminator() {
+    return _terminator;
   }
 
-  public void setTermChar(Character termChar) {
-    this._termChar = termChar;
+  /**
+   * Set the terminating character of the input.
+   * 
+   * @param termChar one of the valid DTMF input on the phone pad.
+   */
+  public void setTerminator(Character termChar) {
+    this._terminator = termChar;
   }
 
+  /**
+   * @return the Input Mode of this input.
+   */
   public InputMode getInputMode() {
     return _inputMode;
   }
 
+  /**
+   * Set Input Mode of this input. 
+   * 
+   * @param inputMode 
+   */
   public void setInputMode(InputMode inputMode) {
     this._inputMode = inputMode;
   }
@@ -318,5 +396,5 @@ public class InputCommand implements Parameters {
   public void setDtmfTypeahead(boolean dtmfTypeahead) {
     _dtmfTypeahead = dtmfTypeahead;
   }
-
+  
 }

@@ -18,6 +18,7 @@ import java.net.URI;
 
 import javax.media.mscontrol.mediagroup.MediaGroup;
 
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Output;
 import com.voxeo.moho.media.Prompt;
@@ -27,11 +28,11 @@ import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.record.RecordCommand;
 
 /**
- * This provides the access to all the media functions.
+ * This interface encapsulates media functions.
  * 
  * @author wchen
  */
-public interface MediaService {
+public interface MediaService<T extends EventSource> {
 
   /**
    * Render and output the text to the call to which this service is attached.
@@ -44,12 +45,12 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Output output(String text);
+  Output<T> output(String text) throws MediaException;
 
   /**
    * Render and output the resource to the call to which this service is
    * attached. If the current media channel is audio, the resource will be
-   * rendered into audio based on the neogiated codec. If the current media
+   * rendered into audio based on the negotiated codec. If the current media
    * channel is instant messaging, URI itself will be sent.
    * 
    * @param media
@@ -58,7 +59,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Output output(URI media);
+  Output<T> output(URI media) throws MediaException;
 
   /**
    * Render and output content based on the {@link OutputCommand OutputCommand}
@@ -70,7 +71,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Output output(OutputCommand output);
+  Output<T> output(OutputCommand output) throws MediaException;
 
   /**
    * Equivalent of {@link #output(String) output(text)} and
@@ -87,7 +88,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Prompt prompt(String text, String grammar, int repeat);
+  Prompt<T> prompt(String text, String grammar, int repeat) throws MediaException;
 
   /**
    * Equivalent of {@link #output(String) output(text)} and
@@ -104,7 +105,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Prompt prompt(URI media, String grammar, int repeat);
+  Prompt<T> prompt(URI media, String grammar, int repeat) throws MediaException;
 
   /**
    * Equivalent of {@link #output(OutputCommand) output(output)} and
@@ -121,7 +122,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Prompt prompt(OutputCommand output, InputCommand input, int repeat);
+  Prompt<T> prompt(OutputCommand output, InputCommand input, int repeat) throws MediaException;
 
   /**
    * Waits for the input from the call to which this service is attached for
@@ -133,7 +134,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Input input(String grammar);
+  Input<T> input(String grammar) throws MediaException;
 
   /**
    * Waits for the input from the call to which this service is attached, based
@@ -145,7 +146,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Input input(InputCommand input);
+  Input<T> input(InputCommand input) throws MediaException;
 
   /**
    * records the call from the call to which this service is attached.
@@ -156,7 +157,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Recording record(URI recording);
+  Recording<T> record(URI recording) throws MediaException;
 
   /**
    * records the call from the call to which this service is attached.
@@ -166,7 +167,7 @@ public interface MediaService {
    * @throws MediaException
    *           when there is media server error.
    */
-  Recording record(RecordCommand command);
+  Recording<T> record(RecordCommand command) throws MediaException;
 
   /**
    * return the underlying {@link javax.media.mscontrol.mediagroup.MediaGroup

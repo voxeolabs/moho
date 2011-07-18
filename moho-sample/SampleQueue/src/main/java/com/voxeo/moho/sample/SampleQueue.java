@@ -19,6 +19,7 @@ import java.util.concurrent.BlockingQueue;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.BlockingQueueEventListener;
@@ -40,35 +41,32 @@ public class SampleQueue implements Application {
   private GameServer game;
 
   @State
-  public void handleInvite(final Call invite) throws Exception {
+  public void handleInvite(final IncomingCall call) throws Exception {
 
-    final Call call = invite.acceptCall();
-    call.join().get();
+    call.answer();
 
-    final MediaService media = call.getMediaService();
+    game = new DemoGameServer(call);
 
-    game = new DemoGameServer(media);
-
-    final Prompt agePrompt = media.prompt("Welcome phone sweeper. "
+    final Prompt<Call> agePrompt = call.prompt("Welcome phone sweeper. "
         + "Press 1 if you are over 18, press 2 if you are under 18.", "1,2", 0);
 
-    final Input input = agePrompt.getInput();
+    final Input<Call> input = agePrompt.getInput();
     if (!"1".equals(input.get().getConcept())) {
-      final Output o = media.output("Sorry, you're too young");
+      final Output<Call> o = call.output("Sorry, you're too young");
       o.get();
       call.disconnect();
       return;
     }
 
-    final BlockingQueueEventListener<InputCompleteEvent> listener = new BlockingQueueEventListener<InputCompleteEvent>();
-    final BlockingQueue<InputCompleteEvent> queue = listener.getQueue();
-    call.addListener(InputCompleteEvent.class, listener);
+    final BlockingQueueEventListener<InputCompleteEvent<Call>> listener = new BlockingQueueEventListener<InputCompleteEvent<Call>>();
+    final BlockingQueue<InputCompleteEvent<Call>> queue = listener.getQueue();
+    call.addObserver(listener);
 
-    media.output("Ready Go");
-    media.input(new DigitInputCommand());
+    call.output("Ready Go");
+    call.input(new DigitInputCommand());
 
     while (true) {
-      final InputCompleteEvent event = queue.take();
+      final InputCompleteEvent<Call> event = queue.take();
       if (event.hasMatch() && event.getConcept() != null) {
         final int command = Integer.parseInt(event.getConcept());
         switch (command) {
@@ -93,9 +91,9 @@ public class SampleQueue implements Application {
 
   class DemoGameServer implements GameServer {
 
-    private MediaService _media;
+    private MediaService<Call> _media;
 
-    public DemoGameServer(final MediaService media) {
+    public DemoGameServer(final MediaService<Call> media) {
       _media = media;
     }
 

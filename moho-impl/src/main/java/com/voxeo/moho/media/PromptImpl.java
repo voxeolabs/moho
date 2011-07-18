@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -17,17 +17,18 @@ package com.voxeo.moho.media;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.MediaException;
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputCompleteEvent;
+import com.voxeo.moho.spi.ExecutionContext;
 
-public class PromptImpl implements Prompt {
+public class PromptImpl<T extends EventSource> implements Prompt<T> {
 
-  protected Output _output;
+  protected Output<T> _output;
 
-  protected Input _input;
+  protected Input<T> _input;
 
-  protected FutureTask<Input> _future = null;
+  protected FutureTask<Input<T>> _future = null;
 
   protected ExecutionContext _context;
 
@@ -35,12 +36,12 @@ public class PromptImpl implements Prompt {
     _context = context;
   }
 
-  protected void setInput(final Input input) {
+  protected void setInput(final Input<T> input) {
     _input = input;
   }
 
-  protected void inputGetReady(final Callable<Input> call) {
-    _future = new FutureTask<Input>(call);
+  protected void inputGetReady(final Callable<Input<T>> call) {
+    _future = new FutureTask<Input<T>>(call);
   }
 
   protected void inputGetSet() {
@@ -52,12 +53,12 @@ public class PromptImpl implements Prompt {
     }
   }
 
-  protected void setOutput(final Output output) {
+  protected void setOutput(final Output<T> output) {
     _output = output;
   }
 
   @Override
-  public Input getInput() throws MediaException {
+  public Input<T> getInput() throws MediaException {
     if (_future != null) {
       try {
         _input = _future.get();
@@ -70,14 +71,14 @@ public class PromptImpl implements Prompt {
   }
 
   @Override
-  public Output getOutput() {
+  public Output<T> getOutput() {
     return _output;
   }
 
   @Override
   public String getResult() throws MediaException {
     try {
-      InputCompleteEvent inputCompleteEvent = getInput().get();
+      InputCompleteEvent<T> inputCompleteEvent = getInput().get();
       if (inputCompleteEvent != null) {
         return inputCompleteEvent.getValue();
       }

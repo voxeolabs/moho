@@ -19,6 +19,7 @@ import javax.sdp.SdpFactory;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.URI;
 
 import junit.framework.TestCase;
@@ -32,11 +33,12 @@ import org.jmock.lib.legacy.ClassImposteriser;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.Subscription.Type;
 import com.voxeo.moho.sip.SIPIncomingCallTest.TestApp;
+import com.voxeo.moho.sip.fake.MockSipServlet;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipSession;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPSubscriptionImplTest extends TestCase {
 
@@ -50,19 +52,17 @@ public class SIPSubscriptionImplTest extends TestCase {
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
 
   // JSR289 mock
-  SipFactory sipFactory = mockery.mock(SipFactory.class);
-
-  SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
-
+  SipServlet servlet = new MockSipServlet(mockery);
   MockSipSession session = mockery.mock(MockSipSession.class);
-
   MockSipServletRequest subscribeReq = mockery.mock(MockSipServletRequest.class);
 
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+  SipFactory sipFactory = appContext.getSipFactory();
+  SdpFactory sdpFactory = appContext.getSdpFactory();
 
   SIPEndpoint from = mockery.mock(SIPEndpoint.class, "from");;
 

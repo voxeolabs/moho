@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -11,7 +11,6 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-
 package com.voxeo.moho.sip;
 
 import javax.servlet.sip.SipServletRequest;
@@ -19,17 +18,12 @@ import javax.servlet.sip.SipServletRequest;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.NotifyEvent;
 
-public abstract class SIPNotifyEvent extends NotifyEvent {
-
-  protected SipServletRequest _req;
-
-  protected SIPNotifyEvent(final EventSource source, final SipServletRequest req) {
-    super(source);
-    _req = req;
-  }
-
-  public SipServletRequest getSipRequest() {
-    return _req;
-  }
-
+/**
+ * SIP specific {@link com.voxeo.moho.event.NotifyEvent NotifyEvent}.
+ * 
+ * @author wchen
+ *
+ */
+public interface SIPNotifyEvent<T extends EventSource> extends NotifyEvent<T> {
+  SipServletRequest getSipRequest();
 }

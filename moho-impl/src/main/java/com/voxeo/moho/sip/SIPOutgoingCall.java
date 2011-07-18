@@ -23,11 +23,12 @@ import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 
 import com.voxeo.moho.ApplicationContextImpl;
-import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.OutgoingCall;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 
-public class SIPOutgoingCall extends SIPCallImpl {
+public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
 
   protected SIPEndpoint _from;
 
@@ -183,7 +184,7 @@ public class SIPOutgoingCall extends SIPCallImpl {
     SessionUtils.setEventSource(_signal, this);
 
     try {
-      _signal.setHandler(((ApplicationContextImpl) getApplicationContext()).getController());
+      _signal.setHandler(((ApplicationContextImpl) getApplicationContext()).getSIPController().getServletName());
     }
     catch (final Exception e) {
       throw new SignalException(e);

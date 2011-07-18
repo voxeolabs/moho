@@ -15,7 +15,6 @@
 package com.voxeo.moho.queue;
 
 import com.voxeo.moho.Call;
-import com.voxeo.moho.event.EventSource;
 
 /**
  * EnqueueEvent is fired when an item is enqueued into the queue.
@@ -23,17 +22,9 @@ import com.voxeo.moho.event.EventSource;
  * @author wchen
  *
  */
-public class EnqueueEvent extends QueueEvent {
-  protected Call _item;
-
-  public EnqueueEvent(EventSource source, Call item) {
-    super(source);
-  }
-
+public interface EnqueueEvent extends QueueEvent {
   /**
    * @return the item being enqueued.
    */
-  public Call getItem() {
-    return _item;
-  }
+  Call getItem();
 }

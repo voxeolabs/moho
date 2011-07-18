@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -19,16 +19,36 @@ import javax.servlet.sip.SipSession;
 
 import com.voxeo.moho.Call;
 
-public abstract class SIPCall extends Call {
+/**
+ * This interface encapsulates the SIP specific properties of a {@link com.voxoe.moho.Call Call}.
+ * 
+ * @author wchen
+ *
+ */
+public interface SIPCall extends Call {
 
+  /**
+   * SIP specific call states.
+   * 
+   * @author wchen
+   *
+   */
   public enum State {
     INITIALIZED, INVITING, PROGRESSING, PROGRESSED, RINGING, ANSWERING, ANSWERED, DISCONNECTED, FAILED, REJECTED, REDIRECTED,
   }
 
-  public abstract SipSession getSipSession();
+  /**
+   * @return the underlying JSR 289 SIP session.
+   */
+  SipSession getSipSession();
 
-  public abstract SIPCall.State getSIPCallState();
+  /**
+   * @return the SIP specific call state of the current SIPCall.
+   */
+  SIPCall.State getSIPCallState();
 
-  //
-  public abstract SipServletRequest getSipRequest();
+  /**
+   * @return the initial SIP INVITE of this call.
+   */
+  SipServletRequest getSipRequest();
 }

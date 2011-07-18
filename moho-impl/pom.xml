@@ -53,8 +53,8 @@
 		</dependency>
 		<dependency>
 			<groupId>javax.sdp</groupId>
-			<artifactId>nist-sdp</artifactId>
-			<version>1.0</version>
+			<artifactId>sdp-api</artifactId>
+			<version>1.0-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

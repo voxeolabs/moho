@@ -20,7 +20,7 @@ import java.util.concurrent.Future;
 import com.voxeo.moho.Participant;
 
 /**
- * Dialog represents a dialog between a {@link com.voxeo.moho.Call Call} and a
+ * Dialog represents a dialog between a {@link com.voxeo.moho.MohoCall Call} and a
  * VoiceXML browser. Since a dialog might take a long time to complete,
  * Dialog is both a {@link java.util.concurrent.Future Future} and 
  * {@link com.voxeo.moho.event.EventSource EventSource}, which allows the application to

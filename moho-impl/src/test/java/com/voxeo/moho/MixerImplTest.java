@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -23,6 +23,7 @@ import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.sdp.SdpFactory;
 import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
 
 import junit.framework.TestCase;
 
@@ -34,8 +35,10 @@ import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
 
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.DisconnectEvent;
+import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockMediaSession;
+import com.voxeo.moho.sip.fake.MockSipServlet;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class MixerImplTest extends TestCase {
 
@@ -47,21 +50,19 @@ public class MixerImplTest extends TestCase {
 
   // JSR309 mock
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
-
   MockMediaSession mediaSession = mockery.mock(MockMediaSession.class);
-
   MediaMixer mixer = mockery.mock(MediaMixer.class);
 
   // JSR289 mock
-  SipFactory sipFactory = mockery.mock(SipFactory.class);
-
-  SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
+  SipServlet servlet = new MockSipServlet(mockery);
 
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
+  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+  SipFactory sipFactory = appContext.getSipFactory();
+  SdpFactory sdpFactory = appContext.getSdpFactory();
 
   MixerEndpoint address;
 
@@ -98,11 +99,11 @@ public class MixerImplTest extends TestCase {
     }
 
     // create mixer.
-    address = (MixerEndpoint) appContext.getEndpoint("mscontrol://test");
+    address = (MixerEndpoint) appContext.createEndpoint("mscontrol://test");
     mohoMixer = (MixerImpl) address.create(null);
 
     // mock the call
-    final Call call = mockery.mock(Call.class);
+    final CallImpl call = mockery.mock(CallImpl.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
 
     try {
@@ -186,7 +187,7 @@ public class MixerImplTest extends TestCase {
     }
 
     // create mixer.
-    address = (MixerEndpoint) appContext.getEndpoint("mscontrol://test");
+    address = (MixerEndpoint) appContext.createEndpoint("mscontrol://test");
     mohoMixer = (MixerImpl) address.create(null);
 
     // disconnect.
@@ -197,6 +198,6 @@ public class MixerImplTest extends TestCase {
   }
 
   interface TestApp extends Application {
-    public void handleDisconnect(DisconnectEvent event);
+    public void handleDisconnect(MohoHangupEvent event);
   }
 }

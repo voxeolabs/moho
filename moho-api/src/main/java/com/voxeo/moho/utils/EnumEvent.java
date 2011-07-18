@@ -14,16 +14,30 @@
 
 package com.voxeo.moho.utils;
 
+import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.Event;
 
-public class EnumEvent<T,E extends Enum<E>> extends Event<T> {
-    public final E type;
+
+public class EnumEvent<T extends EventSource, E extends Enum<E>> implements Event<T> {
+    protected final E _type;
+    protected T _source;
+    
     public EnumEvent(T source, E type) {
-        super(source);
-        this.type = type;
+      _source = source;
+      _type = type;
+    }
+    
+    public E getType() {
+      return _type;
     }
     
     @Override
     public String toString() {
-        return String.format("[EnumEvent class=%s type=%s sourceClass=%s]",getClass().getName(),type,(source != null ? source.getClass().getSimpleName() : null));
+        return String.format("[EnumEvent class=%s type=%s sourceClass=%s]",getClass().getName(), _type,(_source != null ? _source.getClass().getSimpleName() : null));
+    }
+
+    @Override
+    public T getSource() {
+      return _source;
     }
 }

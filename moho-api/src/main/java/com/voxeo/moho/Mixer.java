@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -25,7 +25,7 @@ import javax.media.mscontrol.join.Joinable.Direction;
  * mixed (or add, or sum) into a single stream, then the result stream is sent
  * out to every joined Participant.
  */
-public interface Mixer extends MultiStreamParticipant {
+public interface Mixer extends MultiStreamParticipant, MediaService<Mixer> {
 
   /**
    * Get the media service attached to the Mixer.
@@ -36,7 +36,8 @@ public interface Mixer extends MultiStreamParticipant {
    * @throws IllegalStateException
    *           when the Mixer is released.
    */
-  MediaService getMediaService();
+  @Deprecated
+  MediaService<Mixer> getMediaService();
 
   /**
    * Connect this Mixer with the specified participant, can specify some
@@ -48,7 +49,7 @@ public interface Mixer extends MultiStreamParticipant {
    *          whether the media is bridged or direct between the two
    *          participants
    * @param direction
-   *          whether the media is full duplex or half-duplex between the two
+   *          whether the media is full duplex or halfplex between the two
    *          participants
    * @param props
    *          specify parameters

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -27,15 +27,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.ExceptionHandler;
+import com.voxeo.moho.util.Utils;
 import com.voxeo.moho.utils.EnumEvent;
-import com.voxeo.moho.utils.Event;
 import com.voxeo.moho.utils.EventListener;
-import com.voxeo.moho.utils.IEvent;
 
 public class EventDispatcher {
 
-  private static final Logger log = Logger.getLogger(EventDispatcher.class);
+  private static final Logger LOG = Logger.getLogger(EventDispatcher.class);
 
   private ConcurrentHashMap<Class<?>, List<Object>> clazzListeners = new ConcurrentHashMap<Class<?>, List<Object>>();
 
@@ -52,8 +50,6 @@ public class EventDispatcher {
   private Queue<FutureTask<?>> _queue = new LinkedList<FutureTask<?>>();
 
   private boolean processorRunning = false;
-
-  private List<ExceptionHandler> exceptionHandlers = new CopyOnWriteArrayList<ExceptionHandler>();
 
   public EventDispatcher() {
   }
@@ -180,60 +176,59 @@ public class EventDispatcher {
     }
   }
 
-  public <S extends EventSource, T extends IEvent<S>> Future<T> fire(final T event) {
+  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event) {
     return fire(event, false);
   }
 
-  public <S extends EventSource, T extends IEvent<S>> Future<T> fire(final T event, final boolean narrowType) {
+  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType) {
     return fire(event, narrowType, null);
   }
-
-  public <S extends EventSource, T extends IEvent<S>> Future<T> fire(final T event, final boolean narrowType,
+  
+  public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType,
       final Runnable afterExec) {
 
     final FutureTask<T> task = new FutureTask<T>(new Runnable() {
-      @SuppressWarnings("unchecked")
+      @SuppressWarnings({ "unchecked"})
       public void run() {
-        if (log.isTraceEnabled()) {
-          log.trace("Firing event :" + event);
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("Firing event :" + event);
         }
-        Class<? extends IEvent> clazz = event.getClass();
-        out: do {
-          final List<Object> list = clazzListeners.get(clazz);
-          if (list != null) {
-            for (final Object listener : list) {
-              try {
-                ((EventListener<T>) listener).onEvent(event);
-              }
-              catch (Exception ex) {
-                log.warn("Uncaught exception in event handler");
-                for (final ExceptionHandler handler : exceptionHandlers) {
-                  if (!handler.handle(ex, event)) {
-                    break out;
-                  }
+        // clazz is a subtype of the Event interface or Event itself.
+        Class<?> clazz = Utils.getEventType(event.getClass());
+        if (clazz != null) {
+          out: do {
+            final List<Object> list = clazzListeners.get(clazz);
+            if (list != null) {
+              for (final Object listener : list) {
+                try {
+                  ((EventListener<T>) listener).onEvent(event);
+                }
+                catch (Exception ex) {
+                  LOG.warn(ex + " is uncaught when handling " + event);
+                  LOG.debug(ex + " is uncaught when handling " + event, ex);
+                  HandleUncaughtException(ex, event);
+                  break out;
                 }
               }
             }
+            clazz = Utils.getEventType(clazz);
           }
-          clazz = (Class<? extends IEvent>) clazz.getSuperclass();
+          while (narrowType && clazz != null);
         }
-        while (narrowType && !clazz.equals(Object.class));
 
         out: if (event instanceof EnumEvent) {
           final EnumEvent<S, ? extends Enum<?>> enumEvent = (EnumEvent<S, ? extends Enum<?>>) event;
-          final List<Object> list = enumListeners.get(enumEvent.type);
+          final List<Object> list = enumListeners.get(enumEvent.getType());
           if (list != null) {
             for (final Object listener : list) {
               try {
                 ((EventListener<T>) listener).onEvent(event);
               }
               catch (Exception ex) {
-                log.warn("Uncaught exception in event handler");
-                for (final ExceptionHandler handler : exceptionHandlers) {
-                  if (!handler.handle(ex, event)) {
-                    break out;
-                  }
-                }
+                LOG.warn(ex + " is uncaught when handling " + event);
+                LOG.debug(ex + " is uncaught when handling " + event, ex);
+                HandleUncaughtException(ex, event);
+                break out;
               }
             }
           }
@@ -285,7 +280,7 @@ public class EventDispatcher {
           task.get();
         }
         catch (Throwable t) {
-          log.info("Throwable when processing task.", t);
+          LOG.info("Throwable when processing task.", t);
         }
       }
     }
@@ -295,10 +290,9 @@ public class EventDispatcher {
     this.executor = executor;
     this.needOrder = order;
   }
-
-  public void addExceptionHandler(ExceptionHandler... handlers) {
-    for (final ExceptionHandler e : handlers) {
-      exceptionHandlers.add(e);
-    }
+  
+  protected <S extends EventSource> Future<Event<S>> HandleUncaughtException(Exception ex, Event<S> evt) {
+    Event<S> newEvt = new UncaughtExceptionEventImpl<S>(evt.getSource(), ex, evt);
+    return fire(newEvt,true);
   }
 }

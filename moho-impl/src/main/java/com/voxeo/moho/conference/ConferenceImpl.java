@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -22,7 +22,6 @@ import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.ExecutionContext;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.JointImpl;
@@ -30,6 +29,7 @@ import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class ConferenceImpl extends MixerImpl implements Conference {
 

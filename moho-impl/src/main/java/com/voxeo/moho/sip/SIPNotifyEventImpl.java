@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -31,12 +31,20 @@ import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.Subscription.Type;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.NotifyEvent;
+import com.voxeo.moho.event.MohoNotifyEvent;
 
-public class SIPNotifyEventImpl extends SIPNotifyEvent {
+public class SIPNotifyEventImpl<T extends EventSource> extends MohoNotifyEvent<T> implements SIPNotifyEvent<T> {
 
-  protected SIPNotifyEventImpl(final EventSource source, final SipServletRequest req) {
-    super(source, req);
+  protected SipServletRequest _req;
+
+  protected SIPNotifyEventImpl(final T source, final SipServletRequest req) {
+    super(source);
+    _req = req;
+  }
+
+  @Override
+  public SipServletRequest getSipRequest() {
+    return _req;
   }
 
   @Override
@@ -54,13 +62,12 @@ public class SIPNotifyEventImpl extends SIPNotifyEvent {
   }
 
   @Override
-  public void forwardTo(final Call call) throws SignalException, IllegalStateException {
+  public void forwardTo(final Call call) throws SignalException {
     this.forwardTo(call, null);
   }
 
   @Override
-  public synchronized void forwardTo(final Call call, final Map<String, String> headers) throws SignalException,
-      IllegalStateException {
+  public synchronized void forwardTo(final Call call, final Map<String, String> headers) throws SignalException {
     if (!(call instanceof SIPCall)) {
       throw new UnsupportedOperationException("Cannot forward to non-SIPCall.");
     }
@@ -130,14 +137,14 @@ public class SIPNotifyEventImpl extends SIPNotifyEvent {
       throw new IllegalArgumentException(e);
     }
 
-    if (state.equalsIgnoreCase(NotifyEvent.SubscriptionState.ACTIVE.name())) {
-      return NotifyEvent.SubscriptionState.ACTIVE;
+    if (state.equalsIgnoreCase(MohoNotifyEvent.SubscriptionState.ACTIVE.name())) {
+      return MohoNotifyEvent.SubscriptionState.ACTIVE;
     }
-    else if (state.equalsIgnoreCase(NotifyEvent.SubscriptionState.PENDING.name())) {
-      return NotifyEvent.SubscriptionState.PENDING;
+    else if (state.equalsIgnoreCase(MohoNotifyEvent.SubscriptionState.PENDING.name())) {
+      return MohoNotifyEvent.SubscriptionState.PENDING;
     }
-    else if (state.equalsIgnoreCase(NotifyEvent.SubscriptionState.TERMINATED.name())) {
-      return NotifyEvent.SubscriptionState.TERMINATED;
+    else if (state.equalsIgnoreCase(MohoNotifyEvent.SubscriptionState.TERMINATED.name())) {
+      return MohoNotifyEvent.SubscriptionState.TERMINATED;
     }
 
     return null;
@@ -177,4 +184,20 @@ public class SIPNotifyEventImpl extends SIPNotifyEvent {
     return null;
   }
 
+  @Override
+  public synchronized void reject(Reason reason, Map<String, String> headers) throws SignalException {
+    this.checkState();
+    _rejected = true;
+    if (reason == null) {
+      reason = Reason.DECLINE;
+    }
+    final SipServletResponse res = _req.createResponse(reason.getCode());
+    SIPHelper.addHeaders(res, headers);
+    try {
+      res.send();
+    }
+    catch (final IOException e) {
+      throw new SignalException(e);
+    }
+  }
 }

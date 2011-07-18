@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -16,23 +16,21 @@ package com.voxeo.moho.sip;
 
 import javax.servlet.sip.SipServletRequest;
 
-import com.voxeo.moho.ExecutionContext;
-import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.RegisterEvent;
+import com.voxeo.moho.reg.RegisterEvent;
 
-public abstract class SIPRegisterEvent extends RegisterEvent {
-
-  protected SipServletRequest _req;
-
-  protected ExecutionContext _ctx;
-
-  protected SIPRegisterEvent(final EventSource source, final SipServletRequest req) {
-    super(source);
-    _req = req;
-    _ctx = (ExecutionContext) source.getApplicationContext();
+/**
+ * SIP specific {@link com.voxeo.moho.reg.even.RegisterEvent RegisterEvent}
+ * 
+ * @author wchen
+ *
+ */
+public interface SIPRegisterEvent extends RegisterEvent {
+  public interface SIPContact extends Contact {
+    int getCSeq();
+    String getCallID();
   }
-
-  public SipServletRequest getSipRequest() {
-    return _req;
-  }
+  
+  String getDomain();
+  
+  SipServletRequest getSipRequest();
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -21,7 +21,7 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import com.voxeo.moho.event.EventSource;
 
 /**
- * This represents an abstract party involved in a conversation.
+ * This interface represents an abstract party involved in a conversation.
  * 
  * @author wchen
  */

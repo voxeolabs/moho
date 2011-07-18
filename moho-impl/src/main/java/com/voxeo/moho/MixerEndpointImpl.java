@@ -21,6 +21,8 @@ import java.util.Properties;
 
 import javax.media.mscontrol.MsControlFactory;
 
+import com.voxeo.moho.spi.ExecutionContext;
+
 public class MixerEndpointImpl implements MixerEndpoint {
 
   protected ExecutionContext _context;
@@ -31,7 +33,7 @@ public class MixerEndpointImpl implements MixerEndpoint {
 
   protected Properties _props = new Properties();
 
-  protected MixerEndpointImpl(final ExecutionContext ctx, final String uri) {
+  public MixerEndpointImpl(final ExecutionContext ctx, final String uri) {
     _context = ctx;
     if (uri == null || uri.equals(MixerEndpoint.DEFAULT_MIXER_ENDPOINT)) {
       String resultUri = ctx.getMSFactory().getProperties().getProperty(MsControlFactory.MEDIA_SERVER_URI);

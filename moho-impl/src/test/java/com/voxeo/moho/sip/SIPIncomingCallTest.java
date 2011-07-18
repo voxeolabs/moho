@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation Licensed under the Apache License, Version
+ * Copyright 2010-2011 Voxeo Corporation Licensed under the Apache License, Version
  * 2.0 (the "License"); you may not use this file except in compliance with the
  * License. You may obtain a copy of the License at
  * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
@@ -11,7 +11,9 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlFactory;
@@ -21,10 +23,10 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManager;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
-import javax.sdp.SdpFactory;
+import javax.servlet.ServletContext;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
-import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 
 import junit.framework.TestCase;
@@ -40,19 +42,19 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
-import com.voxeo.moho.ExceptionHandler;
-import com.voxeo.moho.ExecutionContext;
+import com.voxeo.moho.Call;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.State;
-import com.voxeo.moho.event.DisconnectEvent;
+import com.voxeo.moho.event.HangupEvent;
+import com.voxeo.moho.event.UncaughtExceptionEvent;
 import com.voxeo.moho.media.fake.MockParameters;
-import com.voxeo.moho.sip.fake.MockServletContext;
+import com.voxeo.moho.sip.fake.MockSipServlet;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
 import com.voxeo.moho.sip.fake.MockSipServletResponse;
 import com.voxeo.moho.sip.fake.MockSipSession;
+import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.utils.EventListener;
-import com.voxeo.moho.utils.IEvent;
 
 public class SIPIncomingCallTest extends TestCase {
 
@@ -72,9 +74,7 @@ public class SIPIncomingCallTest extends TestCase {
   SdpPortManager sdpManager = mockery.mock(SdpPortManager.class);
 
   // JSR289 mock
-  SipFactory sipFactory = mockery.mock(SipFactory.class);
-
-  SdpFactory sdpFactory = mockery.mock(SdpFactory.class);
+  SipServlet servlet = new MockSipServlet(mockery);
 
   SipApplicationSession appSession = mockery.mock(SipApplicationSession.class);
 
@@ -82,13 +82,13 @@ public class SIPIncomingCallTest extends TestCase {
 
   MockSipServletRequest initInviteReq = mockery.mock(MockSipServletRequest.class);
 
-  MockServletContext servletContext = mockery.mock(MockServletContext.class);
+  ServletContext servletContext = servlet.getServletContext();
 
   // Moho
   TestApp app;
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, sipFactory, sdpFactory, "test", null, 2);
+  ExecutionContext appContext;
 
   Address fromAddr = mockery.mock(Address.class, "fromAddr");
 
@@ -143,6 +143,7 @@ public class SIPIncomingCallTest extends TestCase {
     });
 
     app = new TestApp();
+    appContext = new ApplicationContextImpl(app, msFactory, servlet);
     invoked = false;
   }
 
@@ -153,23 +154,22 @@ public class SIPIncomingCallTest extends TestCase {
 
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
     // prepare
-    final DisconnectEvent disconnectEvent = mockery.mock(DisconnectEvent.class);
+    final HangupEvent disconnectEvent = mockery.mock(HangupEvent.class);
 
-    sipcall.setSupervised(true);
     mockery.checking(new Expectations() {
       {
-        // TODO
-        // oneOf(app).handleDisconnect(disconnectEvent);
-        allowing(disconnectEvent).isProcessed();
+        allowing(disconnectEvent).isAccepted();
+        will(returnValue(false));
+        allowing(disconnectEvent).isRejected();
+        will(returnValue(false));
         oneOf(disconnectEvent).accept();
-
       }
     });
 
     // execute test.
 
     sipcall.addObserver(new MyOListener());
-    final Future<DisconnectEvent> future = sipcall.dispatch(disconnectEvent);
+    final Future<HangupEvent> future = sipcall.dispatch(disconnectEvent);
 
     // verify result
     assert future != null;
@@ -185,16 +185,16 @@ public class SIPIncomingCallTest extends TestCase {
     mockery.assertIsSatisfied();
   }
 
-  class MyListener implements EventListener<DisconnectEvent> {
+  class MyListener implements EventListener<HangupEvent> {
     @Override
-    public void onEvent(DisconnectEvent event) throws Exception {
-      //invoked = true;
+    public void onEvent(HangupEvent event) throws Exception {
+      // invoked = true;
     }
   }
-  
-  class MyOListener extends MyListener{
+
+  class MyOListener extends MyListener {
     @Override
-    public void onEvent(DisconnectEvent event) throws Exception {
+    public void onEvent(HangupEvent event) throws Exception {
       invoked = true;
     }
   }
@@ -205,24 +205,24 @@ public class SIPIncomingCallTest extends TestCase {
   public void testExceptionHandler() {
 
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
-    final MyExceptionHandler handler = new MyExceptionHandler();
-    sipcall.addExceptionHandler(handler);
     // prepare
-    final DisconnectEvent disconnectEvent = mockery.mock(DisconnectEvent.class);
+    final HangupEvent disconnectEvent = mockery.mock(HangupEvent.class);
 
-    sipcall.setSupervised(true);
     mockery.checking(new Expectations() {
       {
-        allowing(disconnectEvent).isProcessed();
+        allowing(disconnectEvent).getSource();
+        will(returnValue(sipcall));
+        allowing(disconnectEvent).isAccepted();
+        will(returnValue(false));
+        allowing(disconnectEvent).isRejected();
+        will(returnValue(false));
         oneOf(disconnectEvent).accept();
-
       }
     });
-
     // execute test.
-
-    sipcall.addObserver(new ThrowExceptionApp());
-    final Future<DisconnectEvent> future = sipcall.dispatch(disconnectEvent);
+    ThrowExceptionApp app = new ThrowExceptionApp();
+    sipcall.addObserver(app);
+    final Future<HangupEvent> future = sipcall.dispatch(disconnectEvent);
 
     // verify result
     assert future != null;
@@ -233,25 +233,29 @@ public class SIPIncomingCallTest extends TestCase {
       ex.printStackTrace();
       fail(ex.getMessage());
     }
+    try {
+      app.cdl.await(5, TimeUnit.SECONDS);
+    }
+    catch (InterruptedException e) {
+      e.printStackTrace();
+    }
 
-    assertTrue(handler.ex.getMessage().equalsIgnoreCase("test exception"));
+    assertTrue(app.cdl.getCount() == 0);
     mockery.assertIsSatisfied();
   }
 
-  class MyExceptionHandler implements ExceptionHandler {
-    Exception ex;
-
-    @Override
-    public boolean handle(final Exception ex, final IEvent<?> event) {
-      this.ex = ex;
-      return false;
-    }
-  }
-
   class ThrowExceptionApp implements Application {
+
+    public CountDownLatch cdl = new CountDownLatch(1);
+
     @State
-    public void handleDisconnect(final DisconnectEvent event) throws Exception {
+    public void handleDisconnect(final HangupEvent event) throws Exception {
       throw new Exception("test exception");
+    }
+
+    @State
+    public void handleUncaughtException(final UncaughtExceptionEvent<Call> event) {
+      cdl.countDown();
     }
 
     @Override
@@ -267,7 +271,7 @@ public class SIPIncomingCallTest extends TestCase {
 
   class TestApp implements Application {
     @State
-    public void handleDisconnect(final DisconnectEvent event) {
+    public void handleDisconnect(final HangupEvent event) {
       invoked = true;
     }
 
@@ -787,7 +791,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinOutgoingCallBridgeAfterJoin() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -815,7 +819,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinAnsweredOutgoingCallBridge() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -938,7 +942,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testAnsweredJoinOutgoingCallBridgeAfterJoin() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -1197,7 +1201,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinIncomingCallBridgeAfterJoin() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -1227,7 +1231,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinAnsweredIncomingCallBridgeAfterJoin() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -1457,7 +1461,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinAnsweredOutgoingCallDirectInitReqNoSDP() {
     sipcall = new SIPIncomingCall(appContext, initInviteReq);
@@ -2087,7 +2091,7 @@ public class SIPIncomingCallTest extends TestCase {
 
   // ================join incomingcall direct
   /**
-   * 
+   *
    */
   public void testJoinincomingCallDirect() {
 
@@ -2282,7 +2286,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinincomingCallDirectAfterJoin() {
 
@@ -2536,7 +2540,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinAnsweredincomingCallDirectAfterJoin() {
 
@@ -2748,9 +2752,9 @@ public class SIPIncomingCallTest extends TestCase {
                 @Override
                 public void run() {
                   try {
-                    final SIPSuccessEventImpl respEvent = new SIPSuccessEventImpl(sipcall, sipReInviteResp);
-                    respEvent.accept();
-                    // sipcall.doResponse(sipReInviteResp, null);
+                    final SIPAnsweredEventImpl<Call> respEvent = new SIPAnsweredEventImpl<Call>(sipcall,
+                        sipReInviteResp);
+                    sipcall.doResponse(sipReInviteResp, null);
                   }
                   catch (final Exception e) {
                     e.printStackTrace();
@@ -2796,7 +2800,7 @@ public class SIPIncomingCallTest extends TestCase {
   }
 
   /**
-   * 
+   *
    */
   public void testJoinAnsweredincomingCallDirect() {
 
@@ -3053,8 +3057,7 @@ public class SIPIncomingCallTest extends TestCase {
     try {
       sipcall.join().get();
       assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
-      sipcall.setSupervised(true);
-      sipcall.dispatch(new SIPDisconnectEventImpl(sipcall, byeReq)).get();
+      sipcall.dispatch(new SIPHangupEventImpl(sipcall, byeReq)).get();
     }
     catch (final Exception ex) {
       ex.printStackTrace();
@@ -3149,7 +3152,6 @@ public class SIPIncomingCallTest extends TestCase {
       sipcall.join().get();
 
       assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
-      sipcall.setSupervised(true);
       sipcall.dispatch(new SIPReInviteEventImpl(sipcall, reInviteReq)).get();
     }
     catch (final Exception ex) {

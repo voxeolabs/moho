@@ -22,9 +22,10 @@ import javax.media.mscontrol.join.Joinable;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.IncomingCall;
+import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.State;
-import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.ReInviteEvent;
 
 public class MusicOnHold implements Application {
@@ -47,20 +48,20 @@ public class MusicOnHold implements Application {
   }
 
   @State
-  public void handleInvite(final Call e) {
-    final Call call = e.acceptCall(this);
-    final Call outgoingCall = e.getInvitee().call(e.getInvitor(), this);
-    outgoingCall.setSupervised(true);
-    call.setSupervised(true);
+  public void handleInvite(final IncomingCall call) {
+    call.addObserver(this);
+    call.accept();
+    final Call outgoingCall = call.getInvitee().call(call.getInvitor());
+    outgoingCall.addObserver(this);
     call.join(outgoingCall, JoinType.BRIDGE, Joinable.Direction.DUPLEX);
   }
 
   @State
   public void holdMusic(final ReInviteEvent ev) throws SignalException {
-    final Call c = (Call) ev.source;
+    final Call c = ev.getSource();
     ev.accept();
     if (ev.isHold()) {
-      c.getPeers()[0].getMediaService(true).prompt(_media, null, 0);
+      c.getPeers()[0].prompt(_media, null, 0);
     }
     else {
       c.join(c.getPeers()[0], JoinType.BRIDGE, Joinable.Direction.DUPLEX);

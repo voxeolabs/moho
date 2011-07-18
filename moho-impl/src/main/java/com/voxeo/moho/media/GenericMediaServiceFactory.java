@@ -27,7 +27,6 @@ import com.voxeo.moho.media.dialect.GenericDialect;
 import com.voxeo.moho.media.dialect.MediaDialect;
 
 public class GenericMediaServiceFactory implements MediaServiceFactory {
-
     
   private MediaDialect _dialect;
 
@@ -40,7 +39,7 @@ public class GenericMediaServiceFactory implements MediaServiceFactory {
   }
     
   @Override
-  public MediaService create(final EventSource parent, final MediaSession session, Parameters params) {
+  public <T extends EventSource> MediaService<T> create(final T parent, final MediaSession session, Parameters params) {
     MediaGroup group = null;
     try {
       group = session.createMediaGroup(MediaGroup.PLAYER_RECORDER_SIGNALDETECTOR_SIGNALGENERATOR, params);
@@ -58,7 +57,7 @@ public class GenericMediaServiceFactory implements MediaServiceFactory {
         }
       }
     }
-    return new GenericMediaService(parent, group, _dialect);
+    return new GenericMediaService<T>(parent, group, _dialect);
   }
 
 }

@@ -27,12 +27,12 @@ import javax.media.mscontrol.join.Joinable;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
-import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.SignalEvent.Reason;
+import com.voxeo.moho.event.AcceptableEvent.Reason;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 
@@ -79,18 +79,17 @@ public class BlackList implements Application {
   }
 
   @State
-  public void handleInvite(final Call inv) throws Exception {
-    final Endpoint caller = inv.getInvitor();
-    final CallableEndpoint callee = inv.getInvitee();
+  public void handleIncomingCall(final IncomingCall call) throws Exception {
+    final Endpoint caller = call.getInvitor();
+    final CallableEndpoint callee = call.getInvitee();
     final List<String> blacklist = _blacklists.get(callee.getName());
     if (blacklist != null && blacklist.contains(caller.getName())) {
-      inv.reject(Reason.FORBIDEN);
+      call.reject(Reason.FORBIDEN);
       return;
     }
 
-    final Call call = inv.acceptCall();
-    call.join().get();
-    call.getMediaService().output(_prompt).get();
+    call.answer();
+    call.output(_prompt).get();
     call.join(callee, JoinType.DIRECT, Joinable.Direction.DUPLEX).get();
   }
 }

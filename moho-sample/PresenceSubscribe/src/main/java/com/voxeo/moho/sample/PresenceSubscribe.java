@@ -21,9 +21,10 @@ import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.IncomingCall;
+import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.State;
 import com.voxeo.moho.Subscription;
-import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.NotifyEvent;
 import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.OutputCommand;
@@ -51,18 +52,21 @@ public class PresenceSubscribe implements Application {
   }
 
   @State
-  public void handleInvite(final Call e) throws Exception {
-    final Call call = e.acceptCall(this);
+  public void handleInvite(final IncomingCall call) throws Exception {
+    call.addObserver(this);
+    call.accept();
     call.join().get();
-    call.getMediaService().prompt(_prompt, null, 30);
-    final Subscription sub = _ep1.subscribe(_ep2, Subscription.Type.PRESENCE, 3600, this);
+    call.prompt(_prompt, null, 30);
+    final Subscription sub = _ep1.subscribe(_ep2, Subscription.Type.PRESENCE, 3600);
+    sub.addObserver(this);
     sub.setAttribute("call", call);
+    sub.subscribe();
   }
 
   @State
-  public void handleNotify(final NotifyEvent notify) {
+  public void handleNotify(final NotifyEvent<Subscription> notify) {
     if (notify.getEventType() == Subscription.Type.PRESENCE && notify.getResourceState().equalsIgnoreCase("open")) {
-      final Subscription s = (Subscription) notify.source;
+      final Subscription s = notify.getSource();
       notify.accept();
       final Call call = (Call) s.getAttribute("call");
       final Endpoint address = s.getAddress();

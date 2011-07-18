@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation Licensed under the Apache License, Version
+ * Copyright 2010-2011 Voxeo Corporation Licensed under the Apache License, Version
  * 2.0 (the "License"); you may not use this file except in compliance with the
  * License. You may obtain a copy of the License at
  * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
@@ -12,9 +12,14 @@
 package com.voxeo.moho.event;
 
 import com.voxeo.moho.Participant;
-import com.voxeo.moho.utils.Event;
 
-public class JoinCompleteEvent extends Event<EventSource> {
+/**
+ * This event fires when a {@link com.voxeo.moho.Joint Joint} is completed.
+ * 
+ * @author wchen
+ *
+ */
+public interface JoinCompleteEvent extends Event<EventSource> {
 
   public enum Cause {
 
@@ -27,39 +32,10 @@ public class JoinCompleteEvent extends Event<EventSource> {
     CANCELED, DISCONNECTED
   }
 
-  protected Participant _participant;
+  Participant getParticipant();
 
-  protected Cause _cause;
+  Cause getCause();
 
-  protected Exception _exception;
-
-  public JoinCompleteEvent(final EventSource source, final Participant p, final Cause cause) {
-    super(source);
-    _participant = p;
-    _cause = cause;
-  }
-
-  public JoinCompleteEvent(final EventSource source, final Participant p, final Cause cause, final Exception e) {
-    super(source);
-    _participant = p;
-    _cause = cause;
-    _exception = e;
-  }
-
-  public EventSource getSource() {
-    return source;
-  }
-
-  public Participant getParticipant() {
-    return _participant;
-  }
-
-  public Cause getCause() {
-    return _cause;
-  }
-
-  public Exception getException() {
-    return _exception;
-  }
+  Exception getException();
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -20,9 +20,17 @@ import javax.servlet.sip.SipURI;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.TextableEndpoint;
 
+/**
+ * SIP address
+ * 
+ * @author wchen
+ *
+ */
 public interface SIPEndpoint extends CallableEndpoint, TextableEndpoint {
 
   SipURI getSipURI() throws IllegalArgumentException;
 
   Address getSipAddress();
+  
+  boolean isWildCard();
 }
