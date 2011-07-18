@@ -15,7 +15,7 @@ package com.voxeo.moho.reg;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Properties;
+import java.util.Map;
 
 import com.voxeo.moho.Endpoint;
 
@@ -29,7 +29,7 @@ public interface Registrar {
   final String STORE_IMPL = "com.voxeo.moho.reg.store.impl";
   final String MAX_EXPIRE = "com.voxeo.moho.reg.expire.max";
   final String DOMAINS = "com.voxeo.moho.reg.domains";
-  void init(Properties props);
+  void init(Map<String, String> props);
   void addController(RegistrarController controller);
   void removeController(RegistrarController controller);
   Iterator<RegistrarController> getControllers();

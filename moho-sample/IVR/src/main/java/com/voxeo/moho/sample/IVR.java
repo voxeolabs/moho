@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.voxeo.moho.State;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
+import com.voxeo.moho.media.output.OutputCommand.BargeinType;
 
 public class IVR implements Application {
 
@@ -42,10 +43,10 @@ public class IVR implements Application {
 
     OutputCommand output = new OutputCommand(
         "1 for sales, 2 for support, this is the prompt that should be interruptable.");
-    output.setBargein(true);
+    output.setBargeinType(BargeinType.ANY);
 
     InputCommand input = new InputCommand("1,2");
-    input.setTermChar('#');
+    input.setTerminator('#');
     call.prompt(output, input, 0);
   }
 

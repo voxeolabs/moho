@@ -16,6 +16,7 @@ package com.voxeo.moho.media;
 
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.OutputCompleteEvent;
+import com.voxeo.moho.media.output.AudibleResource;
 
 /**
  * Output is a {@link java.util.Future Future} that holds the result of an 
@@ -31,13 +32,17 @@ public interface Output<T extends EventSource> extends MediaOperation<T, OutputC
    * @param direction forward if true, otherwise rewind
    * @param time the time period to be forwarded or rewinded.
    */
-  void move(boolean direction, int time);
+  void move(boolean direction, long time);
 
   /**
-   * Jump the output to a specified the position
-   * @param index ??
+   * Stop what is being played right now and jump to another {@link AudibleResource AudibleResource}
+   * in the list of {@link AudibleResource AudibleResource}
+   * within the associated {@link com.voxeo.moho.media.output.OutputCommand OutputCommand}.
+   * 
+   * @param num media server will jump from the current position in the list
+   *  to the (current + num * {@link com.voxeo.moho.media.output.OutputCommand#getJumpPlaylistIncrement() OutputCommand.getJumpPlaylistIncrement()}).
    */
-  void jump(int index);
+  void jump(int num);
 
   /**
    * render the output in a faster or slower speed.

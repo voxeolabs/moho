@@ -78,7 +78,7 @@ public class OutputImpl<T extends EventSource> implements Output<T> {
   }
 
   @Override
-  public synchronized void move(final boolean direction, final int time) {
+  public synchronized void move(final boolean direction, final long time) {
     if (!_future.isDone()) {
       final Parameters params = _group.getParameters(null);
       final int oldValue = (Integer) params.get(Player.JUMP_TIME);

@@ -20,6 +20,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.sip.SipFactory;
 
 import com.voxeo.moho.conference.ConferenceManager;
+import com.voxeo.moho.reg.Registrar;
 
 /**
  * <p>
@@ -72,6 +73,8 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
   Application getApplication();
 
   ConferenceManager getConferenceManager();
+  
+  Registrar getRegistrar();
 
   ServletContext getServletContext();
 

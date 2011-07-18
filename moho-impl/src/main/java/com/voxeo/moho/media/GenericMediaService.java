@@ -73,6 +73,7 @@ import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
+import com.voxeo.moho.media.output.OutputCommand.BargeinType;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.spi.ExecutionContext;
@@ -279,22 +280,31 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           params.put(Player.BEHAVIOUR_IF_BUSY, Player.FAIL_IF_BUSY);
           break;
       }
-      if (output.isBargein()) {
-        // rtcs.add(MediaGroup.SIGDET_STOPPLAY);
+      switch(output.getBargeinType()) {
+      case ANY:
         rtcs.add(new RTC(SignalDetector.DETECTION_OF_ONE_SIGNAL, Player.STOP_ALL));
         rtcs.add(new RTC(SpeechDetectorConstants.START_OF_SPEECH, Player.STOP_ALL));
         params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
-      }
-      else {
+        break;
+      case DTMF:
+        rtcs.add(new RTC(SignalDetector.DETECTION_OF_ONE_SIGNAL, Player.STOP_ALL));
+        params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
+        break;
+      case SPEECH:
+        rtcs.add(new RTC(SpeechDetectorConstants.START_OF_SPEECH, Player.STOP_ALL));
+        params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
+        break;
+      case NONE:
         params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.FALSE);
+        break;
       }
-      params.put(Player.MAX_DURATION, output.getTimeout());
-      params.put(Player.START_OFFSET, output.getOffset());
+      params.put(Player.MAX_DURATION, output.getMaxtime());
+      params.put(Player.START_OFFSET, output.getStartingOffset());
       params.put(Player.VOLUME_CHANGE, output.getVolumeUnit());
       params.put(Player.AUDIO_CODEC, output.getCodec());
       params.put(Player.FILE_FORMAT, output.getFormat());
       params.put(Player.JUMP_PLAYLIST_INCREMENT, output.getJumpPlaylistIncrement());
-      params.put(Player.JUMP_TIME, output.getJumpTime());
+      params.put(Player.JUMP_TIME, output.getMoveTime());
       params.put(Player.START_IN_PAUSED_MODE, output.isStartInPausedMode());
 
       _dialect.setTextToSpeechVoice(params, output.getVoiceName());
@@ -433,7 +443,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           params.put(Recorder.PROMPT, uris);
         }
 
-        if (command.getPrompt().isBargein()) {
+        if (command.getPrompt().getBargeinType() != BargeinType.NONE) {
           params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
         }
       }
@@ -526,11 +536,11 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     params.put(SignalDetector.BUFFERING, cmd.isBuffering());
     params.put(SignalDetector.MAX_DURATION, cmd.getMaxTimeout());
     params.put(SignalDetector.INITIAL_TIMEOUT, cmd.getInitialTimeout());
-    params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterSigTimeout());
-    params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getConfidence());
+    params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterDigitsTimeout());
+    params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getMinConfidence());
 
-    _dialect.setSpeechLanguage(params, cmd.getSpeechLanguage());
-    _dialect.setSpeechTermChar(params, cmd.getTermChar());
+    _dialect.setSpeechLanguage(params, cmd.getRecognizer());
+    _dialect.setSpeechTermChar(params, cmd.getTerminator());
     _dialect.setSpeechInputMode(params, cmd.getInputMode());
     _dialect.setDtmfHotwordEnabled(params, cmd.isDtmfHotword());
     _dialect.setDtmfTypeaheadEnabled(params, cmd.isDtmfTypeahead());
@@ -588,14 +598,14 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       }
     }
 
-    if (patternKeys == null && cmd.getSignalNumber() == -1) {
+    if (patternKeys == null && cmd.getNumberOfDigits() == -1) {
       throw new MediaException("No pattern");
     }
 
     final InputImpl<T> in = new InputImpl<T>(_group);
     getSignalDetector().addListener(new DetectorListener(in, cmd));
     try {
-      getSignalDetector().receiveSignals(cmd.getSignalNumber(), patternKeys, rtcs.toArray(new RTC[] {}), params);
+      getSignalDetector().receiveSignals(cmd.getNumberOfDigits(), patternKeys, rtcs.toArray(new RTC[] {}), params);
     }
     catch (final MsControlException e) {
       throw new MediaException(e);
@@ -728,7 +738,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
             inputCompleteEvent.setConfidence(1.0F);
             inputCompleteEvent.setInterpretation(signalString);
             inputCompleteEvent.setUtterance(signalString);
-            inputCompleteEvent.setInputMode(InputMode.dtmf);
+            inputCompleteEvent.setInputMode(InputMode.DTMF);
           }
           else {
             final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
@@ -752,10 +762,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
                   final String inputmode = reco.get("_inputmode");
                   if (inputmode != null) {
                     if (inputmode.equalsIgnoreCase("speech") || inputmode.equalsIgnoreCase("voice")) {
-                      inputCompleteEvent.setInputMode(InputMode.voice);
+                      inputCompleteEvent.setInputMode(InputMode.SPEECH);
                     }
                     else {
-                      inputCompleteEvent.setInputMode(InputMode.dtmf);
+                      inputCompleteEvent.setInputMode(InputMode.DTMF);
                     }
                   }
                 }
@@ -772,7 +782,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           inputCompleteEvent.setConfidence(1.0F);
           inputCompleteEvent.setInterpretation(signalString);
           inputCompleteEvent.setUtterance(signalString);
-          inputCompleteEvent.setInputMode(InputMode.dtmf);
+          inputCompleteEvent.setInputMode(InputMode.DTMF);
         }
         if (_cmd.isSupervised()) {
           _parent.dispatch(inputCompleteEvent);
