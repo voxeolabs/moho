@@ -21,5 +21,6 @@ public interface MediaDialect {
     void setDtmfHotwordEnabled(Parameters parameters, Boolean value);
 
     void setDtmfTypeaheadEnabled(Parameters parameters, Boolean value);
-
+    
+    void setConfidence(Parameters parameters, float value);
 }

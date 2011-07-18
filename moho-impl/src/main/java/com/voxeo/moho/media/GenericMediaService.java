@@ -539,7 +539,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     params.put(SignalDetector.MAX_DURATION, cmd.getMaxTimeout());
     params.put(SignalDetector.INITIAL_TIMEOUT, cmd.getInitialTimeout());
     params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterDigitsTimeout());
-    params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getMinConfidence());
+    params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getSensitivity());
 
 if (cmd.isSupervised()) {
   params.put(SignalDetector.ENABLED_EVENTS, new EventType[] {SignalDetectorEvent.SIGNAL_DETECTED});
@@ -549,6 +549,7 @@ if (cmd.isSupervised()) {
     _dialect.setSpeechInputMode(params, cmd.getInputMode());
     _dialect.setDtmfHotwordEnabled(params, cmd.isDtmfHotword());
     _dialect.setDtmfTypeaheadEnabled(params, cmd.isDtmfTypeahead());
+    _dialect.setConfidence(params, cmd.getMinConfidence());
 
     Parameter[] patternKeys = null;
 

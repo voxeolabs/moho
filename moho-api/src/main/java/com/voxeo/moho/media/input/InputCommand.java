@@ -40,7 +40,9 @@ public class InputCommand implements Parameters {
 
   protected Grammar[] _grammars = new Grammar[0];
 
-  protected float _minConfidence = 0.5f;
+   protected float _minConfidence = 0.3f;
+  
+  protected float _sensitivity = 0.5f;
 
   protected long _initialTimeout = Resource.FOREVER;
 
@@ -176,6 +178,14 @@ public class InputCommand implements Parameters {
 
   public void setRecordURI(final URI uri) {
     _recordURI = uri;
+  }
+
+  public float getSensitivity() {
+    return _sensitivity;
+  }
+
+  public void setSensitivity(float _sensitivity) {
+    this._sensitivity = _sensitivity;
   }
 
   /**

@@ -30,4 +30,7 @@ public class GenericDialect implements MediaDialect {
     @Override
     public void setDtmfTypeaheadEnabled(Parameters parameters, Boolean value) {}
 
+    @Override
+    public void setConfidence(Parameters parameters, float value) {}
+
 }
