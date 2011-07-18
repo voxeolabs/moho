@@ -196,8 +196,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       case ANSWERED:
         return Call.State.CONNECTED;
       case FAILED:
+      case REJECTED:
         return Call.State.FAILED;
       case DISCONNECTED:
+      case REDIRECTED:
         return Call.State.DISCONNECTED;
     }
     return null;
