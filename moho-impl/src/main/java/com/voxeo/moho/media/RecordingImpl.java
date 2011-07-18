@@ -40,6 +40,8 @@ public class RecordingImpl<T extends EventSource> implements Recording<T> {
 
   private Condition resumeActionResult = lock.newCondition();
 
+  private boolean _normalDisconnected = false;
+
   protected RecordingImpl(final MediaGroup group) {
     _group = group;
   }
@@ -171,5 +173,13 @@ public class RecordingImpl<T extends EventSource> implements Recording<T> {
 
   public synchronized boolean isPending() {
     return !_future.isDone();
+  }
+
+  public void normalDisconnect(boolean normal) {
+    _normalDisconnected = true;
+  }
+
+  public boolean isNormalDisconnect() {
+    return _normalDisconnected;
   }
 }

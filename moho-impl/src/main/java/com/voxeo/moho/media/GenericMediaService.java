@@ -280,23 +280,23 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           params.put(Player.BEHAVIOUR_IF_BUSY, Player.FAIL_IF_BUSY);
           break;
       }
-      switch(output.getBargeinType()) {
-      case ANY:
-        rtcs.add(new RTC(SignalDetector.DETECTION_OF_ONE_SIGNAL, Player.STOP_ALL));
-        rtcs.add(new RTC(SpeechDetectorConstants.START_OF_SPEECH, Player.STOP_ALL));
-        params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
-        break;
-      case DTMF:
-        rtcs.add(new RTC(SignalDetector.DETECTION_OF_ONE_SIGNAL, Player.STOP_ALL));
-        params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
-        break;
-      case SPEECH:
-        rtcs.add(new RTC(SpeechDetectorConstants.START_OF_SPEECH, Player.STOP_ALL));
-        params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
-        break;
-      case NONE:
-        params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.FALSE);
-        break;
+      switch (output.getBargeinType()) {
+        case ANY:
+          rtcs.add(new RTC(SignalDetector.DETECTION_OF_ONE_SIGNAL, Player.STOP_ALL));
+          rtcs.add(new RTC(SpeechDetectorConstants.START_OF_SPEECH, Player.STOP_ALL));
+          params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
+          break;
+        case DTMF:
+          rtcs.add(new RTC(SignalDetector.DETECTION_OF_ONE_SIGNAL, Player.STOP_ALL));
+          params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
+          break;
+        case SPEECH:
+          rtcs.add(new RTC(SpeechDetectorConstants.START_OF_SPEECH, Player.STOP_ALL));
+          params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
+          break;
+        case NONE:
+          params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.FALSE);
+          break;
       }
       params.put(Player.MAX_DURATION, output.getMaxtime());
       params.put(Player.START_OFFSET, output.getStartingOffset());
@@ -306,8 +306,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       params.put(Player.JUMP_PLAYLIST_INCREMENT, output.getJumpPlaylistIncrement());
       params.put(Player.JUMP_TIME, output.getMoveTime());
       params.put(Player.START_IN_PAUSED_MODE, output.isStartInPausedMode());
-      
-      params.put(Player.ENABLED_EVENTS, new EventType[] {PlayerEvent.SPEED_CHANGED, PlayerEvent.VOLUME_CHANGED, PlayerEvent.RESUMED, PlayerEvent.PAUSED});
+
+      params.put(Player.ENABLED_EVENTS, new EventType[] {PlayerEvent.SPEED_CHANGED, PlayerEvent.VOLUME_CHANGED,
+          PlayerEvent.RESUMED, PlayerEvent.PAUSED});
 
       _dialect.setTextToSpeechVoice(params, output.getVoiceName());
 
@@ -541,9 +542,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterDigitsTimeout());
     params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getSensitivity());
 
-if (cmd.isSupervised()) {
-  params.put(SignalDetector.ENABLED_EVENTS, new EventType[] {SignalDetectorEvent.SIGNAL_DETECTED});
-}
+    if (cmd.isSupervised()) {
+      params.put(SignalDetector.ENABLED_EVENTS, new EventType[] {SignalDetectorEvent.SIGNAL_DETECTED});
+    }
     _dialect.setSpeechLanguage(params, cmd.getRecognizer());
     _dialect.setSpeechTermChar(params, cmd.getTerminator());
     _dialect.setSpeechInputMode(params, cmd.getInputMode());
@@ -570,10 +571,10 @@ if (cmd.isSupervised()) {
         }
         else if ("digits".equals(uri.getScheme())) {
           try {
-              pattern = URLDecoder.decode(uri.getSchemeSpecificPart(), "UTF-8");
+            pattern = URLDecoder.decode(uri.getSchemeSpecificPart(), "UTF-8");
           }
           catch (UnsupportedEncodingException e) {
-              throw new IllegalStateException(e);
+            throw new IllegalStateException(e);
           }
         }
         else {
@@ -668,7 +669,12 @@ if (cmd.isSupervised()) {
           }
         }
         else if (q == ResourceEvent.STOPPED) {
-          cause = Cause.CANCEL;
+          if (_output.isNormalDisconnect()) {
+            cause = Cause.DISCONNECT;
+          }
+          else {
+            cause = Cause.CANCEL;
+          }
         }
         final OutputCompleteEvent<T> outputCompleteEvent = new MohoOutputCompleteEvent<T>(_parent, cause);
         _parent.dispatch(outputCompleteEvent);
@@ -728,7 +734,12 @@ if (cmd.isSupervised()) {
           cause = InputCompleteEvent.Cause.NO_MATCH;
         }
         else if (q == ResourceEvent.STOPPED) {
-          cause = InputCompleteEvent.Cause.CANCEL;
+          if (_input.isNormalDisconnect()) {
+            cause = InputCompleteEvent.Cause.DISCONNECT;
+          }
+          else {
+            cause = InputCompleteEvent.Cause.CANCEL;
+          }
         }
         else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED || patternMatched(e)) {
           cause = InputCompleteEvent.Cause.MATCH;
@@ -838,12 +849,18 @@ if (cmd.isSupervised()) {
           cause = RecordCompleteEvent.Cause.INI_TIMEOUT;
         }
         else if (q == ResourceEvent.STOPPED) {
-          cause = RecordCompleteEvent.Cause.CANCEL;
+          if (_recording.isNormalDisconnect()) {
+            cause = RecordCompleteEvent.Cause.DISCONNECT;
+          }
+          else {
+            cause = RecordCompleteEvent.Cause.CANCEL;
+          }
         }
         else if (q == ResourceEvent.RTC_TRIGGERED) {
           cause = RecordCompleteEvent.Cause.CANCEL;
         }
-        final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause, e.getDuration());
+        final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause,
+            e.getDuration());
         _parent.dispatch(recordCompleteEvent);
         _recording.done(recordCompleteEvent);
       }
@@ -862,7 +879,7 @@ if (cmd.isSupervised()) {
   }
 
   @SuppressWarnings("unchecked")
-  public void release() {
+  public void release(boolean isNormalDisconnect) {
     Iterator<MediaOperation<? extends EventSource, ? extends MediaCompleteEvent<?>>> ite = futures.iterator();
 
     while (ite.hasNext()) {
@@ -871,7 +888,7 @@ if (cmd.isSupervised()) {
       if (future instanceof RecordingImpl) {
         RecordingImpl<T> recording = (RecordingImpl<T>) future;
         if (recording.isPending()) {
-          recording.done(new MohoRecordCompleteEvent<T>(_parent, RecordCompleteEvent.Cause.UNKNOWN, 0));
+          recording.normalDisconnect(isNormalDisconnect);
         }
         recording.pauseActionDone();
         recording.resumeActionDone();
@@ -879,13 +896,13 @@ if (cmd.isSupervised()) {
       else if (future instanceof InputImpl) {
         InputImpl<T> input = (InputImpl<T>) future;
         if (input.isPending()) {
-          input.done(new MohoInputCompleteEvent<T>(_parent, InputCompleteEvent.Cause.UNKNOWN));
+          input.normalDisconnect(isNormalDisconnect);
         }
       }
       else {
         OutputImpl<T> output = (OutputImpl<T>) future;
         if (output.isPending()) {
-          output.done(new MohoOutputCompleteEvent<T>(_parent, OutputCompleteEvent.Cause.UNKNOWN));
+          output.normalDisconnect(isNormalDisconnect);
         }
         output.pauseActionDone();
         output.resumeActionDone();

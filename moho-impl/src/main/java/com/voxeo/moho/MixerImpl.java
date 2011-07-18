@@ -47,6 +47,7 @@ import com.voxeo.moho.event.MohoActiveSpeakerEvent;
 import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.MohoMediaResourceDisconnectEvent;
 import com.voxeo.moho.event.Observer;
+import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Output;
 import com.voxeo.moho.media.Prompt;
@@ -145,7 +146,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     checkState();
     if (_service == null) {
       try {
-        _service = (MediaService<Mixer>) _context.getMediaServiceFactory().create((Mixer)this, _media, null);
+        _service = (MediaService<Mixer>) _context.getMediaServiceFactory().create((Mixer) this, _media, null);
         _service.getMediaGroup().join(Direction.DUPLEX, _mixer);
         return _service;
       }
@@ -158,6 +159,12 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public synchronized void disconnect() {
+    try {
+      ((GenericMediaService) _service).release(true);
+    }
+    catch (final Exception e) {
+      LOG.warn("Exception when release media service", e);
+    }
     try {
       _mixer.release();
     }
@@ -518,25 +525,27 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       MixerImpl.this.unjoin(other);
     }
 
-//    private void addListener(EventListener<?> listener) {
-//      MixerImpl.this.addListener(listener);
-//    }
-//
-//    private <E extends Event<?>, T extends EventListener<E>> void addListener(Class<E> type, T listener) {
-//      MixerImpl.this.addListener(type, listener);
-//    }
-//
-//    private void addListeners(EventListener<?>... listeners) {
-//      MixerImpl.this.addListeners(listeners);
-//    }
-//
-//    private <E extends Event<?>, T extends EventListener<E>> void addListeners(Class<E> type, T... listener) {
-//      MixerImpl.this.addListeners(type, listener);
-//    }
-//
-//    private void addObserver(Observer observer) {
-//      MixerImpl.this.addObserver(observer);
-//    }
+    // private void addListener(EventListener<?> listener) {
+    // MixerImpl.this.addListener(listener);
+    // }
+    //
+    // private <E extends Event<?>, T extends EventListener<E>> void
+    // addListener(Class<E> type, T listener) {
+    // MixerImpl.this.addListener(type, listener);
+    // }
+    //
+    // private void addListeners(EventListener<?>... listeners) {
+    // MixerImpl.this.addListeners(listeners);
+    // }
+    //
+    // private <E extends Event<?>, T extends EventListener<E>> void
+    // addListeners(Class<E> type, T... listener) {
+    // MixerImpl.this.addListeners(type, listener);
+    // }
+    //
+    // private void addObserver(Observer observer) {
+    // MixerImpl.this.addObserver(observer);
+    // }
 
     @Override
     public void addObserver(Observer... observers) {
@@ -568,9 +577,9 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       return MixerImpl.this.getApplicationState(FSM);
     }
 
-//    private void removeListener(EventListener<?> listener) {
-//      MixerImpl.this.removeListener(listener);
-//    }
+    // private void removeListener(EventListener<?> listener) {
+    // MixerImpl.this.removeListener(listener);
+    // }
 
     @Override
     public void removeObserver(Observer listener) {
@@ -595,7 +604,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getAttribute(String name) {
-      return (T)MixerImpl.this.getAttribute(name);
+      return (T) MixerImpl.this.getAttribute(name);
     }
 
     @Override
@@ -694,8 +703,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
           }
 
           if (activeSpeakers.size() > 0) {
-            MixerImpl.this
-                .dispatch(new MohoActiveSpeakerEvent(MixerImpl.this, activeSpeakers.toArray(new Participant[] {})));
+            MixerImpl.this.dispatch(new MohoActiveSpeakerEvent(MixerImpl.this, activeSpeakers
+                .toArray(new Participant[] {})));
           }
         }
       }

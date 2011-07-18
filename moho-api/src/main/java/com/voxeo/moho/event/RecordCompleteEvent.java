@@ -22,7 +22,7 @@ package com.voxeo.moho.event;
  */
 public interface RecordCompleteEvent<T extends EventSource> extends MediaCompleteEvent<T> {
   public enum Cause {
-    TIMEOUT, ERROR, SILENCE, UNKNOWN, CANCEL, INI_TIMEOUT,
+    TIMEOUT, ERROR, SILENCE, UNKNOWN, CANCEL, INI_TIMEOUT, DISCONNECT
   }
 //test
   /**

@@ -45,6 +45,7 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.CanceledException;
 import com.voxeo.moho.Endpoint;
@@ -57,7 +58,6 @@ import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.MixerImpl;
-import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.RedirectException;
@@ -212,9 +212,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   @Override
   public synchronized MediaService getMediaService(final boolean reinvite) throws IllegalStateException, MediaException {
-    if (getSIPCallState() != SIPCall.State.ANSWERED 
-    		&& getSIPCallState() != SIPCall.State.RINGING
-    		&& getSIPCallState() != SIPCall.State.PROGRESSED) {
+    if (getSIPCallState() != SIPCall.State.ANSWERED && getSIPCallState() != SIPCall.State.RINGING
+        && getSIPCallState() != SIPCall.State.PROGRESSED) {
       throw new IllegalStateException("The call has not been answered or there was no progress in the call");
     }
     if (_network == null) {
@@ -692,7 +691,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       return;
     }
     if (_service != null) {
-      ((GenericMediaService<Call>) _service).release();
+      ((GenericMediaService) _service)
+          .release((cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) ? true
+              : false);
       _service = null;
     }
     final SIPCall.State old = getSIPCallState();
@@ -736,7 +737,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     _context.removeCall(getId());
 
     if (_service != null) {
-      ((GenericMediaService<Call>) _service).release();
+      ((GenericMediaService) _service)
+          .release((cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) ? true
+              : false);
       _service = null;
     }
     destroyNetworkConnection();
