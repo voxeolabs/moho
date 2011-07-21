@@ -32,7 +32,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
 
   protected SIPOutgoingCall _call;
 
-  protected boolean processedAnswer;
+  protected boolean processedAnswer = false;
 
   protected Media2NOJoinDelegate(final SIPOutgoingCall call) {
     _call = call;
@@ -60,10 +60,26 @@ public class Media2NOJoinDelegate extends JoinDelegate {
           throw new RuntimeException(e);
         }
       }
+
       Exception ex = new NegotiateException(event);
       setError(ex);
       _call.fail(ex);
     }
+    else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
+      if (event.isSuccessful()) {
+        if (processedAnswer) {
+          done();
+          return;
+        }
+      }
+      Exception ex = new NegotiateException(event);
+      setError(ex);
+      _call.fail(ex);
+    }
+
+    Exception ex = new NegotiateException(event);
+    setError(ex);
+    _call.fail(ex);
   }
 
   @Override
@@ -75,8 +91,8 @@ public class Media2NOJoinDelegate extends JoinDelegate {
 
         if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
           if (SIPHelper.getRawContentWOException(res) != null) {
-            _call.processSDPAnswer(res);
             processedAnswer = true;
+            _call.processSDPAnswer(res);
           }
 
           try {
@@ -94,9 +110,9 @@ public class Media2NOJoinDelegate extends JoinDelegate {
         _call.setSIPCallState(SIPCall.State.ANSWERED);
         res.createAck().send();
         if (!processedAnswer) {
+          processedAnswer = true;
           _call.processSDPAnswer(res);
         }
-        done();
       }
       else if (SIPHelper.isErrorResponse(res)) {
         Exception e = null;

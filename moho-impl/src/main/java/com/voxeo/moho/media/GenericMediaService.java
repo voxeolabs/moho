@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import javax.media.mscontrol.EventType;
+import javax.media.mscontrol.MediaErr;
 import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlException;
@@ -869,8 +870,16 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         _parent.dispatch(new MohoRecordPausedEvent<T>(_parent));
       }
       else if (t == RecorderEvent.RESUMED) {
-        _recording.resumeActionDone();
-        _parent.dispatch(new MohoRecordResumedEvent<T>(_parent));
+        if (e.getError() == MediaErr.UNKNOWN_ERROR) {
+          final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent,
+              RecordCompleteEvent.Cause.ERROR, e.getDuration());
+          _parent.dispatch(recordCompleteEvent);
+          _recording.done(new MediaException(e.getErrorText()));
+        }
+        else {
+          _recording.resumeActionDone();
+          _parent.dispatch(new MohoRecordResumedEvent<T>(_parent));
+        }
       }
       else if (t == RecorderEvent.STARTED) {
         _parent.dispatch(new MohoRecordStartedEvent<T>(_parent));

@@ -152,12 +152,14 @@ public interface Call extends MultiStreamParticipant, MediaService<Call> {
    */
   void hangup(Map<String, String> headers);
   
+  public abstract boolean isHold();
+  
+  public abstract boolean isMute();
   /**
    * @param name the name of the protocol specific header of the initial call setup message.
    * @return the value of the named header in this invitation. The first value if there are multiple values.
    */
   String getHeader(String name);
-  
   /**
    * @param name the name of the protocol specific header of the initial call setup message.
    * @return iterator for all the values of the named header.

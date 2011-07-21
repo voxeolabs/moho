@@ -1,8 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
-	<name>Moho Implements</name>
-	<artifactId>moho-impl</artifactId>
+  <modelVersion>4.0.0</modelVersion>
+  <name>Moho Implements</name>
+  <artifactId>moho-impl</artifactId>
 
 	<parent>
 		<groupId>com.voxeo.moho</groupId>
@@ -10,10 +11,10 @@
 		<version>0.8</version>
 	</parent>
 
-	<scm>
-		<connection>${svnUrlBase}/moho-impl</connection>
-		<url>${svnUrlBase}/moho-impl</url>
-	</scm>
+  <scm>
+    <connection>${svnUrlBase}/moho-impl</connection>
+    <url>${svnUrlBase}/moho-impl</url>
+  </scm>
 
 	<dependencies>
 		<dependency>
@@ -121,22 +122,20 @@
 			<artifactId>httpclient</artifactId>
 			<version>4.0</version>
 		</dependency>
-		
-		
 	</dependencies>
 
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>cobertura-maven-plugin</artifactId>
-				<configuration>
-					<formats>
-						<format>html</format>
-						<format>xml</format>
-					</formats>
-				</configuration>
-			</plugin>
-		</plugins>
-	</reporting>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <configuration>
+          <formats>
+            <format>html</format>
+            <format>xml</format>
+          </formats>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
 </project>

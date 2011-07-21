@@ -1289,6 +1289,16 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
+  @Override
+  public boolean isHold() {
+    return _holdState == HoldState.Held;
+  }
+
+  @Override
+  public boolean isMute() {
+    return _muteState == HoldState.Muted;
+  }
+
   /**
    * send a sendonly SDP to the endpoint, but still send media data to this
    * endpoint
