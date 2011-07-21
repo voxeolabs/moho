@@ -190,7 +190,7 @@ public abstract class Call extends InviteEvent implements MultiStreamParticipant
    */
   public abstract void unhold();
   
-  public abstract boolean isOnHold();
+  public abstract boolean isHold();
   
   public abstract boolean isMute();
 

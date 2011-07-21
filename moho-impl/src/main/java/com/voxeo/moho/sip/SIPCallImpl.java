@@ -1432,7 +1432,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
   }
 
   @Override
-  public boolean isOnHold() {
+  public boolean isHold() {
     return _holdState == HoldState.Held;
   }
 
