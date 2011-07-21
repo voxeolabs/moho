@@ -282,9 +282,8 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
 
   @Override
   public synchronized MediaService getMediaService(final boolean reinvite) throws IllegalStateException, MediaException {
-    if (getSIPCallState() != SIPCall.State.ANSWERED 
-    		&& getSIPCallState() != SIPCall.State.RINGING
-    		&& getSIPCallState() != SIPCall.State.PROGRESSED) {
+    if (getSIPCallState() != SIPCall.State.ANSWERED && getSIPCallState() != SIPCall.State.RINGING
+        && getSIPCallState() != SIPCall.State.PROGRESSED) {
       throw new IllegalStateException("The call has not been answered or there was no progress in the call");
     }
     if (_network == null) {
@@ -1430,6 +1429,16 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
     finally {
       _operationInProcess = false;
     }
+  }
+
+  @Override
+  public boolean isOnHold() {
+    return _holdState == HoldState.Held;
+  }
+
+  @Override
+  public boolean isMute() {
+    return _muteState == HoldState.Muted;
   }
 
   /**

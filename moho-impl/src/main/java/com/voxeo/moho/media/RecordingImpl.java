@@ -24,6 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Recorder;
 
+import com.voxeo.moho.MediaException;
 import com.voxeo.moho.event.RecordCompleteEvent;
 import com.voxeo.moho.util.SettableResultFuture;
 
@@ -47,6 +48,10 @@ public class RecordingImpl implements Recording {
 
   protected void done(final RecordCompleteEvent event) {
     _future.setResult(event);
+  }
+
+  protected void done(final MediaException exception) {
+    _future.setException(exception);
   }
 
   protected boolean paused = false;

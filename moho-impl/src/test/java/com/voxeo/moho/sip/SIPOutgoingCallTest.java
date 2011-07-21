@@ -955,6 +955,10 @@ public class SIPOutgoingCallTest extends TestCase {
     final SdpPortManagerEvent sdpPortManagerEvent = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
         + "sdpPortManagerEvent");
 
+    // mock jsr309 object
+    final SdpPortManagerEvent sdpPortManagerEventAnswerProcessed = mockery.mock(SdpPortManagerEvent.class,
+        mockObjectNamePrefix + "sdpPortManagerEventAnswerProcessed");
+
     // invoke join()
     try {
       mockery.checking(new Expectations() {
@@ -1018,11 +1022,28 @@ public class SIPOutgoingCallTest extends TestCase {
       ex.printStackTrace();
     }
 
+    // process sdpPortManagerEvent
+    try {
+      mockery.checking(new Expectations() {
+        {
+          oneOf(sdpPortManagerEventAnswerProcessed).isSuccessful();
+          will(returnValue(true));
+
+          allowing(sdpPortManagerEventAnswerProcessed).getEventType();
+          will(returnValue(SdpPortManagerEvent.ANSWER_PROCESSED));
+        }
+      });
+    }
+    catch (Exception ex) {
+      ex.printStackTrace();
+    }
+
     // process response
     try {
       mockery.checking(new Expectations() {
         {
           oneOf(sdpManager).processSdpAnswer(respSDP);
+          will(new MockMediaServerSdpPortManagerEventAction(sipcall, sdpPortManagerEventAnswerProcessed));
 
           oneOf(sipInviteResp).createAck();
           will(returnValue(sipInviteAck));
@@ -1092,6 +1113,10 @@ public class SIPOutgoingCallTest extends TestCase {
     // mock jsr309 object
     final SdpPortManagerEvent sdpPortManagerEvent = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
         + "sdpPortManagerEvent");
+    
+ // mock jsr309 object
+    final SdpPortManagerEvent sdpPortManagerEventAnswerProcessed = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
+        + "sdpPortManagerEventAnswerProcessed");
 
     // invoke join()
     try {
@@ -1138,11 +1163,28 @@ public class SIPOutgoingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(sdpManager).processSdpAnswer(respSDP);
+          will(new MockMediaServerSdpPortManagerEventAction(sipcall, sdpPortManagerEventAnswerProcessed));
 
           oneOf(sipInviteResp).createAck();
           will(returnValue(sipInviteAck));
 
           oneOf(sipInviteAck).send();
+        }
+      });
+    }
+    catch (Exception ex) {
+      ex.printStackTrace();
+    }
+    
+    // process sdpPortManagerEvent
+    try {
+      mockery.checking(new Expectations() {
+        {
+          oneOf(sdpPortManagerEventAnswerProcessed).isSuccessful();
+          will(returnValue(true));
+
+          allowing(sdpPortManagerEventAnswerProcessed).getEventType();
+          will(returnValue(SdpPortManagerEvent.ANSWER_PROCESSED));
         }
       });
     }
@@ -1871,7 +1913,7 @@ public class SIPOutgoingCallTest extends TestCase {
       });
     }
     catch (Exception ex) {
-      //ex.printStackTrace();
+      // ex.printStackTrace();
     }
 
     final MockSipServletRequest sipcallCancelReq = mockery.mock(MockSipServletRequest.class, mockObjectNamePrefix

@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.media.mscontrol.Configuration;
+import javax.media.mscontrol.MediaErr;
 import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.Parameter;
 import javax.media.mscontrol.Parameters;
@@ -305,6 +306,9 @@ public class GenericMediaServiceTest extends TestCase {
         {
           allowing(mediaEvent2).getEventType();
           will(returnValue(RecorderEvent.RESUMED));
+          
+          allowing(mediaEvent2).getError();
+          will(returnValue(MediaErr.NO_ERROR));
         }
       });
     }

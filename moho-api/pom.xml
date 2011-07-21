@@ -52,12 +52,12 @@
       <artifactId>dom4j</artifactId>
       <version>1.6.1</version>
     </dependency>
-    <dependency>
-      <groupId>javax.sdp</groupId>
-      <artifactId>nist-sdp</artifactId>
-      <version>1.0</version>
-      <scope>provided</scope>
-    </dependency>
+  <dependency>
+    <groupId>javax.sdp</groupId>
+    <artifactId>sdp-api</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <scope>provided</scope>
+  </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -189,4 +189,19 @@
       </build>
     </profile>
   </profiles>
+  
+    <distributionManagement>
+    <repository>
+      <id>maven.voxeo.net</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://maven.voxeo.net/nexus/content/repositories/releases/</url>
+    </repository>
+    <!-- use the following if you ARE using a snapshot version. -->
+    <snapshotRepository>
+      <id>maven.voxeo.net</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://maven.voxeo.net/nexus/content/repositories/snapshots/</url>
+      <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
 </project>

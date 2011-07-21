@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 import javax.media.mscontrol.EventType;
+import javax.media.mscontrol.MediaErr;
 import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlException;
@@ -293,8 +294,9 @@ public class GenericMediaService implements MediaService {
       params.put(Player.JUMP_PLAYLIST_INCREMENT, output.getJumpPlaylistIncrement());
       params.put(Player.JUMP_TIME, output.getJumpTime());
       params.put(Player.START_IN_PAUSED_MODE, output.isStartInPausedMode());
-      
-      params.put(Player.ENABLED_EVENTS, new EventType[] {PlayerEvent.SPEED_CHANGED, PlayerEvent.VOLUME_CHANGED, PlayerEvent.RESUMED, PlayerEvent.PAUSED});
+
+      params.put(Player.ENABLED_EVENTS, new EventType[] {PlayerEvent.SPEED_CHANGED, PlayerEvent.VOLUME_CHANGED,
+          PlayerEvent.RESUMED, PlayerEvent.PAUSED});
 
       _dialect.setTextToSpeechVoice(params, output.getVoiceName());
 
@@ -855,8 +857,16 @@ public class GenericMediaService implements MediaService {
         _parent.dispatch(new RecordPausedEvent(_parent));
       }
       else if (t == RecorderEvent.RESUMED) {
-        _recording.resumeActionDone();
-        _parent.dispatch(new RecordResumedEvent(_parent));
+        if (e.getError() == MediaErr.UNKNOWN_ERROR) {
+          final RecordCompleteEvent recordCompleteEvent = new RecordCompleteEvent(_parent,
+              RecordCompleteEvent.Cause.ERROR, e.getDuration());
+          _parent.dispatch(recordCompleteEvent);
+          _recording.done(new MediaException(e.getErrorText()));
+        }
+        else {
+          _recording.resumeActionDone();
+          _parent.dispatch(new RecordResumedEvent(_parent));
+        }
       }
       else if (t == RecorderEvent.STARTED) {
         _parent.dispatch(new RecordStartedEvent(_parent));

@@ -20,12 +20,14 @@ import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.NegotiateException;
-import com.voxeo.moho.RejectException;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.RejectException;
 
 public class Media2AOJoinDelegate extends JoinDelegate {
 
   protected SIPOutgoingCall _call;
+
+  protected boolean processedAnswer = false;
 
   protected Media2AOJoinDelegate(final SIPOutgoingCall call) {
     _call = call;
@@ -62,6 +64,21 @@ public class Media2AOJoinDelegate extends JoinDelegate {
       setError(ex);
       _call.fail(ex);
     }
+    else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
+      if (event.isSuccessful()) {
+        if (processedAnswer) {
+          done();
+          return;
+        }
+      }
+      Exception ex = new NegotiateException(event);
+      setError(ex);
+      _call.fail(ex);
+    }
+
+    Exception ex = new NegotiateException(event);
+    setError(ex);
+    _call.fail(ex);
   }
 
   @Override
@@ -71,8 +88,8 @@ public class Media2AOJoinDelegate extends JoinDelegate {
       if (isWaiting()) {
         if (SIPHelper.isSuccessResponse(res)) {
           res.createAck().send();
+          processedAnswer = true;
           _call.processSDPAnswer(res);
-          done();
         }
         else if (SIPHelper.isErrorResponse(res)) {
           setException(new RejectException());
