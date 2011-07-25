@@ -16,10 +16,10 @@ package com.voxeo.moho.sip;
 
 import javax.servlet.sip.SipServletRequest;
 
-import com.voxeo.moho.reg.RegisterEvent;
+import com.voxeo.moho.event.RegisterEvent;
 
 /**
- * SIP specific {@link com.voxeo.moho.reg.even.RegisterEvent RegisterEvent}
+ * SIP specific {@link com.voxeo.moho.event.even.RegisterEvent RegisterEvent}
  * 
  * @author wchen
  *

@@ -499,7 +499,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
               case ERROR:
                 cause = CallCompleteEvent.Cause.ERROR;
             }
-            ((SIPCallImpl) other).disconnect(true, cause, _exception, null);
+            if(other instanceof SIPCallImpl){
+              ((SIPCallImpl) other).disconnect(true, cause, _exception, null);
+            }
           }
 
           SIPCallImpl.this.dispatch(event);

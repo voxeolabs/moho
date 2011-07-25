@@ -15,7 +15,9 @@ import com.voxeo.moho.State;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
+import com.voxeo.moho.event.RegisterEvent;
 import com.voxeo.moho.event.TextEvent;
+import com.voxeo.moho.event.RegisterEvent.Contact;
 import com.voxeo.moho.media.Recording;
 import com.voxeo.moho.media.input.Grammar;
 import com.voxeo.moho.media.input.InputCommand;
@@ -26,8 +28,6 @@ import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.OutputCommand.BargeinType;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
-import com.voxeo.moho.reg.RegisterEvent;
-import com.voxeo.moho.reg.RegisterEvent.Contact;
 import com.voxeo.moho.sip.SIPCall;
 
 public class DefaultTestApp implements Application {
@@ -101,6 +101,7 @@ public class DefaultTestApp implements Application {
               "Please record your message after the beep, Press hash to stop record."));
           output.setBargeinType(BargeinType.ANY);
           final RecordCommand recordCommand = new RecordCommand(recordURI);
+          recordCommand.setStartBeep(true);
           recordCommand.setPrompt(output);
           call.input("#");
           call.setAttribute("Recording", call.record(recordCommand));

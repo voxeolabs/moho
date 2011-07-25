@@ -19,7 +19,6 @@ import java.util.Map;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.reg.RegisterEvent;
 
 public abstract class MohoRegisterEvent extends MohoEvent<Framework> implements RegisterEvent {
 

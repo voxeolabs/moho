@@ -17,7 +17,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.reg.RegisterEvent.Contact;
+import com.voxeo.moho.event.RegisterEvent.Contact;
 
 /**
  * This encapsulates the storage (e.g. database) for the {@link Registrar Registrar}.

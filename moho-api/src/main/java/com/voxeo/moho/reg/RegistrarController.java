@@ -12,7 +12,7 @@
  * governing permissions and limitations under the License.
  */package com.voxeo.moho.reg;
 
-import com.voxeo.moho.reg.RegisterEvent.Contact;
+import com.voxeo.moho.event.RegisterEvent.Contact;
 
 /**
  * A RegistrarController can listen on registrar events and act upon.

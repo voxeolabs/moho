@@ -12,7 +12,7 @@
  * governing permissions and limitations under the License.
  */
 
-package com.voxeo.moho.reg.sip;
+package com.voxeo.moho.sip;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,8 +32,6 @@ import com.voxeo.moho.Framework;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.MohoRegisterEvent;
 import com.voxeo.moho.sip.SIPEndpoint;
-import com.voxeo.moho.sip.SIPEndpointImpl;
-import com.voxeo.moho.sip.SIPHelper;
 import com.voxeo.moho.sip.SIPRegisterEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 

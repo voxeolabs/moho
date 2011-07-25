@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.event.RegisterEvent;
 
 /**
  * The interface encapsulates a Registrar functionality.

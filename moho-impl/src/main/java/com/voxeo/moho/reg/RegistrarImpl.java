@@ -6,11 +6,12 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.event.RegisterEvent;
 import com.voxeo.moho.event.AcceptableEvent.Reason;
-import com.voxeo.moho.reg.RegisterEvent.Contact;
-import com.voxeo.moho.reg.sip.SIPRegisterEventImpl.ContactImpl;
+import com.voxeo.moho.event.RegisterEvent.Contact;
 import com.voxeo.moho.sip.SIPRegisterEvent;
 import com.voxeo.moho.sip.SIPRegisterEvent.SIPContact;
+import com.voxeo.moho.sip.SIPRegisterEventImpl.ContactImpl;
 
 public class RegistrarImpl implements Registrar, Runnable {
   protected RegistrarStore _store;
