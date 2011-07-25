@@ -1128,7 +1128,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       _joinDelegate.setCondition(this);
       _joinDelegate.setWaiting(true);
       _joinDelegate.doJoin();
-      while (!this.isTerminated() && _joinDelegate.isWaiting()) {
+      while (!this.isTerminated() && _joinDelegate != null && _joinDelegate.isWaiting()) {
         try {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Start wait joinDelegate. CallID:" + (getSipSession() != null ? getSipSession().getCallId() : ""));
@@ -1175,7 +1175,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
       _joinDelegate.setCondition(this);
       _joinDelegate.setWaiting(true);
       _joinDelegate.doJoin();
-      while (!this.isTerminated() && _joinDelegate.isWaiting()) {
+      while (!this.isTerminated() && _joinDelegate != null && _joinDelegate.isWaiting()) {
         try {
           this.wait();
         }
@@ -1222,7 +1222,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
         }
         _joinDelegate.doJoin();
         if (type == JoinType.DIRECT) {
-          while (!this.isTerminated() && !other.isTerminated() && _joinDelegate.isWaiting()) {
+          while (!this.isTerminated() && !other.isTerminated() && _joinDelegate != null && _joinDelegate.isWaiting()) {
             try {
               this.wait();
             }
