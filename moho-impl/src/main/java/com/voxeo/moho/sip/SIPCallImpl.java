@@ -499,7 +499,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
               case ERROR:
                 cause = CallCompleteEvent.Cause.ERROR;
             }
-            if(other instanceof SIPCallImpl){
+            if (other instanceof SIPCallImpl) {
               ((SIPCallImpl) other).disconnect(true, cause, _exception, null);
             }
           }
@@ -966,7 +966,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  protected void setJoinDelegate(final JoinDelegate delegate) {
+  protected synchronized void setJoinDelegate(final JoinDelegate delegate) {
+    if (_operationInProcess) {
+      throw new IllegalStateException("other operation in process.");
+    }
     _joinDelegate = delegate;
   }
 
