@@ -19,7 +19,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
-import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
@@ -31,8 +30,8 @@ import javax.servlet.sip.SipServletResponse;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.NegotiateException;
-import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.SignalException;
 import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPCallImpl.HoldState;
 
@@ -95,8 +94,8 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
       }
       else if (sdp.indexOf("sendrecv") > 0) {
         if (call.getJoinType(peerCall) == JoinType.BRIDGE) {
-          ((NetworkConnection) peerCall.getMediaObject()).join(Direction.DUPLEX, (NetworkConnection) call
-              .getMediaObject());
+          ((NetworkConnection) peerCall.getMediaObject()).join(Direction.DUPLEX,
+              (NetworkConnection) call.getMediaObject());
         }
         peerCall.unhold();
       }
@@ -197,18 +196,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
     ((NetworkConnection) call.getMediaObject()).getSdpPortManager().processSdpOffer(
         send ? createRecvonlySDP(call, call.getRemoteSdp()).toString().getBytes() : createSendonlySDP(call,
             call.getRemoteSdp()).toString().getBytes());
-    Joinable[] joinees = null;
-    try {
-      joinees = ((NetworkConnection) call.getMediaObject()).getJoinees();
-    }
-    catch (Exception ex) {
-      // ignore
-    }
-    if (joinees != null) {
-      for (Joinable joinable : joinees) {
-        ((NetworkConnection) call.getMediaObject()).join(Direction.SEND, joinable);
-      }
-    }
+    call.getMediaService(true);
 
     SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
     reInvite.setAttribute(SIPCallDelegate.SIPCALL_HOLD_REQUEST, "true");
@@ -218,18 +206,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
 
   @Override
   protected void mute(SIPCallImpl call) throws MsControlException, IOException, SdpException {
-    Joinable[] joinees = null;
-    try {
-      joinees = ((NetworkConnection) call.getMediaObject()).getJoinees();
-    }
-    catch (Exception ex) {
-      // ignore
-    }
-    if (joinees != null) {
-      for (Joinable joinable : joinees) {
-        ((NetworkConnection) call.getMediaObject()).join(Direction.RECV, joinable);
-      }
-    }
+    call.getMediaService(true);
 
     SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
     reInvite.setAttribute(SIPCallDelegate.SIPCALL_MUTE_REQUEST, "true");
@@ -242,18 +219,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
     ((NetworkConnection) call.getMediaObject()).getSdpPortManager().processSdpOffer(
         createSendrecvSDP(call, call.getRemoteSdp()).toString().getBytes());
 
-    Joinable[] joinees = null;
-    try {
-      joinees = ((NetworkConnection) call.getMediaObject()).getJoinees();
-    }
-    catch (Exception ex) {
-      // ignore
-    }
-    if (joinees != null) {
-      for (Joinable joinable : joinees) {
-        ((NetworkConnection) call.getMediaObject()).join(Direction.DUPLEX, joinable);
-      }
-    }
+    call.getMediaService(true);
 
     SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
     reInvite.setAttribute(SIPCallDelegate.SIPCALL_UNHOLD_REQUEST, "true");
@@ -263,18 +229,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
 
   @Override
   protected void unmute(SIPCallImpl call) throws MsControlException, IOException, SdpException {
-    Joinable[] joinees = null;
-    try {
-      joinees = ((NetworkConnection) call.getMediaObject()).getJoinees();
-    }
-    catch (Exception ex) {
-      // ignore
-    }
-    if (joinees != null) {
-      for (Joinable joinable : joinees) {
-        ((NetworkConnection) call.getMediaObject()).join(Direction.DUPLEX, joinable);
-      }
-    }
+    call.getMediaService(true);
 
     SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
     reInvite.setAttribute(SIPCallDelegate.SIPCALL_UNMUTE_REQUEST, "true");

@@ -39,21 +39,35 @@ public class Utils {
         }
       }
     }
+
+    for (Class<?> clz = o.getClass(); clz != null && !clz.equals(Object.class); clz = clz.getSuperclass()) {
+      Type type = clz.getGenericSuperclass();
+      if (type instanceof ParameterizedType && ((ParameterizedType) type).getRawType() instanceof Class) {
+        Type argument = ((ParameterizedType) type).getActualTypeArguments()[0];
+        while (argument instanceof ParameterizedType) {
+          argument = ((ParameterizedType) argument).getRawType();
+        }
+        if (argument instanceof Class && Event.class.isAssignableFrom((Class) argument)) {
+          return (Class<?>) argument;
+        }
+      }
+    }
+    
     return null;
   }
-  
+
   public static Class<?> getEventType(Class<?> clazz) {
     do {
-      for(Class<?> intf : clazz.getInterfaces()) {
+      for (Class<?> intf : clazz.getInterfaces()) {
         if (Event.class.isAssignableFrom(intf)) {
           return intf;
         }
       }
       clazz = clazz.getSuperclass();
-    } while (clazz != null);
+    }
+    while (clazz != null);
     return null;
   }
-
 
   public static class DaemonThreadFactory implements ThreadFactory {
     private ThreadGroup group;

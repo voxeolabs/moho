@@ -58,7 +58,7 @@ public class SampleQueue implements Application {
       return;
     }
 
-    final BlockingQueueEventListener<InputCompleteEvent<Call>> listener = new BlockingQueueEventListener<InputCompleteEvent<Call>>();
+    final MyListener listener = new MyListener();
     final BlockingQueue<InputCompleteEvent<Call>> queue = listener.getQueue();
     call.addObserver(listener);
 
@@ -105,4 +105,7 @@ public class SampleQueue implements Application {
 
   }
 
+  class MyListener extends BlockingQueueEventListener<InputCompleteEvent<Call>> {
+
+  }
 }
