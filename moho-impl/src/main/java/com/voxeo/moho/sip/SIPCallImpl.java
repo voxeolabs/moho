@@ -458,23 +458,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           throw e;
         }
         finally {
-          if (event.getCause() != Cause.JOINED) {
-            CallCompleteEvent.Cause cause = null;
-            switch (event.getCause()) {
-              case BUSY:
-                cause = CallCompleteEvent.Cause.BUSY;
-              case REJECT:
-                cause = CallCompleteEvent.Cause.DECLINE;
-              case TIMEOUT:
-                cause = CallCompleteEvent.Cause.TIMEOUT;
-              case ERROR:
-                cause = CallCompleteEvent.Cause.ERROR;
-            }
-            if (other instanceof SIPCallImpl) {
-              ((SIPCallImpl) other).disconnect(true, cause, _exception, null);
-            }
-          }
-
           SIPCallImpl.this.dispatch(event);
 
           if (isTerminated()) {
