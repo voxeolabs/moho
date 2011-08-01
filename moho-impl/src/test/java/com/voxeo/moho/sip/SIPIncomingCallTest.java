@@ -46,6 +46,7 @@ import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.DisconnectEvent;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.fake.MockServletContext;
 import com.voxeo.moho.sip.fake.MockSipServletRequest;
@@ -776,6 +777,8 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(outgoingCall).addPeer(sipcall, JoinType.BRIDGE, Direction.DUPLEX);
+          
+          oneOf(outgoingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -927,6 +930,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(outgoingCall).addPeer(sipcall, JoinType.BRIDGE, Direction.DUPLEX);
+          oneOf(outgoingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -1082,6 +1086,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(incomingCall).addPeer(sipcall, JoinType.BRIDGE, Direction.DUPLEX);
+          oneOf(incomingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -1186,6 +1191,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(incomingCall).addPeer(sipcall, JoinType.BRIDGE, Direction.DUPLEX);
+          oneOf(incomingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -1387,6 +1393,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(outgoingCall).addPeer(sipcall, JoinType.DIRECT, Direction.DUPLEX);
+          oneOf(outgoingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -1594,6 +1601,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(outgoingCall).addPeer(sipcall, JoinType.DIRECT, Direction.DUPLEX);
+          oneOf(outgoingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -1772,6 +1780,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(outgoingCall).addPeer(sipcall, JoinType.DIRECT, Direction.DUPLEX);
+          oneOf(outgoingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -1992,6 +2001,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(outgoingCall).addPeer(sipcall, JoinType.DIRECT, Direction.DUPLEX);
+          oneOf(outgoingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -2199,6 +2209,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(incomingCall).addPeer(sipcall, JoinType.DIRECT, Direction.DUPLEX);
+          oneOf(incomingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -2414,6 +2425,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(incomingCall).linkCall(sipcall, JoinType.DIRECT, Direction.DUPLEX);
+          oneOf(incomingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -2676,6 +2688,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(incomingCall).addPeer(sipcall, JoinType.DIRECT, Direction.DUPLEX);
+          oneOf(incomingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -2914,6 +2927,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(incomingCall).addPeer(sipcall, JoinType.DIRECT, Direction.DUPLEX);
+          oneOf(incomingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -3255,6 +3269,7 @@ public class SIPIncomingCallTest extends TestCase {
       mockery.checking(new Expectations() {
         {
           oneOf(outgoingCall).addPeer(sipcall, JoinType.BRIDGE, Direction.DUPLEX);
+          oneOf(outgoingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }

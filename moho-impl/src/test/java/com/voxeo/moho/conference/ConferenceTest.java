@@ -48,6 +48,7 @@ import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.DisconnectEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.media.Input;
@@ -198,6 +199,8 @@ public class ConferenceTest extends TestCase {
           oneOf(call).unjoin(mohoConference);
 
           oneOf(mediaService).output(with(same(exitAnnouncement)));
+
+          oneOf(call).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
