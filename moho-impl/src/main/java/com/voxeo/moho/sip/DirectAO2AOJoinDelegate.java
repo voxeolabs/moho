@@ -19,8 +19,8 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-import com.voxeo.moho.RejectException;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.RejectException;
 
 public class DirectAO2AOJoinDelegate extends JoinDelegate {
 
@@ -40,8 +40,6 @@ public class DirectAO2AOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws MsControlException, IOException {
-    doDisengage(_call1, JoinType.DIRECT);
-    doDisengage(_call2, JoinType.DIRECT);
     _call2.call(null);
   }
 
@@ -69,14 +67,15 @@ public class DirectAO2AOJoinDelegate extends JoinDelegate {
           }
           ack1.send();
           ack2.send();
+          doDisengage(_call1, JoinType.DIRECT);
+          doDisengage(_call2, JoinType.DIRECT);
           _call1.linkCall(_call2, JoinType.DIRECT, _direction);
           done();
         }
       }
       catch (final Exception e) {
         setError(e);
-        _call1.fail(e);
-        _call2.fail(e);
+        done();
         throw e;
       }
     }

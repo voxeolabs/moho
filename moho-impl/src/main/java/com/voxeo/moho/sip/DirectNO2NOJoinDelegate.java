@@ -22,10 +22,6 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.BusyException;
-import com.voxeo.moho.RedirectException;
-import com.voxeo.moho.RejectException;
-import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.sip.SIPCall.State;
 
@@ -87,21 +83,9 @@ public class DirectNO2NOJoinDelegate extends JoinDelegate {
           }
         }
         else if (SIPHelper.isErrorResponse(res)) {
-          Exception e = null;
-          if (SIPHelper.isBusy(res)) {
-            e = new BusyException();
-          }
-          else if (SIPHelper.isRedirect(res)) {
-            e = new RedirectException(res.getHeaders("Contact"));
-          }
-          else if (SIPHelper.isTimeout(res)) {
-            e = new TimeoutException();
-          }
-          else {
-            e = new RejectException();
-          }
-          setException(e);
-          done();
+          setException(getExceptionByResponse(res));
+          _call1.disconnect(true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res), null);
+          _call2.disconnect(true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res), null);
         }
       }
       else if (_call1.equals(call)) {
@@ -150,8 +134,9 @@ public class DirectNO2NOJoinDelegate extends JoinDelegate {
           done();
         }
         else if (SIPHelper.isErrorResponse(res)) {
-          setException(new RejectException());
-          done();
+          setException(getExceptionByResponse(res));
+          _call1.disconnect(true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res), null);
+          _call2.disconnect(true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res), null);
         }
       }
     }

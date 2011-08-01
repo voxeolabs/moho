@@ -109,6 +109,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected SIPCallImpl _bridgeJoiningPeer;
 
+  protected CallCompleteEvent.Cause _cause;
+
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
     _caller = new SIPEndpointImpl(context, req.getFrom());
@@ -379,6 +381,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       p = other.call(getAddress(), headers);
     }
     catch (final Exception e) {
+      LOG.error(e);
       return new JointImpl(_context.getExecutor(), new JointImpl.DummyJoinWorker(SIPCallImpl.this, p, e));
     }
     return join(p, type, direction);
@@ -403,42 +406,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           throw e;
         }
         finally {
-          if (event.getCause() != Cause.JOINED) {
-            CallCompleteEvent.Cause cause = null;
-
-            switch (event.getCause()) {
-              case ERROR:
-                cause = CallCompleteEvent.Cause.ERROR;
-                break;
-              case BUSY:
-                cause = CallCompleteEvent.Cause.BUSY;
-                break;
-              case CANCELED:
-                cause = CallCompleteEvent.Cause.CANCEL;
-                break;
-              case DISCONNECTED:
-                cause = CallCompleteEvent.Cause.DISCONNECT;
-                break;
-              case REJECT:
-                cause = CallCompleteEvent.Cause.DECLINE;
-                break;
-              case TIMEOUT:
-                cause = CallCompleteEvent.Cause.TIMEOUT;
-                break;
-              case JOINED:
-              case REDIRECT:
-                // Ignore
-                break;
-              default:
-                throw new UnsupportedOperationException("Completion cause is not supported yet: " + event.getCause());
-            }
-            SIPCallImpl.this.disconnect(true, cause, _exception, null);
-          }
           SIPCallImpl.this.dispatch(event);
 
           if (isTerminated()) {
-            SIPCallImpl.this.dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR,
-                _exception));
+            SIPCallImpl.this.dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, _cause, _exception));
           }
         }
         return event;
@@ -692,12 +663,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
       return;
     }
-    if (_service != null) {
-      ((GenericMediaService) _service)
-          .release((cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) ? true
-              : false);
-      _service = null;
-    }
+
     final SIPCall.State old = getSIPCallState();
     if (failed) {
       this.setSIPCallState(SIPCall.State.FAILED);
@@ -770,8 +736,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         LOG.debug("terminating call. Notifying joinDelegate conditaion. callID:"
             + (getSipSession() != null ? getSipSession().getCallId() : ""));
       }
+      _cause = cause;
       _joinDelegate.getCondition().notifyAll();
-
     }
     else {
       if (LOG.isDebugEnabled()) {

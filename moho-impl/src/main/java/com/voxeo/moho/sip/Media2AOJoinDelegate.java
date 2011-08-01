@@ -21,7 +21,6 @@ import javax.servlet.sip.SipServletResponse;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.RejectException;
 
 public class Media2AOJoinDelegate extends JoinDelegate {
 
@@ -35,7 +34,6 @@ public class Media2AOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws MediaException {
-    doDisengage(_call, JoinType.BRIDGE);
     _call.processSDPOffer(null);
   }
 
@@ -55,30 +53,30 @@ public class Media2AOJoinDelegate extends JoinDelegate {
           }
           catch (final IOException e) {
             setError(e);
-            _call.fail(e);
-            throw new RuntimeException(e);
+            done();
           }
         }
       }
       Exception ex = new NegotiateException(event);
       setError(ex);
-      _call.fail(ex);
+      done();
     }
     else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
       if (event.isSuccessful()) {
         if (processedAnswer) {
+          doDisengage(_call, JoinType.BRIDGE);
           done();
           return;
         }
       }
       Exception ex = new NegotiateException(event);
       setError(ex);
-      _call.fail(ex);
+      done();
     }
 
     Exception ex = new NegotiateException(event);
     setError(ex);
-    _call.fail(ex);
+    done();
   }
 
   @Override
@@ -92,14 +90,15 @@ public class Media2AOJoinDelegate extends JoinDelegate {
           _call.processSDPAnswer(res);
         }
         else if (SIPHelper.isErrorResponse(res)) {
-          setException(new RejectException());
+          Exception e = getExceptionByResponse(res);
+          setException(e);
           done();
         }
       }
     }
     catch (final Exception e) {
       setError(e);
-      _call.fail(e);
+      done();
       throw e;
     }
   }

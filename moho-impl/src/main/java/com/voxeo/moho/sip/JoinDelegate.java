@@ -17,8 +17,13 @@ import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Participant;
+import com.voxeo.moho.RedirectException;
+import com.voxeo.moho.RejectException;
+import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.CallCompleteEvent;
 
 public abstract class JoinDelegate {
 
@@ -94,5 +99,41 @@ public abstract class JoinDelegate {
       }
       call.destroyNetworkConnection();
     }
+  }
+
+  protected Exception getExceptionByResponse(SipServletResponse res) {
+    Exception e = null;
+    if (SIPHelper.isBusy(res)) {
+      e = new BusyException();
+    }
+    else if (SIPHelper.isRedirect(res)) {
+      e = new RedirectException(res.getHeaders("Contact"));
+    }
+    else if (SIPHelper.isTimeout(res)) {
+      e = new TimeoutException();
+    }
+    else {
+      e = new RejectException();
+    }
+
+    return e;
+  }
+
+  protected CallCompleteEvent.Cause getCallCompleteCauseByResponse(SipServletResponse res) {
+    CallCompleteEvent.Cause cause = null;
+    if (SIPHelper.isBusy(res)) {
+      cause = CallCompleteEvent.Cause.BUSY;
+    }
+    else if (SIPHelper.isRedirect(res)) {
+      cause = CallCompleteEvent.Cause.REDIRECT;
+    }
+    else if (SIPHelper.isTimeout(res)) {
+      cause = CallCompleteEvent.Cause.TIMEOUT;
+    }
+    else {
+      cause = CallCompleteEvent.Cause.ERROR;
+    }
+
+    return cause;
   }
 }

@@ -19,10 +19,6 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-import com.voxeo.moho.BusyException;
-import com.voxeo.moho.RedirectException;
-import com.voxeo.moho.RejectException;
-import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.sip.SIPCall.State;
 
@@ -60,21 +56,9 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           newRes.send();
         }
         else if (SIPHelper.isErrorResponse(res)) {
-          Exception e = null;
-          if (SIPHelper.isBusy(res)) {
-            e = new BusyException();
-          }
-          else if (SIPHelper.isRedirect(res)) {
-            e = new RedirectException(res.getHeaders("Contact"));
-          }
-          else if (SIPHelper.isTimeout(res)) {
-            e = new TimeoutException();
-          }
-          else {
-            e = new RejectException();
-          }
-          setException(e);
-          done();
+          setException(getExceptionByResponse(res));
+          _call1.disconnect(true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res), null);
+          _call2.disconnect(true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res), null);
         }
       }
     }

@@ -18,7 +18,6 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
-import com.voxeo.moho.RejectException;
 import com.voxeo.moho.Participant.JoinType;
 
 public class DirectAI2AIJoinDelegate extends JoinDelegate {
@@ -37,8 +36,6 @@ public class DirectAI2AIJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws IOException {
-    doDisengage(_call1, JoinType.DIRECT);
-    doDisengage(_call2, JoinType.DIRECT);
     final SipServletRequest req = _call2.getSipSession().createRequest("INVITE");
     if (_call1.getRemoteSdp() != null) {
       req.setContent(_call1.getRemoteSdp(), "application/sdp");
@@ -50,7 +47,7 @@ public class DirectAI2AIJoinDelegate extends JoinDelegate {
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {
     if (SIPHelper.isErrorResponse(res)) {
-      setException(new RejectException());
+      setException(getExceptionByResponse(res));
       done();
     }
     else {
@@ -64,14 +61,15 @@ public class DirectAI2AIJoinDelegate extends JoinDelegate {
           req.send();
         }
         else if (_call1.equals(call)) {
+          doDisengage(_call1, JoinType.DIRECT);
+          doDisengage(_call2, JoinType.DIRECT);
           _call1.linkCall(_call2, JoinType.DIRECT, _direction);
           done();
         }
       }
       catch (final Exception e) {
         setError(e);
-        _call1.fail(e);
-        _call2.fail(e);
+        done();
         throw e;
       }
     }

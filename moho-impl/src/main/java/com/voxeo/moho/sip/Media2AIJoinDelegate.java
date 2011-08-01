@@ -20,12 +20,13 @@ import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.NegotiateException;
-import com.voxeo.moho.RejectException;
 import com.voxeo.moho.Participant.JoinType;
 
 public class Media2AIJoinDelegate extends JoinDelegate {
 
   protected SIPIncomingCall _call;
+
+  protected boolean processedAnswer = false;
 
   protected Media2AIJoinDelegate(final SIPIncomingCall call) {
     _call = call;
@@ -33,7 +34,6 @@ public class Media2AIJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws MediaException {
-    doDisengage(_call, JoinType.BRIDGE);
     _call.processSDPOffer(null);
   }
 
@@ -53,14 +53,25 @@ public class Media2AIJoinDelegate extends JoinDelegate {
           }
           catch (final IOException e) {
             setError(e);
-            _call.fail(e);
-            throw new RuntimeException(e);
+            done();
           }
         }
       }
       Exception ex = new NegotiateException(event);
       setError(ex);
-      _call.fail(ex);
+      done();
+    }
+    else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
+      if (event.isSuccessful()) {
+        if (processedAnswer) {
+          doDisengage(_call, JoinType.BRIDGE);
+          done();
+          return;
+        }
+      }
+      Exception ex = new NegotiateException(event);
+      setError(ex);
+      done();
     }
   }
 
@@ -71,18 +82,19 @@ public class Media2AIJoinDelegate extends JoinDelegate {
       if (isWaiting()) {
         if (SIPHelper.isSuccessResponse(res)) {
           res.createAck().send();
+          processedAnswer = true;
           _call.processSDPAnswer(res);
-          done();
         }
         else if (SIPHelper.isErrorResponse(res)) {
-          setException(new RejectException());
+          Exception e = getExceptionByResponse(res);
+          setException(e);
           done();
         }
       }
     }
     catch (final Exception e) {
       setError(e);
-      _call.fail(e);
+      done();
       throw e;
     }
   }

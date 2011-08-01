@@ -16,13 +16,11 @@ import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.join.Joinable.Direction;
-import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.RejectException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.sip.SIPCall.State;
 
@@ -48,7 +46,6 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws MsControlException, IOException {
-    doDisengage(_call2, JoinType.DIRECT);
     _call1.call(null, _call2.getSipSession().getApplicationSession());
   }
 
@@ -61,27 +58,16 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
           _call1.setSIPCallState(SIPCall.State.ANSWERING);
 
           if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
-            try {
-              if (SIPHelper.getRawContentWOException(res) != null) {
-                _call2.call(res.getRawContent());
-                _reInvited = true;
-              }
-
-              try {
-                res.createPrack().send();
-              }
-              catch (Rel100Exception ex) {
-                LOG.warn(ex.getMessage());
-              }
-              catch (IllegalStateException ex) {
-                LOG.warn(ex.getMessage());
-              }
+            if (SIPHelper.getRawContentWOException(res) != null) {
+              _call2.call(res.getRawContent());
+              _reInvited = true;
             }
-            catch (Exception e) {
-              setError(e);
-              _call1.fail(e);
-              _call2.fail(e);
-              throw e;
+
+            try {
+              res.createPrack().send();
+            }
+            catch (Exception ex) {
+              LOG.warn(ex.getMessage());
             }
           }
         }
@@ -92,8 +78,8 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
           }
         }
         else if (SIPHelper.isErrorResponse(res)) {
-          setException(new RejectException());
-          done();
+          setException(getExceptionByResponse(res));
+          _call1.disconnect(true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res), null);
         }
       }
       else if (_call2.equals(call)) {
@@ -109,19 +95,19 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
           ack1.send();
           ack2.send();
           _call1.setSIPCallState(State.ANSWERED);
+          doDisengage(_call2, JoinType.DIRECT);
           _call1.linkCall(_call2, JoinType.DIRECT, _direction);
           done();
         }
         else if (SIPHelper.isErrorResponse(res)) {
-          setException(new RejectException());
-          done();
+          setException(getExceptionByResponse(res));
+          _call1.disconnect(true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res), null);
         }
       }
     }
     catch (final Exception e) {
       setError(e);
       _call1.fail(e);
-      _call2.fail(e);
       throw e;
     }
   }

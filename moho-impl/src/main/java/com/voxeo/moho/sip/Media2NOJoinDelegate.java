@@ -19,12 +19,8 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.BusyException;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.NegotiateException;
-import com.voxeo.moho.RedirectException;
-import com.voxeo.moho.RejectException;
-import com.voxeo.moho.TimeoutException;
 
 public class Media2NOJoinDelegate extends JoinDelegate {
 
@@ -115,20 +111,10 @@ public class Media2NOJoinDelegate extends JoinDelegate {
         }
       }
       else if (SIPHelper.isErrorResponse(res)) {
-        Exception e = null;
-        if (SIPHelper.isBusy(res)) {
-          e = new BusyException();
-        }
-        else if (SIPHelper.isRedirect(res)) {
-          e = new RedirectException(res.getHeaders("Contact"));
-        }
-        else if (SIPHelper.isTimeout(res)) {
-          e = new TimeoutException();
-        }
-        else {
-          e = new RejectException();
-        }
+        Exception e = getExceptionByResponse(res);
         setException(e);
+
+        call.disconnect(true, getCallCompleteCauseByResponse(res), e, null);
         done();
       }
     }

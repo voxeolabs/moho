@@ -24,6 +24,8 @@ public class Media2NIJoinDelegate extends JoinDelegate {
 
   protected SIPIncomingCall _call;
 
+  protected boolean waitAnswerProcessed = false;
+
   protected Media2NIJoinDelegate(final SIPIncomingCall call) {
     _call = call;
   }
@@ -39,6 +41,10 @@ public class Media2NIJoinDelegate extends JoinDelegate {
     if (event.getEventType().equals(SdpPortManagerEvent.OFFER_GENERATED)
         || event.getEventType().equals(SdpPortManagerEvent.ANSWER_GENERATED)) {
       if (event.isSuccessful()) {
+        if (event.getEventType().equals(SdpPortManagerEvent.OFFER_GENERATED)) {
+          waitAnswerProcessed = true;
+        }
+
         final byte[] sdp = event.getMediaServerSdp();
         _call.setLocalSDP(sdp);
         final SipServletResponse res = _call.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
@@ -59,6 +65,17 @@ public class Media2NIJoinDelegate extends JoinDelegate {
         _call.fail(ex);
       }
     }
+    else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
+      if (event.isSuccessful()) {
+        if (waitAnswerProcessed) {
+          done();
+          return;
+        }
+      }
+      Exception ex = new NegotiateException(event);
+      setError(ex);
+      _call.fail(ex);
+    }
   }
 
   @Override
@@ -66,7 +83,9 @@ public class Media2NIJoinDelegate extends JoinDelegate {
     try {
       _call.setSIPCallState(SIPCall.State.ANSWERED);
       _call.processSDPAnswer(req);
-      done();
+      if (!waitAnswerProcessed) {
+        done();
+      }
     }
     catch (final Exception e) {
       setError(e);

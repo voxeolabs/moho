@@ -36,12 +36,7 @@ public class BridgeJoinDelegate extends JoinDelegate {
   protected void doJoin() throws Exception {
     _call1.setBridgeJoiningPeer(_call2);
     _call2.setBridgeJoiningPeer(_call1);
-    if (_call1.isAnswered()) {
-      doDisengage(_call1, JoinType.BRIDGE);
-    }
-    if (_call2.isAnswered()) {
-      doDisengage(_call2, JoinType.BRIDGE);
-    }
+
     if (_call1.getMediaObject() == null) {
       _call1.joinWithoutCheckOperation(Direction.DUPLEX);
     }
@@ -74,6 +69,7 @@ public class BridgeJoinDelegate extends JoinDelegate {
         throw new IllegalStateException(call + " is no answered.");
       }
     }
+
     _call1.linkCall(_call2, JoinType.BRIDGE, _direction);
 
     _call1.setBridgeJoiningPeer(null);

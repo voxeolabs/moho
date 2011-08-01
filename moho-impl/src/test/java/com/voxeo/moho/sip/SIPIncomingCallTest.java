@@ -447,6 +447,9 @@ public class SIPIncomingCallTest extends TestCase {
     // mock jsr309 object
     final SdpPortManagerEvent sdpPortManagerEvent = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
         + "sdpPortManagerEvent");
+    
+    final SdpPortManagerEvent sdpPortManagerEventAnswerProcessed = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
+        + "sdpPortManagerEventAnswerProcessed");
 
     // invoke join()
     try {
@@ -513,7 +516,14 @@ public class SIPIncomingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
+          oneOf(sdpPortManagerEventAnswerProcessed).isSuccessful();
+          will(returnValue(true));
+
+          allowing(sdpPortManagerEventAnswerProcessed).getEventType();
+          will(returnValue(SdpPortManagerEvent.ANSWER_PROCESSED));
+          
           oneOf(sdpManager).processSdpAnswer(ackSDP);
+          will(new MockMediaServerSdpPortManagerEventAction(sdpPortManagerEventAnswerProcessed));
         }
       });
     }
@@ -579,6 +589,10 @@ public class SIPIncomingCallTest extends TestCase {
     // mock jsr309 object
     final SdpPortManagerEvent sdpPortManagerEvent = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
         + "sdpPortManagerEvent");
+    
+ // mock jsr309 object
+    final SdpPortManagerEvent sdpPortManagerEventAnswerProcessed = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
+        + "sdpPortManagerEventAnswerProcessed");
 
     // invoke join().
     try {
@@ -647,8 +661,16 @@ public class SIPIncomingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(sdpManager).processSdpAnswer(reinviteRespSDP);
+          
+          oneOf(sdpPortManagerEventAnswerProcessed).isSuccessful();
+          will(returnValue(true));
 
+          allowing(sdpPortManagerEventAnswerProcessed).getEventType();
+          will(returnValue(SdpPortManagerEvent.ANSWER_PROCESSED));
+          
+          oneOf(sdpManager).processSdpAnswer(reinviteRespSDP);
+          will(new MockMediaServerSdpPortManagerEventAction(sdpPortManagerEventAnswerProcessed));
+          
           oneOf(reInviteResp).createAck();
           will(returnValue(reInviteAck));
 

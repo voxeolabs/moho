@@ -22,10 +22,6 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.BusyException;
-import com.voxeo.moho.RedirectException;
-import com.voxeo.moho.RejectException;
-import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.sip.SIPCall.State;
 
@@ -51,7 +47,6 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws MsControlException, IOException {
-    doDisengage(_call1, JoinType.DIRECT);
     _call2.call(null, _call1.getSipSession().getApplicationSession());
   }
 
@@ -59,20 +54,8 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {
     if (SIPHelper.isErrorResponse(res)) {
-      Exception e = null;
-      if (SIPHelper.isBusy(res)) {
-        e = new BusyException();
-      }
-      else if (SIPHelper.isRedirect(res)) {
-        e = new RedirectException(res.getHeaders("Contact"));
-      }
-      else if (SIPHelper.isTimeout(res)) {
-        e = new TimeoutException();
-      }
-      else {
-        e = new RejectException();
-      }
-      setException(e);
+      setException(getExceptionByResponse(res));
+      _call2.disconnect(true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res), null);
       done();
     }
     else if (SIPHelper.isProvisionalResponse(res) && _call2.equals(call)) {
@@ -97,8 +80,8 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
         }
         catch (Exception e) {
           setError(e);
-          _call1.fail(e);
           _call2.fail(e);
+          done();
           throw e;
         }
       }
@@ -123,14 +106,15 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
           _call2.setSIPCallState(State.ANSWERED);
           ack1.send();
           ack2.send();
+          doDisengage(_call1, JoinType.DIRECT);
           _call1.linkCall(_call2, JoinType.DIRECT, _direction);
           done();
         }
       }
       catch (final Exception e) {
         setError(e);
-        _call1.fail(e);
         _call2.fail(e);
+        done();
         throw e;
       }
     }
