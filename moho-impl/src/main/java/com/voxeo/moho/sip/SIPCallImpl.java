@@ -644,6 +644,7 @@ public abstract class SIPCallImpl extends SIPCall implements MediaEventListener<
           }
 
           SIPCallImpl.this.dispatch(event);
+          other.dispatch(event);
 
           if (isTerminated()) {
             SIPCallImpl.this

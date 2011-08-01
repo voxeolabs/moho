@@ -89,11 +89,13 @@ public class JointImpl implements Joint {
       if (_e == null) {
         final JoinCompleteEvent event = new JoinCompleteEvent(_joiner, _joinee, Cause.JOINED);
         _joiner.dispatch(event);
+        _joinee.dispatch(event);
         return event;
       }
       else {
         final JoinCompleteEvent event = new JoinCompleteEvent(_joiner, _joinee, Cause.ERROR, _e);
         _joiner.dispatch(event);
+        _joinee.dispatch(event);
         throw _e;
       }
     }
