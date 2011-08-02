@@ -93,13 +93,15 @@ public class JointImpl implements Joint {
       if (_e == null) {
         final JoinCompleteEvent event = new MohoJoinCompleteEvent(_joiner, _joinee, Cause.JOINED);
         _joiner.dispatch(event);
-        _joinee.dispatch(event);
+        final JoinCompleteEvent event2 = new MohoJoinCompleteEvent(_joinee, _joiner, Cause.JOINED);
+        _joinee.dispatch(event2);
         return event;
       }
       else {
         final JoinCompleteEvent event = new MohoJoinCompleteEvent(_joiner, _joinee, Cause.ERROR, _e);
         _joiner.dispatch(event);
-        _joinee.dispatch(event);
+        final JoinCompleteEvent event2 = new MohoJoinCompleteEvent(_joinee, _joiner, Cause.ERROR, _e);
+        _joinee.dispatch(event2);
         throw _e;
       }
     }

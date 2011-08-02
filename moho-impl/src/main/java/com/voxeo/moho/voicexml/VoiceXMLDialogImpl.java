@@ -39,6 +39,7 @@ import com.voxeo.moho.JoineeData;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MediaException;
+import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.event.DispatchableEventSource;
@@ -215,7 +216,8 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
           }
           finally {
             VoiceXMLDialogImpl.this.dispatch(event);
-            other.dispatch(event);
+            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(VoiceXMLDialogImpl.this, other, event.getCause());
+            other.dispatch(event2);
           }
           return event;
         }

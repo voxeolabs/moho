@@ -289,7 +289,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
           }
           finally {
             MixerImpl.this.dispatch(event);
-            other.dispatch(event);
+            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, MixerImpl.this, event.getCause());
+            other.dispatch(event2);
           }
           return event;
         }
@@ -436,7 +437,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
           }
           finally {
             MixerImpl.this.dispatch(event);
-            other.dispatch(event);
+            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, MixerImpl.this, event.getCause());
+            other.dispatch(event2);
           }
           return event;
         }
