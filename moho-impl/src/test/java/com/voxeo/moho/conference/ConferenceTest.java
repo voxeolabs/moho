@@ -49,6 +49,7 @@ import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.HangupEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Prompt;
@@ -191,6 +192,8 @@ public class ConferenceTest extends TestCase {
           oneOf(call).unjoin(mohoConference);
 
           oneOf(call).output(with(same(exitAnnouncement)));
+          
+          oneOf(call).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }

@@ -459,7 +459,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
         finally {
           SIPCallImpl.this.dispatch(event);
-
+          other.dispatch(event);
           if (isTerminated()) {
             SIPCallImpl.this.dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, CallCompleteEvent.Cause.ERROR,
                 _exception));

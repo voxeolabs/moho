@@ -289,6 +289,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
           }
           finally {
             MixerImpl.this.dispatch(event);
+            other.dispatch(event);
           }
           return event;
         }
@@ -435,6 +436,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
           }
           finally {
             MixerImpl.this.dispatch(event);
+            other.dispatch(event);
           }
           return event;
         }

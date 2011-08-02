@@ -215,6 +215,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
           }
           finally {
             VoiceXMLDialogImpl.this.dispatch(event);
+            other.dispatch(event);
           }
           return event;
         }
