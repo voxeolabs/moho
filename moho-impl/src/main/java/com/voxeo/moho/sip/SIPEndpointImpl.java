@@ -26,8 +26,8 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription;
-import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.Subscription.Type;
+import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPEndpointImpl implements SIPEndpoint {
@@ -83,12 +83,14 @@ public class SIPEndpointImpl implements SIPEndpoint {
     throw new IllegalArgumentException(_address.toString());
   }
 
-//  public Call call(final Endpoint caller, final Map<String, String> headers, final EventListener<?>... listeners)
-//      throws SignalException {
-//    final SIPOutgoingCall retval = new SIPOutgoingCall(_ctx, ((SIPEndpoint) caller), this, headers);
-//    retval.addListeners(listeners);
-//    return retval;
-//  }
+  // public Call call(final Endpoint caller, final Map<String, String> headers,
+  // final EventListener<?>... listeners)
+  // throws SignalException {
+  // final SIPOutgoingCall retval = new SIPOutgoingCall(_ctx, ((SIPEndpoint)
+  // caller), this, headers);
+  // retval.addListeners(listeners);
+  // return retval;
+  // }
 
   @Override
   public Call call(final Endpoint caller, final Map<String, String> headers) {
@@ -98,13 +100,15 @@ public class SIPEndpointImpl implements SIPEndpoint {
     return new SIPOutgoingCall(_ctx, ((SIPEndpoint) caller), this, headers);
   }
 
-//  public Subscription subscribe(final Endpoint caller, final Type type, final int expiration,
-//      final EventListener<?>... listeners) throws SignalException {
-//    final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(_ctx, type, expiration, caller, this);
-//    retval.subscribe();
-//    retval.addListeners(listeners);
-//    return retval;
-//  }
+  // public Subscription subscribe(final Endpoint caller, final Type type, final
+  // int expiration,
+  // final EventListener<?>... listeners) throws SignalException {
+  // final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(_ctx, type,
+  // expiration, caller, this);
+  // retval.subscribe();
+  // retval.addListeners(listeners);
+  // return retval;
+  // }
 
   @Override
   public Subscription subscribe(final Endpoint caller, final Type type, final int expiration) {
@@ -155,5 +159,25 @@ public class SIPEndpointImpl implements SIPEndpoint {
   @Override
   public boolean isWildCard() {
     return _address.isWildcard();
+  }
+
+  @Override
+  public Call createCall(Endpoint caller) {
+    return call(caller);
+  }
+
+  @Override
+  public Call createCall(Endpoint caller, Map<String, String> headers) {
+    return call(caller, headers);
+  }
+
+  @Override
+  public Call createCall(String caller) {
+    return call(caller);
+  }
+
+  @Override
+  public Call createCall(String caller, Map<String, String> headers) {
+    return call(caller, headers);
   }
 }
