@@ -19,10 +19,10 @@ import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Participant;
+import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.RedirectException;
 import com.voxeo.moho.RejectException;
 import com.voxeo.moho.TimeoutException;
-import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.CallCompleteEvent;
 
 public abstract class JoinDelegate {
@@ -112,6 +112,9 @@ public abstract class JoinDelegate {
     else if (SIPHelper.isTimeout(res)) {
       e = new TimeoutException();
     }
+    else if (SIPHelper.isDecline(res)) {
+      e = new RejectException();
+    }
     else {
       e = new RejectException();
     }
@@ -129,6 +132,9 @@ public abstract class JoinDelegate {
     }
     else if (SIPHelper.isTimeout(res)) {
       cause = CallCompleteEvent.Cause.TIMEOUT;
+    }
+    else if (SIPHelper.isDecline(res)) {
+      cause = CallCompleteEvent.Cause.DECLINE;
     }
     else {
       cause = CallCompleteEvent.Cause.ERROR;

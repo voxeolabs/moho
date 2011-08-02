@@ -39,7 +39,8 @@ public class SIPHelper {
 
   public static SipServletRequest createSipInitnalRequest(final SipFactory factory, final String method,
       final Address from, final Address to, final Map<String, String> headers, SipApplicationSession applicationSession) {
-    final SipServletRequest req = factory.createRequest(applicationSession != null? applicationSession:factory.createApplicationSession(), method, from, to);
+    final SipServletRequest req = factory.createRequest(
+        applicationSession != null ? applicationSession : factory.createApplicationSession(), method, from, to);
     SIPHelper.addHeaders(req, headers);
     return req;
   }
@@ -89,6 +90,10 @@ public class SIPHelper {
   public static boolean isBusy(final SipServletResponse res) {
     return res.getStatus() == SipServletResponse.SC_BUSY_HERE
         || res.getStatus() == SipServletResponse.SC_BUSY_EVERYWHERE;
+  }
+
+  public static boolean isDecline(final SipServletResponse res) {
+    return res.getStatus() == SipServletResponse.SC_DECLINE;
   }
 
   public static boolean isTimeout(final SipServletResponse res) {
