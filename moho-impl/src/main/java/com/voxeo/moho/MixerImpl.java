@@ -188,7 +188,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         ((ParticipantContainer) participant).removeParticipant(this);
 
         MohoUnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(participant, MixerImpl.this,
-            UnjoinCompleteEvent.Cause.DISCONNECT);
+            UnjoinCompleteEvent.Cause.DISCONNECT, false);
         participant.dispatch(event);
       }
     }
@@ -295,16 +295,16 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
                 ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, null);
               }
 
-              event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.JOINED);
+              event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.JOINED, true);
             }
           }
           catch (final Exception e) {
-            event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.ERROR, e);
+            event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.ERROR, e, true);
             throw new MediaException(e);
           }
           finally {
             MixerImpl.this.dispatch(event);
-            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, MixerImpl.this, event.getCause());
+            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, MixerImpl.this, event.getCause(), false);
             other.dispatch(event2);
           }
           return event;
@@ -322,7 +322,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       throws Exception {
     MohoUnjoinCompleteEvent event = null;
     if (!_joinees.contains(p)) {
-      event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED);
+      event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED, true);
       MixerImpl.this.dispatch(event);
       return event;
     }
@@ -343,16 +343,16 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         ((InternalParticipant) p).unjoin(this, false);
       }
 
-      event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN);
+      event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
     }
     catch (final Exception e) {
       LOG.error("", e);
-      event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, e);
+      event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, e, true);
       throw e;
     }
     finally {
       if (event == null) {
-        event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN);
+        event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, true);
       }
       MixerImpl.this.dispatch(event);
     }
@@ -479,16 +479,16 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
                 ((ParticipantContainer) other).addParticipant(MixerImpl.this, type, direction, null);
               }
 
-              event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.JOINED);
+              event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.JOINED, true);
             }
           }
           catch (final Exception e) {
-            event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.ERROR, e);
+            event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.ERROR, e, true);
             throw new MediaException(e);
           }
           finally {
             MixerImpl.this.dispatch(event);
-            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, MixerImpl.this, event.getCause());
+            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, MixerImpl.this, event.getCause(), false);
             other.dispatch(event2);
           }
           return event;

@@ -93,16 +93,16 @@ public class UnjointImpl implements Unjoint {
 
     public UnjoinCompleteEvent call() throws Exception {
       if (_e == null) {
-        final UnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(_joiner, _joinee, _cause);
+        final UnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(_joiner, _joinee, _cause, true);
         _joiner.dispatch(event);
-        final UnjoinCompleteEvent event2 = new MohoUnjoinCompleteEvent(_joinee, _joiner, _cause);
+        final UnjoinCompleteEvent event2 = new MohoUnjoinCompleteEvent(_joinee, _joiner, _cause, false);
         _joinee.dispatch(event2);
         return event;
       }
       else {
-        final UnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(_joiner, _joinee, _cause, _e);
+        final UnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(_joiner, _joinee, _cause, _e, true);
         _joiner.dispatch(event);
-        final UnjoinCompleteEvent event2 = new MohoUnjoinCompleteEvent(_joinee, _joiner, _cause, _e);
+        final UnjoinCompleteEvent event2 = new MohoUnjoinCompleteEvent(_joinee, _joiner, _cause, _e, false);
         _joinee.dispatch(event2);
         throw _e;
       }

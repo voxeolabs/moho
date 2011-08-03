@@ -38,4 +38,6 @@ public interface JoinCompleteEvent extends Event<EventSource> {
 
   Exception getException();
 
+  boolean isInitiator();
+
 }

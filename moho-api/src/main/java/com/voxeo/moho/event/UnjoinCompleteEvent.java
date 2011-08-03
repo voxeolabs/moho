@@ -29,4 +29,7 @@ public interface UnjoinCompleteEvent extends Event<EventSource> {
   Cause getCause();
 
   Exception getException();
+
+  boolean isInitiator();
+  
 }

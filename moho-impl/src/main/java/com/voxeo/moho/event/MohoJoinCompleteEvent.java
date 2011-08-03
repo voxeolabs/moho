@@ -15,23 +15,26 @@ import com.voxeo.moho.Participant;
 
 public class MohoJoinCompleteEvent extends MohoEvent<EventSource> implements JoinCompleteEvent {
 
+  protected boolean _initiator;
   protected Participant _participant;
 
   protected Cause _cause;
 
   protected Exception _exception;
 
-  public MohoJoinCompleteEvent(final EventSource source, final Participant p, final Cause cause) {
+  public MohoJoinCompleteEvent(final EventSource source, final Participant p, final Cause cause, boolean initiator) {
     super(source);
     _participant = p;
     _cause = cause;
+    _initiator = initiator;
   }
 
-  public MohoJoinCompleteEvent(final EventSource source, final Participant p, final Cause cause, final Exception e) {
+  public MohoJoinCompleteEvent(final EventSource source, final Participant p, final Cause cause, final Exception e, boolean initiator) {
     super(source);
     _participant = p;
     _cause = cause;
     _exception = e;
+    _initiator = initiator;
   }
 
   @Override
@@ -49,4 +52,9 @@ public class MohoJoinCompleteEvent extends MohoEvent<EventSource> implements Joi
     return _exception;
   }
 
+  @Override
+  public boolean isInitiator() {
+      return _initiator;
+  }
+  
 }

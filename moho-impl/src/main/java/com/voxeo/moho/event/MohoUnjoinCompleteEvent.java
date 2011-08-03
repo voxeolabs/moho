@@ -15,23 +15,26 @@ import com.voxeo.moho.Participant;
 
 public class MohoUnjoinCompleteEvent extends MohoEvent<EventSource> implements UnjoinCompleteEvent {
 
+  protected boolean _initiator;
   protected Participant _participant;
 
   protected Cause _cause;
 
   protected Exception _exception;
 
-  public MohoUnjoinCompleteEvent(final EventSource source, final Participant p, final Cause cause) {
+  public MohoUnjoinCompleteEvent(final EventSource source, final Participant p, final Cause cause, boolean initiator) {
     super(source);
     _participant = p;
     _cause = cause;
+    _initiator = initiator;
   }
 
-  public MohoUnjoinCompleteEvent(final EventSource source, final Participant p, final Cause cause, final Exception e) {
+  public MohoUnjoinCompleteEvent(final EventSource source, final Participant p, final Cause cause, final Exception e, boolean initiator) {
     super(source);
     _participant = p;
     _cause = cause;
     _exception = e;
+    _initiator = initiator;
   }
 
   @Override
@@ -48,4 +51,10 @@ public class MohoUnjoinCompleteEvent extends MohoEvent<EventSource> implements U
   public Exception getException() {
     return _exception;
   }
+
+  @Override
+  public boolean isInitiator() {
+    return _initiator;
+  }
+  
 }
