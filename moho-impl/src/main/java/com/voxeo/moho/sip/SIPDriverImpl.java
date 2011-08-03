@@ -409,7 +409,9 @@ public class SIPDriverImpl implements SIPDriver {
         catch (final Exception e) {
           LOG.warn("", e);
         }
-        source.dispatch(new SIPAnsweredEventImpl<Call>((SIPCall) source, res));
+        if (SIPHelper.isInitial(res.getRequest())) {
+          source.dispatch(new SIPAnsweredEventImpl<Call>((SIPCall) source, res));
+        }
         return;
       }
       else if (source instanceof Framework) {

@@ -108,6 +108,10 @@ public class SIPHelper {
     return msg.getMethod().equalsIgnoreCase("INVITE");
   }
 
+  public static boolean isInitial(final SipServletRequest req) {
+    return req.isInitial();
+  }
+
   public static boolean isReinvite(final SipServletMessage msg) {
     if (msg instanceof SipServletRequest) {
       return msg.getMethod().equalsIgnoreCase("INVITE") && !((SipServletRequest) msg).isInitial();
