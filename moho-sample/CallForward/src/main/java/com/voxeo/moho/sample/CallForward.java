@@ -18,11 +18,11 @@ import javax.media.mscontrol.join.Joinable;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
-import com.voxeo.moho.BusyException;
+import com.voxeo.moho.Call;
 import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.State;
-import com.voxeo.moho.TimeoutException;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPEndpoint;
 
 public class CallForward implements Application {
@@ -49,16 +49,17 @@ public class CallForward implements Application {
   public void handleInvite(final IncomingCall call) throws Exception {
     call.addObserver(this);
     call.accept();
-    try {
-      call.join(call.getInvitee(), JoinType.DIRECT, Joinable.Direction.DUPLEX).get();
+    call.join(call.getInvitee(), JoinType.DIRECT, Joinable.Direction.DUPLEX);
+  }
+
+  @State
+  public void handleJoinComplete(final JoinCompleteEvent event) throws Exception {
+    Call call = (Call) event.getSource();
+    if (event.getCause() == JoinCompleteEvent.Cause.BUSY) {
+      call.join(_busyTarget, JoinType.DIRECT, Joinable.Direction.DUPLEX);
     }
-    catch (final Exception ex) {
-      if (ex.getCause() instanceof BusyException) {
-        call.join(_busyTarget, JoinType.DIRECT, Joinable.Direction.DUPLEX);
-      }
-      else if (ex.getCause() instanceof TimeoutException) {
-        call.join(_timeoutTarget, JoinType.DIRECT, Joinable.Direction.DUPLEX);
-      }
+    else if (event.getCause() == JoinCompleteEvent.Cause.TIMEOUT) {
+      call.join(_timeoutTarget, JoinType.DIRECT, Joinable.Direction.DUPLEX);
     }
   }
 }
