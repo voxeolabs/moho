@@ -16,6 +16,7 @@ package com.voxeo.moho.conference;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -28,127 +29,148 @@ import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.Participant;
+import com.voxeo.moho.Unjoint;
+import com.voxeo.moho.UnjointImpl;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 
 public class ConferenceImpl extends MixerImpl implements Conference {
 
-    private static final Logger LOG = Logger.getLogger(ConferenceImpl.class);
+  private static final Logger LOG = Logger.getLogger(ConferenceImpl.class);
 
-    protected String _id;
+  protected String _id;
 
-    protected int _maxSeats;
+  protected int _maxSeats;
 
-    protected int _occupiedSeats;
+  protected int _occupiedSeats;
 
-    protected ConferenceController _controller;
+  protected ConferenceController _controller;
 
-    protected ConferenceImpl(final ExecutionContext context, final MixerEndpoint address, final Map<Object, Object> params, final String id, final int seats, final ConferenceController controller, Parameters parameters) {
-        super(context, address, params, parameters);
-        _id = id;
-        _maxSeats = seats;
-        _controller = controller;
-    }
+  protected Object _lock = new Object();
 
-    @Override
-    public String getId() {
-        return _id;
-    }
+  protected ConferenceImpl(final ExecutionContext context, final MixerEndpoint address,
+      final Map<Object, Object> params, final String id, final int seats, final ConferenceController controller,
+      Parameters parameters) {
+    super(context, address, params, parameters);
+    _id = id;
+    _maxSeats = seats;
+    _controller = controller;
+  }
 
-    @Override
-    public synchronized Joint join(final Participant other, final JoinType type, final Direction direction) throws IllegalStateException {
-        checkState();
-        return new JointImpl(_context.getExecutor(), new JoinWorker() {
+  @Override
+  public String getId() {
+    return _id;
+  }
 
-            @Override
-            public JoinCompleteEvent call() throws Exception {
-                synchronized (ConferenceImpl.this) {
-                    if(_controller != null) {
-                        _controller.preJoin(other, ConferenceImpl.this);
-                    }
-                    final JoinCompleteEvent retval = ConferenceImpl.super.join(other, type, direction).get();
-                    _occupiedSeats = _occupiedSeats + 1;
-                    if(_controller != null) {
-                        _controller.postJoin(other, ConferenceImpl.this);
-                    }
-                    return retval;
-                }
-            }
-
-            @Override
-            public boolean cancel() {
-                return false;
-            }
-        });
-
-    }
-
-    @Override
-    public synchronized Joint join(final Participant other, final JoinType type, final Direction direction, final Properties props) throws IllegalStateException {
-        checkState();
-        return new JointImpl(_context.getExecutor(), new JoinWorker() {
-
-            @Override
-            public JoinCompleteEvent call() throws Exception {
-                synchronized (ConferenceImpl.this) {
-                    if(_controller != null) {
-                        _controller.preJoin(other, ConferenceImpl.this);
-                    }
-                    final JoinCompleteEvent retval = ConferenceImpl.super.join(other, type, direction, props).get();
-                    _occupiedSeats = _occupiedSeats + 1;
-                    if(_controller != null) {
-                        _controller.postJoin(other, ConferenceImpl.this);
-                    }
-                    return retval;
-                }
-            }
-
-            @Override
-            public boolean cancel() {
-                return false;
-            }
-        });
-
-    }
-
-    @Override
-    public synchronized void unjoin(final Participant other) {
-        if (!_joinees.contains(other)) {
-            return;
+  @Override
+  public Joint join(final Participant other, final JoinType type, final Direction direction)
+      throws IllegalStateException {
+    checkState();
+    return new JointImpl(_context.getExecutor(), new JoinWorker() {
+      @Override
+      public JoinCompleteEvent call() throws Exception {
+        synchronized (_lock) {
+          if (_controller != null) {
+            _controller.preJoin(other, ConferenceImpl.this);
+          }
+          final JoinCompleteEvent retval = ConferenceImpl.super.join(other, type, direction).get();
+          _occupiedSeats = _occupiedSeats + 1;
+          if (_controller != null) {
+            _controller.postJoin(other, ConferenceImpl.this);
+          }
+          return retval;
         }
-        try {
-            if(_controller != null) {
-                _controller.preUnjoin(other, this);
-            }
-            _occupiedSeats = _occupiedSeats - 1;
-            super.unjoin(other);
-            if(_controller != null) {
-                _controller.postUnjoin(other, this);
-            }
+      }
+
+      @Override
+      public boolean cancel() {
+        return false;
+      }
+    });
+
+  }
+
+  @Override
+  public Joint join(final Participant other, final JoinType type, final Direction direction, final Properties props)
+      throws IllegalStateException {
+    checkState();
+    return new JointImpl(_context.getExecutor(), new JoinWorker() {
+
+      @Override
+      public JoinCompleteEvent call() throws Exception {
+        synchronized (_lock) {
+          if (_controller != null) {
+            _controller.preJoin(other, ConferenceImpl.this);
+          }
+          final JoinCompleteEvent retval = ConferenceImpl.super.join(other, type, direction, props).get();
+          _occupiedSeats = _occupiedSeats + 1;
+          if (_controller != null) {
+            _controller.postJoin(other, ConferenceImpl.this);
+          }
+          return retval;
         }
-        catch (final Exception e) {
-            LOG.warn("", e);
+      }
+
+      @Override
+      public boolean cancel() {
+        return false;
+      }
+    });
+
+  }
+
+  public UnjoinCompleteEvent doUnjoin(final Participant other) throws Exception {
+    synchronized (_lock) {
+      UnjoinCompleteEvent event = null;
+      try {
+        if (_controller != null) {
+          _controller.preUnjoin(other, this);
         }
-    }
+        _occupiedSeats = _occupiedSeats - 1;
+        event = super.unjoin(other).get();
+        if (_controller != null) {
+          _controller.postUnjoin(other, this);
+        }
+      }
+      catch (final Exception e) {
+        LOG.warn("", e);
+        throw e;
+      }
 
-    @Override
-    public int getMaxSeats() {
-        return _maxSeats;
+      return event;
     }
+  }
 
-    @Override
-    public int getOccupiedSeats() {
-        return _occupiedSeats;
-    }
+  @Override
+  public Unjoint unjoin(final Participant p) {
+    Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
+      @Override
+      public UnjoinCompleteEvent call() throws Exception {
+        return doUnjoin(p);
+      }
+    });
+    return task;
+  }
 
-    @Override
-    public ConferenceController getController() {
-        return _controller;
-    }
+  @Override
+  public int getMaxSeats() {
+    return _maxSeats;
+  }
 
-    @Override
-    public void setController(ConferenceController controller) {
-        this._controller = controller;
-    }
+  @Override
+  public int getOccupiedSeats() {
+    return _occupiedSeats;
+  }
+
+  @Override
+  public ConferenceController getController() {
+    return _controller;
+  }
+
+  @Override
+  public void setController(ConferenceController controller) {
+    this._controller = controller;
+  }
 
 }

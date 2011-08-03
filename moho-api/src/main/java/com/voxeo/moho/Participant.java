@@ -64,7 +64,7 @@ public interface Participant extends EventSource {
    * @param other
    *          the specified participant to be unjoined.
    */
-  void unjoin(Participant other);
+  Unjoint unjoin(Participant other);
 
   /**
    * @return the array of current joined participants.

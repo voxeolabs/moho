@@ -71,7 +71,9 @@ public class ConferenceTest extends TestCase {
 
   // JSR309 mock
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
+
   MockMediaSession mediaSession = mockery.mock(MockMediaSession.class);
+
   MediaMixer mixer = mockery.mock(MediaMixer.class);
 
   // JSR289 mock
@@ -82,7 +84,9 @@ public class ConferenceTest extends TestCase {
 
   // ApplicationContextImpl is simple, no need to mock it.
   ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+
   SipFactory sipFactory = appContext.getSipFactory();
+
   SdpFactory sdpFactory = appContext.getSdpFactory();
 
   MixerEndpoint address;
@@ -192,7 +196,7 @@ public class ConferenceTest extends TestCase {
           oneOf(call).unjoin(mohoConference);
 
           oneOf(call).output(with(same(exitAnnouncement)));
-          
+
           oneOf(call).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
@@ -221,7 +225,18 @@ public class ConferenceTest extends TestCase {
     assertTrue(mohoConference.getParticipants()[0] == call);
 
     // execute unjoin.
-    mohoConference.unjoin(call);
+    try {
+      mohoConference.unjoin(call).get();
+    }
+    catch (IllegalStateException e) {
+      e.printStackTrace();
+    }
+    catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    catch (ExecutionException e) {
+      e.printStackTrace();
+    }
     // verify unjoin result.
     assertTrue(mohoConference.getOccupiedSeats() == 0);
     assertTrue(mohoConference.getParticipants().length == 0);

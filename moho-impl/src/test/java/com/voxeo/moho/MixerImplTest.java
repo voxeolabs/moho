@@ -14,6 +14,8 @@
 
 package com.voxeo.moho;
 
+import java.util.concurrent.ExecutionException;
+
 import javax.media.mscontrol.Configuration;
 import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MsControlFactory;
@@ -149,7 +151,15 @@ public class MixerImplTest extends TestCase {
     }
 
     // unjoin
-    mohoMixer.unjoin(call);
+    try {
+      mohoMixer.unjoin(call).get();
+    }
+    catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    catch (ExecutionException e) {
+      e.printStackTrace();
+    }
 
     // verify the result.
     mockery.assertIsSatisfied();

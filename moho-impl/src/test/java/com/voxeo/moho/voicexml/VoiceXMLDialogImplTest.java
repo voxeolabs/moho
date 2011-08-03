@@ -18,6 +18,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MsControlFactory;
@@ -58,12 +59,14 @@ public class VoiceXMLDialogImplTest extends TestCase {
 
   // JSR309 mock
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
+
   MockMediaSession mediaSession = mockery.mock(MockMediaSession.class);
+
   MockVxmlDialog dialog = mockery.mock(MockVxmlDialog.class);
 
   // JSR289 mock
   SipServlet servlet = new MockSipServlet(mockery);
-  
+
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
@@ -154,7 +157,15 @@ public class VoiceXMLDialogImplTest extends TestCase {
     assertTrue(vXMLDialog.getParticipants()[0] == call);
 
     // unjoin
-    vXMLDialog.unjoin(call);
+    try {
+      vXMLDialog.unjoin(call).get();
+    }
+    catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    catch (ExecutionException e) {
+      e.printStackTrace();
+    }
     assertTrue(vXMLDialog.getParticipants().length == 0);
 
     // verify the result.

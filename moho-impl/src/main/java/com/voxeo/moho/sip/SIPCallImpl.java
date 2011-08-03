@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -64,11 +65,15 @@ import com.voxeo.moho.RedirectException;
 import com.voxeo.moho.RejectException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.TimeoutException;
+import com.voxeo.moho.Unjoint;
+import com.voxeo.moho.UnjointImpl;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.MohoCallCompleteEvent;
 import com.voxeo.moho.event.MohoJoinCompleteEvent;
+import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
+import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
@@ -332,21 +337,39 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   @Override
-  public synchronized void unjoin(final Participant p) {
+  public Unjoint unjoin(final Participant p) {
+
+    Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
+      @Override
+      public UnjoinCompleteEvent call() throws Exception {
+        return doUnjoin(p);
+      }
+    });
+
+    return task;
+  }
+
+  protected synchronized MohoUnjoinCompleteEvent doUnjoin(final Participant p) throws Exception {
+    MohoUnjoinCompleteEvent event = null;
     if (!isAnswered()) {
-      return;
+      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED);
+      SIPCallImpl.this.dispatch(event);
+      return event;
     }
     if (!_joinees.contains(p)) {
-      return;
+      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED);
+      SIPCallImpl.this.dispatch(event);
+      return event;
     }
-    JoinData joinData = _joinees.remove(p);
-    if (p instanceof Call) {
-      synchronized (_peers) {
-        _peers.remove(p);
+    try {
+      JoinData joinData = _joinees.remove(p);
+      if (p instanceof Call) {
+        synchronized (_peers) {
+          _peers.remove(p);
+        }
       }
-    }
-    if (p.getMediaObject() instanceof Joinable) {
-      try {
+      if (p.getMediaObject() instanceof Joinable) {
+
         boolean unjoin = false;
         Joinable peerJoinalbe = null;
         if (joinData.getRealJoined() != null) {
@@ -366,11 +389,24 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           _network.unjoin(peerJoinalbe);
         }
       }
-      catch (final Exception e) {
-        LOG.warn(e.getMessage());
-      }
+
+      p.unjoin(SIPCallImpl.this);
+
+      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN);
     }
-    p.unjoin(this);
+    catch (final Exception e) {
+      LOG.error("", e);
+      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, e);
+      throw e;
+    }
+    finally {
+      if (event == null) {
+        event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN);
+      }
+      SIPCallImpl.this.dispatch(event);
+    }
+    return event;
+
   }
 
   @Override
@@ -700,6 +736,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     for (Participant participant : _joineesArray) {
       if (participant instanceof ParticipantContainer) {
         ((ParticipantContainer) participant).removeParticipant(this);
+
+        UnjoinCompleteEvent.Cause unjoinCause = UnjoinCompleteEvent.Cause.ERROR;
+        if (cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) {
+          unjoinCause = UnjoinCompleteEvent.Cause.DISCONNECT;
+        }
+
+        MohoUnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(participant, SIPCallImpl.this, unjoinCause,
+            exception);
+        participant.dispatch(event);
       }
     }
     _joinees.clear();

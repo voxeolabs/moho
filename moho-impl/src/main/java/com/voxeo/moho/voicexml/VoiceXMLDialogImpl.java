@@ -39,14 +39,17 @@ import com.voxeo.moho.JoineeData;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MediaException;
-import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
+import com.voxeo.moho.Unjoint;
+import com.voxeo.moho.UnjointImpl;
 import com.voxeo.moho.event.DispatchableEventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.MohoMediaResourceDisconnectEvent;
+import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
+import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 
 public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer {
@@ -157,6 +160,18 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
     }
     _media = null;
 
+    Participant[] _joineesArray = _joinees.getJoinees();
+    for (Participant participant : _joineesArray) {
+      if (participant instanceof ParticipantContainer) {
+        ((ParticipantContainer) participant).removeParticipant(this);
+
+        MohoUnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(participant, VoiceXMLDialogImpl.this,
+            UnjoinCompleteEvent.Cause.DISCONNECT);
+        participant.dispatch(event);
+      }
+    }
+    _joinees.clear();
+
     this.dispatch(new MohoMediaResourceDisconnectEvent<Dialog>(this));
   }
 
@@ -230,23 +245,50 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
     }
   }
 
-  @Override
-  public void unjoin(final Participant p) {
+  protected UnjoinCompleteEvent doUnjoin(final Participant p) throws Exception {
+    MohoUnjoinCompleteEvent event = null;
     synchronized (_lock) {
       if (!_joinees.contains(p)) {
-        return;
+        event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED);
+        VoiceXMLDialogImpl.this.dispatch(event);
+        return event;
       }
-      _joinees.remove(p);
-      if (p.getMediaObject() instanceof Joinable) {
-        try {
+
+      try {
+        _joinees.remove(p);
+        if (p.getMediaObject() instanceof Joinable) {
           _dialog.unjoin((Joinable) p.getMediaObject());
         }
-        catch (final Exception e) {
-          LOG.warn("", e);
+
+        p.unjoin(this);
+        event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN);
+      }
+      catch (final Exception e) {
+        LOG.error("", e);
+        event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, e);
+        throw e;
+      }
+      finally {
+        if (event == null) {
+          event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN);
         }
+        VoiceXMLDialogImpl.this.dispatch(event);
       }
     }
-    p.unjoin(this);
+    return event;
+  }
+
+  @Override
+  public Unjoint unjoin(final Participant p) {
+
+    Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
+      @Override
+      public UnjoinCompleteEvent call() throws Exception {
+        return doUnjoin(p);
+      }
+    });
+
+    return task;
   }
 
   public void prepare() {
