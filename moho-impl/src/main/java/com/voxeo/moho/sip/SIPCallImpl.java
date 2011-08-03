@@ -474,8 +474,12 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   @Override
   public Joint join(final Participant other, final JoinType type, final Direction direction) {
     if (isTerminated()) {
-      throw new IllegalStateException("...");
+      throw new IllegalStateException("This call is already terminated.");
     }
+    if (other.equals(this)) {
+      throw new IllegalStateException("Can't join to itself.");
+    }
+
     return new JointImpl(_context.getExecutor(), new JoinWorker() {
       @Override
       public JoinCompleteEvent call() throws Exception {
@@ -978,7 +982,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected synchronized void doJoin(final Direction direction) throws Exception {
     if (_operationInProcess) {
-      throw new IllegalStateException("other operation in process.");
+      throw new IllegalStateException("other join operation in process.");
     }
     _operationInProcess = true;
 
