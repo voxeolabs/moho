@@ -23,6 +23,7 @@ import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.InternalParticipant;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.JointImpl;
@@ -35,7 +36,7 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 
-public class ConferenceImpl extends MixerImpl implements Conference {
+public class ConferenceImpl extends MixerImpl implements Conference, InternalParticipant {
 
   private static final Logger LOG = Logger.getLogger(ConferenceImpl.class);
 

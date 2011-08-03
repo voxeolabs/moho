@@ -51,6 +51,7 @@ import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.CanceledException;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.HangupException;
+import com.voxeo.moho.InternalParticipant;
 import com.voxeo.moho.JoinData;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.JoineeData;
@@ -78,7 +79,7 @@ import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 
-public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEventListener<SdpPortManagerEvent> {
+public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEventListener<SdpPortManagerEvent>, InternalParticipant {
 
   private static final Logger LOG = Logger.getLogger(SIPCallImpl.class);
 
@@ -338,18 +339,22 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   @Override
   public Unjoint unjoin(final Participant p) {
+    return unjoin(p, true);
+  }
 
+  @Override
+  public Unjoint unjoin(final Participant other, final boolean callPeerUnjoin) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
-        return doUnjoin(p);
+        return doUnjoin(other, callPeerUnjoin);
       }
     });
 
     return task;
   }
 
-  protected synchronized MohoUnjoinCompleteEvent doUnjoin(final Participant p) throws Exception {
+  protected synchronized MohoUnjoinCompleteEvent doUnjoin(final Participant p, boolean callPeerUnjoin) throws Exception {
     MohoUnjoinCompleteEvent event = null;
     if (!isAnswered()) {
       event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED);
@@ -390,7 +395,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
       }
 
-      p.unjoin(SIPCallImpl.this);
+      if (callPeerUnjoin) {
+        ((InternalParticipant)p).unjoin(SIPCallImpl.this, false);
+      }
 
       event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN);
     }

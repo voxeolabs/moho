@@ -60,7 +60,7 @@ import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.spi.ExecutionContext;
 
-public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer {
+public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer, InternalParticipant {
 
   private static final Logger LOG = Logger.getLogger(MixerImpl.class);
 
@@ -318,7 +318,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
   }
 
-  protected synchronized UnjoinCompleteEvent doMixerUnjoin(final Participant p) throws Exception {
+  protected synchronized UnjoinCompleteEvent doMixerUnjoin(final Participant p, boolean callOtherUnjoin)
+      throws Exception {
     MohoUnjoinCompleteEvent event = null;
     if (!_joinees.contains(p)) {
       event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED);
@@ -338,7 +339,9 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         }
 
       }
-      p.unjoin(this);
+      if (callOtherUnjoin) {
+        ((InternalParticipant) p).unjoin(this, false);
+      }
 
       event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN);
     }
@@ -359,11 +362,15 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public Unjoint unjoin(final Participant p) {
+    return unjoin(p, true);
+  }
 
+  @Override
+  public Unjoint unjoin(final Participant other, final boolean callOtherUnjoin) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
-        return doMixerUnjoin(p);
+        return doMixerUnjoin(other, callOtherUnjoin);
       }
     });
 
@@ -813,4 +820,5 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   public MediaGroup getMediaGroup() {
     return getMediaService().getMediaGroup();
   }
+
 }

@@ -58,6 +58,7 @@ import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
+import com.voxeo.moho.sip.SIPCallImpl;
 import com.voxeo.moho.sip.fake.MockSipServlet;
 import com.voxeo.moho.spi.ExecutionContext;
 
@@ -151,7 +152,7 @@ public class ConferenceTest extends TestCase {
     assertTrue(mohoConference.getOccupiedSeats() == 0);
 
     // mock the call
-    final CallImpl call = mockery.mock(CallImpl.class);
+    final SIPCallImpl call = mockery.mock(SIPCallImpl.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
     final Prompt<Call> prompt = mockery.mock(Prompt.class);
     final Input<Call> input = mockery.mock(Input.class);
@@ -193,7 +194,7 @@ public class ConferenceTest extends TestCase {
 
           // unjoin
           oneOf(mixer).unjoin(callNet);
-          oneOf(call).unjoin(mohoConference);
+          oneOf(call).unjoin(mohoConference, false);
 
           oneOf(call).output(with(same(exitAnnouncement)));
 

@@ -34,6 +34,7 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.InternalParticipant;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.JoineeData;
 import com.voxeo.moho.Joint;
@@ -52,7 +53,8 @@ import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 
-public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer {
+public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer,
+    InternalParticipant {
 
   private static final Logger LOG = Logger.getLogger(VoiceXMLDialogImpl.class);
 
@@ -245,7 +247,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
     }
   }
 
-  protected UnjoinCompleteEvent doUnjoin(final Participant p) throws Exception {
+  protected UnjoinCompleteEvent doUnjoin(final Participant p, boolean callPeerUnjoin) throws Exception {
     MohoUnjoinCompleteEvent event = null;
     synchronized (_lock) {
       if (!_joinees.contains(p)) {
@@ -260,7 +262,9 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
           _dialog.unjoin((Joinable) p.getMediaObject());
         }
 
-        p.unjoin(this);
+        if (callPeerUnjoin) {
+          ((InternalParticipant) p).unjoin(this, false);
+        }
         event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN);
       }
       catch (final Exception e) {
@@ -280,11 +284,15 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
 
   @Override
   public Unjoint unjoin(final Participant p) {
+    return unjoin(p, true);
+  }
 
+  @Override
+  public Unjoint unjoin(final Participant other, final boolean callPeerUnjoin) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
-        return doUnjoin(p);
+        return doUnjoin(other, callPeerUnjoin);
       }
     });
 
@@ -416,4 +424,5 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   public boolean isDone() {
     return _future.isDone();
   }
+
 }

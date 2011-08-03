@@ -39,6 +39,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockMediaSession;
+import com.voxeo.moho.sip.SIPCallImpl;
 import com.voxeo.moho.sip.fake.MockSipServlet;
 import com.voxeo.moho.spi.ExecutionContext;
 
@@ -52,7 +53,9 @@ public class MixerImplTest extends TestCase {
 
   // JSR309 mock
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
+
   MockMediaSession mediaSession = mockery.mock(MockMediaSession.class);
+
   MediaMixer mixer = mockery.mock(MediaMixer.class);
 
   // JSR289 mock
@@ -63,7 +66,9 @@ public class MixerImplTest extends TestCase {
 
   // ApplicationContextImpl is simple, no need to mock it.
   ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+
   SipFactory sipFactory = appContext.getSipFactory();
+
   SdpFactory sdpFactory = appContext.getSdpFactory();
 
   MixerEndpoint address;
@@ -105,7 +110,7 @@ public class MixerImplTest extends TestCase {
     mohoMixer = (MixerImpl) address.create(null);
 
     // mock the call
-    final CallImpl call = mockery.mock(CallImpl.class);
+    final SIPCallImpl call = mockery.mock(SIPCallImpl.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
 
     try {
@@ -132,7 +137,7 @@ public class MixerImplTest extends TestCase {
           // unjoin
           oneOf(mixer).unjoin(callNet);
 
-          oneOf(call).unjoin(mohoMixer);
+          oneOf(call).unjoin(mohoMixer, false);
         }
       });
     }

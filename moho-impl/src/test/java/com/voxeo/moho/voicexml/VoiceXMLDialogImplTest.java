@@ -46,6 +46,7 @@ import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockMediaSession;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.media.fake.MockVxmlDialog;
+import com.voxeo.moho.sip.SIPCallImpl;
 import com.voxeo.moho.sip.fake.MockSipServlet;
 import com.voxeo.moho.spi.ExecutionContext;
 
@@ -118,7 +119,7 @@ public class VoiceXMLDialogImplTest extends TestCase {
     vXMLDialog = (VoiceXMLDialogImpl) vXMLendPoint.create(null);
 
     // mock the call
-    final CallImpl call = mockery.mock(CallImpl.class);
+    final SIPCallImpl call = mockery.mock(SIPCallImpl.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
     try {
       mockery.checking(new Expectations() {
@@ -143,7 +144,7 @@ public class VoiceXMLDialogImplTest extends TestCase {
           // unjoin
           oneOf(dialog).unjoin(callNet);
 
-          oneOf(call).unjoin(vXMLDialog);
+          oneOf(call).unjoin(vXMLDialog, false);
         }
       });
     }
