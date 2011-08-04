@@ -190,6 +190,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         MohoUnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(participant, MixerImpl.this,
             UnjoinCompleteEvent.Cause.DISCONNECT);
         participant.dispatch(event);
+        dispatch(new MohoUnjoinCompleteEvent(this, participant, UnjoinCompleteEvent.Cause.DISCONNECT));
       }
     }
     _joinees.clear();

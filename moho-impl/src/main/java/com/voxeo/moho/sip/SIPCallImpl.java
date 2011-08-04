@@ -79,7 +79,8 @@ import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 
-public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEventListener<SdpPortManagerEvent>, InternalParticipant {
+public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEventListener<SdpPortManagerEvent>,
+    InternalParticipant {
 
   private static final Logger LOG = Logger.getLogger(SIPCallImpl.class);
 
@@ -396,7 +397,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
 
       if (callPeerUnjoin) {
-        ((InternalParticipant)p).unjoin(SIPCallImpl.this, false);
+        ((InternalParticipant) p).unjoin(SIPCallImpl.this, false);
       }
 
       event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN);
@@ -756,6 +757,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         MohoUnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(participant, SIPCallImpl.this, unjoinCause,
             exception);
         participant.dispatch(event);
+
+        dispatch(new MohoUnjoinCompleteEvent(this, participant, unjoinCause, exception));
       }
     }
     _joinees.clear();

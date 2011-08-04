@@ -170,6 +170,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
         MohoUnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(participant, VoiceXMLDialogImpl.this,
             UnjoinCompleteEvent.Cause.DISCONNECT);
         participant.dispatch(event);
+        dispatch(new MohoUnjoinCompleteEvent(this, participant, UnjoinCompleteEvent.Cause.DISCONNECT));
       }
     }
     _joinees.clear();

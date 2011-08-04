@@ -69,43 +69,5 @@ public class UnjointImpl implements Unjoint {
     return _future.isDone();
   }
 
-  public static class DummyJoinWorker implements Callable<UnjoinCompleteEvent> {
 
-    private Participant _joiner;
-
-    private Participant _joinee;
-
-    private Exception _e;
-
-    private Cause _cause;
-
-    public DummyJoinWorker(final Participant joiner, final Participant joinee, UnjoinCompleteEvent.Cause cause) {
-      this(joiner, joinee, cause, null);
-    }
-
-    public DummyJoinWorker(final Participant joiner, final Participant joinee, final UnjoinCompleteEvent.Cause cause,
-        final Exception e) {
-      _joiner = joiner;
-      _joinee = joinee;
-      _cause = cause;
-      _e = e;
-    }
-
-    public UnjoinCompleteEvent call() throws Exception {
-      if (_e == null) {
-        final UnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(_joiner, _joinee, _cause);
-        _joiner.dispatch(event);
-        final UnjoinCompleteEvent event2 = new MohoUnjoinCompleteEvent(_joinee, _joiner, _cause);
-        _joinee.dispatch(event2);
-        return event;
-      }
-      else {
-        final UnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(_joiner, _joinee, _cause, _e);
-        _joiner.dispatch(event);
-        final UnjoinCompleteEvent event2 = new MohoUnjoinCompleteEvent(_joinee, _joiner, _cause, _e);
-        _joinee.dispatch(event2);
-        throw _e;
-      }
-    }
-  }
 }
