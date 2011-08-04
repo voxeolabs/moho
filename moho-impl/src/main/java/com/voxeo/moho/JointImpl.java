@@ -91,16 +91,16 @@ public class JointImpl implements Joint {
 
     public JoinCompleteEvent call() throws Exception {
       if (_e == null) {
-        final JoinCompleteEvent event = new MohoJoinCompleteEvent(_joiner, _joinee, Cause.JOINED);
+        final JoinCompleteEvent event = new MohoJoinCompleteEvent(_joiner, _joinee, Cause.JOINED, true);
         _joiner.dispatch(event);
-        final JoinCompleteEvent event2 = new MohoJoinCompleteEvent(_joinee, _joiner, Cause.JOINED);
+        final JoinCompleteEvent event2 = new MohoJoinCompleteEvent(_joinee, _joiner, Cause.JOINED, false);
         _joinee.dispatch(event2);
         return event;
       }
       else {
-        final JoinCompleteEvent event = new MohoJoinCompleteEvent(_joiner, _joinee, Cause.ERROR, _e);
+        final JoinCompleteEvent event = new MohoJoinCompleteEvent(_joiner, _joinee, Cause.ERROR, _e, true);
         _joiner.dispatch(event);
-        final JoinCompleteEvent event2 = new MohoJoinCompleteEvent(_joinee, _joiner, Cause.ERROR, _e);
+        final JoinCompleteEvent event2 = new MohoJoinCompleteEvent(_joinee, _joiner, Cause.ERROR, _e, false);
         _joinee.dispatch(event2);
         throw _e;
       }

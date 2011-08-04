@@ -21,9 +21,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
-import com.voxeo.moho.event.UnjoinCompleteEvent.Cause;
 
 public class UnjointImpl implements Unjoint {
 
@@ -68,6 +66,5 @@ public class UnjointImpl implements Unjoint {
   public boolean isDone() {
     return _future.isDone();
   }
-
 
 }

@@ -168,9 +168,9 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
         ((ParticipantContainer) participant).removeParticipant(this);
 
         MohoUnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(participant, VoiceXMLDialogImpl.this,
-            UnjoinCompleteEvent.Cause.DISCONNECT);
+            UnjoinCompleteEvent.Cause.DISCONNECT, false);
         participant.dispatch(event);
-        dispatch(new MohoUnjoinCompleteEvent(this, participant, UnjoinCompleteEvent.Cause.DISCONNECT));
+        dispatch(new MohoUnjoinCompleteEvent(this, participant, UnjoinCompleteEvent.Cause.DISCONNECT, true));
       }
     }
     _joinees.clear();
@@ -225,16 +225,17 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
               _dialog.join(direction, (Joinable) other.getMediaObject());
               _joinees.add(other, type, direction);
               ((ParticipantContainer) other).addParticipant(VoiceXMLDialogImpl.this, type, direction, null);
-              event = new MohoJoinCompleteEvent(VoiceXMLDialogImpl.this, other, Cause.JOINED);
+              event = new MohoJoinCompleteEvent(VoiceXMLDialogImpl.this, other, Cause.JOINED, true);
             }
           }
           catch (final Exception e) {
-            event = new MohoJoinCompleteEvent(VoiceXMLDialogImpl.this, other, Cause.ERROR, e);
+            event = new MohoJoinCompleteEvent(VoiceXMLDialogImpl.this, other, Cause.ERROR, e, true);
             throw new MediaException(e);
           }
           finally {
             VoiceXMLDialogImpl.this.dispatch(event);
-            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(VoiceXMLDialogImpl.this, other, event.getCause());
+            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(VoiceXMLDialogImpl.this, other, event.getCause(),
+                false);
             other.dispatch(event2);
           }
           return event;
@@ -252,7 +253,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
     MohoUnjoinCompleteEvent event = null;
     synchronized (_lock) {
       if (!_joinees.contains(p)) {
-        event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED);
+        event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED, true);
         VoiceXMLDialogImpl.this.dispatch(event);
         return event;
       }
@@ -266,16 +267,16 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
         if (callPeerUnjoin) {
           ((InternalParticipant) p).unjoin(this, false);
         }
-        event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN);
+        event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
       }
       catch (final Exception e) {
         LOG.error("", e);
-        event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, e);
+        event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, e, true);
         throw e;
       }
       finally {
         if (event == null) {
-          event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN);
+          event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, true);
         }
         VoiceXMLDialogImpl.this.dispatch(event);
       }
