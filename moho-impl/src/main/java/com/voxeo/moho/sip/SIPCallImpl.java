@@ -344,26 +344,26 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   @Override
-  public Unjoint unjoin(final Participant other, final boolean callPeerUnjoin) {
+  public Unjoint unjoin(final Participant other, final boolean initiator) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
-        return doUnjoin(other, callPeerUnjoin);
+        return doUnjoin(other, initiator);
       }
     });
 
     return task;
   }
 
-  protected synchronized MohoUnjoinCompleteEvent doUnjoin(final Participant p, boolean callPeerUnjoin) throws Exception {
+  protected synchronized MohoUnjoinCompleteEvent doUnjoin(final Participant p, boolean initiator) throws Exception {
     MohoUnjoinCompleteEvent event = null;
     if (!isAnswered()) {
-      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED, true);
+      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED, initiator);
       SIPCallImpl.this.dispatch(event);
       return event;
     }
     if (!_joinees.contains(p)) {
-      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED, true);
+      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED, initiator);
       SIPCallImpl.this.dispatch(event);
       return event;
     }
@@ -396,11 +396,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
       }
 
-      if (callPeerUnjoin) {
+      if (initiator) {
         ((InternalParticipant) p).unjoin(SIPCallImpl.this, false);
       }
 
-      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
+      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, initiator);
     }
     catch (final Exception e) {
       LOG.error("", e);
@@ -409,7 +409,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     finally {
       if (event == null) {
-        event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, true);
+        event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, initiator);
       }
       SIPCallImpl.this.dispatch(event);
     }
