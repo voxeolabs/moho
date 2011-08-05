@@ -238,6 +238,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
     }
   }
+  
+  @Override
+  public void removeJoinee(Participant other) {
+    removeParticipant(other);
+  }
 
   @Override
   public Joint join(final Participant other, final JoinType type, final Direction direction)
