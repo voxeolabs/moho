@@ -97,7 +97,7 @@ public class SIPEndpointImpl implements SIPEndpoint {
     if (isWildCard()) {
       throw new IllegalArgumentException(this + " is an unreachable wildcard address.");
     }
-    return new SIPOutgoingCall(_ctx, ((SIPEndpoint) caller), this, headers);
+    return _ctx.getService(OutgoingCallFactory.class).createOutgoingCall(((SIPEndpoint) caller), this, headers);
   }
 
   // public Subscription subscribe(final Endpoint caller, final Type type, final

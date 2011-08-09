@@ -14,6 +14,7 @@
 
 package com.voxeo.moho.conference;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +31,10 @@ public class ConferenceMangerImpl implements ConferenceManager {
 
   protected Map<String, Conference> _conferences = new HashMap<String, Conference>();
 
+  public ConferenceMangerImpl() {
+    super();
+  }
+
   public ConferenceMangerImpl(final ExecutionContext context) {
     _context = context;
   }
@@ -42,8 +47,8 @@ public class ConferenceMangerImpl implements ConferenceManager {
   @Override
   public Conference createConference(final String id, final int seats, final ConferenceController controller,
       Parameters parameters) {
-    return this.createConference((MixerEndpoint) _context.createEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT), null, id,
-        seats, controller, parameters);
+    return this.createConference((MixerEndpoint) _context.createEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT), null,
+        id, seats, controller, parameters);
   }
 
   @Override
@@ -91,4 +96,22 @@ public class ConferenceMangerImpl implements ConferenceManager {
     }
   }
 
+  @Override
+  public void init(ExecutionContext context, Map<String, String> properties) {
+    _context = context;
+  }
+
+  @Override
+  public void destroy() {
+    Collection<Conference> conferences = _conferences.values();
+
+    for (Conference conf : conferences) {
+      conf.disconnect();
+    }
+  }
+
+  @Override
+  public String getName() {
+    return ConferenceManager.class.getName();
+  }
 }

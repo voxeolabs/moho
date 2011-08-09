@@ -20,12 +20,13 @@ import java.util.Set;
 import javax.media.mscontrol.Parameters;
 
 import com.voxeo.moho.MixerEndpoint;
+import com.voxeo.moho.services.Service;
 
 /**
  * 
  *
  */
-public interface ConferenceManager {
+public interface ConferenceManager extends Service {
 
   Conference createConference(String id, int seats, Parameters parameters);
 

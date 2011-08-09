@@ -28,8 +28,7 @@ public class ConferenceDriverImpl implements ConferenceDriver {
 
   @Override
   public SpiFramework getFramework() {
-    // TODO Auto-generated method stub
-    return null;
+    return _framework;
   }
 
   @Override

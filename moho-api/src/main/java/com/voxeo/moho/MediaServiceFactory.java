@@ -18,8 +18,9 @@ import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.Parameters;
 
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.services.Service;
 
-public interface MediaServiceFactory {
+public interface MediaServiceFactory extends Service{
 
   <T extends EventSource> MediaService<T> create(final T parent, final MediaSession session, Parameters params);
 }

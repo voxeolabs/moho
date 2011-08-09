@@ -6,19 +6,25 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.event.RegisterEvent;
 import com.voxeo.moho.event.AcceptableEvent.Reason;
+import com.voxeo.moho.event.RegisterEvent;
 import com.voxeo.moho.event.RegisterEvent.Contact;
 import com.voxeo.moho.sip.SIPRegisterEvent;
 import com.voxeo.moho.sip.SIPRegisterEvent.SIPContact;
 import com.voxeo.moho.sip.SIPRegisterEventImpl.ContactImpl;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class RegistrarImpl implements Registrar, Runnable {
   protected RegistrarStore _store;
+
   protected Collection<RegistrarController> _controllers = new ArrayList<RegistrarController>();
+
   protected int _maxExpiration = 60000;
+
   protected Map<String, String> _props;
+
   protected boolean _running = false;
+
   protected Thread _runner;
 
   @Override
@@ -138,7 +144,7 @@ public class RegistrarImpl implements Registrar, Runnable {
   }
 
   @Override
-  public void init(Map<String, String> props) {
+  public void init(ExecutionContext context, Map<String, String> props) {
     _props = props;
 
     String storeImpl = props.get(STORE_IMPL);
@@ -170,6 +176,11 @@ public class RegistrarImpl implements Registrar, Runnable {
     _running = false;
     _runner.interrupt();
     _store.destroy();
+  }
+
+  @Override
+  public String getName() {
+    return Registrar.class.getName();
   }
 
 }

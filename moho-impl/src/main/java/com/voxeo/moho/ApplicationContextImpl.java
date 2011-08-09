@@ -14,6 +14,7 @@
 
 package com.voxeo.moho;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -33,16 +34,14 @@ import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
 
 import org.apache.log4j.Logger;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.voxeo.moho.conference.ConferenceDriverImpl;
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.event.DispatchableEventSource;
-import com.voxeo.moho.media.GenericMediaServiceFactory;
-import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.reg.Registrar;
-import com.voxeo.moho.reg.RegistrarImpl;
+import com.voxeo.moho.services.Service;
 import com.voxeo.moho.sip.SIPDriverImpl;
-import com.voxeo.moho.spi.ConferenceDriver;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.ProtocolDriver;
 import com.voxeo.moho.spi.SpiFramework;
@@ -79,10 +78,12 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   protected Map<String, String> _parameters = new ConcurrentHashMap<String, String>();
 
   protected ServletContext _servletContext;
-  
+
   protected Registrar _reg;
 
   protected ThreadPoolExecutor _executor;
+
+  protected org.springframework.context.support.AbstractApplicationContext _springContext;
 
   @SuppressWarnings("unchecked")
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipServlet servlet) {
@@ -100,20 +101,6 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       final String value = servlet.getInitParameter(name);
       setParameter(name, value);
     }
-    Class<? extends MediaDialect> mediaDialectClass = com.voxeo.moho.media.dialect.GenericDialect.class;
-    final String mediaDialectClassName = getParameter("mediaDialectClass");
-    MediaDialect mediaDialect = null;
-    try {
-      if (mediaDialectClassName != null) {
-        mediaDialectClass = (Class<? extends MediaDialect>) Class.forName(mediaDialectClassName);
-      }
-      mediaDialect = mediaDialectClass.newInstance();
-    }
-    catch (Exception ex) {
-      LOG.error("Moho is unable to create media dialect (" + mediaDialectClassName + ")", ex);
-    }
-    LOG.info("Moho is creating media service with dialect (" + mediaDialect + ").");
-    _msFactory = new GenericMediaServiceFactory(mediaDialect);
 
     try {
       registerDriver(ProtocolDriver.PROTOCOL_SIP, SIPDriverImpl.class.getName());
@@ -128,12 +115,6 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       LOG.info("Moho is initializing driver[" + d + "]");
       d.init(this);
     }
-
-    ConferenceDriver cd = (ConferenceDriver) getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_CONF);
-    setConferenceManager(cd.getManager());
-    
-    _reg = new RegistrarImpl();
-    _reg.init(getParameters());
 
     getServletContext().setAttribute(ApplicationContext.APPLICATION, app);
     getServletContext().setAttribute(ApplicationContext.APPLICATION_CONTEXT, this);
@@ -155,6 +136,22 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     _executor = new ThreadPoolExecutor(eventDispatcherThreadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
         new SynchronousQueue<Runnable>(), new DaemonThreadFactory("MohoContext"));
     _dispatcher.setExecutor(_executor, false);
+
+    _springContext = new ClassPathXmlApplicationContext("classpath:moho-service-context.xml");
+
+    Collection<Service> beans = _springContext.getBeansOfType(Service.class).values();
+    for (Service service : beans) {
+      try {
+        service.init(this, getParameters());
+      }
+      catch (Exception e1) {
+        LOG.error("Error when initialize service" + service, e1);
+      }
+    }
+
+    _msFactory = this.getService(MediaServiceFactory.class);
+    _confMgr = this.getService(ConferenceManager.class);
+    _reg = this.getService(Registrar.class);
   }
 
   @Override
@@ -279,6 +276,11 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   public void destroy() {
     getApplication().destroy();
     _executor.shutdown();
+
+    Collection<Service> beans = _springContext.getBeansOfType(Service.class).values();
+    for (Service service : beans) {
+      service.destroy();
+    }
   }
 
   @Override
@@ -369,4 +371,28 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     return _reg;
   }
 
+  @Override
+  public <T extends Service> T getService(Class<T> def) {
+    return find(def);
+  }
+
+  private <T> T find(Class<T> clazz) {
+    Collection<T> beans = _springContext.getBeansOfType(clazz).values();
+
+    if (!beans.isEmpty()) {
+      return beans.iterator().next();
+    }
+
+    return null;
+  }
+
+  @Override
+  public <T extends Service> Collection<T> listServices() {
+    return (Collection<T>) _springContext.getBeansOfType(Service.class).values();
+  }
+
+  @Override
+  public <T extends Service> boolean containsService(Class<T> def) {
+    return this.find(def) != null;
+  }
 }

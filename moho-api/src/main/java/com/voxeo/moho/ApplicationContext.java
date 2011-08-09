@@ -14,6 +14,8 @@
 
 package com.voxeo.moho;
 
+import java.util.Collection;
+
 import javax.media.mscontrol.MsControlFactory;
 import javax.sdp.SdpFactory;
 import javax.servlet.ServletContext;
@@ -21,6 +23,7 @@ import javax.servlet.sip.SipFactory;
 
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.reg.Registrar;
+import com.voxeo.moho.services.Service;
 
 /**
  * <p>
@@ -59,13 +62,15 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
   SdpFactory getSdpFactory();
 
   /**
-   * @param addr the address of an endpoint
+   * @param addr
+   *          the address of an endpoint
    * @return the parsed {@link Endpoint Endpoint} object
    */
   Endpoint createEndpoint(String addr);
 
   /**
-   * @param addr the address of an endpoint
+   * @param addr
+   *          the address of an endpoint
    * @return the parsed {@link Endpoint Endpoint} object
    */
   Endpoint createEndpoint(String addr, String type);
@@ -73,10 +78,16 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
   Application getApplication();
 
   ConferenceManager getConferenceManager();
-  
+
   Registrar getRegistrar();
 
   ServletContext getServletContext();
 
   String getRealPath(String path);
+
+  <T extends Service> T getService(Class<T> def);
+
+  <T extends Service> Collection<T> listServices();
+
+  <T extends Service> boolean containsService(Class<T> def);
 }

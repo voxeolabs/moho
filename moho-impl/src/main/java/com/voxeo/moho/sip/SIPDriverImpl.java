@@ -132,7 +132,9 @@ public class SIPDriverImpl implements SIPDriver {
 
   protected void doInvite(final SipServletRequest req) throws ServletException, IOException {
     if (req.isInitial()) {
-      final IncomingCall ev = new SIPIncomingCall((ExecutionContext) _app.getApplicationContext(), req);
+      final IncomingCall ev = _app.getApplicationContext().getService(IncomingCallFactory.class)
+          .createIncomingCall(req);
+
       _app.dispatch(ev);
     }
     else {
