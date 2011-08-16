@@ -19,7 +19,7 @@ import java.util.Map;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 
-public interface RegisterEvent extends RequestEvent<Framework>, RedirectableEvent {
+public interface RegisterEvent extends RequestEvent<Framework>, RedirectableEvent, ProxyableEvent {
   public interface Contact {
     Endpoint getEndpoint();
     int getExpiration();

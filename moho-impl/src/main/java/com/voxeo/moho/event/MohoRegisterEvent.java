@@ -25,6 +25,7 @@ public abstract class MohoRegisterEvent extends MohoEvent<Framework> implements 
   protected boolean _rejected = false;
   protected boolean _accepted = false;
   protected boolean _redirected = false;
+  protected boolean _proxied = false;
 
   protected MohoRegisterEvent(final Framework source) {
     super(source);
@@ -64,10 +65,15 @@ public abstract class MohoRegisterEvent extends MohoEvent<Framework> implements 
   public boolean isRejected() {
     return _rejected;
   }
+  
+  @Override
+  public boolean isProxied() {
+    return _proxied;
+  }
 
   @Override
   public boolean isProcessed() {
-    return isAccepted() || isRejected();
+    return isAccepted() || isRejected() || isProxied();
   }
 
   protected synchronized void checkState() {
