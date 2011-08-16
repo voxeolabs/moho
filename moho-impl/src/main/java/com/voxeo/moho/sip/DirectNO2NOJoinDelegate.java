@@ -84,7 +84,6 @@ public class DirectNO2NOJoinDelegate extends JoinDelegate {
         }
         else if (SIPHelper.isErrorResponse(res)) {
           setException(getExceptionByResponse(res));
-          _call1.disconnect(true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res), null);
           _call2.disconnect(true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res), null);
         }
       }

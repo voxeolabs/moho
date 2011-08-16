@@ -3339,6 +3339,9 @@ public class SIPIncomingCallTest extends TestCase {
           });
 
           oneOf(outgoingCallNotifyReq).send();
+          
+          allowing(outgoingCall).isTerminated();
+          will(returnValue(false));
         }
       });
     }
