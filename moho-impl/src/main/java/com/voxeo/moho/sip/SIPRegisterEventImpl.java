@@ -16,23 +16,32 @@ package com.voxeo.moho.sip;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 
 import javax.servlet.sip.Address;
+import javax.servlet.sip.Proxy;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipURI;
+import javax.servlet.sip.TooManyHopsException;
+import javax.servlet.sip.URI;
 
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.event.AcceptableEvent;
 import com.voxeo.moho.event.MohoRegisterEvent;
+import com.voxeo.moho.event.AcceptableEvent.Reason;
 import com.voxeo.moho.sip.SIPEndpoint;
+import com.voxeo.moho.sip.SIPEndpointImpl;
+import com.voxeo.moho.sip.SIPHelper;
 import com.voxeo.moho.sip.SIPRegisterEvent;
+import com.voxeo.moho.sip.SIPRegisterEvent.SIPContact;
 import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegisterEvent {
@@ -218,6 +227,41 @@ public class SIPRegisterEventImpl extends MohoRegisterEvent implements SIPRegist
     else {
       throw new IllegalArgumentException("Unable to redirect the call to a non-SIP participant.");
     }
+  }
+  
+  @Override
+  public void proxyTo(boolean recordRoute, boolean parallel, Endpoint... endpoints) throws SignalException {
+    checkState();
+    _proxied = true;
+    if (endpoints == null || endpoints.length == 0) {
+      throw new IllegalArgumentException("Illegal endpoints");
+    }
+    try {
+      Proxy proxy = _req.getProxy();
+
+      proxy.setParallel(parallel);
+      proxy.setRecordRoute(recordRoute);
+      proxy.setAddToPath(recordRoute);
+      proxy.setSupervised(false);
+
+      List<URI> uris = new LinkedList<URI>();
+      for (Endpoint endpoint : endpoints) {
+        if (endpoint.getURI() == null) {
+          throw new IllegalArgumentException("Illegal endpoints:" + endpoint);
+        }
+        Address address = _ctx.getSipFactory().createAddress(endpoint.getURI().toString());
+        uris.add(address.getURI());
+      }
+
+      proxy.proxyTo(uris);
+    }
+    catch (TooManyHopsException e) {
+      throw new SignalException(e);
+    }
+    catch (ServletParseException e) {
+      throw new SignalException(e);
+    }
+
   }
 
   @Override

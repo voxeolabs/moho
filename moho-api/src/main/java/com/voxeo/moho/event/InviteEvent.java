@@ -19,5 +19,5 @@ package com.voxeo.moho.event;
  * 
  * @author wchen
  */
-public interface InviteEvent extends CallEvent, AcceptableEvent, RedirectableEvent {
+public interface InviteEvent extends CallEvent, AcceptableEvent, RedirectableEvent, ProxyableEvent {
 }

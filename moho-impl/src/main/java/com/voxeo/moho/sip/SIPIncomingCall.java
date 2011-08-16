@@ -211,6 +211,8 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   protected boolean _redirected = false;
 
   protected boolean _accepted = false;
+  
+  protected boolean _proxied = false;
 
   @Override
   public synchronized boolean isAcceptedWithEarlyMedia() {
@@ -231,9 +233,14 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   public synchronized boolean isAccepted() {
     return _accepted;
   }
+  
+  @Override
+  public synchronized boolean isProxied() {
+    return _proxied;
+  }
 
   protected synchronized boolean isProcessed() {
-    return isAccepted() || isAcceptedWithEarlyMedia() || isRejected() || isRedirected();
+    return isAccepted() || isAcceptedWithEarlyMedia() || isRejected() || isRedirected() || isProxied();
   }
 
   @Override
@@ -398,6 +405,9 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
 
   @Override
   public void proxyTo(boolean recordRoute, boolean parallel, Endpoint... endpoints) throws SignalException {
+    checkState();
+    _proxied = true;
+    setSIPCallState(SIPCall.State.PROXIED);
     if (endpoints == null || endpoints.length == 0) {
       throw new IllegalArgumentException("Illegal endpoints");
     }
