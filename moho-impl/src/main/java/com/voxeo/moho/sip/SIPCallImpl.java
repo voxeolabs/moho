@@ -446,7 +446,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
         catch (final Exception e) {
           _exception = e;
-          event = handleJoinException(e);
+          event = handleJoinException(e, null);
           throw e;
         }
         finally {
@@ -504,7 +504,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
         catch (final Exception e) {
           _exception = e;
-          event = handleJoinException(e);
+          event = handleJoinException(e, other);
           throw e;
         }
         finally {
@@ -517,7 +517,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           }
 
           if (other instanceof SIPCallImpl && ((SIPCallImpl) other).isTerminated()) {
-            other.dispatch(new MohoCallCompleteEvent((SIPCallImpl) other, getCallCompleteCauseByException(_exception), _exception));
+            other.dispatch(new MohoCallCompleteEvent((SIPCallImpl) other, getCallCompleteCauseByException(_exception),
+                _exception));
           }
         }
         return event;
@@ -785,6 +786,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
               + (getSipSession() != null ? getSipSession().getCallId() : ""));
         }
         synchronized (_joinDelegate.getCondition()) {
+          if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) {
+            _joinDelegate.setException(new HangupException());
+          }
           _joinDelegate.getCondition().notifyAll();
         }
       }
@@ -1468,28 +1472,28 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  private JoinCompleteEvent handleJoinException(final Exception e) {
+  private JoinCompleteEvent handleJoinException(final Exception e, Participant other) {
     JoinCompleteEvent event = null;
     if (e instanceof BusyException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.BUSY, e, true);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.BUSY, e, true);
     }
     else if (e instanceof TimeoutException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.TIMEOUT, e, true);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.TIMEOUT, e, true);
     }
     else if (e instanceof RedirectException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.REDIRECT, e, true);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.REDIRECT, e, true);
     }
     else if (e instanceof RejectException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.REJECT, e, true);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.REJECT, e, true);
     }
     else if (e instanceof CanceledException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.CANCELED, e, true);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.CANCELED, e, true);
     }
     else if (e instanceof HangupException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.DISCONNECTED, e, true);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.DISCONNECTED, e, true);
     }
     else {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.ERROR, e, true);
+      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.ERROR, e, true);
     }
     return event;
   }
