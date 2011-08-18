@@ -57,7 +57,6 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
         }
         else if (SIPHelper.isErrorResponse(res)) {
           setException(getExceptionByResponse(res));
-          _call1.disconnect(true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res), null);
           _call2.disconnect(true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res), null);
         }
       }

@@ -56,7 +56,6 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
     if (SIPHelper.isErrorResponse(res)) {
       setException(getExceptionByResponse(res));
       _call2.disconnect(true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res), null);
-      done();
     }
     else if (SIPHelper.isProvisionalResponse(res) && _call2.equals(call)) {
       _call2.setSIPCallState(SIPCall.State.ANSWERING);

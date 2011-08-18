@@ -115,7 +115,6 @@ public class Media2NOJoinDelegate extends JoinDelegate {
         setException(e);
 
         call.disconnect(true, getCallCompleteCauseByResponse(res), e, null);
-        done();
       }
     }
     catch (final Exception e) {
