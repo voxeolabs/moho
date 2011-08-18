@@ -22,6 +22,7 @@ public abstract class MohoSubscribeEvent extends MohoEvent<Framework> implements
   protected boolean _rejected = false;
   protected boolean _accepted = false;
   protected boolean _redirected = false;
+  protected boolean _proxied = false;
 
   protected MohoSubscribeEvent(final Framework source) {
     super(source);
@@ -35,6 +36,11 @@ public abstract class MohoSubscribeEvent extends MohoEvent<Framework> implements
   @Override 
   public synchronized boolean isRedirected() {
     return _redirected;
+  }
+  
+  @Override 
+  public synchronized boolean isProxied() {
+    return _proxied;
   }
   
   @Override
@@ -60,7 +66,7 @@ public abstract class MohoSubscribeEvent extends MohoEvent<Framework> implements
 
   @Override
   public synchronized boolean isProcessed() {
-    return isAccepted() || isRejected() || isRedirected();
+    return isAccepted() || isRejected() || isRedirected() || isProxied();
   }
 
   protected synchronized void checkState() {

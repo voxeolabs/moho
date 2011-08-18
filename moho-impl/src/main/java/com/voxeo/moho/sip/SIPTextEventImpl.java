@@ -1,9 +1,11 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.servlet.sip.SipServletRequest;
 
+import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.TextableEndpoint;
 import com.voxeo.moho.event.EventSource;
@@ -16,6 +18,8 @@ public class SIPTextEventImpl<T extends EventSource> extends MohoTextEvent<T> im
   protected SipServletRequest _req;
 
   protected ExecutionContext _ctx;
+  
+  protected boolean _proxied;
 
   protected SIPTextEventImpl(final T source, final SipServletRequest req) {
     super(source);
@@ -53,6 +57,33 @@ public class SIPTextEventImpl<T extends EventSource> extends MohoTextEvent<T> im
   @Override
   public TextableEndpoint getTo() {
     return new SIPEndpointImpl(_ctx, _req.getTo());
+  }
+
+  @Override
+  public boolean isProxied() {
+    return _proxied;
+  }
+  
+  protected synchronized boolean isProcessed() {
+    return isProxied();
+  }
+  
+  protected synchronized void checkState() {
+    if (isProcessed()) {
+      throw new IllegalStateException("Event is already processed and can not be processed.");
+    }
+  }
+
+  @Override
+  public void proxyTo(boolean recordRoute, boolean parallel, Endpoint... destinations) throws SignalException {
+    proxyTo(recordRoute, parallel, null, destinations);
+  }
+
+  @Override
+  public synchronized void proxyTo(boolean recordRoute, boolean parallel, Map<String, String> headers, Endpoint... destinations) {
+    checkState();
+    _proxied = true;
+    SIPHelper.proxyTo(_ctx.getSipFactory(), _req, headers, recordRoute, parallel, destinations);
   }
 
 }

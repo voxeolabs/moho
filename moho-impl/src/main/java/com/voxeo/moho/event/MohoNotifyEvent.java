@@ -23,29 +23,36 @@ public abstract class MohoNotifyEvent<T extends EventSource> extends MohoEvent<T
   protected boolean _accepted = false;
   
   protected boolean _rejected = false;
+  
+  protected boolean _proxied = false;
 
   protected MohoNotifyEvent(final T source) {
     super(source);
   }
   
   @Override
-  public boolean isAccepted() {
+  public synchronized boolean isAccepted() {
     return _accepted;
   }
 
   @Override
-  public boolean isForwarded() {
+  public synchronized boolean isForwarded() {
     return _forwarded;
   }
   
   @Override
-  public boolean isRejected() {
+  public synchronized boolean isRejected() {
     return _rejected;
+  }
+  
+  @Override
+  public synchronized boolean isProxied() {
+    return _proxied;
   }
 
   @Override
-  public boolean isProcessed() {
-    return isAccepted() || isRejected() || isForwarded();
+  public synchronized boolean isProcessed() {
+    return isAccepted() || isRejected() || isForwarded() || isProxied();
   }
   
   @Override
@@ -58,7 +65,6 @@ public abstract class MohoNotifyEvent<T extends EventSource> extends MohoEvent<T
     accept(null);
   }
 
-  
   protected synchronized void checkState() {
     if (isProcessed()) {
       throw new IllegalStateException("Event is already processed and can not be processed.");

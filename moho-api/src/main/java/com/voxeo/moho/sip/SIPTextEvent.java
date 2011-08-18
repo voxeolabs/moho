@@ -16,6 +16,7 @@ package com.voxeo.moho.sip;
 import javax.servlet.sip.SipServletRequest;
 
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.ProxyableEvent;
 import com.voxeo.moho.event.TextEvent;
 
 /**
@@ -25,7 +26,7 @@ import com.voxeo.moho.event.TextEvent;
  *
  * @param <T>
  */
-public interface SIPTextEvent<T extends EventSource> extends TextEvent<T> {
+public interface SIPTextEvent<T extends EventSource> extends TextEvent<T>, ProxyableEvent {
   /**
    * @return SIP MESSAGE request
    */

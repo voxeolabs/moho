@@ -15,21 +15,30 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.media.mscontrol.MediaErr;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.B2buaHelper;
+import javax.servlet.sip.Proxy;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
+import javax.servlet.sip.TooManyHopsException;
 import javax.servlet.sip.UAMode;
+import javax.servlet.sip.URI;
 
 import org.apache.log4j.Logger;
+
+import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.SignalException;
 
 public class SIPHelper {
 
@@ -131,6 +140,10 @@ public class SIPHelper {
 
   public static boolean isBye(final SipServletMessage msg) {
     return msg.getMethod().equalsIgnoreCase("BYE");
+  }
+  
+  public static boolean isRegister(final SipServletMessage msg) {
+    return msg.getMethod().equalsIgnoreCase("REGISTER");
   }
 
   public static void forwardRequestByB2buaHelper(final SipServletRequest req, final Map<String, String> headers)
@@ -249,6 +262,42 @@ public class SIPHelper {
     }
     catch (final Throwable t) {
       return false;
+    }
+  }
+  
+  public static void proxyTo(final SipFactory factory, SipServletRequest initialRequest, final Map<String, String> headers, boolean recordRoute, boolean parallel, Endpoint... destinations) throws SignalException {
+    if (destinations == null || destinations.length == 0) {
+      throw new IllegalArgumentException("Illegal endpoints");
+    }
+    try {
+      addHeaders(initialRequest, headers);
+      Proxy proxy = initialRequest.getProxy();
+
+      proxy.setParallel(parallel);
+      proxy.setRecordRoute(recordRoute);
+      if (isRegister(initialRequest)) {
+        proxy.setAddToPath(true);
+      }
+      proxy.setSupervised(false);
+
+      List<URI> uris = new LinkedList<URI>();
+      for (Endpoint endpoint : destinations) {
+        if (endpoint.getURI() == null) {
+          throw new IllegalArgumentException("Illegal endpoints:" + endpoint);
+        }
+        Address address = factory.createAddress(endpoint.getURI().toString());
+        uris.add(address.getURI());
+      }
+
+      proxy.proxyTo(uris);
+    }
+    catch (TooManyHopsException e) {
+      LOG.error("", e);
+      throw new SignalException(e);
+    }
+    catch (ServletParseException e) {
+      LOG.error("", e);
+      throw new SignalException(e);
     }
   }
 }
