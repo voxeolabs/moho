@@ -238,7 +238,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
     }
   }
-  
+
   @Override
   public void removeJoinee(Participant other) {
     removeParticipant(other);
@@ -754,8 +754,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     public void onEvent(MixerEvent event) {
       if (event.getEventType() == MixerEvent.ACTIVE_INPUTS_CHANGED) {
         Joinable[] joinables = event.getActiveInputs();
+        List<Participant> activeSpeakers = new LinkedList<Participant>();
         if (joinables != null) {
-          List<Participant> activeSpeakers = new LinkedList<Participant>();
           for (Joinable joinalbe : joinables) {
             Participant participant = activeInputParticipant.get(joinalbe);
             if (participant != null) {
@@ -763,10 +763,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
             }
           }
 
-          if (activeSpeakers.size() > 0) {
-            MixerImpl.this.dispatch(new MohoActiveSpeakerEvent(MixerImpl.this, activeSpeakers
-                .toArray(new Participant[] {})));
-          }
+          MixerImpl.this.dispatch(new MohoActiveSpeakerEvent(MixerImpl.this, activeSpeakers
+              .toArray(new Participant[] {})));
         }
       }
     }
