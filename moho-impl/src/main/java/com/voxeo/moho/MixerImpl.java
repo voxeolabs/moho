@@ -763,10 +763,10 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
             }
           }
 
-          if (activeSpeakers.size() > 0) {
+
             MixerImpl.this.dispatch(new MohoActiveSpeakerEvent(MixerImpl.this, activeSpeakers
                 .toArray(new Participant[] {})));
-          }
+          
         }
       }
     }
