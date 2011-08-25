@@ -741,6 +741,12 @@ public class GenericMediaServiceTest extends TestCase {
     // verify
     assertTrue(event != null);
     assertTrue(event.getCause() == OutputCompleteEvent.Cause.CANCEL);
+    try {
+      Thread.sleep(2000);
+    }
+    catch (InterruptedException e) {
+      e.printStackTrace();
+    }
     // verify event is dispatched.
     assertTrue(parent.getReceivedEvents().get(0) instanceof OutputPausedEvent);
     assertTrue(parent.getReceivedEvents().get(1) instanceof OutputResumedEvent);
