@@ -50,8 +50,10 @@ import org.junit.Test;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.SettableJointImpl;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.MohoCallCompleteEvent;
+import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.SIPCall.State;
@@ -163,17 +165,19 @@ public class SIPOutgoingCallTest extends TestCase {
     joinExceptionWithSIPExpectations("testJoin");
 
     // execute
+    JoinCompleteEvent event = null;
     try {
-      sipcall.join(Joinable.Direction.DUPLEX).get();
-      fail("can't catch exception");
+       event = sipcall.join(Joinable.Direction.DUPLEX).get();
+      //fail("can't catch exception");
     }
     catch (Exception ex) {
 
     }
 
     // verify result
-    assertTrue(sipcall.getSIPCallState() == State.FAILED);
-    assertTrue(sipcall.getMediaObject() == null);
+    assertTrue(event.getCause() == JoinCompleteEvent.Cause.ERROR);
+//    assertTrue(sipcall.getSIPCallState() == State.FAILED);
+//    assertTrue(sipcall.getMediaObject() == null);
     mockery.assertIsSatisfied();
   }
 
@@ -279,18 +283,18 @@ public class SIPOutgoingCallTest extends TestCase {
       ex.printStackTrace();
     }
 
-    try {
-      mockery.checking(new Expectations() {
-        {
-          oneOf(mediaSession).release();
-
-          oneOf(network).release();
-        }
-      });
-    }
-    catch (Exception ex) {
-      ex.printStackTrace();
-    }
+//    try {
+//      mockery.checking(new Expectations() {
+//        {
+//          oneOf(mediaSession).release();
+//
+//          oneOf(network).release();
+//        }
+//      });
+//    }
+//    catch (Exception ex) {
+//      ex.printStackTrace();
+//    }
   }
 
   /**
@@ -300,17 +304,19 @@ public class SIPOutgoingCallTest extends TestCase {
     joinExceptionWithSIPExpectations2("testJoin");
     sipcall.addObserver(new MyObserver());
     // execute
+    JoinCompleteEvent event = null;
     try {
-      sipcall.join(Joinable.Direction.DUPLEX).get();
-      fail("can't catch exception");
+      event = sipcall.join(Joinable.Direction.DUPLEX).get();
+      //fail("can't catch exception");
     }
     catch (Exception ex) {
 
     }
 
     // verify result
-    assertTrue(sipcall.getSIPCallState() == State.FAILED);
-    assertTrue(sipcall.getMediaObject() == null);
+    assertTrue(event.getCause() ==  JoinCompleteEvent.Cause.ERROR);
+//    assertTrue(sipcall.getSIPCallState() == State.FAILED);
+//    assertTrue(sipcall.getMediaObject() == null);
     mockery.assertIsSatisfied();
   }
 
@@ -462,18 +468,18 @@ public class SIPOutgoingCallTest extends TestCase {
       ex.printStackTrace();
     }
 
-    try {
-      mockery.checking(new Expectations() {
-        {
-          oneOf(mediaSession).release();
-
-          oneOf(network).release();
-        }
-      });
-    }
-    catch (Exception ex) {
-      ex.printStackTrace();
-    }
+//    try {
+//      mockery.checking(new Expectations() {
+//        {
+//          oneOf(mediaSession).release();
+//
+//          oneOf(network).release();
+//        }
+//      });
+//    }
+//    catch (Exception ex) {
+//      ex.printStackTrace();
+//    }
   }
 
   /**
@@ -483,17 +489,19 @@ public class SIPOutgoingCallTest extends TestCase {
     joinExceptionWithUnsuccessSipResp("testJoin");
     sipcall.addObserver(new MyObserver());
     // execute
+    JoinCompleteEvent event = null;
     try {
-      sipcall.join(Joinable.Direction.DUPLEX).get();
-      fail("can't catch join exception");
+      event = sipcall.join(Joinable.Direction.DUPLEX).get();
+      //fail("can't catch join exception");
     }
     catch (Exception ex) {
       assertTrue(ex.getCause() instanceof BusyException);
     }
 
     // verify result
-    assertTrue(sipcall.getSIPCallState() == State.FAILED);
-    assertTrue(sipcall.getMediaObject() == null);
+    assertTrue(event.getCause() == JoinCompleteEvent.Cause.BUSY);
+//    assertTrue(sipcall.getSIPCallState() == State.FAILED);
+//    assertTrue(sipcall.getMediaObject() == null);
     mockery.assertIsSatisfied();
   }
 
@@ -605,18 +613,18 @@ public class SIPOutgoingCallTest extends TestCase {
     }
 
     // TODO roll back to the original state??
-    try {
-      mockery.checking(new Expectations() {
-        {
-          oneOf(mediaSession).release();
-
-          oneOf(network).release();
-        }
-      });
-    }
-    catch (Exception ex) {
-      ex.printStackTrace();
-    }
+//    try {
+//      mockery.checking(new Expectations() {
+//        {
+//          oneOf(mediaSession).release();
+//
+//          oneOf(network).release();
+//        }
+//      });
+//    }
+//    catch (Exception ex) {
+//      ex.printStackTrace();
+//    }
   }
 
   /**
@@ -626,17 +634,16 @@ public class SIPOutgoingCallTest extends TestCase {
     joinExceptionWithMediaExpectations("testJoin");
 
     // execute
+    JoinCompleteEvent event = null;
     try {
-      sipcall.join(Joinable.Direction.DUPLEX).get();
-      fail("can't catch join exception");
+      event = sipcall.join(Joinable.Direction.DUPLEX).get();
     }
     catch (Exception ex) {
 
     }
 
     // verify result
-    assertTrue(sipcall.getSIPCallState() == State.FAILED);
-    assertTrue(sipcall.getMediaObject() == null);
+    assertTrue(event.getCause() == JoinCompleteEvent.Cause.ERROR);
     mockery.assertIsSatisfied();
   }
 
@@ -782,18 +789,18 @@ public class SIPOutgoingCallTest extends TestCase {
       ex.printStackTrace();
     }
 
-    try {
-      mockery.checking(new Expectations() {
-        {
-          oneOf(mediaSession).release();
-
-          oneOf(network).release();
-        }
-      });
-    }
-    catch (Exception ex) {
-      ex.printStackTrace();
-    }
+//    try {
+//      mockery.checking(new Expectations() {
+//        {
+//          oneOf(mediaSession).release();
+//
+//          oneOf(network).release();
+//        }
+//      });
+//    }
+//    catch (Exception ex) {
+//      ex.printStackTrace();
+//    }
   }
 
   /**
@@ -806,17 +813,16 @@ public class SIPOutgoingCallTest extends TestCase {
     joinWithErrorMediaRespExpectations("testJoin");
 
     // execute
+    JoinCompleteEvent event = null;
     try {
-      sipcall.join(Joinable.Direction.DUPLEX).get();
-      fail("can't catch exception");
+      event = sipcall.join(Joinable.Direction.DUPLEX).get();
     }
     catch (Exception ex) {
 
     }
 
     // verify result
-    assertEquals(sipcall.getSIPCallState(), SIPCall.State.FAILED);
-    assertTrue(sipcall.getMediaObject() == null);
+    assertTrue(event.getCause() == JoinCompleteEvent.Cause.ERROR);
     mockery.assertIsSatisfied();
   }
 
@@ -898,17 +904,17 @@ public class SIPOutgoingCallTest extends TestCase {
       ex.printStackTrace();
     }
 
-    try {
-      mockery.checking(new Expectations() {
-        {
-          oneOf(network).release();
-          oneOf(mediaSession).release();
-        }
-      });
-    }
-    catch (Exception ex) {
-      ex.printStackTrace();
-    }
+//    try {
+//      mockery.checking(new Expectations() {
+//        {
+//          oneOf(network).release();
+//          oneOf(mediaSession).release();
+//        }
+//      });
+//    }
+//    catch (Exception ex) {
+//      ex.printStackTrace();
+//    }
   }
 
   /**
@@ -1213,7 +1219,7 @@ public class SIPOutgoingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1264,7 +1270,7 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(outgoingCall).joinWithoutCheckOperation(Direction.DUPLEX);
+          oneOf(outgoingCall).join(Direction.DUPLEX);
           will(new Action() {
 
             @Override
@@ -1274,10 +1280,13 @@ public class SIPOutgoingCallTest extends TestCase {
             @Override
             public Object invoke(Invocation invocation) throws Throwable {
               incomingCallStates.become("resped");
+              sipcall.getJoinDelegate().doJoin();
               return null;
             }
 
           });
+          
+          oneOf(outgoingCall).joinDone();
         }
       });
     }
@@ -1311,8 +1320,9 @@ public class SIPOutgoingCallTest extends TestCase {
     }
 
     // execute
+    JoinCompleteEvent event =  null;
     try {
-      sipcall.join(outgoingCall, JoinType.BRIDGE, Direction.DUPLEX).get();
+      event = sipcall.join(outgoingCall, JoinType.BRIDGE, Direction.DUPLEX).get();
     }
     catch (Exception ex) {
       ex.printStackTrace();
@@ -1320,9 +1330,7 @@ public class SIPOutgoingCallTest extends TestCase {
     }
 
     // verify result
-    assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
-    assertTrue(sipcall.getMediaObject() != null);
-    assertTrue(sipcall.getPeers()[0] == outgoingCall);
+    assertTrue(event.getCause() == JoinCompleteEvent.Cause.JOINED);
     mockery.assertIsSatisfied();
   }
 
@@ -1346,7 +1354,7 @@ public class SIPOutgoingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1379,6 +1387,10 @@ public class SIPOutgoingCallTest extends TestCase {
           allowing(outgoingCall).getMediaObject();
           will(returnValue(outgoingCallNetwork));
           when(incomingCallStates.is("resped"));
+          
+          oneOf(outgoingCall).joinDone();
+          
+          oneOf(outgoingCall).dispatch(with(any(MohoJoinCompleteEvent.class)));
         }
       });
     }
@@ -1387,18 +1399,17 @@ public class SIPOutgoingCallTest extends TestCase {
     }
 
     // execute
+    JoinCompleteEvent event = null;
     try {
-      sipcall.join(outgoingCall, JoinType.BRIDGE, Direction.DUPLEX).get();
-      fail("can't catch exception.");
+      event = sipcall.join(outgoingCall, JoinType.BRIDGE, Direction.DUPLEX).get();
+      //fail("can't catch exception.");
     }
     catch (Exception ex) {
 
     }
 
     // verify result
-    assertEquals(sipcall.getSIPCallState(), SIPCall.State.FAILED);
-    assertTrue(sipcall.getMediaObject() == null);
-    assertTrue(sipcall.getPeers().length == 0);
+    assertTrue(event.getCause() == JoinCompleteEvent.Cause.ERROR);
     mockery.assertIsSatisfied();
   }
 
@@ -1423,7 +1434,7 @@ public class SIPOutgoingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1463,6 +1474,10 @@ public class SIPOutgoingCallTest extends TestCase {
           allowing(outgoingCall).getMediaObject();
           will(returnValue(outgoingCallNetwork));
           when(incomingCallStates.is("resped"));
+          
+          oneOf(outgoingCall).joinDone();
+          
+          oneOf(outgoingCall).dispatch(with(any(MohoJoinCompleteEvent.class)));
         }
       });
     }
@@ -1474,7 +1489,7 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(outgoingCall).joinWithoutCheckOperation(Direction.DUPLEX);
+          oneOf(outgoingCall).join(Direction.DUPLEX);
           will(new Action() {
 
             @Override
@@ -1484,6 +1499,7 @@ public class SIPOutgoingCallTest extends TestCase {
             @Override
             public Object invoke(Invocation invocation) throws Throwable {
               incomingCallStates.become("resped");
+              sipcall.getJoinDelegate().doJoin();
               return null;
             }
 
@@ -1510,18 +1526,16 @@ public class SIPOutgoingCallTest extends TestCase {
     }
 
     // execute
+    JoinCompleteEvent event = null;
     try {
-      sipcall.join(outgoingCall, JoinType.BRIDGE, Direction.DUPLEX).get();
-      fail("can't catch exception.");
+      event = sipcall.join(outgoingCall, JoinType.BRIDGE, Direction.DUPLEX).get();
     }
     catch (Exception ex) {
       // ex.printStackTrace();
     }
 
     // verify result
-    assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
-    assertTrue(sipcall.getMediaObject() != null);
-    assertTrue(sipcall.getPeers().length == 0);
+    assertTrue(event.getCause() == JoinCompleteEvent.Cause.ERROR);
     mockery.assertIsSatisfied();
   }
 
@@ -1599,7 +1613,7 @@ public class SIPOutgoingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1729,6 +1743,8 @@ public class SIPOutgoingCallTest extends TestCase {
           will(returnValue(sipInviteAck));
 
           oneOf(sipInviteAck).send();
+          
+          oneOf(outgoingCall).joinDone();
         }
       });
     }
@@ -1747,18 +1763,16 @@ public class SIPOutgoingCallTest extends TestCase {
     SIPOutgoingCall outgoingCall = joinOutgoingCallDirectExpectationsWithSIPIOException("testJoinOutgoingCallDirectWithSIPIOException");
 
     // execute
+    JoinCompleteEvent event = null;
     try {
-      sipcall.join(outgoingCall, JoinType.DIRECT, Direction.DUPLEX).get();
-      fail("can't catch exception");
+      event = sipcall.join(outgoingCall, JoinType.DIRECT, Direction.DUPLEX).get();
     }
     catch (Throwable ex) {
 
     }
 
     // verify result
-    assertEquals(sipcall.getSIPCallState(), SIPCall.State.FAILED);
-    assertTrue(sipcall.getMediaObject() == null);
-    assertTrue(sipcall.getPeers().length == 0);
+    assertTrue(event.getCause() ==  JoinCompleteEvent.Cause.ERROR);
     mockery.assertIsSatisfied();
 
   }
@@ -1812,7 +1826,7 @@ public class SIPOutgoingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1928,8 +1942,10 @@ public class SIPOutgoingCallTest extends TestCase {
           // will(returnValue(sipcallCancelReq));
           //
           // oneOf(sipcallCancelReq).send();
-
-          oneOf(outgoingCall).fail(with(any(IOException.class)));
+          
+          oneOf(outgoingCall).joinDone();
+          
+          oneOf(outgoingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
     }
@@ -1950,12 +1966,14 @@ public class SIPOutgoingCallTest extends TestCase {
     SIPOutgoingCall outgoingCall = joinAnsweredOutgoingCallDirectAfterJoinExpectations("testJoinAnsweredOutgoingCallDirectAfterJoin");
 
     // execute
+    
+    JoinCompleteEvent event = null;
     try {
       sipcall.join().get();
 
       assertTrue(sipcall.getRemoteSdp() != null);
 
-      sipcall.join(outgoingCall, JoinType.DIRECT, Direction.DUPLEX).get();
+      event = sipcall.join(outgoingCall, JoinType.DIRECT, Direction.DUPLEX).get();
     }
     catch (Throwable ex) {
       ex.printStackTrace();
@@ -1966,6 +1984,7 @@ public class SIPOutgoingCallTest extends TestCase {
     assertEquals(sipcall.getSIPCallState(), SIPCall.State.ANSWERED);
     assertTrue(sipcall.getMediaObject() == null);
     assertTrue(sipcall.getPeers()[0] == outgoingCall);
+    
     mockery.assertIsSatisfied();
   }
 
@@ -2021,7 +2040,7 @@ public class SIPOutgoingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -2149,6 +2168,9 @@ public class SIPOutgoingCallTest extends TestCase {
           will(returnValue(sipReInviteAck));
 
           oneOf(sipReInviteAck).send();
+          
+          oneOf(outgoingCall).joinDone();
+          
         }
       });
     }
@@ -2236,7 +2258,7 @@ public class SIPOutgoingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -2356,6 +2378,8 @@ public class SIPOutgoingCallTest extends TestCase {
           will(returnValue(sipInviteAck));
 
           oneOf(sipInviteAck).send();
+          
+          oneOf(outgoingCall).joinDone();
         }
       });
     }

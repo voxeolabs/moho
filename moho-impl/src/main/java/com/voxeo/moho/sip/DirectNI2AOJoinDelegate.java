@@ -20,13 +20,10 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPCall.State;
 
 public class DirectNI2AOJoinDelegate extends JoinDelegate {
-
-  protected SIPIncomingCall _call1;
-
-  protected SIPOutgoingCall _call2;
 
   protected Direction _direction;
 
@@ -40,7 +37,7 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws MsControlException, IOException {
-    _call2.call(_call1.getRemoteSdp());
+    ((SIPOutgoingCall) _call2).call(_call1.getRemoteSdp());
   }
 
   @Override
@@ -48,8 +45,7 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
       final Map<String, String> headers) throws Exception {
     if (_call2.equals(call)) {
       if (SIPHelper.isErrorResponse(res)) {
-        setException(getExceptionByResponse(res));
-        done();
+        done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
       }
       else if (SIPHelper.isSuccessResponse(res)) {
         try {
@@ -60,7 +56,7 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
           _response = res;
         }
         catch (final Exception e) {
-          setError(e);
+          done(JoinCompleteEvent.Cause.ERROR, e);
           _call1.fail(e);
           throw e;
         }
@@ -85,14 +81,14 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
         ack.send();
       }
       catch (final Exception e) {
-        setError(e);
+        done(JoinCompleteEvent.Cause.ERROR, e);
         _call1.fail(e);
         throw e;
       }
       doDisengage(_call2, JoinType.DIRECT);
       _call1.linkCall(_call2, JoinType.DIRECT, _direction);
       _response = null;
-      done();
+      done(JoinCompleteEvent.Cause.JOINED, null);
     }
   }
 

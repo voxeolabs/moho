@@ -13,6 +13,7 @@ package com.voxeo.moho.sip;
 
 import java.util.Map;
 
+import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -22,56 +23,67 @@ import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.RedirectException;
 import com.voxeo.moho.RejectException;
+import com.voxeo.moho.SettableJointImpl;
 import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.event.CallCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
+import com.voxeo.moho.event.MohoJoinCompleteEvent;
 
 public abstract class JoinDelegate {
 
-  protected boolean _isWaiting;
+  protected SettableJointImpl _settableJoint;
+
+  protected SIPCallImpl _call1;
+
+  protected SIPCallImpl _call2;
+
+  protected JoinType _joinType;
+
+  protected Direction _direction;
+
+  protected boolean done;
+
+  protected Cause _cause;
 
   protected Exception _exception;
 
-  protected Exception _error;
+  public void setSettableJoint(SettableJointImpl settableJoint) {
+    _settableJoint = settableJoint;
+  }
 
-  protected Object _condition;
-
-  protected void done() {
-    setWaiting(false);
-    synchronized (_condition) {
-      _condition.notifyAll();
+  public synchronized void done(final Cause cause, Exception exception) {
+    if (done) {
+      return;
     }
+
+    _cause = cause;
+    _exception = exception;
+
+    _call1.joinDone();
+    JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(_call1, _call2, cause, exception, true);
+    _call1.dispatch(joinCompleteEvent);
+
+    if (_call2 != null) {
+      _call2.joinDone();
+      JoinCompleteEvent peerJoinCompleteEvent = new MohoJoinCompleteEvent(_call2, _call1, cause, exception, false);
+      _call2.dispatch(peerJoinCompleteEvent);
+    }
+
+    _settableJoint.done(joinCompleteEvent);
+    done = true;
   }
 
-  protected boolean isWaiting() {
-    return _isWaiting;
+  public JoinType getJoinType() {
+    return _joinType;
   }
 
-  protected void setWaiting(final boolean waiting) {
-    _isWaiting = waiting;
+  public SIPCallImpl getInitiator() {
+    return _call1;
   }
 
-  protected void setException(final Exception e) {
-    _exception = e;
-  }
-
-  protected Exception getException() {
-    return _exception;
-  }
-
-  protected void setError(final Exception e) {
-    _error = e;
-  }
-
-  protected Exception getError() {
-    return _error;
-  }
-
-  protected void setCondition(final Object o) {
-    _condition = o;
-  }
-
-  protected Object getCondition() {
-    return _condition;
+  public SIPCallImpl getPeer() {
+    return _call2;
   }
 
   protected abstract void doJoin() throws Exception;
@@ -141,5 +153,33 @@ public abstract class JoinDelegate {
     }
 
     return cause;
+  }
+
+  protected JoinCompleteEvent.Cause getJoinCompleteCauseByResponse(SipServletResponse res) {
+    JoinCompleteEvent.Cause cause = null;
+    if (SIPHelper.isBusy(res)) {
+      cause = JoinCompleteEvent.Cause.BUSY;
+    }
+    else if (SIPHelper.isRedirect(res)) {
+      cause = JoinCompleteEvent.Cause.REDIRECT;
+    }
+    else if (SIPHelper.isTimeout(res)) {
+      cause = JoinCompleteEvent.Cause.TIMEOUT;
+    }
+    else if (SIPHelper.isDecline(res)) {
+      cause = JoinCompleteEvent.Cause.REJECT;
+    }
+    else {
+      cause = JoinCompleteEvent.Cause.ERROR;
+    }
+    return cause;
+  }
+
+  public Cause getCause() {
+    return _cause;
+  }
+
+  public Exception getException() {
+    return _exception;
   }
 }

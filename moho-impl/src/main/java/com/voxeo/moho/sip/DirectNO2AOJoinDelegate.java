@@ -22,15 +22,12 @@ import javax.servlet.sip.SipServletResponse;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPCall.State;
 
 public class DirectNO2AOJoinDelegate extends JoinDelegate {
 
   private static final Logger LOG = Logger.getLogger(DirectNO2AOJoinDelegate.class);
-
-  protected SIPOutgoingCall _call1;
-
-  protected SIPOutgoingCall _call2;
 
   protected SipServletResponse _response;
 
@@ -46,7 +43,7 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws MsControlException, IOException {
-    _call1.call(null, _call2.getSipSession().getApplicationSession());
+    ((SIPOutgoingCall) _call1).call(null, _call2.getSipSession().getApplicationSession());
   }
 
   @Override
@@ -59,7 +56,7 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
 
           if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
             if (SIPHelper.getRawContentWOException(res) != null) {
-              _call2.call(res.getRawContent());
+              ((SIPOutgoingCall) _call2).call(res.getRawContent());
               _reInvited = true;
             }
 
@@ -74,12 +71,13 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
         else if (SIPHelper.isSuccessResponse(res)) {
           _response = res;
           if (!_reInvited) {
-            _call2.call(res.getRawContent());
+            ((SIPOutgoingCall) _call2).call(res.getRawContent());
           }
         }
         else if (SIPHelper.isErrorResponse(res)) {
-          setException(getExceptionByResponse(res));
-          _call1.disconnect(true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res), null);
+          Exception ex = getExceptionByResponse(res);
+          done(getJoinCompleteCauseByResponse(res), ex);
+          _call1.disconnect(true, getCallCompleteCauseByResponse(res), ex, null);
         }
       }
       else if (_call2.equals(call)) {
@@ -97,16 +95,17 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
           _call1.setSIPCallState(State.ANSWERED);
           doDisengage(_call2, JoinType.DIRECT);
           _call1.linkCall(_call2, JoinType.DIRECT, _direction);
-          done();
+          done(JoinCompleteEvent.Cause.JOINED, null);
         }
         else if (SIPHelper.isErrorResponse(res)) {
-          setException(getExceptionByResponse(res));
-          _call1.disconnect(true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res), null);
+          Exception ex = getExceptionByResponse(res);
+          done(getJoinCompleteCauseByResponse(res), ex);
+          _call1.disconnect(true, getCallCompleteCauseByResponse(res), ex, null);
         }
       }
     }
     catch (final Exception e) {
-      setError(e);
+      done(JoinCompleteEvent.Cause.ERROR, e);
       _call1.fail(e);
       throw e;
     }

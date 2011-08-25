@@ -22,7 +22,7 @@ public class SIPEarlyMediaEventImpl extends MohoEarlyMediaEvent implements SIPEa
   public SipServletResponse getSipResponse() {
     return _res;
   }
-  
+
   @Override
   public void reject(final Reason reason) throws SignalException {
     reject(reason, null);
@@ -71,7 +71,7 @@ public class SIPEarlyMediaEventImpl extends MohoEarlyMediaEvent implements SIPEa
       if (delegate instanceof Media2NOJoinDelegate) {
         try {
           if (call.getBridgeJoiningPeer() != null && call.getBridgeJoiningPeer().getMediaObject() == null) {
-            call.getBridgeJoiningPeer().joinWithoutCheckOperation(Direction.DUPLEX);
+            call.getBridgeJoiningPeer().join().get();
           }
           if (call.getMediaObject() instanceof Joinable
               && call.getBridgeJoiningPeer().getMediaObject() instanceof Joinable) {

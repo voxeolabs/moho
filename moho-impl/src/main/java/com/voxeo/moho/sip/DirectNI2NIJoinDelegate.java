@@ -22,13 +22,10 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPCall.State;
 
 public class DirectNI2NIJoinDelegate extends JoinDelegate {
-
-  protected SIPIncomingCall _call1;
-
-  protected SIPIncomingCall _call2;
 
   protected Direction _direction;
 
@@ -57,7 +54,7 @@ public class DirectNI2NIJoinDelegate extends JoinDelegate {
     call.setSIPCallState(State.ANSWERED);
     if (_call1.equals(call)) {
       _call1.linkCall(_call2, JoinType.DIRECT, _direction);
-      done();
+      done(JoinCompleteEvent.Cause.JOINED, null);
     }
   }
 

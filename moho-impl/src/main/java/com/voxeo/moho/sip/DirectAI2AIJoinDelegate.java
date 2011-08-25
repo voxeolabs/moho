@@ -19,12 +19,9 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.JoinCompleteEvent;
 
 public class DirectAI2AIJoinDelegate extends JoinDelegate {
-
-  protected SIPIncomingCall _call1;
-
-  protected SIPIncomingCall _call2;
 
   protected Direction _direction;
 
@@ -47,8 +44,7 @@ public class DirectAI2AIJoinDelegate extends JoinDelegate {
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {
     if (SIPHelper.isErrorResponse(res)) {
-      setException(getExceptionByResponse(res));
-      done();
+      done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
     }
     else {
       try {
@@ -64,12 +60,11 @@ public class DirectAI2AIJoinDelegate extends JoinDelegate {
           doDisengage(_call1, JoinType.DIRECT);
           doDisengage(_call2, JoinType.DIRECT);
           _call1.linkCall(_call2, JoinType.DIRECT, _direction);
-          done();
+          done(JoinCompleteEvent.Cause.JOINED, null);
         }
       }
       catch (final Exception e) {
-        setError(e);
-        done();
+        done(JoinCompleteEvent.Cause.ERROR, e);
         throw e;
       }
     }

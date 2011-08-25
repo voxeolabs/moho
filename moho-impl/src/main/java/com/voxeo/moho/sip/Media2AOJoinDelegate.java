@@ -21,20 +21,20 @@ import javax.servlet.sip.SipServletResponse;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 
 public class Media2AOJoinDelegate extends JoinDelegate {
-
-  protected SIPOutgoingCall _call;
 
   protected boolean processedAnswer = false;
 
   protected Media2AOJoinDelegate(final SIPOutgoingCall call) {
-    _call = call;
+    _call1 = call;
   }
 
   @Override
   protected void doJoin() throws MediaException {
-    _call.processSDPOffer(null);
+    _call1.processSDPOffer(null);
   }
 
   @Override
@@ -42,63 +42,52 @@ public class Media2AOJoinDelegate extends JoinDelegate {
     if (event.getEventType().equals(SdpPortManagerEvent.OFFER_GENERATED)
         || event.getEventType().equals(SdpPortManagerEvent.ANSWER_GENERATED)) {
       if (event.isSuccessful()) {
-        if (isWaiting()) {
-          try {
-            final byte[] sdp = event.getMediaServerSdp();
-            _call.setLocalSDP(sdp);
-            final SipServletMessage message = _call.getSipSession().createRequest("INVITE");
-            message.setContent(sdp, "application/sdp");
-            message.send();
-            return;
-          }
-          catch (final IOException e) {
-            setError(e);
-            done();
-          }
+        try {
+          final byte[] sdp = event.getMediaServerSdp();
+          _call1.setLocalSDP(sdp);
+          final SipServletMessage message = _call1.getSipSession().createRequest("INVITE");
+          message.setContent(sdp, "application/sdp");
+          message.send();
+          return;
+        }
+        catch (final IOException e) {
+          done(Cause.ERROR, e);
         }
       }
       Exception ex = new NegotiateException(event);
-      setError(ex);
-      done();
+      done(Cause.ERROR, ex);
     }
     else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
       if (event.isSuccessful()) {
         if (processedAnswer) {
-          doDisengage(_call, JoinType.BRIDGE);
-          done();
+          doDisengage(_call1, JoinType.BRIDGE);
+          done(JoinCompleteEvent.Cause.JOINED, null);
           return;
         }
       }
       Exception ex = new NegotiateException(event);
-      setError(ex);
-      done();
+      done(Cause.ERROR, ex);
     }
 
     Exception ex = new NegotiateException(event);
-    setError(ex);
-    done();
+    done(Cause.ERROR, ex);
   }
 
   @Override
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {
     try {
-      if (isWaiting()) {
-        if (SIPHelper.isSuccessResponse(res)) {
-          res.createAck().send();
-          processedAnswer = true;
-          _call.processSDPAnswer(res);
-        }
-        else if (SIPHelper.isErrorResponse(res)) {
-          Exception e = getExceptionByResponse(res);
-          setException(e);
-          done();
-        }
+      if (SIPHelper.isSuccessResponse(res)) {
+        res.createAck().send();
+        processedAnswer = true;
+        _call1.processSDPAnswer(res);
+      }
+      else if (SIPHelper.isErrorResponse(res)) {
+        done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
       }
     }
     catch (final Exception e) {
-      setError(e);
-      done();
+      done(JoinCompleteEvent.Cause.ERROR, e);
       throw e;
     }
   }

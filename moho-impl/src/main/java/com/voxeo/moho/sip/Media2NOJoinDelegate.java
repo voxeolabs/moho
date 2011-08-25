@@ -21,61 +21,60 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.NegotiateException;
+import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 
 public class Media2NOJoinDelegate extends JoinDelegate {
 
   private static final Logger LOG = Logger.getLogger(Media2NOJoinDelegate.class);
 
-  protected SIPOutgoingCall _call;
-
   protected boolean processedAnswer = false;
 
   protected Media2NOJoinDelegate(final SIPOutgoingCall call) {
-    _call = call;
+    _call1 = call;
   }
 
   @Override
   protected void doJoin() throws MediaException {
-    _call.processSDPOffer(null);
+    _call1.processSDPOffer(null);
   }
 
   @Override
-  protected void doSdpEvent(final SdpPortManagerEvent event) {
+  protected  void doSdpEvent(final SdpPortManagerEvent event) {
     if (event.getEventType().equals(SdpPortManagerEvent.OFFER_GENERATED)
         || event.getEventType().equals(SdpPortManagerEvent.ANSWER_GENERATED)) {
       if (event.isSuccessful()) {
         try {
           final byte[] sdp = event.getMediaServerSdp();
-          _call.setLocalSDP(sdp);
-          _call.call(sdp);
+          _call1.setLocalSDP(sdp);
+          ((SIPOutgoingCall) _call1).call(sdp);
           return;
         }
         catch (final Exception e) {
-          setError(e);
-          _call.fail(e);
-          throw new RuntimeException(e);
+          done(Cause.ERROR, e);
+          _call1.fail(e);
         }
       }
 
       Exception ex = new NegotiateException(event);
-      setError(ex);
-      _call.fail(ex);
+      done(Cause.ERROR, ex);
+      _call1.fail(ex);
     }
     else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
       if (event.isSuccessful()) {
         if (processedAnswer) {
-          done();
+          done(JoinCompleteEvent.Cause.JOINED, null);
           return;
         }
       }
       Exception ex = new NegotiateException(event);
-      setError(ex);
-      _call.fail(ex);
+      done(Cause.ERROR, ex);
+      _call1.fail(ex);
     }
 
     Exception ex = new NegotiateException(event);
-    setError(ex);
-    _call.fail(ex);
+    done(Cause.ERROR, ex);
+    _call1.fail(ex);
   }
 
   @Override
@@ -83,12 +82,12 @@ public class Media2NOJoinDelegate extends JoinDelegate {
       final Map<String, String> headers) throws Exception {
     try {
       if (SIPHelper.isProvisionalResponse(res)) {
-        _call.setSIPCallState(SIPCall.State.ANSWERING);
+        _call1.setSIPCallState(SIPCall.State.ANSWERING);
 
         if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
           if (SIPHelper.getRawContentWOException(res) != null) {
             processedAnswer = true;
-            _call.processSDPAnswer(res);
+            _call1.processSDPAnswer(res);
           }
 
           try {
@@ -103,23 +102,23 @@ public class Media2NOJoinDelegate extends JoinDelegate {
         }
       }
       else if (SIPHelper.isSuccessResponse(res)) {
-        _call.setSIPCallState(SIPCall.State.ANSWERED);
+        _call1.setSIPCallState(SIPCall.State.ANSWERED);
         res.createAck().send();
         if (!processedAnswer) {
           processedAnswer = true;
-          _call.processSDPAnswer(res);
+          _call1.processSDPAnswer(res);
         }
       }
       else if (SIPHelper.isErrorResponse(res)) {
         Exception e = getExceptionByResponse(res);
-        setException(e);
+        done(this.getJoinCompleteCauseByResponse(res), e);
 
         call.disconnect(true, getCallCompleteCauseByResponse(res), e, null);
       }
     }
     catch (final Exception e) {
-      setError(e);
-      _call.fail(e);
+      done(Cause.ERROR, e);
+      _call1.fail(e);
       throw e;
     }
   }

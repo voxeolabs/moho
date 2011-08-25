@@ -20,13 +20,9 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.RejectException;
+import com.voxeo.moho.event.JoinCompleteEvent;
 
 public class DirectAO2AOJoinDelegate extends JoinDelegate {
-
-  protected SIPOutgoingCall _call1;
-
-  protected SIPOutgoingCall _call2;
 
   protected SipServletResponse _response;
 
@@ -40,21 +36,20 @@ public class DirectAO2AOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws MsControlException, IOException {
-    _call2.call(null);
+    ((SIPOutgoingCall) _call2).call(null);
   }
 
   @Override
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {
     if (SIPHelper.isErrorResponse(res)) {
-      setException(new RejectException());
-      done();
+      done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
     }
     else if (SIPHelper.isSuccessResponse(res)) {
       try {
         if (_call2.equals(call)) {
           _response = res;
-          _call1.call(res.getRawContent());
+          ((SIPOutgoingCall) _call1).call(res.getRawContent());
         }
         else if (_call1.equals(call)) {
           final SipServletRequest ack1 = res.createAck();
@@ -70,12 +65,11 @@ public class DirectAO2AOJoinDelegate extends JoinDelegate {
           doDisengage(_call1, JoinType.DIRECT);
           doDisengage(_call2, JoinType.DIRECT);
           _call1.linkCall(_call2, JoinType.DIRECT, _direction);
-          done();
+          done(JoinCompleteEvent.Cause.JOINED, null);
         }
       }
       catch (final Exception e) {
-        setError(e);
-        done();
+        done(JoinCompleteEvent.Cause.ERROR, e);
         throw e;
       }
     }

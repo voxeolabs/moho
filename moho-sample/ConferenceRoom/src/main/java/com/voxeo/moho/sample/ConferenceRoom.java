@@ -92,7 +92,7 @@ public class ConferenceRoom implements Application {
   public void handleActiveSpeaker(final ActiveSpeakerEvent env) throws Exception {
     env.getActiveSpeakers();
 
-    conference.output("active speaker event received.");
+    //conference.output("active speaker event received.");
   }
 
   @State

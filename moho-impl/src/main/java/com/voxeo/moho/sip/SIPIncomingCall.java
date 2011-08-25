@@ -40,6 +40,7 @@ import com.voxeo.moho.Joint;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.CallCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.spi.ExecutionContext;
 
@@ -152,7 +153,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
             + (getSipSession() != null ? getSipSession().getCallId() : ""));
       }
       if (_joinDelegate != null) {
-        _joinDelegate.setException(new CanceledException());
+        _joinDelegate.done(JoinCompleteEvent.Cause.CANCELED, new CanceledException());
       }
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
       terminate(CallCompleteEvent.Cause.CANCEL, null);
@@ -211,7 +212,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   protected boolean _redirected = false;
 
   protected boolean _accepted = false;
-  
+
   protected boolean _proxied = false;
 
   @Override
@@ -233,7 +234,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   public synchronized boolean isAccepted() {
     return _accepted;
   }
-  
+
   @Override
   public synchronized boolean isProxied() {
     return _proxied;

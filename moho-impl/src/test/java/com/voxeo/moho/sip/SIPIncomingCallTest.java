@@ -45,9 +45,11 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.SettableJointImpl;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.HangupEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.UncaughtExceptionEvent;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.sip.fake.MockSipServlet;
@@ -448,9 +450,9 @@ public class SIPIncomingCallTest extends TestCase {
     // mock jsr309 object
     final SdpPortManagerEvent sdpPortManagerEvent = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
         + "sdpPortManagerEvent");
-    
-    final SdpPortManagerEvent sdpPortManagerEventAnswerProcessed = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
-        + "sdpPortManagerEventAnswerProcessed");
+
+    final SdpPortManagerEvent sdpPortManagerEventAnswerProcessed = mockery.mock(SdpPortManagerEvent.class,
+        mockObjectNamePrefix + "sdpPortManagerEventAnswerProcessed");
 
     // invoke join()
     try {
@@ -522,7 +524,7 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(sdpPortManagerEventAnswerProcessed).getEventType();
           will(returnValue(SdpPortManagerEvent.ANSWER_PROCESSED));
-          
+
           oneOf(sdpManager).processSdpAnswer(ackSDP);
           will(new MockMediaServerSdpPortManagerEventAction(sdpPortManagerEventAnswerProcessed));
         }
@@ -590,10 +592,10 @@ public class SIPIncomingCallTest extends TestCase {
     // mock jsr309 object
     final SdpPortManagerEvent sdpPortManagerEvent = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
         + "sdpPortManagerEvent");
-    
- // mock jsr309 object
-    final SdpPortManagerEvent sdpPortManagerEventAnswerProcessed = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
-        + "sdpPortManagerEventAnswerProcessed");
+
+    // mock jsr309 object
+    final SdpPortManagerEvent sdpPortManagerEventAnswerProcessed = mockery.mock(SdpPortManagerEvent.class,
+        mockObjectNamePrefix + "sdpPortManagerEventAnswerProcessed");
 
     // invoke join().
     try {
@@ -662,16 +664,16 @@ public class SIPIncomingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          
+
           oneOf(sdpPortManagerEventAnswerProcessed).isSuccessful();
           will(returnValue(true));
 
           allowing(sdpPortManagerEventAnswerProcessed).getEventType();
           will(returnValue(SdpPortManagerEvent.ANSWER_PROCESSED));
-          
+
           oneOf(sdpManager).processSdpAnswer(reinviteRespSDP);
           will(new MockMediaServerSdpPortManagerEventAction(sdpPortManagerEventAnswerProcessed));
-          
+
           oneOf(reInviteResp).createAck();
           will(returnValue(reInviteAck));
 
@@ -728,7 +730,7 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -765,8 +767,10 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(outgoingCall).getMediaObject();
           will(returnValue(outgoingCallNetwork));
           when(outgoingCallStates.is("resped"));
+          
+          allowing(outgoingCall).joinDone();
 
-          oneOf(outgoingCall).joinWithoutCheckOperation(Direction.DUPLEX);
+          oneOf(outgoingCall).join(Direction.DUPLEX);
           will(new Action() {
             @Override
             public void describeTo(final Description description) {
@@ -775,6 +779,7 @@ public class SIPIncomingCallTest extends TestCase {
             @Override
             public Object invoke(final Invocation invocation) throws Throwable {
               outgoingCallStates.become("resped");
+              sipcall.getJoinDelegate().doJoin();
               return null;
             }
 
@@ -884,7 +889,7 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -916,8 +921,10 @@ public class SIPIncomingCallTest extends TestCase {
           will(returnValue(true));
 
           allowing(outgoingCall).unlinkDirectlyPeer();
+          
+          oneOf(outgoingCall).joinDone();
 
-          oneOf(outgoingCall).joinWithoutCheckOperation(Direction.DUPLEX);
+          oneOf(outgoingCall).join(Direction.DUPLEX);
           will(new Action() {
 
             @Override
@@ -927,6 +934,7 @@ public class SIPIncomingCallTest extends TestCase {
             @Override
             public Object invoke(final Invocation invocation) throws Throwable {
               outgoingCallStates.become("rejoined");
+              sipcall.getJoinDelegate().doJoin();
               return null;
             }
           });
@@ -1036,7 +1044,7 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(incomingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(incomingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(incomingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(incomingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1072,8 +1080,10 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(incomingCall).isTerminated();
           will(returnValue(false));
+          
+          oneOf(incomingCall).joinDone();
 
-          oneOf(incomingCall).joinWithoutCheckOperation(Direction.DUPLEX);
+          oneOf(incomingCall).join(Direction.DUPLEX);
           will(new Action() {
             @Override
             public void describeTo(final Description description) {
@@ -1082,6 +1092,7 @@ public class SIPIncomingCallTest extends TestCase {
             @Override
             public Object invoke(final Invocation invocation) throws Throwable {
               incomingCallStates.become("resped");
+              sipcall.getJoinDelegate().doJoin();
               return null;
             }
 
@@ -1163,7 +1174,7 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(incomingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(incomingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(incomingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(incomingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1189,6 +1200,7 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(incomingCall).isBridgeJoined();
           will(returnValue(true));
 
+          oneOf(incomingCall).joinDone();
         }
       });
     }
@@ -1202,6 +1214,8 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(incomingCall).getMediaObject();
           will(returnValue(incomingCallNetwork));
+          
+          
 
           oneOf(network).join(Direction.DUPLEX, incomingCallNetwork);
         }
@@ -1360,7 +1374,7 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1381,6 +1395,8 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(outgoingCall).isTerminated();
           will(returnValue(false));
 
+          allowing(outgoingCall).joinDone();
+          
           oneOf(outgoingCall).call(null, appSession, null);
           will(new Action() {
             @Override
@@ -1558,7 +1574,7 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1589,6 +1605,8 @@ public class SIPIncomingCallTest extends TestCase {
           will(returnValue(new Participant[0]));
 
           oneOf(outgoingCall).destroyNetworkConnection();
+          
+          oneOf(outgoingCall).joinDone();
 
           oneOf(outgoingCall).call(null);
           will(new Action() {
@@ -1745,7 +1763,7 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1766,6 +1784,8 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(outgoingCall).isTerminated();
           will(returnValue(false));
 
+          oneOf(outgoingCall).joinDone();
+          
           oneOf(outgoingCall).call(null, appSession);
           will(new Action() {
             @Override
@@ -1960,7 +1980,7 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
@@ -1985,6 +2005,8 @@ public class SIPIncomingCallTest extends TestCase {
           will(returnValue(true));
 
           oneOf(outgoingCall).unlinkDirectlyPeer();
+          
+          oneOf(outgoingCall).joinDone();
 
           oneOf(outgoingCall).call(null);
           will(new Action() {
@@ -2196,9 +2218,9 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(incomingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(incomingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(incomingCall).startJoin(with(any(JoinDelegate.class)));
 
-          allowing(incomingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
+          allowing(incomingCall).joinDone();
 
           allowing(incomingCall).isAnswered();
           will(returnValue(false));
@@ -2399,9 +2421,9 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(incomingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(incomingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(incomingCall).startJoin(with(any(JoinDelegate.class)));
 
-          allowing(incomingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
+          allowing(incomingCall).joinDone();
 
           allowing(incomingCall).isAnswered();
           will(returnValue(false));
@@ -2660,9 +2682,9 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(incomingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(incomingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(incomingCall).startJoin(with(any(JoinDelegate.class)));
 
-          allowing(incomingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
+          allowing(incomingCall).joinDone();
 
           allowing(incomingCall).isAnswered();
           will(returnValue(false));
@@ -2912,9 +2934,9 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(incomingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(incomingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(incomingCall).startJoin(with(any(JoinDelegate.class)));
 
-          allowing(incomingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
+          allowing(incomingCall).joinDone();
 
           allowing(incomingCall).isAnswered();
           will(returnValue(false));
@@ -3221,9 +3243,9 @@ public class SIPIncomingCallTest extends TestCase {
         {
           allowing(outgoingCall).getJoinDelegate();
           will(returnValue(null));
-          allowing(outgoingCall).setJoinDelegate(with(any(JoinDelegate.class)));
+          allowing(outgoingCall).startJoin(with(any(JoinDelegate.class)));
 
-          allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
+          allowing(outgoingCall).joinDone();
 
           allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
 
@@ -3256,7 +3278,7 @@ public class SIPIncomingCallTest extends TestCase {
           will(returnValue(outgoingCallNetwork));
           when(outgoingCallStates.is("resped"));
 
-          oneOf(outgoingCall).joinWithoutCheckOperation(Direction.DUPLEX);
+          oneOf(outgoingCall).join(Direction.DUPLEX);
           will(new Action() {
             @Override
             public void describeTo(final Description description) {
@@ -3265,6 +3287,7 @@ public class SIPIncomingCallTest extends TestCase {
             @Override
             public Object invoke(final Invocation invocation) throws Throwable {
               outgoingCallStates.become("resped");
+              sipcall.getJoinDelegate().doJoin();
               return null;
             }
           });
@@ -3339,7 +3362,7 @@ public class SIPIncomingCallTest extends TestCase {
           });
 
           oneOf(outgoingCallNotifyReq).send();
-          
+
           allowing(outgoingCall).isTerminated();
           will(returnValue(false));
         }

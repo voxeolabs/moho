@@ -17,6 +17,7 @@ package com.voxeo.moho.sample;
 import java.io.File;
 import java.net.URI;
 import java.util.Date;
+import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 
@@ -62,7 +63,15 @@ public class MidCallRecord implements Application {
       final Call[] peers = call.getPeers();
 
       if (peers != null && peers.length > 0) {
-        peers[0].unjoin(call);
+        try {
+          peers[0].unjoin(call).get();
+        }
+        catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+        catch (ExecutionException e) {
+          e.printStackTrace();
+        }
         peers[0].output("Hello, The peer disconnect.");
       }
   }

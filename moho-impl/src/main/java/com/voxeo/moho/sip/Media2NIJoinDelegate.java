@@ -19,21 +19,21 @@ import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.NegotiateException;
+import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 
 public class Media2NIJoinDelegate extends JoinDelegate {
-
-  protected SIPIncomingCall _call;
 
   protected boolean waitAnswerProcessed = false;
 
   protected Media2NIJoinDelegate(final SIPIncomingCall call) {
-    _call = call;
+    _call1 = call;
   }
 
   @Override
   protected void doJoin() throws MediaException {
-    _call.setSIPCallState(SIPCall.State.ANSWERING);
-    _call.processSDPOffer(_call.getSipInitnalRequest());
+    _call1.setSIPCallState(SIPCall.State.ANSWERING);
+    _call1.processSDPOffer(_call1.getSipInitnalRequest());
   }
 
   @Override
@@ -46,50 +46,49 @@ public class Media2NIJoinDelegate extends JoinDelegate {
         }
 
         final byte[] sdp = event.getMediaServerSdp();
-        _call.setLocalSDP(sdp);
-        final SipServletResponse res = _call.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
+        _call1.setLocalSDP(sdp);
+        final SipServletResponse res = _call1.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
         try {
           res.setContent(sdp, "application/sdp");
           res.send();
         }
         catch (final IOException e) {
-          setError(e);
-          _call.fail(e);
-          throw new RuntimeException(e);
+          done(Cause.ERROR, e);
+          _call1.fail(e);
         }
       }
       else {
-        SIPHelper.handleErrorSdpPortManagerEvent(event, _call.getSipInitnalRequest());
+        SIPHelper.handleErrorSdpPortManagerEvent(event, _call1.getSipInitnalRequest());
         Exception ex = new NegotiateException(event);
-        setError(ex);
-        _call.fail(ex);
+        done(Cause.ERROR, ex);
+        _call1.fail(ex);
       }
     }
     else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
       if (event.isSuccessful()) {
         if (waitAnswerProcessed) {
-          done();
+          done(JoinCompleteEvent.Cause.JOINED, null);
           return;
         }
       }
       Exception ex = new NegotiateException(event);
-      setError(ex);
-      _call.fail(ex);
+      done(Cause.ERROR, ex);
+      _call1.fail(ex);
     }
   }
 
   @Override
   protected void doAck(final SipServletRequest req, final SIPCallImpl call) throws Exception {
     try {
-      _call.setSIPCallState(SIPCall.State.ANSWERED);
-      _call.processSDPAnswer(req);
+      _call1.setSIPCallState(SIPCall.State.ANSWERED);
+      _call1.processSDPAnswer(req);
       if (!waitAnswerProcessed) {
-        done();
+        done(JoinCompleteEvent.Cause.JOINED, null);
       }
     }
     catch (final Exception e) {
-      setError(e);
-      _call.fail(e);
+      done(Cause.ERROR, e);
+      _call1.fail(e);
       throw e;
     }
   }

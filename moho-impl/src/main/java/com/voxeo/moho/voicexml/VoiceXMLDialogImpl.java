@@ -239,7 +239,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
           }
           finally {
             VoiceXMLDialogImpl.this.dispatch(event);
-            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(VoiceXMLDialogImpl.this, other, event.getCause(),
+            MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, VoiceXMLDialogImpl.this, event.getCause(),
                 false);
             other.dispatch(event2);
           }

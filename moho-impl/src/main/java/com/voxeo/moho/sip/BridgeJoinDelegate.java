@@ -16,20 +16,16 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.sip.SIPCall.State;
 
 public class BridgeJoinDelegate extends JoinDelegate {
-
-  protected SIPCallImpl _call1;
-
-  protected SIPCallImpl _call2;
-
-  protected Direction _direction;
 
   protected BridgeJoinDelegate(final SIPCallImpl call1, final SIPCallImpl call2, final Direction direction) {
     _call1 = call1;
     _call2 = call2;
     _direction = direction;
+    _joinType = JoinType.BRIDGE;
   }
 
   @Override
@@ -38,10 +34,13 @@ public class BridgeJoinDelegate extends JoinDelegate {
     _call2.setBridgeJoiningPeer(_call1);
 
     if (_call1.getMediaObject() == null) {
-      _call1.joinWithoutCheckOperation(Direction.DUPLEX);
+      _call1.join(Direction.DUPLEX);
+      return;
+
     }
     if (_call2.getMediaObject() == null) {
-      _call2.joinWithoutCheckOperation(Direction.DUPLEX);
+      _call2.join(Direction.DUPLEX);
+      return;
     }
     SIPCallImpl call = null;
     if (_call1.getSIPCallState() == State.PROGRESSED) {
@@ -56,24 +55,15 @@ public class BridgeJoinDelegate extends JoinDelegate {
         res.setContent(call.getLocalSDP(), "application/sdp");
       }
       res.send();
-      this.setWaiting(true);
-      while (!_call1.isTerminated() && !_call2.isTerminated() && this.isWaiting()) {
-        try {
-          getCondition().wait();
-        }
-        catch (final InterruptedException e) {
-          // ignore
-        }
-      }
-      if (!_call1.isAnswered() || !_call1.isAnswered()) {
-        throw new IllegalStateException(call + " is no answered.");
-      }
     }
+    else {
+      _call1.linkCall(_call2, JoinType.BRIDGE, _direction);
 
-    _call1.linkCall(_call2, JoinType.BRIDGE, _direction);
+      _call1.setBridgeJoiningPeer(null);
+      _call2.setBridgeJoiningPeer(null);
 
-    _call1.setBridgeJoiningPeer(null);
-    _call2.setBridgeJoiningPeer(null);
+      done(Cause.JOINED, null);
+    }
   }
 
   @Override
@@ -81,10 +71,15 @@ public class BridgeJoinDelegate extends JoinDelegate {
     try {
       call.setSIPCallState(SIPCall.State.ANSWERED);
       call.processSDPAnswer(req);
-      done();
+
+      _call1.linkCall(_call2, JoinType.BRIDGE, _direction);
+
+      _call1.setBridgeJoiningPeer(null);
+      _call2.setBridgeJoiningPeer(null);
+      done(Cause.JOINED, null);
     }
     catch (final Exception e) {
-      setError(e);
+      done(Cause.ERROR, e);
       call.fail(e);
       throw e;
     }

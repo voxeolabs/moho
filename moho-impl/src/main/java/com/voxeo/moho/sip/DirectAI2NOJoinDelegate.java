@@ -23,15 +23,12 @@ import javax.servlet.sip.SipServletResponse;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPCall.State;
 
 public class DirectAI2NOJoinDelegate extends JoinDelegate {
 
   private static final Logger LOG = Logger.getLogger(DirectAI2NOJoinDelegate.class);
-
-  protected SIPIncomingCall _call1;
-
-  protected SIPOutgoingCall _call2;
 
   protected Direction _direction;
 
@@ -47,14 +44,14 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doJoin() throws MsControlException, IOException {
-    _call2.call(null, _call1.getSipSession().getApplicationSession());
+    ((SIPOutgoingCall) _call2).call(null, _call1.getSipSession().getApplicationSession());
   }
 
   @Override
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {
     if (SIPHelper.isErrorResponse(res)) {
-      setException(getExceptionByResponse(res));
+      done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
       _call2.disconnect(true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res), null);
     }
     else if (SIPHelper.isProvisionalResponse(res) && _call2.equals(call)) {
@@ -78,9 +75,8 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
           }
         }
         catch (Exception e) {
-          setError(e);
+          done(JoinCompleteEvent.Cause.ERROR, e);
           _call2.fail(e);
-          done();
           throw e;
         }
       }
@@ -107,13 +103,12 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
           ack2.send();
           doDisengage(_call1, JoinType.DIRECT);
           _call1.linkCall(_call2, JoinType.DIRECT, _direction);
-          done();
+          done(JoinCompleteEvent.Cause.JOINED, null);
         }
       }
       catch (final Exception e) {
-        setError(e);
+        done(JoinCompleteEvent.Cause.ERROR, e);
         _call2.fail(e);
-        done();
         throw e;
       }
     }

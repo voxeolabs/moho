@@ -16,6 +16,8 @@ package com.voxeo.moho.sip;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -44,35 +46,27 @@ import javax.servlet.sip.SipSessionsUtil;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ApplicationContextImpl;
-import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.CallableEndpoint;
-import com.voxeo.moho.CanceledException;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.HangupException;
 import com.voxeo.moho.InternalParticipant;
 import com.voxeo.moho.JoinData;
-import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.JoineeData;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
-import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
-import com.voxeo.moho.RedirectException;
-import com.voxeo.moho.RejectException;
+import com.voxeo.moho.SettableJointImpl;
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.Unjoint;
 import com.voxeo.moho.UnjointImpl;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
-import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.MohoCallCompleteEvent;
-import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.media.GenericMediaService;
@@ -104,6 +98,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected JoinDelegate _joinDelegate;
 
+  protected JoinDelegate _oldJoinDelegate;
+
   protected SIPCallDelegate _callDelegate;
 
   protected JoineeData _joinees = new JoineeData();
@@ -116,7 +112,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected SIPCallImpl _bridgeJoiningPeer;
 
-  protected Object _joinDelegateLock = new Object();
+  protected Lock mediaServiceLock = new ReentrantLock();
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
@@ -215,68 +211,75 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   @Override
-  public synchronized SIPCall.State getSIPCallState() {
+  public SIPCall.State getSIPCallState() {
     return _cstate;
   }
 
   @Override
-  public synchronized MediaService getMediaService(final boolean reinvite) throws IllegalStateException, MediaException {
+  public MediaService<Call> getMediaService(final boolean reinvite) throws IllegalStateException, MediaException {
     if (getSIPCallState() != SIPCall.State.ANSWERED && getSIPCallState() != SIPCall.State.RINGING
         && getSIPCallState() != SIPCall.State.PROGRESSED) {
       throw new IllegalStateException("The call has not been answered or there was no progress in the call");
     }
-    if (_network == null) {
-      if (reinvite) {
-        try {
-          this.doJoin(Direction.DUPLEX);
-        }
-        catch (final Exception e) {
-          throw new MediaException(e);
-        }
-      }
-      else {
-        throw new IllegalStateException("the call is Direct mode but reinvite is false");
-      }
-    }
 
+    mediaServiceLock.lock();
     try {
-      Direction direction = Direction.DUPLEX;
-      Joinable[] joinables = null;
-      try {
-        joinables = _network.getJoinees(Direction.RECV);
-      }
-      catch (MsControlException ex) {
-        // ignore.
-      }
-      if (joinables != null && joinables.length > 0) {
-        if (!(_service != null && joinables.length == 1 && joinables[0] == _service.getMediaGroup())) {
-          direction = Direction.RECV;
+      if (_network == null) {
+        if (reinvite) {
+          try {
+            this.join(Direction.DUPLEX).get();
+          }
+          catch (final Exception e) {
+            throw new MediaException(e);
+          }
+        }
+        else {
+          throw new IllegalStateException("the call is Direct mode but reinvite is false");
         }
       }
 
-      if (_service == null) {
-        Parameters params = null;
-        if (getSipSession() != null) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Set mg id with call id :" + getSipSession().getCallId());
+      try {
+        Direction direction = Direction.DUPLEX;
+        Joinable[] joinables = null;
+        try {
+          joinables = _network.getJoinees(Direction.RECV);
+        }
+        catch (MsControlException ex) {
+          // ignore.
+        }
+        if (joinables != null && joinables.length > 0) {
+          if (!(_service != null && joinables.length == 1 && joinables[0] == _service.getMediaGroup())) {
+            direction = Direction.RECV;
+          }
+        }
+
+        if (_service == null) {
+          Parameters params = null;
+          if (getSipSession() != null) {
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Set mg id with call id :" + getSipSession().getCallId());
+            }
+
+            params = _media.createParameters();
+            params.put(MediaObject.MEDIAOBJECT_ID, "MG-" + getSipSession().getCallId());
+            _media.setParameters(params);
           }
 
-          params = _media.createParameters();
-          params.put(MediaObject.MEDIAOBJECT_ID, "MG-" + getSipSession().getCallId());
-          _media.setParameters(params);
+          _service = _context.getMediaServiceFactory().create((Call) this, _media, params);
+          _service.getMediaGroup().join(direction, _network);
         }
-
-        _service = _context.getMediaServiceFactory().create((Call) this, _media, params);
-        _service.getMediaGroup().join(direction, _network);
+        else if (reinvite) {
+          _service.getMediaGroup().join(direction, _network);
+        }
       }
-      else if (reinvite) {
-        _service.getMediaGroup().join(direction, _network);
+      catch (final Exception e) {
+        throw new MediaException(e);
       }
+      return _service;
     }
-    catch (final Exception e) {
-      throw new MediaException(e);
+    finally {
+      mediaServiceLock.unlock();
     }
-    return _service;
   }
 
   @Override
@@ -432,56 +435,87 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   @Override
-  public Joint join(final Direction direction) {
+  public synchronized Joint join(final Direction direction) {
     if (isTerminated()) {
-      throw new IllegalStateException("...");
+      throw new IllegalStateException("already terminated.");
     }
-    return new JointImpl(_context.getExecutor(), new JoinWorker() {
-      @Override
-      public JoinCompleteEvent call() throws Exception {
-        JoinCompleteEvent event = null;
-        try {
-          doJoin(direction);
-          event = new MohoJoinCompleteEvent(SIPCallImpl.this, null, Cause.JOINED, true);
-        }
-        catch (final Exception e) {
-          _exception = e;
-          event = handleJoinException(e, null);
-          throw e;
-        }
-        finally {
-          SIPCallImpl.this.dispatch(event);
-
-          if (isTerminated()) {
-            SIPCallImpl.this.dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, SIPCallImpl.this
-                .getCallCompleteCauseByException(_exception), _exception));
-          }
-        }
-        return event;
+    if (_operationInProcess) {
+      if (_joinDelegate != null
+          && !(_joinDelegate instanceof BridgeJoinDelegate || _joinDelegate instanceof OtherParticipantJoinDelegate)) {
+        throw new IllegalStateException("other join operation in process.");
       }
+    }
+    _operationInProcess = true;
 
-      @Override
-      public boolean cancel() {
-        return false;
+    try {
+      if (_joinDelegate != null) {
+        _oldJoinDelegate = _joinDelegate;
       }
-    });
+      _joinDelegate = createJoinDelegate(direction);
+
+      SettableJointImpl joint = new SettableJointImpl();
+      _joinDelegate.setSettableJoint(joint);
+      _joinDelegate.doJoin();
+
+      return joint;
+    }
+    catch (Exception ex) {
+      // TODO
+      throw new RuntimeException(ex);
+    }
   }
 
-  /**
-   * this is special method used only by BridgeJoinDelegate.
-   * 
-   * @param direction
-   * @return
-   */
-  protected void joinWithoutCheckOperation(final Direction direction) throws Exception {
-    if (isTerminated()) {
-      throw new IllegalStateException("...");
+  public synchronized void joinDone() {
+    if (_joinDelegate.getPeer() != null) {
+      if (_joinDelegate.getJoinType() == JoinType.BRIDGE) {
+        _callDelegate = new SIPCallBridgeDelegate();
+      }
+      else {
+        _callDelegate = new SIPCallDirectDelegate();
+      }
     }
-    doJoinWithoutCheckOperation(direction);
+    else {
+      _callDelegate = new SIPCallMediaDelegate();
+    }
+
+    if (_oldJoinDelegate != null) {
+      JoinCompleteEvent.Cause cause = _joinDelegate.getCause();
+      Exception exception = _joinDelegate.getException();
+      _joinDelegate = _oldJoinDelegate;
+      _oldJoinDelegate = null;
+      if (cause == JoinCompleteEvent.Cause.JOINED) {
+        try {
+          _joinDelegate.doJoin();
+        }
+        catch (Exception e) {
+          _joinDelegate.done(JoinCompleteEvent.Cause.ERROR, e);
+        }
+      }
+      else {
+        _joinDelegate.done(cause, exception);
+      }
+    }
+    else {
+      _joinDelegate = null;
+      _operationInProcess = false;
+    }
+
+  }
+
+  List<MediaJoinedListener> mediaJoinedListeners = new LinkedList<MediaJoinedListener>();
+
+  void registerMediaJoinedListener(MediaJoinedListener listener) {
+    synchronized (mediaJoinedListeners) {
+      mediaJoinedListeners.add(listener);
+    }
+  }
+
+  protected interface MediaJoinedListener {
+    void mediaJoined();
   }
 
   @Override
-  public Joint join(final Participant other, final JoinType type, final Direction direction) {
+  public synchronized Joint join(final Participant other, final JoinType type, final Direction direction) {
     if (isTerminated()) {
       throw new IllegalStateException("This call is already terminated.");
     }
@@ -489,52 +523,24 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       throw new IllegalStateException("Can't join to itself.");
     }
 
-    return new JointImpl(_context.getExecutor(), new JoinWorker() {
-      @Override
-      public JoinCompleteEvent call() throws Exception {
-        JoinCompleteEvent event = null;
-        try {
-          if (other instanceof SIPCallImpl) {
-            doJoin((SIPCallImpl) other, type, direction);
-          }
-          else {
-            doJoin(other, type, direction);
-          }
-          event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.JOINED, true);
-        }
-        catch (final Exception e) {
-          _exception = e;
-          event = handleJoinException(e, other);
-          throw e;
-        }
-        finally {
-          SIPCallImpl.this.dispatch(event);
-          MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, SIPCallImpl.this, event.getCause(), false);
-          other.dispatch(event2);
-          if (isTerminated()) {
-            SIPCallImpl.this.dispatch(new MohoCallCompleteEvent(SIPCallImpl.this,
-                getCallCompleteCauseByException(_exception), _exception));
-          }
+    if (_operationInProcess) {
+      throw new IllegalStateException("other operation in process.");
+    }
 
-          if (other instanceof SIPCallImpl && ((SIPCallImpl) other).isTerminated()) {
-            other.dispatch(new MohoCallCompleteEvent((SIPCallImpl) other, getCallCompleteCauseByException(_exception),
-                _exception));
-          }
-        }
-        return event;
-      }
+    _operationInProcess = true;
 
-      @Override
-      public boolean cancel() {
-        synchronized (SIPCallImpl.this) {
-          if (_joinDelegate != null) {
-            _joinDelegate.done();
-            return true;
-          }
-          return false;
-        }
+    try {
+      if (other instanceof SIPCallImpl) {
+        return doJoin((SIPCallImpl) other, type, direction);
       }
-    });
+      else {
+        return doJoin(other, type, direction);
+      }
+    }
+    catch (Exception ex) {
+      // TODO
+      throw new RuntimeException(ex);
+    }
   }
 
   public synchronized void onEvent(final SdpPortManagerEvent event) {
@@ -567,7 +573,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     else {
       if (_joinDelegate != null) {
-        _joinDelegate.setException(new HangupException());
+        _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, new HangupException());
       }
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
       terminate(CallCompleteEvent.Cause.DISCONNECT, null);
@@ -779,28 +785,18 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
       _peers.clear();
     }
-    synchronized (_joinDelegateLock) {
-      if (_joinDelegate != null && _joinDelegate.getCondition() != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("terminating call. Notifying joinDelegate conditaion. callID:"
-              + (getSipSession() != null ? getSipSession().getCallId() : ""));
-        }
-        synchronized (_joinDelegate.getCondition()) {
-          if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) {
-            _joinDelegate.setException(new HangupException());
-          }
-          _joinDelegate.getCondition().notifyAll();
-        }
+
+    // TODO
+    if (_joinDelegate != null) {
+      if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) {
+        _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
       }
       else {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("terminating call. Notifying this. callID:"
-              + (getSipSession() != null ? getSipSession().getCallId() : ""));
-        }
-        this.notifyAll();
-        this.dispatch(new MohoCallCompleteEvent(this, cause, exception));
+        _joinDelegate.done(JoinCompleteEvent.Cause.ERROR, exception);
       }
     }
+
+    this.dispatch(new MohoCallCompleteEvent(this, cause, exception));
 
     _callDelegate = null;
   }
@@ -992,13 +988,12 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  protected void setJoinDelegate(final JoinDelegate delegate) {
-    if (_operationInProcess) {
-      throw new IllegalStateException("other operation in process.");
+  protected synchronized void startJoin(final JoinDelegate delegate) {
+    if (_joinDelegate != null) {
+      throw new IllegalStateException("other join operation in process.");
     }
-    synchronized (_joinDelegateLock) {
-      _joinDelegate = delegate;
-    }
+    _operationInProcess = true;
+    _joinDelegate = delegate;
   }
 
   protected JoinDelegate getJoinDelegate() {
@@ -1009,179 +1004,30 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     _callDelegate = delegate;
   }
 
-  protected synchronized void doJoin(final Direction direction) throws Exception {
-    if (_operationInProcess) {
-      throw new IllegalStateException("other join operation in process.");
-    }
-    _operationInProcess = true;
+  protected Joint doJoin(final SIPCallImpl other, final JoinType type, final Direction direction) throws Exception {
+    _joinDelegate = createJoinDelegate(other, type, direction);
+    SettableJointImpl joint = new SettableJointImpl();
+    _joinDelegate.setSettableJoint(joint);
+    other.startJoin(_joinDelegate);
 
-    try {
-      _joinDelegate = createJoinDelegate(direction);
-      _joinDelegate.setCondition(this);
-      _joinDelegate.setWaiting(true);
-      _joinDelegate.doJoin();
-      while (!this.isTerminated() && _joinDelegate.isWaiting()) {
-        try {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Start wait joinDelegate. CallID:" + (getSipSession() != null ? getSipSession().getCallId() : ""));
-          }
+    _joinDelegate.doJoin();
 
-          this.wait(1000 * 30);
-        }
-        catch (final InterruptedException e) {
-          // ignore
-        }
-      }
-      if (_joinDelegate != null) {
-        if (_joinDelegate.getException() != null) {
-          final Exception e = _joinDelegate.getException();
-          _joinDelegate.setException(null);
-          throw e;
-        }
-        if (_joinDelegate.getError() != null) {
-          final Exception e = _joinDelegate.getError();
-          _joinDelegate.setError(null);
-          throw e;
-        }
-      }
-      if (!this.isAnswered()) {
-        throw new IllegalStateException(this + " is no answered.");
-      }
-      _callDelegate = new SIPCallMediaDelegate();
-    }
-    finally {
-      _joinDelegate = null;
-      _operationInProcess = false;
-    }
+    return joint;
   }
 
-  /**
-   * this is special method used only by BridgeJoinDelegate.
-   * 
-   * @param direction
-   * @throws Exception
-   */
-  protected synchronized void doJoinWithoutCheckOperation(final Direction direction) throws Exception {
-    try {
-      _joinDelegate = createJoinDelegate(direction);
-      _joinDelegate.setCondition(this);
-      _joinDelegate.setWaiting(true);
-      _joinDelegate.doJoin();
-      while (!this.isTerminated() && _joinDelegate.isWaiting()) {
-        try {
-          this.wait();
-        }
-        catch (final InterruptedException e) {
-          // ignore
-        }
-      }
-      if (_joinDelegate != null) {
-        if (_joinDelegate.getException() != null) {
-          final Exception e = _joinDelegate.getException();
-          _joinDelegate.setException(null);
-          throw e;
-        }
-        if (_joinDelegate.getError() != null) {
-          final Exception e = _joinDelegate.getError();
-          _joinDelegate.setError(null);
-          throw e;
-        }
-      }
-      if (!this.isAnswered()) {
-        throw new IllegalStateException(this + " is no answered.");
-      }
-      _callDelegate = new SIPCallMediaDelegate();
-    }
-    finally {
-      _joinDelegate = null;
-    }
-  }
-
-  protected synchronized void doJoin(final SIPCallImpl other, final JoinType type, final Direction direction)
-      throws Exception {
-    if (_operationInProcess) {
-      throw new IllegalStateException("other operation in process.");
-    }
-    _operationInProcess = true;
-
-    try {
-      _joinDelegate = createJoinDelegate(other, type, direction);
-      other.setJoinDelegate(_joinDelegate);
-      if (_joinDelegate != null) {
-        _joinDelegate.setCondition(this);
-        if (type == JoinType.DIRECT) {
-          _joinDelegate.setWaiting(true);
-        }
-        _joinDelegate.doJoin();
-        if (type == JoinType.DIRECT) {
-          while (!this.isTerminated() && !other.isTerminated() && _joinDelegate.isWaiting()) {
-            try {
-              this.wait();
-            }
-            catch (final InterruptedException e) {
-              // ignore
-            }
-          }
-        }
-      }
-      if (_joinDelegate != null) {
-        if (_joinDelegate.getException() != null) {
-          final Exception e = _joinDelegate.getException();
-          _joinDelegate.setException(null);
-          throw e;
-        }
-        if (_joinDelegate.getError() != null) {
-          final Exception e = _joinDelegate.getError();
-          _joinDelegate.setError(null);
-          throw e;
-        }
-      }
-      if (!this.isAnswered() || !other.isAnswered()) {
-        throw new IllegalStateException(this + " is no answered.");
-      }
-      if (type == JoinType.DIRECT) {
-        _callDelegate = new SIPCallDirectDelegate();
-      }
-      else {
-        _callDelegate = new SIPCallBridgeDelegate();
-      }
-      other.setCallDelegate(_callDelegate);
-    }
-    finally {
-      _joinDelegate = null;
-      other.setJoinDelegate(null);
-      _operationInProcess = false;
-    }
-  }
-
-  protected synchronized void doJoin(final Participant other, final JoinType type, final Direction direction)
-      throws Exception {
+  protected Joint doJoin(final Participant other, final JoinType type, final Direction direction) throws Exception {
     if (!(other.getMediaObject() instanceof Joinable)) {
       throw new IllegalArgumentException("MediaObject is't joinable.");
     }
-    if (isTerminated()) {
-      throw new IllegalStateException("...");
-    }
-    if (_joinees.contains(other)) {
-      return;
-    }
-    unlinkDirectlyPeer();
-    if (_network == null) {
-      this.doJoin(Direction.DUPLEX);
-    }
 
-    ((Joinable) other.getMediaObject()).join(direction, _network);
+    _joinDelegate = new OtherParticipantJoinDelegate(this, other, direction);
 
-    if (other instanceof MixerImpl.ClampDtmfMixerAdapter) {
-      MixerImpl.ClampDtmfMixerAdapter adapter = (MixerImpl.ClampDtmfMixerAdapter) other;
+    SettableJointImpl joint = new SettableJointImpl();
+    _joinDelegate.setSettableJoint(joint);
+    
+    _joinDelegate.doJoin();
 
-      _joinees.add(adapter.getMixer(), type, direction, adapter);
-      ((ParticipantContainer) other).addParticipant(this, type, direction, adapter);
-    }
-    else {
-      _joinees.add(other, type, direction);
-      ((ParticipantContainer) other).addParticipant(this, type, direction, null);
-    }
+    return joint;
   }
 
   protected abstract JoinDelegate createJoinDelegate(final Direction direction);
@@ -1208,8 +1054,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected HoldState _deafState = HoldState.None;
 
   protected int waitRespNum;
-
-  protected Lock lock = new ReentrantLock();
 
   protected synchronized HoldState getMuteState() {
     return _muteState;
@@ -1470,58 +1314,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     finally {
       _operationInProcess = false;
     }
-  }
-
-  private JoinCompleteEvent handleJoinException(final Exception e, Participant other) {
-    JoinCompleteEvent event = null;
-    if (e instanceof BusyException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.BUSY, e, true);
-    }
-    else if (e instanceof TimeoutException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.TIMEOUT, e, true);
-    }
-    else if (e instanceof RedirectException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.REDIRECT, e, true);
-    }
-    else if (e instanceof RejectException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.REJECT, e, true);
-    }
-    else if (e instanceof CanceledException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.CANCELED, e, true);
-    }
-    else if (e instanceof HangupException) {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.DISCONNECTED, e, true);
-    }
-    else {
-      event = new MohoJoinCompleteEvent(SIPCallImpl.this, other, Cause.ERROR, e, true);
-    }
-    return event;
-  }
-
-  private CallCompleteEvent.Cause getCallCompleteCauseByException(final Exception e) {
-    CallCompleteEvent.Cause cause = null;
-    if (e instanceof BusyException) {
-      cause = CallCompleteEvent.Cause.BUSY;
-    }
-    else if (e instanceof TimeoutException) {
-      cause = CallCompleteEvent.Cause.TIMEOUT;
-    }
-    else if (e instanceof RedirectException) {
-      cause = CallCompleteEvent.Cause.REDIRECT;
-    }
-    else if (e instanceof RejectException) {
-      cause = CallCompleteEvent.Cause.DECLINE;
-    }
-    else if (e instanceof CanceledException) {
-      cause = CallCompleteEvent.Cause.CANCEL;
-    }
-    else if (e instanceof HangupException) {
-      cause = CallCompleteEvent.Cause.DISCONNECT;
-    }
-    else {
-      cause = CallCompleteEvent.Cause.ERROR;
-    }
-    return cause;
   }
 
   // for invite event =============
