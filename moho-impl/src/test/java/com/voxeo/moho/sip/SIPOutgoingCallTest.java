@@ -1945,6 +1945,8 @@ public class SIPOutgoingCallTest extends TestCase {
           
           oneOf(outgoingCall).joinDone();
           
+          allowing(outgoingCall).fail(with(any(Exception.class)));
+          
           oneOf(outgoingCall).dispatch(with(any(JoinCompleteEvent.class)));
         }
       });
