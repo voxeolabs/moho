@@ -22,5 +22,5 @@ import com.voxeo.moho.Framework;
  * @author wchen
  *
  */
-public interface SubscribeEvent extends RequestEvent<Framework>, RedirectableEvent {
+public interface SubscribeEvent extends RequestEvent<Framework>, RedirectableEvent, ProxyableEvent {
 }

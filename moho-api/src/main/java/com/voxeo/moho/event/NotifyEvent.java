@@ -16,7 +16,7 @@ package com.voxeo.moho.event;
 
 import com.voxeo.moho.Subscription;
 
-public interface NotifyEvent<T extends EventSource> extends RequestEvent<T>, ForwardableEvent {
+public interface NotifyEvent<T extends EventSource> extends RequestEvent<T>, ForwardableEvent, ProxyableEvent {
 
   /** RFC 3265 */
   public enum SubscriptionState {

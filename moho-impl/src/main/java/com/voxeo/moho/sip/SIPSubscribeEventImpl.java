@@ -88,4 +88,16 @@ public class SIPSubscribeEventImpl extends MohoSubscribeEvent implements SIPSubs
     }
   }
 
+  @Override
+  public void proxyTo(boolean recordRoute, boolean parallel, Endpoint... destinations) throws SignalException {
+    proxyTo(recordRoute, parallel, null, destinations);
+  }
+
+  @Override
+  public synchronized void proxyTo(boolean recordRoute, boolean parallel, Map<String, String> headers, Endpoint... destinations) {
+    checkState();
+    _proxied = true;
+    SIPHelper.proxyTo(getSource().getApplicationContext().getSipFactory(), _req, headers, recordRoute, parallel, destinations);
+  }
+
 }

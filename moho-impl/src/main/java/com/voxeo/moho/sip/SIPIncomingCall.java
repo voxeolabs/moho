@@ -14,21 +14,14 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
-import javax.servlet.sip.Address;
-import javax.servlet.sip.Proxy;
 import javax.servlet.sip.Rel100Exception;
-import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.TooManyHopsException;
-import javax.servlet.sip.URI;
 
 import org.apache.log4j.Logger;
 
@@ -405,39 +398,15 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   }
 
   @Override
-  public void proxyTo(boolean recordRoute, boolean parallel, Endpoint... endpoints) throws SignalException {
+  public void proxyTo(boolean recordRoute, boolean parallel, Endpoint... destinations) throws SignalException {
+    proxyTo(recordRoute, parallel, null, destinations);
+  }
+
+  @Override
+  public synchronized void proxyTo(boolean recordRoute, boolean parallel, Map<String, String> headers, Endpoint... destinations) {
     checkState();
     _proxied = true;
     setSIPCallState(SIPCall.State.PROXIED);
-    if (endpoints == null || endpoints.length == 0) {
-      throw new IllegalArgumentException("Illegal endpoints");
-    }
-    try {
-      Proxy proxy = _invite.getProxy();
-
-      proxy.setParallel(parallel);
-      proxy.setRecordRoute(recordRoute);
-      proxy.setSupervised(false);
-
-      List<URI> uris = new LinkedList<URI>();
-      for (Endpoint endpoint : endpoints) {
-        if (endpoint.getURI() == null) {
-          throw new IllegalArgumentException("Illegal endpoints:" + endpoint);
-        }
-        Address address = getApplicationContext().getSipFactory().createAddress(endpoint.getURI().toString());
-        uris.add(address.getURI());
-      }
-
-      proxy.proxyTo(uris);
-    }
-    catch (TooManyHopsException e) {
-      LOG.error("", e);
-      throw new SignalException(e);
-    }
-    catch (ServletParseException e) {
-      LOG.error("", e);
-      throw new SignalException(e);
-    }
-
+    SIPHelper.proxyTo(getApplicationContext().getSipFactory(), _invite, headers, recordRoute, parallel, destinations);
   }
 }
