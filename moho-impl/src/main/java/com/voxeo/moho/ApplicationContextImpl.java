@@ -14,6 +14,8 @@
 
 package com.voxeo.moho;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -35,6 +37,7 @@ import javax.servlet.sip.SipServlet;
 
 import org.apache.log4j.Logger;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 import com.voxeo.moho.conference.ConferenceDriverImpl;
 import com.voxeo.moho.conference.ConferenceManager;
@@ -85,6 +88,8 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   protected org.springframework.context.support.AbstractApplicationContext _springContext;
 
+  protected org.springframework.context.support.AbstractApplicationContext _appSpringContext;
+
   @SuppressWarnings("unchecked")
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipServlet servlet) {
     super();
@@ -95,11 +100,30 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     _servletContext = _sip.getServletContext();
     _sipFactory = (SipFactory) _servletContext.getAttribute(SipServlet.SIP_FACTORY);
     _sdpFactory = (SdpFactory) _servletContext.getAttribute("javax.servlet.sdp.SdpFactory");
+
+    String serviceContextFilePath = "WEB-INF/service-context.xml";
+
     final Enumeration<String> e = servlet.getInitParameterNames();
     while (e.hasMoreElements()) {
       final String name = e.nextElement();
       final String value = servlet.getInitParameter(name);
       setParameter(name, value);
+
+      if (name.equalsIgnoreCase("service-context-file")) {
+        serviceContextFilePath = value;
+      }
+    }
+
+    try {
+      String realPath = servlet.getServletContext().getRealPath(serviceContextFilePath);
+      File file = new File(realPath);
+
+      if (file.exists()) {
+        _appSpringContext = new FileSystemXmlApplicationContext("file:" + realPath);
+      }
+    }
+    catch (Exception ex) {
+      LOG.warn("Error when loading service-context-file at:" + serviceContextFilePath, ex);
     }
 
     try {
@@ -138,8 +162,20 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     _dispatcher.setExecutor(_executor, false);
 
     _springContext = new ClassPathXmlApplicationContext("classpath:moho-service-context.xml");
+    Collection<Service> beans = null;
+    if (_appSpringContext != null) {
+      beans = _appSpringContext.getBeansOfType(Service.class).values();
+      for (Service service : beans) {
+        try {
+          service.init(this, getParameters());
+        }
+        catch (Exception e1) {
+          LOG.error("Error when initialize service" + service, e1);
+        }
+      }
+    }
 
-    Collection<Service> beans = _springContext.getBeansOfType(Service.class).values();
+    beans = _springContext.getBeansOfType(Service.class).values();
     for (Service service : beans) {
       try {
         service.init(this, getParameters());
@@ -377,7 +413,17 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   }
 
   private <T> T find(Class<T> clazz) {
-    Collection<T> beans = _springContext.getBeansOfType(clazz).values();
+    Collection<T> beans = null;
+
+    if (_appSpringContext != null) {
+      beans = _appSpringContext.getBeansOfType(clazz).values();
+
+      if (!beans.isEmpty()) {
+        return beans.iterator().next();
+      }
+    }
+
+    beans = _springContext.getBeansOfType(clazz).values();
 
     if (!beans.isEmpty()) {
       return beans.iterator().next();
@@ -388,7 +434,15 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   @Override
   public <T extends Service> Collection<T> listServices() {
-    return (Collection<T>) _springContext.getBeansOfType(Service.class).values();
+    Collection<T> ret = new ArrayList<T>();
+
+    if (_appSpringContext != null) {
+      ret.addAll((Collection<T>) _appSpringContext.getBeansOfType(Service.class).values());
+    }
+
+    ret.addAll((Collection<T>) _springContext.getBeansOfType(Service.class).values());
+
+    return ret;
   }
 
   @Override
