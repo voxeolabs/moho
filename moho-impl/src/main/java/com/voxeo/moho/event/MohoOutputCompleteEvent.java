@@ -14,18 +14,32 @@
 
 package com.voxeo.moho.event;
 
-public class MohoOutputCompleteEvent<T extends EventSource> extends MohoMediaCompleteEvent<T> implements OutputCompleteEvent<T> {
+public class MohoOutputCompleteEvent<T extends EventSource> extends MohoMediaCompleteEvent<T> implements
+    OutputCompleteEvent<T> {
 
   protected Cause _cause;
+
+  protected String _errorText;
 
   public MohoOutputCompleteEvent(T source, Cause cause) {
     super(source);
     _cause = cause;
   }
 
+  public MohoOutputCompleteEvent(T source, Cause cause, String errorText) {
+    super(source);
+    _cause = cause;
+    _errorText = errorText;
+  }
+
   @Override
   public Cause getCause() {
     return _cause;
+  }
+
+  @Override
+  public String getErrorText() {
+    return _errorText;
   }
 
 }

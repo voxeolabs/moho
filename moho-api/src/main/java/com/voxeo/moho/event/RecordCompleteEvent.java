@@ -34,4 +34,10 @@ public interface RecordCompleteEvent<T extends EventSource> extends MediaComplet
    * @return the length of the recording in milliseconds without omitted silence.
    */
   long getDuration();
+  
+  /**
+   * get error description text.
+   * @return
+   */
+  String getErrorText();
 }

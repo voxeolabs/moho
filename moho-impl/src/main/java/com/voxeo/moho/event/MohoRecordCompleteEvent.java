@@ -14,15 +14,23 @@
 
 package com.voxeo.moho.event;
 
-public class MohoRecordCompleteEvent<T extends EventSource> extends MohoMediaCompleteEvent<T> implements RecordCompleteEvent<T> {
+public class MohoRecordCompleteEvent<T extends EventSource> extends MohoMediaCompleteEvent<T> implements
+    RecordCompleteEvent<T> {
   protected Cause _cause;
 
   protected long _duration;
+
+  protected String _errorText;
 
   public MohoRecordCompleteEvent(final T source, final Cause cause, long duration) {
     super(source);
     _cause = cause;
     _duration = duration;
+  }
+
+  public MohoRecordCompleteEvent(final T source, final Cause cause, long duration, String errorText) {
+    this(source, cause, duration);
+    _errorText = errorText;
   }
 
   @Override
@@ -33,5 +41,10 @@ public class MohoRecordCompleteEvent<T extends EventSource> extends MohoMediaCom
   @Override
   public long getDuration() {
     return _duration;
+  }
+
+  @Override
+  public String getErrorText() {
+    return _errorText;
   }
 }

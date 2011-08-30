@@ -15,10 +15,10 @@
 package com.voxeo.moho.event;
 
 /**
- * This event is fired when an {@link com.voxeo.moho.media.Output Output} is completed.
+ * This event is fired when an {@link com.voxeo.moho.media.Output Output} is
+ * completed.
  * 
  * @author wchen
- *
  */
 public interface OutputCompleteEvent<T extends EventSource> extends MediaCompleteEvent<T> {
   public enum Cause {
@@ -42,4 +42,11 @@ public interface OutputCompleteEvent<T extends EventSource> extends MediaComplet
    * @return the cause of the completion.
    */
   Cause getCause();
+
+  /**
+   * get error description text.
+   * 
+   * @return
+   */
+  String getErrorText();
 }

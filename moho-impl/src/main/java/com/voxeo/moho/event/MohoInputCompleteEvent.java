@@ -15,7 +15,8 @@ package com.voxeo.moho.event;
 
 import com.voxeo.moho.media.InputMode;
 
-public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaCompleteEvent<T> implements InputCompleteEvent<T> {
+public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaCompleteEvent<T> implements
+    InputCompleteEvent<T> {
 
   protected Cause _cause;
 
@@ -35,12 +36,20 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
 
   protected InputMode _inputMode;
 
+  protected String _errorText;
+
   public MohoInputCompleteEvent(final T source, final Cause cause) {
     super(source);
     _cause = cause;
     if (_cause == Cause.MATCH) {
       _successful = true;
     }
+  }
+
+  public MohoInputCompleteEvent(final T source, final Cause cause, String errorText) {
+    this(source, cause);
+
+    _errorText = errorText;
   }
 
   @Override
@@ -78,7 +87,7 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
   public void setConfidence(final float confidence) {
     this._confidence = confidence;
   }
-  
+
   @Override
   public String getNlsml() {
     return _nlsml;
@@ -126,6 +135,11 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
       retval = getInterpretation();
     }
     return retval;
+  }
+
+  @Override
+  public String getErrorText() {
+    return _errorText;
   }
 
 }

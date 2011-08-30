@@ -16,10 +16,10 @@ package com.voxeo.moho.event;
 import com.voxeo.moho.media.InputMode;
 
 /**
- * This event is fired when an {@link com.voxeo.moho.media.Input Input} is completed.
+ * This event is fired when an {@link com.voxeo.moho.media.Input Input} is
+ * completed.
  * 
  * @author wchen
- *
  */
 public interface InputCompleteEvent<T extends EventSource> extends MediaCompleteEvent<T> {
 
@@ -42,13 +42,12 @@ public interface InputCompleteEvent<T extends EventSource> extends MediaComplete
     DISCONNECT, UNKNOWN
   }
 
-
   String getConcept();
 
   String getInterpretation();
-  
+
   String getUtterance();
-  
+
   float getConfidence();
 
   String getNlsml();
@@ -65,4 +64,11 @@ public interface InputCompleteEvent<T extends EventSource> extends MediaComplete
   InputMode getInputMode();
 
   String getValue();
+
+  /**
+   * get error description text.
+   * 
+   * @return
+   */
+  String getErrorText();
 }

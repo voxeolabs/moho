@@ -653,6 +653,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       if (t == PlayerEvent.PLAY_COMPLETED) {
         getPlayer().removeListener(this);
         OutputCompleteEvent.Cause cause = Cause.UNKNOWN;
+        String errorText = null;
         final Qualifier q = e.getQualifier();
         if (q == PlayerEvent.END_OF_PLAY_LIST) {
           cause = Cause.END;
@@ -677,7 +678,14 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
             cause = Cause.CANCEL;
           }
         }
-        final OutputCompleteEvent<T> outputCompleteEvent = new MohoOutputCompleteEvent<T>(_parent, cause);
+        else if (q == ResourceEvent.NO_QUALIFIER) {
+          if (e.getError() != ResourceEvent.NO_ERROR) {
+            cause = Cause.ERROR;
+          }
+
+          errorText = e.getError() + ": " + e.getErrorText();
+        }
+        final OutputCompleteEvent<T> outputCompleteEvent = new MohoOutputCompleteEvent<T>(_parent, cause, errorText);
         _parent.dispatch(outputCompleteEvent);
         _output.done(outputCompleteEvent);
         if (_prompt != null) {
@@ -722,6 +730,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         }
         InputCompleteEvent.Cause cause = InputCompleteEvent.Cause.UNKNOWN;
         final Qualifier q = e.getQualifier();
+        String errorText = null;
         if (q == SignalDetectorEvent.DURATION_EXCEEDED) {
           cause = InputCompleteEvent.Cause.MAX_TIMEOUT;
         }
@@ -748,7 +757,14 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         else if (e.getQualifier() == ResourceEvent.RTC_TRIGGERED) {
           cause = InputCompleteEvent.Cause.CANCEL;
         }
-        final MohoInputCompleteEvent<T> inputCompleteEvent = new MohoInputCompleteEvent<T>(_parent, cause);
+        else if (q == ResourceEvent.NO_QUALIFIER) {
+          if (e.getError() != ResourceEvent.NO_ERROR) {
+            cause = InputCompleteEvent.Cause.ERROR;
+          }
+
+          errorText = e.getError() + ": " + e.getErrorText();
+        }
+        final MohoInputCompleteEvent<T> inputCompleteEvent = new MohoInputCompleteEvent<T>(_parent, cause, errorText);
         if (e instanceof SpeechRecognitionEvent) {
           String signalString = e.getSignalString();
           if (signalString != null) {
@@ -839,6 +855,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       if (t == RecorderEvent.RECORD_COMPLETED) {
         getRecorder().removeListener(this);
         RecordCompleteEvent.Cause cause = RecordCompleteEvent.Cause.UNKNOWN;
+        String errorText = null;
         final Qualifier q = e.getQualifier();
         if (q == RecorderEvent.DURATION_EXCEEDED) {
           cause = RecordCompleteEvent.Cause.TIMEOUT;
@@ -860,8 +877,15 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         else if (q == ResourceEvent.RTC_TRIGGERED) {
           cause = RecordCompleteEvent.Cause.CANCEL;
         }
+        else if (q == ResourceEvent.NO_QUALIFIER) {
+          if (e.getError() != ResourceEvent.NO_ERROR) {
+            cause = RecordCompleteEvent.Cause.ERROR;
+          }
+
+          errorText = e.getError() + ": " + e.getErrorText();
+        }
         final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause,
-            e.getDuration());
+            e.getDuration(), errorText);
         _parent.dispatch(recordCompleteEvent);
         _recording.done(recordCompleteEvent);
       }
