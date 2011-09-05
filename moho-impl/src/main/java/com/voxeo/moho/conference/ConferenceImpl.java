@@ -145,6 +145,11 @@ public class ConferenceImpl extends MixerImpl implements Conference, InternalPar
 
   @Override
   public Unjoint unjoin(final Participant p) {
+    return this.unjoin(p, true);
+  }
+  
+  @Override
+  public Unjoint unjoin(final Participant p, boolean isInitiator) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
@@ -153,6 +158,7 @@ public class ConferenceImpl extends MixerImpl implements Conference, InternalPar
     });
     return task;
   }
+  
 
   @Override
   public int getMaxSeats() {

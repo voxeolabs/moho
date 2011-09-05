@@ -368,11 +368,10 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public Unjoint unjoin(final Participant p) {
-    return unjoin(p, true);
+    return mixerunjoin(p, true);
   }
 
-  @Override
-  public Unjoint unjoin(final Participant other, final boolean callOtherUnjoin) {
+  public Unjoint mixerunjoin(final Participant other, final boolean callOtherUnjoin) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
@@ -381,6 +380,12 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     });
 
     return task;
+  }
+  
+
+  @Override
+  public Unjoint unjoin(Participant other, boolean callPeerUnjoin) {
+  	return mixerunjoin(other, callPeerUnjoin);
   }
 
   @Override
@@ -824,5 +829,6 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   public MediaGroup getMediaGroup() {
     return getMediaService().getMediaGroup();
   }
+
 
 }
