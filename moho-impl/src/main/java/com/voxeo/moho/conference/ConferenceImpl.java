@@ -121,7 +121,7 @@ public class ConferenceImpl extends MixerImpl implements Conference, InternalPar
 
   }
 
-  public UnjoinCompleteEvent doUnjoin(final Participant other) throws Exception {
+  public UnjoinCompleteEvent doUnjoin(final Participant other, final boolean isInitiator) throws Exception {
     synchronized (_lock) {
       UnjoinCompleteEvent event = null;
       try {
@@ -129,14 +129,16 @@ public class ConferenceImpl extends MixerImpl implements Conference, InternalPar
           _controller.preUnjoin(other, this);
         }
         _occupiedSeats = _occupiedSeats - 1;
-        event = super.unjoin(other).get();
-        if (_controller != null) {
-          _controller.postUnjoin(other, this);
-        }
+        event = super.unjoin(other, isInitiator).get();
       }
       catch (final Exception e) {
         LOG.warn("", e);
         throw e;
+      }
+      finally{
+    	  if (_controller != null) {
+              _controller.postUnjoin(other, this);
+            }
       }
 
       return event;
@@ -149,11 +151,11 @@ public class ConferenceImpl extends MixerImpl implements Conference, InternalPar
   }
   
   @Override
-  public Unjoint unjoin(final Participant p, boolean isInitiator) {
+  public Unjoint unjoin(final Participant p, final boolean isInitiator) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
-        return doUnjoin(p);
+        return doUnjoin(p, isInitiator);
       }
     });
     return task;
