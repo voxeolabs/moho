@@ -378,8 +378,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
       }
       if (p.getMediaObject() instanceof Joinable) {
-
-        boolean unjoin = false;
         Joinable peerJoinalbe = null;
         if (joinData.getRealJoined() != null) {
           peerJoinalbe = (Joinable) joinData.getRealJoined().getMediaObject();
@@ -387,14 +385,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         else {
           peerJoinalbe = (Joinable) p.getMediaObject();
         }
-        Joinable[] joinables = _network.getJoinees();
-        for (Joinable joinable : joinables) {
-          if (joinable == peerJoinalbe) {
-            unjoin = true;
-            break;
-          }
-        }
-        if (unjoin) {
+        if (initiator) {
           _network.unjoin(peerJoinalbe);
         }
       }

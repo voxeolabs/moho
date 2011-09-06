@@ -337,11 +337,15 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       if (p.getMediaObject() instanceof Joinable) {
 
         if (joinData.getRealJoined() != null) {
-          ((ClampDtmfMixerAdapter) joinData.getRealJoined())._mixerAdapter.unjoin((Joinable) p.getMediaObject());
+        	if(callOtherUnjoin){
+        		((ClampDtmfMixerAdapter) joinData.getRealJoined())._mixerAdapter.unjoin((Joinable) p.getMediaObject());
+        	}
           ((ClampDtmfMixerAdapter) joinData.getRealJoined())._mixerAdapter.release();
         }
         else {
-          _mixer.unjoin((Joinable) p.getMediaObject());
+          if(callOtherUnjoin){
+        	  _mixer.unjoin((Joinable) p.getMediaObject());
+          }
         }
 
       }

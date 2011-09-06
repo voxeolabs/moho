@@ -333,7 +333,7 @@ public class SIPDriverImpl implements SIPDriver {
       }
     }
     else {
-      final UnknownRequestEvent<Framework> event = new SIPUnknownRequestEventImpl<Framework>((Framework) source, req);
+      final UnknownRequestEvent<Framework> event = new SIPUnknownRequestEventImpl<Framework>((Framework) _app, req);
       _app.dispatch(event, new NoHandleHandler<Framework>(event, req));
     }
   }
