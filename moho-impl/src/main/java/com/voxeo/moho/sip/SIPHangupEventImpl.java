@@ -14,6 +14,8 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import javax.servlet.sip.SipServletRequest;
@@ -21,37 +23,54 @@ import javax.servlet.sip.SipServletRequest;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.MohoHangupEvent;
 
-public class SIPHangupEventImpl extends MohoHangupEvent implements SIPHangupEvent {
+public class SIPHangupEventImpl extends MohoHangupEvent implements
+		SIPHangupEvent {
 
-  protected SipServletRequest _req;
+	protected SipServletRequest _req;
 
-  protected SIPHangupEventImpl(final SIPCall source, final SipServletRequest req) {
-    super(source);
-    _req = req;
-  }
+	protected SIPHangupEventImpl(final SIPCall source,
+			final SipServletRequest req) {
+		super(source);
+		_req = req;
+	}
 
-  @Override
-  public SipServletRequest getSipRequest() {
-    return _req;
-  }
+	@Override
+	public SipServletRequest getSipRequest() {
+		return _req;
+	}
 
-  @Override
-  public synchronized void accept(final Map<String, String> headers) throws SignalException {
-    this.checkState();
-    _accepted = true;
-    if (this.source instanceof SIPCallImpl) {
-      final SIPCallImpl retval = (SIPCallImpl) this.source;
-      retval.doBye(_req, headers);
-    }
-  }
+	@Override
+	public synchronized void accept(final Map<String, String> headers)
+			throws SignalException {
+		this.checkState();
+		_accepted = true;
+		if (this.source instanceof SIPCallImpl) {
+			final SIPCallImpl retval = (SIPCallImpl) this.source;
+			retval.doBye(_req, populateHangupHeders(headers));
+		}
+	}
 
-  @Override
-  public synchronized void reject(Reason reason, Map<String, String> headers) throws SignalException {
-    this.checkState();
-    _rejected = true;
-    if (this.source instanceof SIPCallImpl) {
-      final SIPCallImpl retval = (SIPCallImpl) this.source;
-      retval.doBye(_req, headers);
-    }
-  }
+	@Override
+	public synchronized void reject(Reason reason, Map<String, String> headers)
+			throws SignalException {
+		this.checkState();
+		_rejected = true;
+		if (this.source instanceof SIPCallImpl) {
+			final SIPCallImpl retval = (SIPCallImpl) this.source;
+			retval.doBye(_req, populateHangupHeders(headers));
+		}
+	}
+
+	private Map<String, String> populateHangupHeders(Map<String, String> headers) {
+
+		if (headers == null) {
+			headers = new HashMap<String, String>();
+		}
+        Iterator<String> headerNames = _req.getHeaderNames();
+        while(headerNames.hasNext()) {
+        	String headerName = headerNames.next();
+            headers.put(headerName, _req.getHeader(headerName));
+        }
+        return headers;
+	}
 }

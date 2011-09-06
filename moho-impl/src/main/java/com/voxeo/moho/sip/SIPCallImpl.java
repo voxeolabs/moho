@@ -567,7 +567,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, new HangupException());
       }
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
-      terminate(CallCompleteEvent.Cause.DISCONNECT, null);
+      terminate(CallCompleteEvent.Cause.DISCONNECT, null, headers);
     }
 
     try {
@@ -707,7 +707,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     else {
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
     }
-    terminate(cause, exception);
+    terminate(cause, exception, null);
     if (isNoAnswered(old)) {
       try {
         if (this instanceof SIPOutgoingCall && !failed) {
@@ -737,7 +737,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  protected synchronized void terminate(final CallCompleteEvent.Cause cause, final Exception exception) {
+  protected synchronized void terminate(final CallCompleteEvent.Cause cause, final Exception exception, final Map<String, String> headers) {
     _context.removeCall(getId());
 
     if (_service != null) {
@@ -787,7 +787,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
     }
 
-    this.dispatch(new MohoCallCompleteEvent(this, cause, exception));
+    this.dispatch(new MohoCallCompleteEvent(this, cause, exception, headers));
 
     _callDelegate = null;
   }

@@ -149,7 +149,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
         _joinDelegate.done(JoinCompleteEvent.Cause.CANCELED, new CanceledException());
       }
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
-      terminate(CallCompleteEvent.Cause.CANCEL, null);
+      terminate(CallCompleteEvent.Cause.CANCEL, null, null);
     }
     else {
       if (LOG.isDebugEnabled()) {
@@ -157,7 +157,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
             + (getSipSession() != null ? getSipSession().getCallId() : ""));
       }
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
-      terminate(CallCompleteEvent.Cause.CANCEL, null);
+      terminate(CallCompleteEvent.Cause.CANCEL, null, null);
     }
   }
 
@@ -326,7 +326,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
     _redirected = true;
     setSIPCallState(SIPCall.State.REDIRECTED);
 
-    terminate(CallCompleteEvent.Cause.REDIRECT, null);
+    terminate(CallCompleteEvent.Cause.REDIRECT, null, headers);
 
     if (o instanceof SIPEndpoint) {
       final SipServletResponse res = _invite.createResponse(SipServletResponse.SC_MOVED_TEMPORARILY);
@@ -350,7 +350,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
     _rejected = true;
     setSIPCallState(SIPCall.State.REJECTED);
 
-    terminate(CallCompleteEvent.Cause.DECLINE, null);
+    terminate(CallCompleteEvent.Cause.DECLINE, null, headers);
 
     try {
       final SipServletResponse res = _invite.createResponse(reason == null ? Reason.DECLINE.getCode() : reason
