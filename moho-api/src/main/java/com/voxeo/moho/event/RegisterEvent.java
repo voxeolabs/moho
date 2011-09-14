@@ -14,13 +14,14 @@
 
 package com.voxeo.moho.event;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 
 public interface RegisterEvent extends RequestEvent<Framework>, RedirectableEvent, ProxyableEvent {
-  public interface Contact {
+  public interface Contact extends Serializable {
     Endpoint getEndpoint();
     int getExpiration();
     boolean isWildCard();

@@ -128,6 +128,11 @@
       <artifactId>spring-context</artifactId>
       <version>3.0.0.RELEASE</version>
     </dependency>
+    <dependency>
+      <groupId>com.voxeo.moho</groupId>
+      <artifactId>moho-reg</artifactId>
+      <version>0.8-SNAPSHOT</version>
+    </dependency>
 	</dependencies>
 
   <reporting>
