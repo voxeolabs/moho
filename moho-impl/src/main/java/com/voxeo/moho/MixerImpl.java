@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 import javax.media.mscontrol.MediaEventListener;
@@ -58,9 +59,13 @@ import com.voxeo.moho.media.Recording;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.record.RecordCommand;
+import com.voxeo.moho.remote.RemoteParticipant;
+import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.spi.ProtocolDriver;
+import com.voxeo.moho.spi.RemoteJoinDriver;
 
-public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer, InternalParticipant {
+public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer {
 
   private static final Logger LOG = Logger.getLogger(MixerImpl.class);
 
@@ -162,12 +167,15 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public synchronized void disconnect() {
-    try {
-      ((GenericMediaService) _service).release(true);
+    if (_service != null) {
+      try {
+        ((GenericMediaService) _service).release(true);
+      }
+      catch (final Exception e) {
+        LOG.warn("Exception when release media service", e);
+      }
     }
-    catch (final Exception e) {
-      LOG.warn("Exception when release media service", e);
-    }
+
     try {
       _mixer.release();
     }
@@ -185,7 +193,12 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     Participant[] _joineesArray = _joinees.getJoinees();
     for (Participant participant : _joineesArray) {
       if (participant instanceof ParticipantContainer) {
-        ((ParticipantContainer) participant).removeParticipant(this);
+        try {
+          ((ParticipantContainer) participant).doUnjoin(this, false);
+        }
+        catch (Exception e) {
+          LOG.error("", e);
+        }
 
         MohoUnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(participant, MixerImpl.this,
             UnjoinCompleteEvent.Cause.DISCONNECT, false);
@@ -194,6 +207,10 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
     }
     _joinees.clear();
+
+    activeInputParticipant.clear();
+
+    joinDelegates.clear();
 
     this.dispatch(new MohoMediaResourceDisconnectEvent<Mixer>(this));
   }
@@ -225,8 +242,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
   }
 
-  @Override
-  public void removeParticipant(final Participant p) {
+  public JoinData removeParticipant(final Participant p) {
     JoinData joinData = _joinees.remove(p);
 
     if (joinData != null) {
@@ -234,14 +250,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         activeInputParticipant.remove(p.getMediaObject());
       }
       else {
-        activeInputParticipant.put(joinData.getRealJoined().getMediaObject(), p);
+        activeInputParticipant.remove(joinData.getRealJoined().getMediaObject());
       }
     }
-  }
 
-  @Override
-  public void removeJoinee(Participant other) {
-    removeParticipant(other);
+    return joinData;
   }
 
   @Override
@@ -270,6 +283,9 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
 
       return joint;
+    }
+    else if (other instanceof RemoteParticipant) {
+      return other.join(this, type, direction);
     }
     else {
       if (!(other.getMediaObject() instanceof Joinable)) {
@@ -324,8 +340,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
   }
 
-  protected synchronized UnjoinCompleteEvent doMixerUnjoin(final Participant p, boolean callOtherUnjoin)
-      throws Exception {
+  public synchronized MohoUnjoinCompleteEvent doUnjoin(final Participant p, boolean callOtherUnjoin) throws Exception {
     MohoUnjoinCompleteEvent event = null;
     if (!_joinees.contains(p)) {
       event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED, true);
@@ -333,7 +348,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       return event;
     }
     try {
-      JoinData joinData = _joinees.remove(p);
+      JoinData joinData = removeParticipant(p);
       if (p.getMediaObject() instanceof Joinable) {
 
         if (joinData.getRealJoined() != null) {
@@ -346,7 +361,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
       }
       if (callOtherUnjoin) {
-        ((InternalParticipant) p).unjoin(this, false);
+        ((ParticipantContainer) p).doUnjoin(this, false);
       }
 
       event = new MohoUnjoinCompleteEvent(MixerImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
@@ -366,17 +381,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     return event;
   }
 
-  @Override
-  public Unjoint unjoin(final Participant p) {
-    return unjoin(p, true);
-  }
-
-  @Override
-  public Unjoint unjoin(final Participant other, final boolean callOtherUnjoin) {
+  public Unjoint unjoin(final Participant other) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
-        return doMixerUnjoin(other, callOtherUnjoin);
+        return doUnjoin(other, true);
       }
     });
 
@@ -683,11 +692,6 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       MixerImpl.this.addParticipant(p, type, direction, realJoined);
     }
 
-    @Override
-    public void removeParticipant(Participant p) {
-      MixerImpl.this.removeParticipant(p);
-    }
-
     public MixerImpl getMixer() {
       return MixerImpl.this;
     }
@@ -745,6 +749,30 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     @Override
     public MediaGroup getMediaGroup() {
       return getMediaService().getMediaGroup();
+    }
+
+    @Override
+    public String getRemoteAddress() {
+      return MixerImpl.this.getRemoteAddress();
+    }
+
+    @Override
+    public MohoUnjoinCompleteEvent doUnjoin(Participant other, boolean callPeerUnjoin) throws Exception {
+      return MixerImpl.this.doUnjoin(other, callPeerUnjoin);
+    }
+
+    @Override
+    public void startJoin(Participant participant, JoinDelegate delegate) {
+      joinDelegates.put(participant.getId(), delegate);
+    }
+
+    @Override
+    public void joinDone(Participant participant, JoinDelegate delegate) {
+      joinDelegates.remove(participant.getId());
+    }
+
+    public JoinDelegate getJoinDelegate(String id) {
+      return joinDelegates.get(id);
     }
   }
 
@@ -825,4 +853,31 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     return getMediaService().getMediaGroup();
   }
 
+  @Override
+  public String getRemoteAddress() {
+    ProtocolDriver driver = _context.getFramework().getDriverByProtocolFamily(RemoteJoinDriver.PROTOCOL_REMOTEJOIN);
+    if (driver != null) {
+      return ((RemoteJoinDriver) driver).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_CONFERENCE,
+          this.getId());
+    }
+    else {
+      throw new UnsupportedOperationException("can't find RemoteJoinDriver");
+    }
+  }
+
+  private Map<String, JoinDelegate> joinDelegates = new ConcurrentHashMap<String, JoinDelegate>();
+
+  @Override
+  public void startJoin(Participant participant, JoinDelegate delegate) {
+    joinDelegates.put(participant.getId(), delegate);
+  }
+
+  @Override
+  public void joinDone(Participant participant, JoinDelegate delegate) {
+    joinDelegates.remove(participant.getId());
+  }
+
+  public JoinDelegate getJoinDelegate(String id) {
+    return joinDelegates.get(id);
+  }
 }

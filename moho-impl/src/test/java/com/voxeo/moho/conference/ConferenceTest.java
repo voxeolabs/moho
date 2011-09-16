@@ -45,11 +45,10 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MixerEndpoint;
-import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.HangupEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Prompt;
@@ -84,11 +83,11 @@ public class ConferenceTest extends TestCase {
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+  ExecutionContext appContext = null;
 
-  SipFactory sipFactory = appContext.getSipFactory();
+  SipFactory sipFactory = null;
 
-  SdpFactory sdpFactory = appContext.getSdpFactory();
+  SdpFactory sdpFactory = null;
 
   MixerEndpoint address;
 
@@ -105,11 +104,23 @@ public class ConferenceTest extends TestCase {
         will(returnValue(props));
       }
     });
+
+    if (appContext == null) {
+      appContext = new ApplicationContextImpl(app, msFactory, servlet);
+
+      sipFactory = appContext.getSipFactory();
+
+      sdpFactory = appContext.getSdpFactory();
+    }
+
     address = (MixerEndpoint) appContext.createEndpoint(MixerEndpoint.DEFAULT_MIXER_ENDPOINT);
+
   }
 
   protected void tearDown() throws Exception {
     super.tearDown();
+
+    appContext.destroy();
   }
 
   /**
@@ -194,7 +205,7 @@ public class ConferenceTest extends TestCase {
 
           // unjoin
           oneOf(mixer).unjoin(callNet);
-          oneOf(call).unjoin(mohoConference, false);
+          oneOf(call).doUnjoin(mohoConference, false);
 
           oneOf(call).output(with(same(exitAnnouncement)));
 
@@ -330,7 +341,11 @@ public class ConferenceTest extends TestCase {
     mockery.assertIsSatisfied();
   }
 
-  interface TestApp extends Application {
-    public void handleDisconnect(HangupEvent event);
+  abstract class TestApp implements Application {
+    public abstract void handleDisconnect(MohoHangupEvent event);
+
+    public final void destroy() {
+
+    }
   }
 }

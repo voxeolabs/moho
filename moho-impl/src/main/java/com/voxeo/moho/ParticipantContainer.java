@@ -17,6 +17,8 @@ package com.voxeo.moho;
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
+import com.voxeo.moho.sip.JoinDelegate;
 
 /**
  * used in internal
@@ -25,6 +27,11 @@ public interface ParticipantContainer {
 
   void addParticipant(Participant p, JoinType type, Direction direction, Participant realJoined);
 
-  void removeParticipant(Participant p);
+  MohoUnjoinCompleteEvent doUnjoin(Participant other, boolean callPeerUnjoin) throws Exception;
 
+  void startJoin(Participant participant, JoinDelegate delegate);
+
+  void joinDone(Participant participant, JoinDelegate delegate);
+
+  public JoinDelegate getJoinDelegate(String participantID);
 }

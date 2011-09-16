@@ -14,6 +14,7 @@ package com.voxeo.moho.voicexml;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +35,6 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.InternalParticipant;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.JoineeData;
 import com.voxeo.moho.Joint;
@@ -51,10 +51,13 @@ import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.MohoMediaResourceDisconnectEvent;
 import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
+import com.voxeo.moho.remote.RemoteParticipant;
+import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.spi.ProtocolDriver;
+import com.voxeo.moho.spi.RemoteJoinDriver;
 
-public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer,
-    InternalParticipant {
+public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer {
 
   private static final Logger LOG = Logger.getLogger(VoiceXMLDialogImpl.class);
 
@@ -165,7 +168,12 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
     Participant[] _joineesArray = _joinees.getJoinees();
     for (Participant participant : _joineesArray) {
       if (participant instanceof ParticipantContainer) {
-        ((ParticipantContainer) participant).removeParticipant(this);
+        try {
+          ((ParticipantContainer) participant).doUnjoin(this, false);
+        }
+        catch (Exception e) {
+          LOG.error("", e);
+        }
 
         MohoUnjoinCompleteEvent event = new MohoUnjoinCompleteEvent(participant, VoiceXMLDialogImpl.this,
             UnjoinCompleteEvent.Cause.DISCONNECT, false);
@@ -174,6 +182,8 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
       }
     }
     _joinees.clear();
+
+    joinDelegates.clear();
 
     this.dispatch(new MohoMediaResourceDisconnectEvent<Dialog>(this));
   }
@@ -194,16 +204,6 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   }
 
   @Override
-  public void removeParticipant(final Participant p) {
-    _joinees.remove(p);
-  }
-
-  @Override
-  public void removeJoinee(Participant other) {
-    removeParticipant(other);
-  }
-
-  @Override
   public Joint join(final Participant other, final JoinType type, final Direction direction)
       throws IllegalStateException {
     synchronized (_lock) {
@@ -215,6 +215,9 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
       }
     }
     if (other instanceof Call) {
+      return other.join(this, type, direction);
+    }
+    else if (other instanceof RemoteParticipant) {
       return other.join(this, type, direction);
     }
     else {
@@ -254,7 +257,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
     }
   }
 
-  protected UnjoinCompleteEvent doUnjoin(final Participant p, boolean callPeerUnjoin) throws Exception {
+  public MohoUnjoinCompleteEvent doUnjoin(final Participant p, boolean callPeerUnjoin) throws Exception {
     MohoUnjoinCompleteEvent event = null;
     synchronized (_lock) {
       if (!_joinees.contains(p)) {
@@ -270,7 +273,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
         }
 
         if (callPeerUnjoin) {
-          ((InternalParticipant) p).unjoin(this, false);
+          ((ParticipantContainer) p).doUnjoin(this, false);
         }
         event = new MohoUnjoinCompleteEvent(VoiceXMLDialogImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
       }
@@ -290,16 +293,11 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   }
 
   @Override
-  public Unjoint unjoin(final Participant p) {
-    return unjoin(p, true);
-  }
-
-  @Override
-  public Unjoint unjoin(final Participant other, final boolean callPeerUnjoin) {
+  public Unjoint unjoin(final Participant other) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
-        return doUnjoin(other, callPeerUnjoin);
+        return doUnjoin(other, true);
       }
     });
 
@@ -432,4 +430,31 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
     return _future.isDone();
   }
 
+  @Override
+  public String getRemoteAddress() {
+    ProtocolDriver driver = _context.getFramework().getDriverByProtocolFamily(RemoteJoinDriver.PROTOCOL_REMOTEJOIN);
+    if (driver != null) {
+      return ((RemoteJoinDriver) driver)
+          .getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_DIALOG, this.getId());
+    }
+    else {
+      throw new UnsupportedOperationException("can't find RemoteJoinDriver");
+    }
+  }
+
+  private Map<String, JoinDelegate> joinDelegates = new ConcurrentHashMap<String, JoinDelegate>();
+
+  @Override
+  public void startJoin(Participant participant, JoinDelegate delegate) {
+    joinDelegates.put(participant.getId(), delegate);
+  }
+
+  @Override
+  public void joinDone(Participant participant, JoinDelegate delegate) {
+    joinDelegates.remove(participant.getId());
+  }
+
+  public JoinDelegate getJoinDelegate(String id) {
+    return joinDelegates.get(id);
+  }
 }

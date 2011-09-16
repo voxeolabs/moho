@@ -53,16 +53,20 @@ public class SIPSubscriptionImplTest extends TestCase {
 
   // JSR289 mock
   SipServlet servlet = new MockSipServlet(mockery);
+
   MockSipSession session = mockery.mock(MockSipSession.class);
+
   MockSipServletRequest subscribeReq = mockery.mock(MockSipServletRequest.class);
 
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
-  SipFactory sipFactory = appContext.getSipFactory();
-  SdpFactory sdpFactory = appContext.getSdpFactory();
+  ExecutionContext appContext;
+
+  SipFactory sipFactory;
+
+  SdpFactory sdpFactory;
 
   SIPEndpoint from = mockery.mock(SIPEndpoint.class, "from");;
 
@@ -76,7 +80,9 @@ public class SIPSubscriptionImplTest extends TestCase {
 
   protected void setUp() throws Exception {
     super.setUp();
-
+    appContext = new ApplicationContextImpl(app, msFactory, servlet);
+    sipFactory = appContext.getSipFactory();
+    sdpFactory = appContext.getSdpFactory();
     try {
       mockery.checking(new Expectations() {
         {
@@ -96,6 +102,7 @@ public class SIPSubscriptionImplTest extends TestCase {
 
   protected void tearDown() throws Exception {
     super.tearDown();
+    appContext.destroy();
   }
 
   public void testRenew() {

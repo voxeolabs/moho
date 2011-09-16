@@ -36,11 +36,11 @@ public class OtherParticipantJoinDelegate extends JoinDelegate {
     if (otherParticipant instanceof MixerImpl.ClampDtmfMixerAdapter) {
       MixerImpl.ClampDtmfMixerAdapter adapter = (MixerImpl.ClampDtmfMixerAdapter) otherParticipant;
 
-      _call1._joinees.add(adapter.getMixer(), _joinType, _direction, adapter);
+      _call1.addParticipant(adapter.getMixer(), _joinType, _direction, adapter);
       ((ParticipantContainer) otherParticipant).addParticipant(_call1, _joinType, _direction, adapter);
     }
     else {
-      _call1._joinees.add(otherParticipant, _joinType, _direction);
+      _call1.addParticipant(otherParticipant, _joinType, _direction, null);
       ((ParticipantContainer) otherParticipant).addParticipant(_call1, _joinType, _direction, null);
     }
 
@@ -55,7 +55,7 @@ public class OtherParticipantJoinDelegate extends JoinDelegate {
     _cause = cause;
     _exception = exception;
 
-    _call1.joinDone();
+    _call1.joinDone(otherParticipant, this);
     JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(_call1, otherParticipant, cause, exception, true);
     _call1.dispatch(joinCompleteEvent);
 

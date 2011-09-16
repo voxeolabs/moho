@@ -23,20 +23,21 @@ import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.InternalParticipant;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.Participant;
+import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.Unjoint;
 import com.voxeo.moho.UnjointImpl;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 
-public class ConferenceImpl extends MixerImpl implements Conference, InternalParticipant {
+public class ConferenceImpl extends MixerImpl implements Conference, ParticipantContainer {
 
   private static final Logger LOG = Logger.getLogger(ConferenceImpl.class);
 
@@ -121,22 +122,24 @@ public class ConferenceImpl extends MixerImpl implements Conference, InternalPar
 
   }
 
-  public UnjoinCompleteEvent doUnjoin(final Participant other) throws Exception {
+  public MohoUnjoinCompleteEvent doUnjoin(final Participant other, boolean isInitiator) throws Exception {
     synchronized (_lock) {
-      UnjoinCompleteEvent event = null;
+      MohoUnjoinCompleteEvent event = null;
       try {
         if (_controller != null) {
           _controller.preUnjoin(other, this);
         }
         _occupiedSeats = _occupiedSeats - 1;
-        event = super.unjoin(other).get();
-        if (_controller != null) {
-          _controller.postUnjoin(other, this);
-        }
+        event = super.doUnjoin(other, isInitiator);
       }
       catch (final Exception e) {
         LOG.warn("", e);
         throw e;
+      }
+      finally {
+        if (_controller != null) {
+          _controller.postUnjoin(other, this);
+        }
       }
 
       return event;
@@ -148,7 +151,7 @@ public class ConferenceImpl extends MixerImpl implements Conference, InternalPar
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
-        return doUnjoin(p);
+        return doUnjoin(p, true);
       }
     });
     return task;

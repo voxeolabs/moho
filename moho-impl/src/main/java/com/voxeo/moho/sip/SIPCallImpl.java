@@ -16,8 +16,6 @@ package com.voxeo.moho.sip;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -51,7 +49,6 @@ import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.HangupException;
-import com.voxeo.moho.InternalParticipant;
 import com.voxeo.moho.JoinData;
 import com.voxeo.moho.JoineeData;
 import com.voxeo.moho.Joint;
@@ -70,11 +67,14 @@ import com.voxeo.moho.event.MohoCallCompleteEvent;
 import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.media.GenericMediaService;
+import com.voxeo.moho.remote.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.spi.ProtocolDriver;
+import com.voxeo.moho.spi.RemoteJoinDriver;
 import com.voxeo.moho.util.SessionUtils;
 
 public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEventListener<SdpPortManagerEvent>,
-    InternalParticipant {
+    ParticipantContainer {
 
   private static final Logger LOG = Logger.getLogger(SIPCallImpl.class);
 
@@ -341,24 +341,19 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  @Override
-  public Unjoint unjoin(final Participant p) {
-    return unjoin(p, true);
-  }
-
-  @Override
-  public Unjoint unjoin(final Participant other, final boolean initiator) {
+  public Unjoint unjoin(final Participant other) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
       public UnjoinCompleteEvent call() throws Exception {
-        return doUnjoin(other, initiator);
+        return doUnjoin(other, true);
       }
     });
 
     return task;
   }
 
-  protected synchronized MohoUnjoinCompleteEvent doUnjoin(final Participant p, boolean initiator) throws Exception {
+  @Override
+  public synchronized MohoUnjoinCompleteEvent doUnjoin(final Participant p, boolean initiator) throws Exception {
     MohoUnjoinCompleteEvent event = null;
     if (!isAnswered()) {
       event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.NOT_JOINED, initiator);
@@ -400,7 +395,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
 
       if (initiator) {
-        ((InternalParticipant) p).unjoin(SIPCallImpl.this, false);
+        ((ParticipantContainer) p).doUnjoin(SIPCallImpl.this, false);
       }
 
       event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, initiator);
@@ -441,7 +436,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     if (_operationInProcess) {
       if (_joinDelegate != null
-          && !(_joinDelegate instanceof BridgeJoinDelegate || _joinDelegate instanceof OtherParticipantJoinDelegate)) {
+          && !(_joinDelegate instanceof BridgeJoinDelegate || _joinDelegate instanceof OtherParticipantJoinDelegate
+              || _joinDelegate instanceof LocalRemoteJoinDelegate || _joinDelegate instanceof RemoteLocalJoinDelegate)) {
         throw new IllegalStateException("other join operation in process.");
       }
     }
@@ -465,7 +461,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  public synchronized void joinDone() {
+  public synchronized void joinDone(final Participant participant, final JoinDelegate delegate) {
     if (_joinDelegate.getPeer() != null) {
       if (_joinDelegate.getJoinType() == JoinType.BRIDGE) {
         _callDelegate = new SIPCallBridgeDelegate();
@@ -502,18 +498,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   }
 
-  List<MediaJoinedListener> mediaJoinedListeners = new LinkedList<MediaJoinedListener>();
-
-  void registerMediaJoinedListener(MediaJoinedListener listener) {
-    synchronized (mediaJoinedListeners) {
-      mediaJoinedListeners.add(listener);
-    }
-  }
-
-  protected interface MediaJoinedListener {
-    void mediaJoined();
-  }
-
   @Override
   public synchronized Joint join(final Participant other, final JoinType type, final Direction direction) {
     if (isTerminated()) {
@@ -532,6 +516,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     try {
       if (other instanceof SIPCallImpl) {
         return doJoin((SIPCallImpl) other, type, direction);
+      }
+      else if (other instanceof RemoteParticipant) {
+        return doJoin((RemoteParticipant) other, type, direction);
       }
       else {
         return doJoin(other, type, direction);
@@ -766,10 +753,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
       participant.dispatch(new MohoUnjoinCompleteEvent(participant, SIPCallImpl.this, unjoinCause, exception, false));
       dispatch(new MohoUnjoinCompleteEvent(this, participant, unjoinCause, exception, true));
-      ((InternalParticipant) participant).removeJoinee(this);
 
       if (participant instanceof ParticipantContainer) {
-        ((ParticipantContainer) participant).removeParticipant(this);
+        try {
+          ((ParticipantContainer) participant).doUnjoin(this, false);
+        }
+        catch (Exception e) {
+          LOG.error("", e);
+        }
       }
     }
     _joinees.clear();
@@ -802,8 +793,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   @Override
-  public void removeJoinee(Participant other) {
-    _joinees.remove(other);
+  public void addParticipant(Participant p, JoinType type, Direction direction, Participant realJoined) {
+    _joinees.add(p, type, direction, realJoined);
   }
 
   protected SipServletRequest getSipInitnalRequest() {
@@ -826,7 +817,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     _localSDP = sdp;
   }
 
-  protected void addPeer(final Call call, final JoinType type, final Direction direction) {
+  public void addPeer(final Call call, final JoinType type, final Direction direction) {
     synchronized (_peers) {
       if (!_peers.contains(call)) {
         _peers.add(call);
@@ -988,7 +979,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  protected synchronized void startJoin(final JoinDelegate delegate) {
+  public synchronized void startJoin(final Participant participant, final JoinDelegate delegate) {
     if (_joinDelegate != null) {
       throw new IllegalStateException("other join operation in process.");
     }
@@ -996,7 +987,12 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     _joinDelegate = delegate;
   }
 
-  protected JoinDelegate getJoinDelegate() {
+  public JoinDelegate getJoinDelegate() {
+    return _joinDelegate;
+  }
+
+  @Override
+  public JoinDelegate getJoinDelegate(String participantID) {
     return _joinDelegate;
   }
 
@@ -1008,7 +1004,18 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     _joinDelegate = createJoinDelegate(other, type, direction);
     SettableJointImpl joint = new SettableJointImpl();
     _joinDelegate.setSettableJoint(joint);
-    other.startJoin(_joinDelegate);
+    other.startJoin(this, _joinDelegate);
+
+    _joinDelegate.doJoin();
+
+    return joint;
+  }
+
+  protected Joint doJoin(final RemoteParticipant other, final JoinType type, final Direction direction)
+      throws Exception {
+    _joinDelegate = new LocalRemoteJoinDelegate(this, other, direction);
+    SettableJointImpl joint = new SettableJointImpl();
+    _joinDelegate.setSettableJoint(joint);
 
     _joinDelegate.doJoin();
 
@@ -1024,7 +1031,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     SettableJointImpl joint = new SettableJointImpl();
     _joinDelegate.setSettableJoint(joint);
-    
+
     _joinDelegate.doJoin();
 
     return joint;
@@ -1362,4 +1369,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     return _address;
   }
 
+  @Override
+  public String getRemoteAddress() {
+    ProtocolDriver driver = _context.getFramework().getDriverByProtocolFamily(RemoteJoinDriver.PROTOCOL_REMOTEJOIN);
+    if (driver != null) {
+      return ((RemoteJoinDriver) driver).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_CALL, this.getId());
+    }
+    else {
+      throw new UnsupportedOperationException("can't find RemoteJoinDriver");
+    }
+  }
 }

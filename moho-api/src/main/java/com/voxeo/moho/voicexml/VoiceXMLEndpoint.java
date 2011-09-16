@@ -37,4 +37,5 @@ public interface VoiceXMLEndpoint extends Endpoint {
    * @return the instance of dialog
    */
   Dialog create(Map<Object, Object> params);
+
 }

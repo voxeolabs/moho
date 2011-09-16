@@ -57,21 +57,27 @@ public class SIPInviteEventImplTest extends TestCase {
 
   // JSR309 mock
   MsControlFactory msFactory = mockery.mock(MsControlFactory.class);
+
   MediaSession mediaSession = mockery.mock(MediaSession.class);
+
   NetworkConnection network = mockery.mock(NetworkConnection.class);
+
   MockSdpPortManager sdpManager = mockery.mock(MockSdpPortManager.class);
 
   // JSR289 mock
   SipServlet servlet = new MockSipServlet(mockery);
+
   MockSipSession session = mockery.mock(MockSipSession.class);
+
   MockSipServletRequest inviteReq = mockery.mock(MockSipServletRequest.class);
+
   ServletContext servletContext = servlet.getServletContext();
 
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+  ExecutionContext appContext;
 
   Address fromAddr = mockery.mock(Address.class, "fromAddr");
 
@@ -80,6 +86,8 @@ public class SIPInviteEventImplTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+
+    appContext = new ApplicationContextImpl(app, msFactory, servlet);
 
     servletContext.setAttribute(ApplicationContext.APPLICATION_CONTEXT, appContext);
     session.setServletContext(servletContext);
@@ -122,6 +130,8 @@ public class SIPInviteEventImplTest extends TestCase {
   @Override
   protected void tearDown() throws Exception {
     super.tearDown();
+
+    appContext.destroy();
   }
 
   /**

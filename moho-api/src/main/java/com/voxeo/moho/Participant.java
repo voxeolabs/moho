@@ -90,4 +90,10 @@ public interface Participant extends EventSource {
    */
   MediaObject getMediaObject();
 
+  /**
+   * get remote address used for remote join
+   * 
+   * @return remote address
+   */
+  String getRemoteAddress();
 }
