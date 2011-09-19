@@ -1,4 +1,4 @@
-package com.voxeo.moho.reg;
+package com.voxeo.moho.reg.impl.mem;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.event.RegisterEvent.Contact;
+import com.voxeo.moho.reg.RegistrarStore;
 
 public class MemoryRegistrarStore implements RegistrarStore {
   HashMap<Endpoint, HashMap<Endpoint, Contact>> _tables = new HashMap<Endpoint, HashMap<Endpoint, Contact>>(); 

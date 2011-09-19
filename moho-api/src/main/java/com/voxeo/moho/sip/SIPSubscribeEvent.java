@@ -25,6 +25,10 @@ import com.voxeo.moho.event.SubscribeEvent;
  *
  */
 public interface SIPSubscribeEvent extends SubscribeEvent {
+  
+  public interface SIPSubscriptionContext extends SubscriptionContext {
+    void sendNotify();
+  }
   /**
    * @return the SIP SUBSCRIBE request.
    */

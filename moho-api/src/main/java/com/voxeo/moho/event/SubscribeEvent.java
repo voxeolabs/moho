@@ -14,13 +14,23 @@
 
 package com.voxeo.moho.event;
 
+import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 
 /**
  * This event is fired when a subscribe request is received.
  * 
  * @author wchen
- *
+ * 
  */
 public interface SubscribeEvent extends RequestEvent<Framework>, RedirectableEvent, ProxyableEvent {
+  public interface SubscriptionContext {
+    Endpoint getSubscriber();
+    Endpoint getSubscribee();
+    String getEventName();
+    String getNotifyBodyType();
+    int getExpires();
+  }
+  
+  SubscriptionContext getSubscription();
 }

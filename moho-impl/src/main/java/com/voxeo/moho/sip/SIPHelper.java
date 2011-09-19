@@ -15,6 +15,7 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
+import javax.servlet.sip.SipURI;
 import javax.servlet.sip.TooManyHopsException;
 import javax.servlet.sip.UAMode;
 import javax.servlet.sip.URI;
@@ -298,6 +300,21 @@ public class SIPHelper {
     catch (ServletParseException e) {
       LOG.error("", e);
       throw new SignalException(e);
+    }
+  }
+  
+  public static URI getCleanUri(URI uri) {
+    if (uri.isSipURI()) {
+      SipURI sipURI = (SipURI) uri.clone();
+      Iterator<String> iterator = sipURI.getParameterNames();
+      while (iterator != null && iterator.hasNext()) {
+        iterator.next();
+        iterator.remove();
+      }
+      return sipURI;
+    }
+    else {
+      return uri;
     }
   }
 }

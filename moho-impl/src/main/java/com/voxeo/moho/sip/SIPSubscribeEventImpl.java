@@ -100,4 +100,9 @@ public class SIPSubscribeEventImpl extends MohoSubscribeEvent implements SIPSubs
     SIPHelper.proxyTo(getSource().getApplicationContext().getSipFactory(), _req, headers, recordRoute, parallel, destinations);
   }
 
+  @Override
+  public SubscriptionContext getSubscription() {
+    return null;
+  }
+
 }

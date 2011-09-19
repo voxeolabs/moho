@@ -42,7 +42,6 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import com.voxeo.moho.conference.ConferenceDriverImpl;
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.event.DispatchableEventSource;
-import com.voxeo.moho.reg.Registrar;
 import com.voxeo.moho.remote.RemoteJoinDriverImpl;
 import com.voxeo.moho.services.Service;
 import com.voxeo.moho.sip.SIPDriverImpl;
@@ -83,8 +82,6 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   protected Map<String, String> _parameters = new ConcurrentHashMap<String, String>();
 
   protected ServletContext _servletContext;
-
-  protected Registrar _reg;
 
   protected ThreadPoolExecutor _executor;
 
@@ -190,7 +187,6 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
     _msFactory = this.getService(MediaServiceFactory.class);
     _confMgr = this.getService(ConferenceManager.class);
-    _reg = this.getService(Registrar.class);
   }
 
   @Override
@@ -408,11 +404,6 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   public void setHTTPController(HttpServlet http) {
     _http = http;
-  }
-
-  @Override
-  public Registrar getRegistrar() {
-    return _reg;
   }
 
   @Override

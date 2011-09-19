@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 Voxeo Corporation
+ * Copyright 2010-2011 Voxeo Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
  * file except in compliance with the License.
@@ -12,11 +12,13 @@
  * governing permissions and limitations under the License.
  */
 
-package com.voxeo.moho.sip;
+package com.voxeo.moho.event;
 
-import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.reg.Registration;
+import com.voxeo.moho.Framework;
 
-public interface SIPRegistration extends EventSource, Registration {
-
+/**
+ * This event is fired when a publish request is received.
+ * 
+ */
+public interface PublishEvent extends RequestEvent<Framework> {
 }

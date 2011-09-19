@@ -14,6 +14,8 @@
 
 package com.voxeo.moho.event;
 
+import java.util.Map;
+
 /**
  * This is the <b>last</b> event to be fired on a {@link com.voxeo.moho.Call Call}. 
  * When this event is fired, all the underlying resources for the 
@@ -31,4 +33,6 @@ public interface CallCompleteEvent extends CallEvent {
   Cause getCause();
   
   Exception getException();
+  
+  Map<String,String> getHeaders();
 }

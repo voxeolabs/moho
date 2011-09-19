@@ -3110,6 +3110,7 @@ public class SIPIncomingCallTest extends TestCase {
         {
           oneOf(network).release();
           oneOf(mediaSession).release();
+          oneOf(byeReq).getHeaderNames();
         }
       });
     }
