@@ -14,25 +14,45 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.event.MohoRingEvent;
 
 public class SIPRingEventImpl extends MohoRingEvent implements SIPRingEvent {
 
-  protected SipServletResponse _res;
+	protected SipServletResponse _res;
+	private Map<String, String> headers;
 
-  protected SIPRingEventImpl(final SIPCall source, final SipServletResponse res) {
-    super(source);
-    _res = res;
-  }
+	protected SIPRingEventImpl(final SIPCall source,
+			final SipServletResponse res) {
+		super(source);
+		_res = res;
+		Map<String, String> headers = new HashMap<String, String>();
+		Iterator<String> it = res.getHeaderNames();
+		while (it.hasNext()) {
+			String key = it.next();
+			headers.put(it.next(), res.getHeader(key));
+		}
+		if (headers.size() > 0) {
+			this.headers = headers;
+		}
+	}
 
-  public SipServletResponse getSipResponse() {
-    return _res;
-  }
+	public SipServletResponse getSipResponse() {
+		return _res;
+	}
 
-  @Override
-  public boolean isProcessed() {
-    return true;
-  }
+	@Override
+	public Map<String, String> getHeaders() {
+		return headers;
+	}
+
+	@Override
+	public boolean isProcessed() {
+		return true;
+	}
 }
