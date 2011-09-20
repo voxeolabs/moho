@@ -11,6 +11,7 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -2710,6 +2711,9 @@ public class SIPIncomingCallTest extends TestCase {
           will(returnValue(true));
 
           allowing(incomingCall).unlinkDirectlyPeer();
+          
+          allowing(sipReInviteResp).getHeaderNames();
+          will(returnValue(new ArrayList<String>().iterator()));
         }
       });
     }
