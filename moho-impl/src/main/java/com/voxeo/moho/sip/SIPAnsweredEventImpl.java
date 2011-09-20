@@ -36,7 +36,7 @@ public class SIPAnsweredEventImpl<T extends EventSource> extends
 		Iterator<String> it = res.getHeaderNames();
 		while (it.hasNext()) {
 			String key = it.next();
-			headers.put(it.next(), res.getHeader(key));
+			headers.put(key, res.getHeader(key));
 		}
 		if (headers.size() > 0) {
 			this.headers = headers;
