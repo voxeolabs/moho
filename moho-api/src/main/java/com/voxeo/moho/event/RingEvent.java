@@ -14,6 +14,8 @@
 
 package com.voxeo.moho.event;
 
+import java.util.Map;
+
 /**
  * This event is fired when the ringing response is received for an outbound {@link com.voxeo.moho.MohoCall Call}.
  * 
@@ -21,4 +23,6 @@ package com.voxeo.moho.event;
  *
  */
 public interface RingEvent extends CallEvent {
+	
+	public Map<String, String> getHeaders();
 }

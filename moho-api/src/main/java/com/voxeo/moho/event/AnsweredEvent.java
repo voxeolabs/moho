@@ -14,6 +14,8 @@
 
 package com.voxeo.moho.event;
 
+import java.util.Map;
+
 /**
  * This event is fired when a positive answer response is received for an outbound request, 
  * e.g. {@link com.voxeo.moho.Call Call}.
@@ -23,4 +25,6 @@ package com.voxeo.moho.event;
  * @param <T>
  */
 public interface AnsweredEvent<T extends EventSource> extends ResponseEvent<T> {
+	
+	public Map<String, String> getHeaders();
 }

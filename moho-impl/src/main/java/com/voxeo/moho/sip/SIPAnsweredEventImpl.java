@@ -14,22 +14,42 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.MohoAnsweredEvent;
 
-public class SIPAnsweredEventImpl<T extends EventSource> extends MohoAnsweredEvent<T> implements SIPAnsweredEvent<T> {
+public class SIPAnsweredEventImpl<T extends EventSource> extends
+		MohoAnsweredEvent<T> implements SIPAnsweredEvent<T> {
 
-  protected SipServletResponse _res;
+	protected SipServletResponse _res;
+	private Map<String, String> headers;
 
-  protected SIPAnsweredEventImpl(final T source, final SipServletResponse res) {
-    super(source);
-    _res = res;
-  }
+	protected SIPAnsweredEventImpl(final T source, final SipServletResponse res) {
+		super(source);
+		_res = res;
+		Map<String, String> headers = new HashMap<String, String>();
+		Iterator<String> it = res.getHeaderNames();
+		while (it.hasNext()) {
+			String key = it.next();
+			headers.put(key, res.getHeader(key));
+		}
+		if (headers.size() > 0) {
+			this.headers = headers;
+		}
+	}
 
-  @Override
-  public SipServletResponse getSipResponse() {
-    return _res;
-  }
+	@Override
+	public Map<String, String> getHeaders() {
+		return headers;
+	}
+
+	@Override
+	public SipServletResponse getSipResponse() {
+		return _res;
+	}
 }
