@@ -14,8 +14,10 @@
 
 package com.voxeo.moho.event;
 
-import com.voxeo.moho.Endpoint;
+import java.io.Serializable;
+
 import com.voxeo.moho.Framework;
+import com.voxeo.moho.spi.ExecutionContext;
 
 /**
  * This event is fired when a subscribe request is received.
@@ -24,12 +26,11 @@ import com.voxeo.moho.Framework;
  * 
  */
 public interface SubscribeEvent extends RequestEvent<Framework>, RedirectableEvent, ProxyableEvent {
-  public interface SubscriptionContext {
-    Endpoint getSubscriber();
-    Endpoint getSubscribee();
-    String getEventName();
-    String getNotifyBodyType();
-    int getExpires();
+  public interface SubscriptionContext extends Serializable {
+    String getSubscriber();
+    String getSubscribee();
+    Object getId();
+    void setExecutionContext(ExecutionContext context);
   }
   
   SubscriptionContext getSubscription();

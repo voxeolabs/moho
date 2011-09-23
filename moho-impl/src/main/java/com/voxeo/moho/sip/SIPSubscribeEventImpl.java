@@ -17,6 +17,8 @@ package com.voxeo.moho.sip;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
@@ -24,13 +26,19 @@ import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.MohoSubscribeEvent;
+import com.voxeo.moho.presence.sip.impl.SIPSubscriptionContextImpl;
+import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.spi.SpiFramework;
 
 public class SIPSubscribeEventImpl extends MohoSubscribeEvent implements SIPSubscribeEvent {
 
   protected SipServletRequest _req;
+  
+  protected ExecutionContext _ctx;
 
   protected SIPSubscribeEventImpl(final Framework source, final SipServletRequest req) {
     super(source);
+    _ctx = ((SpiFramework) source).getExecutionContext();
     _req = req;
   }
 
@@ -102,7 +110,14 @@ public class SIPSubscribeEventImpl extends MohoSubscribeEvent implements SIPSubs
 
   @Override
   public SubscriptionContext getSubscription() {
-    return null;
+    try {
+      Address from = _req.getAddressHeader("From");
+      Address to = _req.getAddressHeader("To");
+      return new SIPSubscriptionContextImpl(from.getURI(), to.getURI(), _req);
+    }
+    catch (ServletParseException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 
 }

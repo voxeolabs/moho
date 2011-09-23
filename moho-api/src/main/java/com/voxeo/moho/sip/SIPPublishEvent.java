@@ -16,17 +16,16 @@ package com.voxeo.moho.sip;
 
 import javax.servlet.sip.SipServletRequest;
 
-import com.voxeo.moho.event.SubscribeEvent;
+import com.voxeo.moho.event.PublishEvent;
 
 /**
- * SIP specific {@link com.voxeo.moho.event.SubscribeEvent SubscribeEvent}.
+ * SIP specific {@link com.voxeo.moho.event.PublishEvent PublishEvent}.
  * 
- * @author wchen
  *
  */
-public interface SIPPublishEvent extends SubscribeEvent {
+public interface SIPPublishEvent extends PublishEvent {
   /**
-   * @return the SIP SUBSCRIBE request.
+   * @return the SIP Publish request.
    */
   SipServletRequest getSipRequest();
 }

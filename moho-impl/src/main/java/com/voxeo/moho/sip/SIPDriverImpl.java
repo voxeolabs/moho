@@ -39,6 +39,7 @@ import com.voxeo.moho.event.CallEvent;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.MohoInputDetectedEvent;
 import com.voxeo.moho.event.NotifyEvent;
+import com.voxeo.moho.event.PublishEvent;
 import com.voxeo.moho.event.RegisterEvent;
 import com.voxeo.moho.event.RequestEvent;
 import com.voxeo.moho.event.SubscribeEvent;
@@ -310,7 +311,8 @@ public class SIPDriverImpl implements SIPDriver {
   }
 
   protected void doPublish(final SipServletRequest req) throws ServletException, IOException {
-    doOthers(req);
+    final PublishEvent event = new SIPPublishEventImpl(getFramework(), req);
+    _app.dispatch(event, new NoHandleHandler<Framework>(event, req));
   }
 
   protected void doOthers(final SipServletRequest req) {

@@ -30,7 +30,7 @@ public class CassandraRegisterStore extends NoSqlDatabaseRegisterStore {
   
   private static final String DEFAULT_DATABASE_ADDRESS = "localhost:9160";
   
-  private static final String DEFAULT_CLUSTER_NAME = "RegistrarCluster";
+  private static final String DEFAULT_CLUSTER_NAME = "MohoCluster";
   
   private static final String DEFAULT_KEYSPACE_NAME = "Registrar";
   
