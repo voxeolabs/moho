@@ -115,7 +115,8 @@
     <module>moho-sample</module>
     <module>moho-artifacts</module>
     <module>moho-reg</module>
-    
+
+    <module>moho-presence</module>
   </modules>
 
   <distributionManagement>

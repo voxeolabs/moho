@@ -29,6 +29,7 @@
     <module>Echo</module>
     <!--module>ImifiedEcho</module-->
     <module>DefaultTestApp</module>
+    <module>SamplePresenceNotify</module>
   </modules>
 
   <scm>

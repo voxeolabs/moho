@@ -15,6 +15,7 @@
 package com.voxeo.moho.sip;
 
 import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipSession;
 
 import com.voxeo.moho.event.SubscribeEvent;
 
@@ -26,8 +27,17 @@ import com.voxeo.moho.event.SubscribeEvent;
  */
 public interface SIPSubscribeEvent extends SubscribeEvent {
   
-  public interface SIPSubscriptionContext extends SubscriptionContext {
-    void sendNotify();
+  public static interface SIPSubscriptionContext extends SubscriptionContext {
+    String getEventName();
+    
+    String getNotifyBodyType();
+    
+    int getExpires();
+    
+    Runnable sendNotify();
+    
+    SipSession getDialog();
+    
   }
   /**
    * @return the SIP SUBSCRIBE request.

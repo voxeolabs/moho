@@ -46,6 +46,34 @@ public interface AcceptableEvent {
         return SipServletResponse.SC_FORBIDDEN;
       }
     },
+    
+    INTERVAL_TOO_BRIEF {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_INTERVAL_TOO_BRIEF;
+      }
+    },
+    
+    CONDITIONAL_REQUEST_FAILED {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_CONDITIONAL_REQUEST_FAILED;
+      }
+    },
+    
+    BAD_REQUEST {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_BAD_REQUEST;
+      }
+    },
+    
+    BAD_EVENT {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_BAD_EVENT;
+      }
+    },
 
     ERROR {
       @Override

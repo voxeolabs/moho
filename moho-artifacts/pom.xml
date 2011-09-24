@@ -40,6 +40,12 @@
                   <zipfileset dir="${project.parent.basedir}/moho-impl/target/" defaultexcludes="false" prefix="moho-impl">
 					<include name="*.jar"/>
                   </zipfileset>
+                  <zipfileset dir="${project.parent.basedir}/moho-reg/target/" defaultexcludes="false" prefix="moho-reg">
+          <include name="*.jar"/>
+                  </zipfileset>
+                  <zipfileset dir="${project.parent.basedir}/moho-presence/target/" defaultexcludes="false" prefix="moho-presence">
+          <include name="*.jar"/>
+                  </zipfileset>
 				  <zipfileset dir="${project.parent.basedir}/moho-sample/" defaultexcludes="false" prefix="moho-sample">
 					<include name="*/target/*.jar"/>
 					<include name="*/target/*.war"/>
