@@ -306,7 +306,7 @@ public class GenericMediaServiceTest extends TestCase {
         {
           allowing(mediaEvent2).getEventType();
           will(returnValue(RecorderEvent.RESUMED));
-          
+
           allowing(mediaEvent2).getError();
           will(returnValue(MediaErr.NO_ERROR));
         }
@@ -451,6 +451,12 @@ public class GenericMediaServiceTest extends TestCase {
       recording.stop();
 
       event = (RecordCompleteEvent) recording.get();
+      try {
+        Thread.sleep(2000);
+      }
+      catch (java.lang.InterruptedException ex) {
+
+      }
     }
     catch (final Exception ex) {
       ex.printStackTrace();
