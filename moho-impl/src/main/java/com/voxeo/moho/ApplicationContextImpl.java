@@ -50,6 +50,8 @@ import com.voxeo.moho.spi.SpiFramework;
 import com.voxeo.moho.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.utils.EventListener;
 import com.voxeo.moho.voicexml.VoiceXMLDriverImpl;
+import com.voxeo.servlet.xmpp.XmppFactory;
+import com.voxeo.servlet.xmpp.XmppServlet;
 
 public class ApplicationContextImpl extends DispatchableEventSource implements ExecutionContext, SpiFramework {
 
@@ -62,6 +64,8 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   protected SipServlet _sip;
 
   protected HttpServlet _http;
+  
+  protected XmppServlet _xmpp;
 
   protected Application _application;
 
@@ -74,6 +78,8 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   protected SipFactory _sipFactory;
 
   protected SdpFactory _sdpFactory;
+  
+  protected XmppFactory _xmppFactory;
 
   protected Map<String, Call> _calls = new ConcurrentHashMap<String, Call>();
 
@@ -97,6 +103,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     _servletContext = _sip.getServletContext();
     _sipFactory = (SipFactory) _servletContext.getAttribute(SipServlet.SIP_FACTORY);
     _sdpFactory = (SdpFactory) _servletContext.getAttribute("javax.servlet.sdp.SdpFactory");
+    _xmppFactory = (XmppFactory) _servletContext.getAttribute(XmppServlet.XMPP_FACTORY);
 
     String serviceContextFilePath = "WEB-INF/service-context.xml";
 
@@ -439,5 +446,19 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   @Override
   public <T extends Service> boolean containsService(Class<T> def) {
     return this.find(def) != null;
+  }
+
+  @Override
+  public XmppServlet getXMPPController() {
+    return _xmpp;
+  }
+  
+  public void setXMPPController(XmppServlet xmpp) {
+    _xmpp = xmpp;
+  }
+
+  @Override
+  public XmppFactory getXmppFactory() {
+    return _xmppFactory;
   }
 }
