@@ -42,10 +42,12 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import com.voxeo.moho.conference.ConferenceDriverImpl;
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.remote.RemoteJoinDriverImpl;
 import com.voxeo.moho.services.Service;
 import com.voxeo.moho.sip.SIPDriverImpl;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.ProtocolDriver;
+import com.voxeo.moho.spi.RemoteJoinDriver;
 import com.voxeo.moho.spi.SpiFramework;
 import com.voxeo.moho.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.utils.EventListener;
@@ -134,6 +136,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       registerDriver(ProtocolDriver.PROTOCOL_SIP, SIPDriverImpl.class.getName());
       registerDriver(ProtocolDriver.PROTOCOL_VXML, VoiceXMLDriverImpl.class.getName());
       registerDriver(ProtocolDriver.PROTOCOL_CONF, ConferenceDriverImpl.class.getName());
+      registerDriver(RemoteJoinDriver.PROTOCOL_REMOTEJOIN, RemoteJoinDriverImpl.class.getName());
     }
     catch (Exception ex) {
       LOG.error("Moho is unable to register drivers: " + ex, ex);
@@ -315,6 +318,11 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   public void destroy() {
     getApplication().destroy();
     _executor.shutdown();
+
+    Collection<ProtocolDriver> drivers = _driversByProtocol.values();
+    for (ProtocolDriver driver : drivers) {
+      driver.destroy();
+    }
 
     Collection<Service> beans = _springContext.getBeansOfType(Service.class).values();
     for (Service service : beans) {

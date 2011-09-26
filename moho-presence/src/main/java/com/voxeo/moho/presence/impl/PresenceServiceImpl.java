@@ -12,31 +12,31 @@ import com.voxeo.moho.sip.SIPSubscribeEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 
 public class PresenceServiceImpl implements PresenceService {
-  
+
   private ExecutionContext _context;
-  
+
   private SIPPresenceService _sipPesenceService;
-  
+
   @Override
   public void doSubscribe(SubscribeEvent event) {
     if (event instanceof SIPSubscribeEvent) {
       if (_sipPesenceService == null) {
         _sipPesenceService = _context.getService(SIPPresenceService.class);
       }
-      _sipPesenceService.doSubscribe((SIPSubscribeEvent)event);
+      _sipPesenceService.doSubscribe((SIPSubscribeEvent) event);
     }
     else {
       event.reject(Reason.DECLINE);
     }
   }
-  
+
   @Override
   public void doPublish(PublishEvent event) {
     if (event instanceof SIPPublishEvent) {
       if (_sipPesenceService == null) {
         _sipPesenceService = _context.getService(SIPPresenceService.class);
       }
-      _sipPesenceService.doPublish((SIPPublishEvent)event);
+      _sipPesenceService.doPublish((SIPPublishEvent) event);
     }
     else {
       event.reject(Reason.DECLINE);
@@ -50,6 +50,9 @@ public class PresenceServiceImpl implements PresenceService {
 
   @Override
   public void destroy() {
+    if (_sipPesenceService == null) {
+      _sipPesenceService = _context.getService(SIPPresenceService.class);
+    }
     _sipPesenceService.destroy();
     _sipPesenceService = null;
   }

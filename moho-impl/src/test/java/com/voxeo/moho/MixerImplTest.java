@@ -65,11 +65,11 @@ public class MixerImplTest extends TestCase {
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+  ExecutionContext appContext = null;
 
-  SipFactory sipFactory = appContext.getSipFactory();
+  SipFactory sipFactory = null;
 
-  SdpFactory sdpFactory = appContext.getSdpFactory();
+  SdpFactory sdpFactory = null;
 
   MixerEndpoint address;
 
@@ -77,10 +77,19 @@ public class MixerImplTest extends TestCase {
 
   protected void setUp() throws Exception {
     super.setUp();
+    if (appContext == null) {
+      appContext = new ApplicationContextImpl(app, msFactory, servlet);
+
+      sipFactory = appContext.getSipFactory();
+
+      sdpFactory = appContext.getSdpFactory();
+    }
   }
 
   protected void tearDown() throws Exception {
     super.tearDown();
+    
+    appContext.destroy();
   }
 
   @SuppressWarnings("unchecked")
@@ -137,7 +146,7 @@ public class MixerImplTest extends TestCase {
           // unjoin
           oneOf(mixer).unjoin(callNet);
 
-          oneOf(call).unjoin(mohoMixer, false);
+          oneOf(call).doUnjoin(mohoMixer, false);
         }
       });
     }
@@ -212,7 +221,11 @@ public class MixerImplTest extends TestCase {
     mockery.assertIsSatisfied();
   }
 
-  interface TestApp extends Application {
-    public void handleDisconnect(MohoHangupEvent event);
+  abstract class TestApp implements Application {
+    public abstract void handleDisconnect(MohoHangupEvent event);
+
+    public final void destroy() {
+
+    }
   }
 }

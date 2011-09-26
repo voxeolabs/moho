@@ -40,7 +40,6 @@ import org.jmock.lib.legacy.ClassImposteriser;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContextImpl;
-import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockMediaSession;
@@ -72,7 +71,7 @@ public class VoiceXMLDialogImplTest extends TestCase {
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
+  ExecutionContext appContext = null;
 
   VoiceXMLEndpoint vXMLendPoint;
 
@@ -80,10 +79,15 @@ public class VoiceXMLDialogImplTest extends TestCase {
 
   protected void setUp() throws Exception {
     super.setUp();
+    if (appContext == null) {
+      appContext = new ApplicationContextImpl(app, msFactory, servlet);
+    }
   }
 
   protected void tearDown() throws Exception {
     super.tearDown();
+
+    appContext.destroy();
   }
 
   /**
@@ -144,7 +148,7 @@ public class VoiceXMLDialogImplTest extends TestCase {
           // unjoin
           oneOf(dialog).unjoin(callNet);
 
-          oneOf(call).unjoin(vXMLDialog, false);
+          oneOf(call).doUnjoin(vXMLDialog, false);
         }
       });
     }
@@ -375,7 +379,11 @@ public class VoiceXMLDialogImplTest extends TestCase {
     mockery.assertIsSatisfied();
   }
 
-  interface TestApp extends Application {
-    public void handleDisconnect(MohoHangupEvent event);
+  abstract class TestApp implements Application {
+    public abstract void handleDisconnect(MohoHangupEvent event);
+
+    public final void destroy() {
+
+    }
   }
 }

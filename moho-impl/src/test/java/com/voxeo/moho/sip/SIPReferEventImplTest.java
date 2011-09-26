@@ -57,17 +57,22 @@ public class SIPReferEventImplTest extends TestCase {
 
   // JSR289 mock
   SipServlet servlet = new MockSipServlet(mockery);
+
   MockSipSession session = mockery.mock(MockSipSession.class);
+
   MockSipServletRequest referReq = mockery.mock(MockSipServletRequest.class);
+
   MockServletContext servletContext = mockery.mock(MockServletContext.class);
 
   // Moho
   TestApp app = mockery.mock(TestApp.class);
 
   // ApplicationContextImpl is simple, no need to mock it.
-  ExecutionContext appContext = new ApplicationContextImpl(app, msFactory, servlet);
-  SipFactory sipFactory = appContext.getSipFactory();
-  SdpFactory sdpFactory = appContext.getSdpFactory();
+  ExecutionContext appContext;
+
+  SipFactory sipFactory;
+
+  SdpFactory sdpFactory;
 
   SIPEndpoint referedEnd = mockery.mock(SIPEndpoint.class, "referedEnd");
 
@@ -84,6 +89,11 @@ public class SIPReferEventImplTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+
+    appContext = new ApplicationContextImpl(app, msFactory, servlet);
+
+    sipFactory = appContext.getSipFactory();
+    sdpFactory = appContext.getSdpFactory();
 
     servletContext.setAttribute(ApplicationContext.APPLICATION_CONTEXT, appContext);
     session.setServletContext(servletContext);
@@ -102,9 +112,9 @@ public class SIPReferEventImplTest extends TestCase {
 
         allowing(referedAddr).clone();
         will(returnValue(referedAddr));
-        
+
         allowing(referedAddr).isWildcard();
-        will(returnValue(false));  
+        will(returnValue(false));
 
         allowing(originAddr).clone();
         will(returnValue(originAddr));
@@ -124,6 +134,8 @@ public class SIPReferEventImplTest extends TestCase {
   @Override
   protected void tearDown() throws Exception {
     super.tearDown();
+    
+    appContext.destroy();
   }
 
   public void testAccept() {

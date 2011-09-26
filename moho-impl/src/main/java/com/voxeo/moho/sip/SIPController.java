@@ -100,7 +100,7 @@ public class SIPController extends SipServlet {
   @Override
   public void destroy() {
     try {
-      _driver.destroy();
+      _ctx.destroy();
     }
     catch (final Throwable t) {
       LOG.error("Unable to dispose Moho:", t);

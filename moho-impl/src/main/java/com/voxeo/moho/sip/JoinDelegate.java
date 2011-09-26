@@ -60,12 +60,12 @@ public abstract class JoinDelegate {
     _cause = cause;
     _exception = exception;
 
-    _call1.joinDone();
+    _call1.joinDone(_call2, this);
     JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(_call1, _call2, cause, exception, true);
     _call1.dispatch(joinCompleteEvent);
 
     if (_call2 != null) {
-      _call2.joinDone();
+      _call2.joinDone(_call1, this);
       JoinCompleteEvent peerJoinCompleteEvent = new MohoJoinCompleteEvent(_call2, _call1, cause, exception, false);
       _call2.dispatch(peerJoinCompleteEvent);
     }

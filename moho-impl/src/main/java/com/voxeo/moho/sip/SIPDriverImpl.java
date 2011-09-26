@@ -78,7 +78,7 @@ public class SIPDriverImpl implements SIPDriver {
 
   @Override
   public void destroy() {
-    ((ExecutionContext) _app.getApplicationContext()).destroy();
+    
   }
 
   @Override
