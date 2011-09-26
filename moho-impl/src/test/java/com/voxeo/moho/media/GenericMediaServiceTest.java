@@ -738,6 +738,13 @@ public class GenericMediaServiceTest extends TestCase {
       output.stop();
 
       event = (OutputCompleteEvent) output.get();
+
+      try {
+        Thread.sleep(2000);
+      }
+      catch (java.lang.InterruptedException ex) {
+
+      }
     }
     catch (final Exception ex) {
       ex.printStackTrace();
