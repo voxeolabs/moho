@@ -23,6 +23,7 @@ import javax.servlet.sip.SipFactory;
 
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.services.Service;
+import com.voxeo.servlet.xmpp.XmppFactory;
 
 /**
  * <p>
@@ -59,6 +60,11 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
    * @return the uderlying SDP factory.
    */
   SdpFactory getSdpFactory();
+  
+  /**
+   * @return the uderlying XMPP factory.
+   */
+  XmppFactory getXmppFactory();
 
   /**
    * @param addr

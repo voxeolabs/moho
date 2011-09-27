@@ -5,6 +5,7 @@ import javax.servlet.sip.SipServlet;
 
 import com.voxeo.moho.Application;
 import com.voxeo.moho.Framework;
+import com.voxeo.servlet.xmpp.XmppServlet;
 
 public interface SpiFramework extends Framework {
   void registerDriver(String protocol, String className) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
@@ -16,4 +17,5 @@ public interface SpiFramework extends Framework {
   ExecutionContext getExecutionContext();
   SipServlet getSIPController();
   HttpServlet getHTTPController();
+  XmppServlet getXMPPController();
 }
