@@ -104,6 +104,8 @@ public class OutputCommand implements Parameters {
   protected BargeinType _bargein = BargeinType.NONE;
   
   protected String _voiceName;
+  
+  protected String _language;
 
   protected long _maxtime = Resource.FOREVER;
 
@@ -550,5 +552,13 @@ public class OutputCommand implements Parameters {
    */
   public void setVoiceName(String voiceName) {
       _voiceName = voiceName;
+  }
+
+  public String getLanguage() {
+    return _language;
+  }
+
+  public void setLanguage(String language) {
+    this._language = language;
   }
 }

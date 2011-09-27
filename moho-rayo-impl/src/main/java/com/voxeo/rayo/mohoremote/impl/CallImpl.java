@@ -458,6 +458,7 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       }
       joint = new JointImpl(this, type, direction);
       _joints.put(other.getId(), joint);
+      ((CallImpl)other)._joints.put(this.getId(), joint);
     }
     catch (XmppException e) {
       LOG.error("", e);

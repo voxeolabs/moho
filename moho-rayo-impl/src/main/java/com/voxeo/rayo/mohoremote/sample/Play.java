@@ -14,8 +14,6 @@
 
 package com.voxeo.rayo.mohoremote.sample;
 
-import java.net.URI;
-
 import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.CallCompleteEvent;
@@ -25,10 +23,7 @@ import com.voxeo.rayo.mohoremote.MohoRemoteFactory;
 
 public class Play implements Observer {
 
-  static URI _media;
-
   public static void main(String[] args) throws Exception {
-    _media = new URI("ftp://public:public@172.21.0.83/crusttest/playtest.mp3");
 
     MohoRemoteFactory mohoRemoteFactory = MohoRemoteFactory.newInstance();
     MohoRemote mohoRemote = mohoRemoteFactory.newMohoRemote();

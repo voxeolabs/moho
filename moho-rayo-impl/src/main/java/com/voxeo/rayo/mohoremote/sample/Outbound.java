@@ -15,7 +15,6 @@
 package com.voxeo.rayo.mohoremote.sample;
 
 import java.net.URI;
-import java.util.Timer;
 
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
@@ -26,14 +25,6 @@ import com.voxeo.rayo.mohoremote.MohoRemote;
 import com.voxeo.rayo.mohoremote.MohoRemoteFactory;
 
 public class Outbound implements Observer {
-
-  CallableEndpoint _party1;
-
-  CallableEndpoint _party2;
-
-  CallableEndpoint _local;
-
-  Timer _timer;
 
   public static void main(String[] args) {
     MohoRemoteFactory mohoRemoteFactory = MohoRemoteFactory.newInstance();
