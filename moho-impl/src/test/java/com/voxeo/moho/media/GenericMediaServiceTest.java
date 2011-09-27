@@ -509,6 +509,7 @@ public class GenericMediaServiceTest extends TestCase {
           will(returnValue(parameters));
 
           oneOf(dialect).setTextToSpeechVoice(parameters, null);
+          oneOf(dialect).setTextToSpeechLanguage(parameters, null);
 
           // invoke player.play
           allowing(player).play(with(any(URI[].class)), with(new TypeSafeMatcher<RTC[]>() {
@@ -634,7 +635,7 @@ public class GenericMediaServiceTest extends TestCase {
           will(returnValue(parameters));
 
           oneOf(dialect).setTextToSpeechVoice(parameters, null);
-
+          oneOf(dialect).setTextToSpeechLanguage(parameters, null);
           // invoke play.
           allowing(player).play(with(any(URI[].class)), with(new TypeSafeMatcher<RTC[]>() {
             @Override
