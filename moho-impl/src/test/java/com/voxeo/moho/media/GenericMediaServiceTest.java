@@ -306,7 +306,7 @@ public class GenericMediaServiceTest extends TestCase {
         {
           allowing(mediaEvent2).getEventType();
           will(returnValue(RecorderEvent.RESUMED));
-          
+
           allowing(mediaEvent2).getError();
           will(returnValue(MediaErr.NO_ERROR));
         }
@@ -451,6 +451,12 @@ public class GenericMediaServiceTest extends TestCase {
       recording.stop();
 
       event = (RecordCompleteEvent) recording.get();
+      try {
+        Thread.sleep(2000);
+      }
+      catch (java.lang.InterruptedException ex) {
+
+      }
     }
     catch (final Exception ex) {
       ex.printStackTrace();
@@ -503,6 +509,7 @@ public class GenericMediaServiceTest extends TestCase {
           will(returnValue(parameters));
 
           oneOf(dialect).setTextToSpeechVoice(parameters, null);
+          oneOf(dialect).setTextToSpeechLanguage(parameters, null);
 
           // invoke player.play
           allowing(player).play(with(any(URI[].class)), with(new TypeSafeMatcher<RTC[]>() {
@@ -628,7 +635,7 @@ public class GenericMediaServiceTest extends TestCase {
           will(returnValue(parameters));
 
           oneOf(dialect).setTextToSpeechVoice(parameters, null);
-
+          oneOf(dialect).setTextToSpeechLanguage(parameters, null);
           // invoke play.
           allowing(player).play(with(any(URI[].class)), with(new TypeSafeMatcher<RTC[]>() {
             @Override
@@ -732,6 +739,13 @@ public class GenericMediaServiceTest extends TestCase {
       output.stop();
 
       event = (OutputCompleteEvent) output.get();
+
+      try {
+        Thread.sleep(2000);
+      }
+      catch (java.lang.InterruptedException ex) {
+
+      }
     }
     catch (final Exception ex) {
       ex.printStackTrace();
