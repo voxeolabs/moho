@@ -457,4 +457,9 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   public JoinDelegate getJoinDelegate(String id) {
     return joinDelegates.get(id);
   }
+
+  @Override
+  public Direction getDirection(Participant participant) {
+    return _joinees.getDirection(participant);
+  }
 }

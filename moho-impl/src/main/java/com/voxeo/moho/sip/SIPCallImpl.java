@@ -1,14 +1,11 @@
 /**
- * Copyright 2010-2011 Voxeo Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License.
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
+ * Copyright 2010-2011 Voxeo Corporation Licensed under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -19,6 +16,7 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -27,11 +25,13 @@ import javax.media.mscontrol.MediaObject;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.MsControlFactory;
+import javax.media.mscontrol.Parameter;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.JoinableStream.StreamType;
+import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.sdp.SdpException;
@@ -63,7 +63,9 @@ import com.voxeo.moho.Unjoint;
 import com.voxeo.moho.UnjointImpl;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.MohoCallCompleteEvent;
+import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.media.GenericMediaService;
@@ -111,6 +113,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected Exception _exception;
 
   protected SIPCallImpl _bridgeJoiningPeer;
+
+  protected MediaMixer _multiplejoiningMixer;
+
+  // TODO: join to MediaGroup
+  protected MediaMixer _multiplejoiningMixerForMedGrop;
 
   protected Lock mediaServiceLock = new ReentrantLock();
 
@@ -239,20 +246,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
 
       try {
-        Direction direction = Direction.DUPLEX;
-        Joinable[] joinables = null;
-        try {
-          joinables = _network.getJoinees(Direction.RECV);
-        }
-        catch (MsControlException ex) {
-          // ignore.
-        }
-        if (joinables != null && joinables.length > 0) {
-          if (!(_service != null && joinables.length == 1 && joinables[0] == _service.getMediaGroup())) {
-            direction = Direction.RECV;
-          }
-        }
-
         if (_service == null) {
           Parameters params = null;
           if (getSipSession() != null) {
@@ -266,11 +259,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           }
 
           _service = _context.getMediaServiceFactory().create((Call) this, _media, params);
-          _service.getMediaGroup().join(direction, _network);
         }
-        else if (reinvite) {
-          _service.getMediaGroup().join(direction, _network);
-        }
+        JoinDelegate.bridgeJoin(this, _service.getMediaGroup());
       }
       catch (final Exception e) {
         throw new MediaException(e);
@@ -313,6 +303,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   public JoinType getJoinType(Participant participant) {
     return _joinees.getJoinType(participant);
+  }
+
+  @Override
+  public Direction getDirection(Participant participant) {
+    return _joinees.getDirection(participant);
   }
 
   @Override
@@ -373,15 +368,13 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
       }
       if (p.getMediaObject() instanceof Joinable) {
-        Joinable peerJoinalbe = null;
-        if (joinData.getRealJoined() != null) {
-          peerJoinalbe = (Joinable) joinData.getRealJoined().getMediaObject();
-        }
-        else {
-          peerJoinalbe = (Joinable) p.getMediaObject();
-        }
         if (initiator) {
-          _network.unjoin(peerJoinalbe);
+          if (joinData.getRealJoined() == null) {
+            JoinDelegate.bridgeUnjoin(this, p);
+          }
+          else {
+            JoinDelegate.bridgeUnjoin(joinData.getRealJoined(), p);
+          }
         }
       }
 
@@ -454,7 +447,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   public synchronized void joinDone(final Participant participant, final JoinDelegate delegate) {
     if (_joinDelegate.getPeer() != null) {
-      if (_joinDelegate.getJoinType() == JoinType.BRIDGE) {
+      if (JoinType.isBridge(_joinDelegate.getJoinType())) {
         _callDelegate = new SIPCallBridgeDelegate();
       }
       else {
@@ -724,7 +717,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  protected synchronized void terminate(final CallCompleteEvent.Cause cause, final Exception exception, final Map<String, String> headers) {
+  protected synchronized void terminate(final CallCompleteEvent.Cause cause, final Exception exception,
+      final Map<String, String> headers) {
     _context.removeCall(getId());
 
     if (_service != null) {
@@ -733,6 +727,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
               : false);
       _service = null;
     }
+
     destroyNetworkConnection();
 
     Participant[] _joineesArray = _joinees.getJoinees();
@@ -847,13 +842,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected synchronized void linkCall(final SIPCallImpl call, final JoinType type, final Direction direction)
       throws MsControlException {
-    if (type == JoinType.BRIDGE) {
-      if (_network != null && call.getMediaObject() instanceof Joinable) {
-        _network.join(direction, ((Joinable) call.getMediaObject()));
-      }
+    if (JoinType.isBridge(type)) {
+      JoinDelegate.bridgeJoin(this, call, direction);
     }
     this.addPeer(call, type, direction);
-    call.addPeer(this, type, direction);
+    call.addPeer(this, type, JoinDelegate.reserve(direction));
   }
 
   protected synchronized void unlinkDirectlyPeer() {
@@ -915,6 +908,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         LOG.warn("Exception when releasing networkconnection", t);
       }
       _network = null;
+    }
+    if (_multiplejoiningMixer != null) {
+      try {
+        destroyMultipleJoiningMixer();
+      }
+      catch (final Throwable t) {
+        LOG.warn("Exception when releasing multiplejoiningMixer", t);
+      }
+      _multiplejoiningMixer = null;
     }
     if (_media != null) {
       try {
@@ -992,8 +994,28 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   protected Joint doJoin(final SIPCallImpl other, final JoinType type, final Direction direction) throws Exception {
-    _joinDelegate = createJoinDelegate(other, type, direction);
     SettableJointImpl joint = new SettableJointImpl();
+
+    // join strategy check
+    final Participant[] parts = getParticipants();
+    if (parts.length > 0) {
+      if (type == JoinType.BRIDGE_EXCLUSIVE_REPLACE) {
+        // unjoin previous joined Participant
+        for (Participant part : parts) {
+          doUnjoin(part, true);
+        }
+      }
+      else if (type == JoinType.BRIDGE) {
+        // dispatch BUSY event
+        Exception e = new ExecutionException("Busy join", null);
+        JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
+        dispatch(joinCompleteEvent);
+        joint.done(e);
+        return joint;
+      }
+    }
+
+    _joinDelegate = createJoinDelegate(other, type, direction);
     _joinDelegate.setSettableJoint(joint);
     other.startJoin(this, _joinDelegate);
 
@@ -1018,9 +1040,30 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       throw new IllegalArgumentException("MediaObject is't joinable.");
     }
 
-    _joinDelegate = new OtherParticipantJoinDelegate(this, other, direction);
-
     SettableJointImpl joint = new SettableJointImpl();
+
+    // join strategy check
+    final Participant[] parts = getParticipants();
+    if (parts.length > 0) {
+      if (type == JoinType.BRIDGE_EXCLUSIVE_REPLACE) {
+        // unjoin previous joined Participant
+        for (Participant part : parts) {
+          doUnjoin(part, true);
+        }
+      }
+      else if (type == JoinType.BRIDGE) {
+        // dispatch BUSY event
+        Exception e = new ExecutionException("Busy join", null);
+        JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
+        dispatch(joinCompleteEvent);
+        JoinCompleteEvent peerJoinCompleteEvent = new MohoJoinCompleteEvent(other, this, Cause.BUSY, e, false);
+        other.dispatch(peerJoinCompleteEvent);
+        joint.done(e);
+        return joint;
+      }
+    }
+
+    _joinDelegate = new OtherParticipantJoinDelegate(this, other, direction);
     _joinDelegate.setSettableJoint(joint);
 
     _joinDelegate.doJoin();
@@ -1369,5 +1412,36 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     else {
       throw new UnsupportedOperationException("can't find RemoteJoinDriver");
     }
+  }
+
+  public void createMultipleJoiningMixer() throws MsControlException {
+    if (_multiplejoiningMixer == null) {
+      Parameters params = Parameters.NO_PARAMETER;
+      params = _network.getParameters(new Parameter[] {MediaObject.MEDIAOBJECT_ID});
+      params.put(MediaObject.MEDIAOBJECT_ID, "JoinStrategy-ShadowMixer-" + params.get(MediaObject.MEDIAOBJECT_ID));
+      _multiplejoiningMixer = _media.createMediaMixer(MediaMixer.AUDIO, params);
+    }
+  }
+
+  public void destroyMultipleJoiningMixer() throws MsControlException {
+    try {
+      if (_multiplejoiningMixer != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("destroyMultipleJoiningMixer: " + _multiplejoiningMixer);
+        }
+
+        if (_network != null) {
+          _network.unjoin(_multiplejoiningMixer);
+        }
+        _multiplejoiningMixer.release();
+      }
+    }
+    finally {
+      _multiplejoiningMixer = null;
+    }
+  }
+
+  public MediaMixer getMultipleJoiningMixer() {
+    return _multiplejoiningMixer;
   }
 }

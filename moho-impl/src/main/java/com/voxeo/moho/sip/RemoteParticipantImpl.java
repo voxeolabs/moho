@@ -300,4 +300,10 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
   public void setRemoteInitiateJoin(boolean remoteInitiateJoin) {
     this._remoteInitiateJoin = remoteInitiateJoin;
   }
+
+  @Override
+  public Direction getDirection(Participant participant) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

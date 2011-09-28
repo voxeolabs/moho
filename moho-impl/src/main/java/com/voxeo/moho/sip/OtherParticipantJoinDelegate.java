@@ -1,6 +1,5 @@
 package com.voxeo.moho.sip;
 
-import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import com.voxeo.moho.MixerImpl;
@@ -31,7 +30,7 @@ public class OtherParticipantJoinDelegate extends JoinDelegate {
       return;
     }
 
-    ((Joinable) otherParticipant.getMediaObject()).join(_direction, (Joinable) _call1.getMediaObject());
+    JoinDelegate.bridgeJoin(_call1, otherParticipant, _direction);
 
     if (otherParticipant instanceof MixerImpl.ClampDtmfMixerAdapter) {
       MixerImpl.ClampDtmfMixerAdapter adapter = (MixerImpl.ClampDtmfMixerAdapter) otherParticipant;
