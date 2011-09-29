@@ -14,17 +14,19 @@
 
 package com.voxeo.moho.remote.impl.event;
 
+import java.util.Map;
+
 import com.voxeo.moho.Call;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.HangupEvent;
 
-public abstract class MohoHangupEvent extends MohoCallEvent implements HangupEvent {
+public class MohoHangupEvent extends MohoCallEvent implements HangupEvent {
 
   protected boolean _rejected = false;
 
   protected boolean _accepted = false;
 
-  protected MohoHangupEvent(final Call source) {
+  public MohoHangupEvent(final Call source) {
     super(source);
   }
 
@@ -51,5 +53,15 @@ public abstract class MohoHangupEvent extends MohoCallEvent implements HangupEve
   @Override
   public boolean isProcessed() {
     return isAccepted() || isRejected();
+  }
+
+  @Override
+  public void accept(Map<String, String> headers) throws SignalException {
+    
+  }
+
+  @Override
+  public void reject(Reason reason, Map<String, String> headers) throws SignalException {
+    
   }
 }

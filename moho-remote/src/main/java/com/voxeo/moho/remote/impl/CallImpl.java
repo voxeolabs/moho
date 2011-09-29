@@ -83,6 +83,7 @@ import com.voxeo.moho.remote.impl.event.DispatchableEventSource;
 import com.voxeo.moho.remote.impl.event.MohoAnsweredEvent;
 import com.voxeo.moho.remote.impl.event.MohoCallCompleteEvent;
 import com.voxeo.moho.remote.impl.event.MohoEarlyMediaEvent;
+import com.voxeo.moho.remote.impl.event.MohoHangupEvent;
 import com.voxeo.moho.remote.impl.event.MohoInputDetectedEvent;
 import com.voxeo.moho.remote.impl.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.remote.impl.event.MohoRingEvent;
@@ -722,7 +723,11 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       Object object = presence.getExtension().getObject();
       if (object instanceof EndEvent) {
         EndEvent event = (EndEvent) object;
-        event.getReason();
+        EndEvent.Reason rayoReason = event.getReason();
+        if(rayoReason ==  EndEvent.Reason.HANGUP){
+          MohoHangupEvent mohoEvent = new MohoHangupEvent(this);
+          this.dispatch(mohoEvent);
+        }
         MohoCallCompleteEvent mohoEvent = new MohoCallCompleteEvent(this,
             getMohoReasonByRayoEndEventReason(event.getReason()), null, event.getHeaders());
         this.dispatch(mohoEvent);
