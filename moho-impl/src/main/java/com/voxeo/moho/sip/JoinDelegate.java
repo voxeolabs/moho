@@ -196,6 +196,8 @@ public abstract class JoinDelegate {
 
   public static void bridgeJoin(final Participant part, final Participant other, final Direction direction)
       throws MsControlException {
+    LOG.info("Join " + part + " with " + other + " in " + direction);
+
     final Joinable joinable = getJoinable(part);
     final Joinable otherJoinable = getJoinable(other);
 
@@ -381,14 +383,12 @@ public abstract class JoinDelegate {
       if (isRecv(peerDirection)) {
         peerJoinable.join(Direction.SEND, multipleJoiningMixer);
       }
-      else if (isSend(peerDirection)) {
-        if (!contains(joinable, peerMultipleJoiningMixer, Direction.SEND)) {
-          if (peerMultipleJoiningMixer == null) {
-            joinable.join(Direction.SEND, peerJoinable);
-          }
-          else {
-            joinable.join(Direction.SEND, peerMultipleJoiningMixer);
-          }
+      if (isSend(peerDirection)) {
+        if (peerMultipleJoiningMixer == null) {
+          joinable.join(Direction.SEND, peerJoinable);
+        }
+        else {
+          joinable.join(Direction.SEND, peerMultipleJoiningMixer);
         }
       }
     }
@@ -397,14 +397,12 @@ public abstract class JoinDelegate {
     if (isRecv(direction)) {
       otherJoinable.join(Direction.SEND, multipleJoiningMixer);
     }
-    else if (isSend(direction)) {
-      if (!contains(joinable, otherMultipleJoiningMixer, Direction.SEND)) {
-        if (otherMultipleJoiningMixer == null) {
-          joinable.join(Direction.SEND, otherJoinable);
-        }
-        else {
-          joinable.join(Direction.SEND, otherMultipleJoiningMixer);
-        }
+    if (isSend(direction)) {
+      if (otherMultipleJoiningMixer == null) {
+        joinable.join(Direction.SEND, otherJoinable);
+      }
+      else {
+        joinable.join(Direction.SEND, otherMultipleJoiningMixer);
       }
     }
   }
@@ -512,5 +510,4 @@ public abstract class JoinDelegate {
     }
     return false;
   }
-
 }
