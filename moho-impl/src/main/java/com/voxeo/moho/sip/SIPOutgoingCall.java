@@ -15,9 +15,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.media.mscontrol.MediaObject;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
+
+import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.OutgoingCall;
@@ -26,7 +30,8 @@ import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 
 public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
-
+  private static final Logger LOG = Logger.getLogger(SIPCallImpl.class);
+  
   protected SIPEndpoint _from;
 
   protected SipApplicationSession _appSession;
@@ -176,6 +181,17 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
 
     if (_appSession == null) {
       _appSession = _signal.getApplicationSession();
+    }
+    
+    if (_media != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Set nc id with call id :" + getSipSession().getCallId());
+      }
+
+      Parameters params = _media.createParameters();
+      params.put(MediaObject.MEDIAOBJECT_ID, "MS-" + getSipSession().getCallId());
+      params.put(MediaObject.MEDIAOBJECT_ID, "NC-" + getSipSession().getCallId());
+      _media.setParameters(params);
     }
 
     SessionUtils.setEventSource(_signal, this);
