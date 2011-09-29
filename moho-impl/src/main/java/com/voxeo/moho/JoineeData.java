@@ -75,7 +75,7 @@ public class JoineeData {
     }
     final List<Participant> list = new ArrayList<Participant>(_joinees.size());
     for (final JoinData info : _joinees.values()) {
-      if (direction.equals(info.getDirection())) {
+      if (direction.equals(info.getDirection()) || info.getDirection().equals(Direction.DUPLEX)) {
         list.add(info.getParticipant());
       }
     }
