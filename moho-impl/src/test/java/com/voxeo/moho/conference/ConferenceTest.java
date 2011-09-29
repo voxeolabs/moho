@@ -25,7 +25,6 @@ import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MsControlFactory;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
-import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.sdp.SdpFactory;
 import javax.servlet.sip.SipFactory;
@@ -52,6 +51,7 @@ import com.voxeo.moho.event.MohoHangupEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Prompt;
+import com.voxeo.moho.media.fake.MockMediaMixer;
 import com.voxeo.moho.media.fake.MockMediaSession;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.input.SimpleGrammar;
@@ -74,8 +74,7 @@ public class ConferenceTest extends TestCase {
 
   MockMediaSession mediaSession = mockery.mock(MockMediaSession.class);
 
-  MediaMixer mixer = mockery.mock(MediaMixer.class);
-
+  MockMediaMixer mixer = mockery.mock(MockMediaMixer.class);
   // JSR289 mock
   SipServlet servlet = new MockSipServlet(mockery);
 
@@ -169,6 +168,8 @@ public class ConferenceTest extends TestCase {
     final Input<Call> input = mockery.mock(Input.class);
     final InputCompleteEvent<Call> event = mockery.mock(InputCompleteEvent.class);
 
+    final MockMediaMixer multipleJoiningMixer = mockery.mock(MockMediaMixer.class, "callmultipleJoiningMixer");
+    
     try {
       mockery.checking(new Expectations() {
         {
@@ -177,6 +178,9 @@ public class ConferenceTest extends TestCase {
 
           oneOf(call).prompt(with(same(promptCommand)), with(same(passCommand)), with(equal(3)));
           will(returnValue(prompt));
+          
+          allowing(call).getMultipleJoiningMixer();
+          will(returnValue(multipleJoiningMixer));
 
           allowing(prompt).getInput();
           will(returnValue(input));
@@ -184,6 +188,9 @@ public class ConferenceTest extends TestCase {
           will(returnValue(event));
           allowing(event).hasMatch();
           will(returnValue(true));
+          
+          allowing(call).getMultipleJoiningMixer();
+          will(returnValue(multipleJoiningMixer));
 
           oneOf(call).addObserver(with(any(Observer.class)));
           oneOf(call).input(exitCommand);
@@ -204,7 +211,7 @@ public class ConferenceTest extends TestCase {
           });
 
           // unjoin
-          oneOf(mixer).unjoin(callNet);
+          //oneOf(mixer).unjoin(callNet);
           oneOf(call).doUnjoin(mohoConference, false);
 
           oneOf(call).output(with(same(exitAnnouncement)));

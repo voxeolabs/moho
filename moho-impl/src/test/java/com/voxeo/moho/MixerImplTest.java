@@ -18,10 +18,10 @@ import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.Configuration;
 import javax.media.mscontrol.MediaEventListener;
+import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.MsControlFactory;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
-import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.sdp.SdpFactory;
 import javax.servlet.sip.SipFactory;
@@ -38,6 +38,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.MohoHangupEvent;
+import com.voxeo.moho.media.fake.MockMediaMixer;
 import com.voxeo.moho.media.fake.MockMediaSession;
 import com.voxeo.moho.sip.SIPCallImpl;
 import com.voxeo.moho.sip.fake.MockSipServlet;
@@ -56,7 +57,7 @@ public class MixerImplTest extends TestCase {
 
   MockMediaSession mediaSession = mockery.mock(MockMediaSession.class);
 
-  MediaMixer mixer = mockery.mock(MediaMixer.class);
+  MockMediaMixer mixer = mockery.mock(MockMediaMixer.class);
 
   // JSR289 mock
   SipServlet servlet = new MockSipServlet(mockery);
@@ -88,7 +89,7 @@ public class MixerImplTest extends TestCase {
 
   protected void tearDown() throws Exception {
     super.tearDown();
-    
+
     appContext.destroy();
   }
 
@@ -118,6 +119,8 @@ public class MixerImplTest extends TestCase {
     address = (MixerEndpoint) appContext.createEndpoint("mscontrol://test");
     mohoMixer = (MixerImpl) address.create(null);
 
+    final MockMediaMixer multipleJoiningMixer = mockery.mock(MockMediaMixer.class, "callmultipleJoiningMixer");
+
     // mock the call
     final SIPCallImpl call = mockery.mock(SIPCallImpl.class);
     final NetworkConnection callNet = mockery.mock(NetworkConnection.class);
@@ -127,6 +130,9 @@ public class MixerImplTest extends TestCase {
         {
           allowing(call).getMediaObject();
           will(returnValue(callNet));
+
+          allowing(call).getMultipleJoiningMixer();
+          will(returnValue(multipleJoiningMixer));
 
           // join
           oneOf(call).join(mohoMixer, JoinType.BRIDGE, Direction.DUPLEX);
@@ -138,13 +144,11 @@ public class MixerImplTest extends TestCase {
             @Override
             public Object invoke(Invocation invocation) throws Throwable {
               mohoMixer.addParticipant(call, JoinType.BRIDGE, Direction.DUPLEX, null);
+              multipleJoiningMixer.join(null, mixer);
               return null;
             }
           });
           // will(return)
-
-          // unjoin
-          oneOf(mixer).unjoin(callNet);
 
           oneOf(call).doUnjoin(mohoMixer, false);
         }
@@ -163,7 +167,12 @@ public class MixerImplTest extends TestCase {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
+    try {
+      assertTrue(multipleJoiningMixer.getJoinees().length == 1);
+    }
+    catch (MsControlException e1) {
 
+    }
     // unjoin
     try {
       mohoMixer.unjoin(call).get();
@@ -174,7 +183,12 @@ public class MixerImplTest extends TestCase {
     catch (ExecutionException e) {
       e.printStackTrace();
     }
+    try {
+      assertTrue(multipleJoiningMixer.getJoinees().length == 0);
+    }
+    catch (MsControlException e1) {
 
+    }
     // verify the result.
     mockery.assertIsSatisfied();
   }
