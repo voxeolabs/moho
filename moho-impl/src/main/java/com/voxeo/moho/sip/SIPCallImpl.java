@@ -888,9 +888,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
         params = _media.createParameters();
 
-        params.put(MediaObject.MEDIAOBJECT_ID, "NC-" + getSipSession().getCallId());
+        params.put(MediaObject.MEDIAOBJECT_ID, "MS-" + getSipSession().getCallId());
         _media.setParameters(params);
       }
+      params.put(MediaObject.MEDIAOBJECT_ID, "NC-" + getSipSession().getCallId());
       _network = _media.createNetworkConnection(NetworkConnection.BASIC, params);
       _network.getSdpPortManager().addListener(this);
     }
