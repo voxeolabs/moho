@@ -14,7 +14,7 @@ import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.remote.MohoRemote;
-import com.voxeo.moho.remote.MohoRemoteFactory;
+import com.voxeo.moho.remote.impl.MohoRemoteImpl;
 
 public class JoinSample implements Observer {
 
@@ -26,17 +26,18 @@ public class JoinSample implements Observer {
    * @param args
    */
   public static void main(String[] args) {
-    MohoRemoteFactory mohoRemoteFactory = MohoRemoteFactory.newInstance();
-    MohoRemote mohoRemote = mohoRemoteFactory.newMohoRemote();
+    MohoRemote mohoRemote = new MohoRemoteImpl();
     observer = new JoinSample();
     mohoRemote.addObserver(observer);
 
     mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost");
 
-    CallableEndpoint endpoint = mohoRemote.createEndpoint(URI.create("sip:sipuserf@127.0.0.1:54880"));
+    CallableEndpoint endpoint = (CallableEndpoint) mohoRemote
+        .createEndpoint(URI.create("sip:sipuserf@127.0.0.1:65362"));
 
     outboundCall = endpoint.createCall("sip:mohosample@example.com");
     outboundCall.addObserver(observer);
+    outboundCall.join();
     try {
       Thread.sleep(100 * 60 * 1000);
     }

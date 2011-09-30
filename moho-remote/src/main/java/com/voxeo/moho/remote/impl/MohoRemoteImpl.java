@@ -20,6 +20,7 @@ import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.OfferEvent;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
+import com.voxeo.moho.Participant;
 import com.voxeo.moho.remote.AuthenticationCallback;
 import com.voxeo.moho.remote.MohoRemote;
 import com.voxeo.moho.remote.impl.event.DispatchableEventSource;
@@ -33,7 +34,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   protected ThreadPoolExecutor _executor;
 
-  protected Map<String, CallImpl> _calls = new ConcurrentHashMap<String, CallImpl>();
+  protected Map<String, Participant> _participants = new ConcurrentHashMap<String, Participant>();
 
   public MohoRemoteImpl() {
     super();
@@ -69,9 +70,9 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       LOG.error("", e);
     }
 
-    Collection<CallImpl> calls = _calls.values();
-    for (Call call : calls) {
-      call.disconnect();
+    Collection<Participant> participants = _participants.values();
+    for (Participant participant : participants) {
+      participant.disconnect();
     }
   }
 
@@ -81,11 +82,16 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     public void onIQ(IQ iq) {
       // dispatch the stanza to corresponding call.
       JID fromJID = new JID(iq.getFrom());
-      String callID = fromJID.getNode();
-      if (callID != null) {
-        CallImpl call = MohoRemoteImpl.this._calls.get(callID);
-        if (call != null) {
-          call.onRayoCommandResult(fromJID, iq);
+      String id = fromJID.getNode();
+      if (id != null) {
+        Participant participant = MohoRemoteImpl.this._participants.get(id);
+        if (participant != null) {
+          // TODO crate a parent class to implement the RayoListener
+          if (participant instanceof Call) {
+            CallImpl call = (CallImpl) participant;
+            call.onRayoCommandResult(fromJID, iq);
+          }
+
         }
         else {
           MohoRemoteImpl.this.LOG.error("Can't find call for rayo event:" + iq);
@@ -112,9 +118,13 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       else {
         // dispatch the stanza to corresponding call.
         String callID = fromJID.getNode();
-        CallImpl call = MohoRemoteImpl.this._calls.get(callID);
-        if (call != null) {
-          call.onRayoEvent(fromJID, presence);
+        Participant participant = MohoRemoteImpl.this._participants.get(callID);
+        if (participant != null) {
+          // TODO crate a parent class to implement the RayoListener
+          if (participant instanceof Call) {
+            CallImpl call = (CallImpl) participant;
+            call.onRayoEvent(fromJID, presence);
+          }
         }
         else {
           MohoRemoteImpl.this.LOG.error("Can't find call for rayo event:" + presence);
@@ -143,15 +153,15 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
   }
 
   @Override
-  public Call getCall(final String cid) {
-    return _calls.get(cid);
+  public Participant getParticipant(final String cid) {
+    return _participants.get(cid);
   }
 
   protected void addCall(final CallImpl call) {
-    _calls.put(call.getId(), call);
+    _participants.put(call.getId(), call);
   }
 
   protected void removeCall(final String id) {
-    _calls.remove(id);
+    _participants.remove(id);
   }
 }

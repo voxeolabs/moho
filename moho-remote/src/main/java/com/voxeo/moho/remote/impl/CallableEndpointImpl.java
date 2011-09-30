@@ -5,13 +5,9 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.rayo.client.XmppException;
-import com.rayo.core.DialCommand;
-import com.rayo.core.verb.VerbRef;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.Subscription.Type;
 
@@ -70,18 +66,7 @@ public class CallableEndpointImpl implements CallableEndpoint {
 
   @Override
   public Call createCall(Endpoint caller, Map<String, String> headers) {
-    try {
-      DialCommand command = new DialCommand();
-      command.setFrom(caller.getURI());
-      command.setTo(this.getURI());
-      command.setHeaders(headers);
-      VerbRef verbRef = _mohoRemote.getRayoClient().dial(command);
-      return new OutgoingCallImpl(_mohoRemote, verbRef.getVerbId(), (CallableEndpoint) caller, this, headers);
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-      throw new SignalException(e);
-    }
+    return new OutgoingCallImpl(_mohoRemote, null, (CallableEndpoint) caller, this, headers);
   }
 
   @Override

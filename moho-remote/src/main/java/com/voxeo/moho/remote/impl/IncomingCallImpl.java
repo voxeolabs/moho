@@ -1,6 +1,9 @@
 package com.voxeo.moho.remote.impl;
 
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
 
@@ -14,9 +17,12 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.IncomingCall;
+import com.voxeo.moho.Joint;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
+import com.voxeo.moho.remote.impl.event.MohoJoinCompleteEvent;
 
 public class IncomingCallImpl extends CallImpl implements IncomingCall {
   private static final Logger LOG = Logger.getLogger(IncomingCallImpl.class);
@@ -26,6 +32,8 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   protected boolean isAccepted;
 
   protected boolean isRedirected;
+
+  protected JointImpl waitAnswerJoint = null;
 
   public IncomingCallImpl(MohoRemoteImpl mohoRemote, String callID, CallableEndpoint caller, CallableEndpoint callee,
       Map<String, String> headers) {
@@ -175,24 +183,21 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
 
   @Override
   public void answer(Map<String, String> headers) throws SignalException, MediaException {
-    try {
-      AnswerCommand command = new AnswerCommand();
-      command.setHeaders(headers);
-      command.setCallId(this.getId());
-      IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
-
-      if (iq.isError()) {
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
-        throw new SignalException(error.getCondition() + error.getText());
+    final Joint joint = this.join();
+    while (!joint.isDone()) {
+      try {
+        joint.get();
       }
-      else {
-        isAccepted = true;
-        _state = Call.State.CONNECTED;
+      catch (final InterruptedException e) {
+        // ignore
       }
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-      throw new SignalException(e);
+      catch (final ExecutionException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof SignalException) {
+          throw (SignalException) cause;
+        }
+        throw new SignalException(cause);
+      }
     }
   }
 
@@ -218,5 +223,62 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   @Override
   public Call getSource() {
     return this;
+  }
+
+  @Override
+  public void startJoin() throws XmppException {
+
+  }
+
+  // TODO make _mohoRemote.getRayoClient().answer() asynchronous, and make this
+  // method just send out command, the joint and event stuff should be processed in the
+  // join() method, wait for the result or error IQ.
+  private Joint internalAnswer(Map<String, String> headers) {
+    if (waitAnswerJoint == null) {
+      waitAnswerJoint = new JointImpl(this, null);
+      MohoJoinCompleteEvent joinComplete = null;
+      try {
+        AnswerCommand command = new AnswerCommand();
+        command.setHeaders(headers);
+        command.setCallId(this.getId());
+        IQ iq = _mohoRemote.getRayoClient().answer(this.getId(), command);
+
+        if (iq.isError()) {
+          com.rayo.client.xmpp.stanza.Error error = iq.getError();
+          joinComplete = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.ERROR, new SignalException(
+              error.getCondition() + error.getText()), true);
+        }
+        else {
+          isAccepted = true;
+          _state = Call.State.CONNECTED;
+          joinComplete = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.JOINED, true);
+        }
+        waitAnswerJoint.done(joinComplete);
+      }
+      catch (XmppException e) {
+        LOG.error("", e);
+        waitAnswerJoint.done(new SignalException(e));
+      }
+    }
+    else {
+      if (waitAnswerJoint.isDone()) {
+        try {
+          JoinCompleteEvent event = waitAnswerJoint.get();
+          dispatch(event);
+        }
+        catch (InterruptedException e) {
+          // can't happen
+        }
+        catch (ExecutionException e) {
+          // can't happen
+        }
+      }
+    }
+    return waitAnswerJoint;
+  }
+
+  @Override
+  public Joint join(Direction direction) {
+    return internalAnswer(null);
   }
 }

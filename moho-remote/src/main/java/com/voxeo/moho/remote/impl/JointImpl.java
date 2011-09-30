@@ -41,6 +41,11 @@ public class JointImpl implements Joint {
     _direction = direction;
   }
 
+  public JointImpl(final CallImpl call, Direction direction) {
+    _call = call;
+    _direction = direction;
+  }
+
   public void done(final JoinCompleteEvent event) {
     _future.setResult(event);
   }

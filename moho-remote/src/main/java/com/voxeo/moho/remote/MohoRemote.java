@@ -2,19 +2,17 @@ package com.voxeo.moho.remote;
 
 import java.net.URI;
 
-import com.voxeo.moho.Call;
-import com.voxeo.moho.CallableEndpoint;
-import com.voxeo.moho.event.Observer;
+import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.Participant;
+import com.voxeo.moho.event.EventSource;
 
-public interface MohoRemote {
+public interface MohoRemote extends EventSource {
 
   void connect(AuthenticationCallback callback, String server);
 
-  void addObserver(Observer observer);
-
   void disconnect();
 
-  CallableEndpoint createEndpoint(URI uri);
+  Endpoint createEndpoint(URI uri);
 
-  Call getCall(final String cid);
+  Participant getParticipant(final String id);
 }

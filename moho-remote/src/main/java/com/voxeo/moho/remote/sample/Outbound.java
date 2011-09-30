@@ -20,23 +20,24 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.AnsweredEvent;
+import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.remote.MohoRemote;
-import com.voxeo.moho.remote.MohoRemoteFactory;
+import com.voxeo.moho.remote.impl.MohoRemoteImpl;
 
 public class Outbound implements Observer {
 
   public static void main(String[] args) {
-    MohoRemoteFactory mohoRemoteFactory = MohoRemoteFactory.newInstance();
-    MohoRemote mohoRemote = mohoRemoteFactory.newMohoRemote();
+    MohoRemote mohoRemote = new MohoRemoteImpl();
     mohoRemote.addObserver(new Outbound());
 
     mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost");
 
-    CallableEndpoint endpoint = mohoRemote.createEndpoint(URI.create("sip:prism@127.0.0.1:56368"));
+    CallableEndpoint endpoint = (CallableEndpoint) mohoRemote.createEndpoint(URI.create("sip:prism@127.0.0.1:58587"));
 
     Call call = endpoint.createCall("sip:mohosample@example.com");
     call.addObserver(new Outbound());
+    call.join();
     try {
       Thread.sleep(100 * 60 * 1000);
     }
@@ -44,9 +45,9 @@ public class Outbound implements Observer {
       e.printStackTrace();
     }
   }
-
+  
   @State
-  public void handleAnswered(final AnsweredEvent<Call> event) {
-    event.getSource().output("Hello world");
+  public void handleJoinComplete(final JoinCompleteEvent event) {
+    ((Call)event.getSource()).output("join complete");
   }
 }

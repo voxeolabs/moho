@@ -21,14 +21,12 @@ import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.event.OutputCompleteEvent;
 import com.voxeo.moho.remote.MohoRemote;
-import com.voxeo.moho.remote.MohoRemoteFactory;
+import com.voxeo.moho.remote.impl.MohoRemoteImpl;
 
 public class Play implements Observer {
 
   public static void main(String[] args) throws Exception {
-
-    MohoRemoteFactory mohoRemoteFactory = MohoRemoteFactory.newInstance();
-    MohoRemote mohoRemote = mohoRemoteFactory.newMohoRemote();
+    MohoRemote mohoRemote = new MohoRemoteImpl();
     mohoRemote.addObserver(new Play());
     mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost");
     try {
@@ -46,7 +44,7 @@ public class Play implements Observer {
 
     call.output("hello world");
   }
-  
+
   @State
   public void handleOutputComplete(final OutputCompleteEvent<Call> event) {
     System.out.println(event.getCause());

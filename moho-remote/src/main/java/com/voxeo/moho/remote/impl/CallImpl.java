@@ -38,7 +38,6 @@ import org.joda.time.Duration;
 import com.rayo.client.XmppException;
 import com.rayo.client.xmpp.stanza.IQ;
 import com.rayo.client.xmpp.stanza.Presence;
-import com.rayo.core.AnsweredEvent;
 import com.rayo.core.CallRejectReason;
 import com.rayo.core.DtmfEvent;
 import com.rayo.core.EndEvent;
@@ -69,7 +68,6 @@ import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.RequestEvent;
 import com.voxeo.moho.event.ResponseEvent;
-import com.voxeo.moho.event.RingEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Output;
@@ -80,13 +78,11 @@ import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.remote.impl.event.DispatchableEventSource;
-import com.voxeo.moho.remote.impl.event.MohoAnsweredEvent;
 import com.voxeo.moho.remote.impl.event.MohoCallCompleteEvent;
 import com.voxeo.moho.remote.impl.event.MohoEarlyMediaEvent;
 import com.voxeo.moho.remote.impl.event.MohoHangupEvent;
 import com.voxeo.moho.remote.impl.event.MohoInputDetectedEvent;
 import com.voxeo.moho.remote.impl.event.MohoJoinCompleteEvent;
-import com.voxeo.moho.remote.impl.event.MohoRingEvent;
 import com.voxeo.moho.remote.impl.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.remote.impl.media.InputImpl;
 import com.voxeo.moho.remote.impl.media.OutputImpl;
@@ -126,10 +122,12 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       Map<String, String> headers) {
     _mohoRemote = mohoRemote;
     _dispatcher.setExecutor(_mohoRemote.getExecutor(), true);
-    _id = callID;
     _caller = caller;
     _callee = callee;
-    _mohoRemote.addCall(this);
+    _id = callID;
+    if (_id != null) {
+      _mohoRemote.addCall(this);
+    }
     _headers = headers;
   }
 
@@ -435,6 +433,10 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   public Joint join(Participant other, JoinType type, Direction direction) {
     JointImpl joint = null;
     try {
+      this.startJoin();
+      // TODO make a parent class implement participant.
+      ((CallImpl) other).startJoin();
+
       JoinCommand command = new JoinCommand();
       command.setCallId(this.getId());
       command.setTo(other.getId());
@@ -459,7 +461,7 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       }
       joint = new JointImpl(this, type, direction);
       _joints.put(other.getId(), joint);
-      ((CallImpl)other)._joints.put(this.getId(), joint);
+      ((CallImpl) other)._joints.put(this.getId(), joint);
     }
     catch (XmppException e) {
       LOG.error("", e);
@@ -667,7 +669,7 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
     this.hangup();
   }
 
-  private void cleanUp() {
+  protected void cleanUp() {
     _attributes.clear();
     _peers.clear();
     _joinees.clear();
@@ -724,23 +726,16 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       if (object instanceof EndEvent) {
         EndEvent event = (EndEvent) object;
         EndEvent.Reason rayoReason = event.getReason();
-        if(rayoReason ==  EndEvent.Reason.HANGUP){
+        if (rayoReason == EndEvent.Reason.HANGUP) {
           MohoHangupEvent mohoEvent = new MohoHangupEvent(this);
           this.dispatch(mohoEvent);
         }
         MohoCallCompleteEvent mohoEvent = new MohoCallCompleteEvent(this,
             getMohoReasonByRayoEndEventReason(event.getReason()), null, event.getHeaders());
         this.dispatch(mohoEvent);
-      }
-      else if (object instanceof AnsweredEvent) {
-        AnsweredEvent event = (AnsweredEvent) object;
-        MohoAnsweredEvent<Call> mohoEvent = new MohoAnsweredEvent<Call>(this, event.getHeaders());
-        this.dispatch(mohoEvent);
-      }
-      else if (object instanceof RingEvent) {
-        RingEvent event = (RingEvent) object;
-        MohoRingEvent mohoEvent = new MohoRingEvent(this, event.getHeaders());
-        this.dispatch(mohoEvent);
+
+        _state = State.DISCONNECTED;
+        cleanUp();
       }
       else if (object instanceof DtmfEvent) {
         DtmfEvent event = (DtmfEvent) object;
@@ -754,7 +749,7 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         JoinDestinationType type = event.getType();
         JointImpl joint = _joints.remove(id);
         if (type == JoinDestinationType.CALL) {
-          Call peer = this.getMohoRemote().getCall(id);
+          Call peer = (Call) this.getMohoRemote().getParticipant(id);
           _joinees.add(peer, joint.getType(), joint.getDirection());
           _peers.add(peer);
           mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
@@ -772,7 +767,7 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         JoinDestinationType type = event.getType();
         _unjoints.remove(id);
         if (type == JoinDestinationType.CALL) {
-          Call peer = _mohoRemote.getCall(id);
+          Call peer = (Call) _mohoRemote.getParticipant(id);
           _joinees.remove(peer);
           _peers.remove(peer);
           mohoEvent = new MohoUnjoinCompleteEvent(this, peer, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
@@ -848,4 +843,6 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   public void addComponentListener(String id, RayoListener listener) {
     _componentListeners.put(id, listener);
   }
+
+  public abstract void startJoin() throws XmppException;
 }
