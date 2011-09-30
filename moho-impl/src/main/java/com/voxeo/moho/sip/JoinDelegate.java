@@ -266,7 +266,7 @@ public abstract class JoinDelegate {
     final MediaMixer otherMultipleJoiningMixer = getMultipleJoiningMixer(other, false);
 
     if (multipleJoiningMixer != null && contains(multipleJoiningMixer, otherJoinable, null)) {
-      multipleJoiningMixer.unjoin(joinable);
+      multipleJoiningMixer.unjoin(otherJoinable);
       if (multipleJoiningMixer.getJoinees().length == 1) {
         destroyMultipleJoiningMixer(part);
       }
