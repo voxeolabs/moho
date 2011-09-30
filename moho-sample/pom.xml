@@ -30,6 +30,7 @@
     <!--module>ImifiedEcho</module-->
     <module>DefaultTestApp</module>
     <module>SamplePresenceNotify</module>
+    <module>SampleJoinStrategy</module>
   </modules>
 
   <scm>
