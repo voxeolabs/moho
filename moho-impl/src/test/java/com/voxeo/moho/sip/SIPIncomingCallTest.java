@@ -176,6 +176,8 @@ public class SIPIncomingCallTest extends TestCase {
         will(returnValue(false));
         allowing(disconnectEvent).isRejected();
         will(returnValue(false));
+        allowing(disconnectEvent).getAsync();
+        will(returnValue(false));
         oneOf(disconnectEvent).accept();
       }
     });
@@ -229,6 +231,8 @@ public class SIPIncomingCallTest extends TestCase {
         allowing(disconnectEvent).isAccepted();
         will(returnValue(false));
         allowing(disconnectEvent).isRejected();
+        will(returnValue(false));
+        allowing(disconnectEvent).getAsync();
         will(returnValue(false));
         oneOf(disconnectEvent).accept();
       }

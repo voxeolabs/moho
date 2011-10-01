@@ -281,4 +281,14 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   public Joint join(Direction direction) {
     return internalAnswer(null);
   }
+
+  @Override
+  public void setAsync(boolean async) {
+    
+  }
+
+  @Override
+  public boolean getAsync() {
+    return false;
+  }
 }

@@ -33,6 +33,12 @@ public class RemoteJoinDriverImpl implements RemoteJoinDriver {
   protected RemoteCommunicationImpl _remoteCommunication;
 
   protected String _remoteCommunicationRMIAddress;
+  
+  protected String port = "4231";
+  
+  protected String address = NetworkUtils.getLocalAddress().toString();
+  
+  protected String remoteObject = "RemoteCommunication";
 
   @Override
   public void init(SpiFramework framework) {
@@ -104,8 +110,8 @@ public class RemoteJoinDriverImpl implements RemoteJoinDriver {
   @Override
   public String getRemoteAddress(String type, String id) {
     // TODO ADDRESS
-    String address = RemoteJoinDriver.schemas[0] + ":" + type + ":" + id + "///" + _remoteCommunicationRMIAddress;
-    return address;
+    String remoteAddress = RemoteJoinDriver.schemas[0] + ":/" + address + ":" + port + "/" + type+"/"+id;
+    return remoteAddress;
   }
 
   public RemoteCommunicationImpl getRemoteCommunication() {

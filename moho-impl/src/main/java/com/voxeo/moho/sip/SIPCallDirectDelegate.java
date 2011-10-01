@@ -28,7 +28,7 @@ import com.voxeo.moho.sip.SIPCallImpl.HoldState;
 
 public class SIPCallDirectDelegate extends SIPCallDelegate {
 
-  private static final Logger LOG = Logger.getLogger(SIPCallMediaDelegate.class);
+  private static final Logger LOG = Logger.getLogger(SIPCallDirectDelegate.class);
 
   private static final String REINVITE_PEER_RES = "com.voxeo.moho.reinvite-peer-res";
 

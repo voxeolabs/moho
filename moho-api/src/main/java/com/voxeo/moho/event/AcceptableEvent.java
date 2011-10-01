@@ -134,4 +134,7 @@ public interface AcceptableEvent {
    */
   void reject(Reason reason, Map<String, String> headers) throws SignalException;
 
+  void setAsync(boolean async);
+  
+  boolean getAsync();
 }

@@ -418,12 +418,6 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   }
 
   @Override
-  public Joint join(Direction direction) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public Joint join(CallableEndpoint other, JoinType type, Direction direction, Map<String, String> headers) {
     Call outboundCall = other.createCall(getAddress(), headers);
     return this.join(outboundCall, type, direction);

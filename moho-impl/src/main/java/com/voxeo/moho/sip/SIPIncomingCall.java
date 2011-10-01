@@ -407,4 +407,14 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
     setSIPCallState(SIPCall.State.PROXIED);
     SIPHelper.proxyTo(getApplicationContext().getSipFactory(), _invite, headers, recordRoute, parallel, destinations);
   }
+
+  @Override
+  public void setAsync(boolean async) {
+    
+  }
+
+  @Override
+  public boolean getAsync() {
+    return false;
+  }
 }

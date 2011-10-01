@@ -14,9 +14,10 @@
 
 package com.voxeo.moho.event;
 
-
 public class MohoEvent<Source extends EventSource> implements Event<Source> {
   protected final Source source;
+
+  protected boolean _async = false;
 
   public MohoEvent(final Source source) {
     super();
@@ -32,6 +33,14 @@ public class MohoEvent<Source extends EventSource> implements Event<Source> {
   @Override
   public Source getSource() {
     return source;
- 
+
+  }
+
+  public void setAsync(boolean async) {
+    _async = async;
+  }
+
+  public boolean getAsync() {
+    return _async;
   }
 }

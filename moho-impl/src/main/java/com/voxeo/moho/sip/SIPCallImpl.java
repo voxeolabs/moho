@@ -1406,13 +1406,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   @Override
   public String getRemoteAddress() {
-    ProtocolDriver driver = _context.getFramework().getDriverByProtocolFamily(RemoteJoinDriver.PROTOCOL_REMOTEJOIN);
-    if (driver != null) {
-      return ((RemoteJoinDriver) driver).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_CALL, this.getId());
-    }
-    else {
-      throw new UnsupportedOperationException("can't find RemoteJoinDriver");
-    }
+    return _id;
   }
 
   public void createMultipleJoiningMixer() throws MsControlException {

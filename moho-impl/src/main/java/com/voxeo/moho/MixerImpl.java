@@ -919,14 +919,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public String getRemoteAddress() {
-    ProtocolDriver driver = _context.getFramework().getDriverByProtocolFamily(RemoteJoinDriver.PROTOCOL_REMOTEJOIN);
-    if (driver != null) {
-      return ((RemoteJoinDriver) driver).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_CONFERENCE,
-          this.getId());
-    }
-    else {
-      throw new UnsupportedOperationException("can't find RemoteJoinDriver");
-    }
+    return _id;
   }
 
   private Map<String, JoinDelegate> joinDelegates = new ConcurrentHashMap<String, JoinDelegate>();

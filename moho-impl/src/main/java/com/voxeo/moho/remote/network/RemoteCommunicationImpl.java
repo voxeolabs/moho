@@ -22,17 +22,15 @@ import com.voxeo.moho.sip.RemoteParticipantImpl;
 import com.voxeo.moho.sip.SIPCallImpl;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.RemoteJoinDriver;
+import com.voxeo.moho.util.ParticipantIDParser;
 
 public class RemoteCommunicationImpl implements RemoteCommunication {
   private static final Logger LOG = Logger.getLogger(RemoteCommunicationImpl.class);
 
-  private static Pattern patter = Pattern.compile("remotejoin:(\\S+):(\\S+)///(\\S+)");
+  private static Pattern patter = ParticipantIDParser.patter;
 
   // TODO need timer to deal with network problem?
   Map<String, RemoteParticipantImpl> remoteCommunications = new ConcurrentHashMap<String, RemoteParticipantImpl>();
-
-  // TODO when clear data?
-  Map<String, RemoteCommunication> remoteCommunic = new ConcurrentHashMap<String, RemoteCommunication>();
 
   protected ExecutionContext _context;
 
@@ -47,16 +45,10 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
       throw new IllegalArgumentException("Illegal remote address:" + joineeRemoteAddress);
     }
 
-    String rmiAddress = matcher.group(3);
+    String rmiAddress = getRmiAddress(matcher);
     RemoteCommunication ske = null;
 
-    synchronized (rmiAddress.intern()) {
-      ske = remoteCommunic.get(rmiAddress);
-      if (ske == null) {
-        ske = (RemoteCommunication) Naming.lookup(rmiAddress);
-        remoteCommunic.put(rmiAddress, ske);
-      }
-    }
+    ske = (RemoteCommunication) Naming.lookup(rmiAddress);
 
     ske.remoteJoin(joinerRemoteAddress, joineeRemoteAddress, sdp);
   }
@@ -67,16 +59,10 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
       throw new IllegalArgumentException("Illegal remote address:" + joinerRemoteAddress);
     }
 
-    String rmiAddress = matcher.group(3);
+    String rmiAddress = getRmiAddress(matcher);
     RemoteCommunication ske = null;
 
-    synchronized (rmiAddress.intern()) {
-      ske = remoteCommunic.get(rmiAddress);
-      if (ske == null) {
-        ske = (RemoteCommunication) Naming.lookup(rmiAddress);
-        remoteCommunic.put(rmiAddress, ske);
-      }
-    }
+    ske = (RemoteCommunication) Naming.lookup(rmiAddress);
 
     ske.remoteJoinAnswer(joinerRemoteAddress, joineeRemoteAddress, sdp);
   }
@@ -88,16 +74,10 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
         throw new IllegalArgumentException("Illegal remote address:" + remoteAddress);
       }
 
-      String rmiAddress = matcher.group(3);
+      String rmiAddress = getRmiAddress(matcher);
       RemoteCommunication ske = null;
 
-      synchronized (rmiAddress.intern()) {
-        ske = remoteCommunic.get(rmiAddress);
-        if (ske == null) {
-          ske = (RemoteCommunication) Naming.lookup(rmiAddress);
-          remoteCommunic.put(rmiAddress, ske);
-        }
-      }
+      ske = (RemoteCommunication) Naming.lookup(rmiAddress);
 
       ske.remoteJoinDone(invokerRemoteAddress, remoteAddress, cause, exception);
     }
@@ -113,16 +93,10 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
         throw new IllegalArgumentException("Illegal remote address:" + remoteAddress);
       }
 
-      String rmiAddress = matcher.group(3);
+      String rmiAddress = getRmiAddress(matcher);
       RemoteCommunication ske = null;
 
-      synchronized (rmiAddress.intern()) {
-        ske = remoteCommunic.get(rmiAddress);
-        if (ske == null) {
-          ske = (RemoteCommunication) Naming.lookup(rmiAddress);
-          remoteCommunic.put(rmiAddress, ske);
-        }
-      }
+      ske = (RemoteCommunication) Naming.lookup(rmiAddress);
 
       ske.remoteUnjoin(invokerRemoteAddress, remoteAddress);
     }
@@ -138,8 +112,8 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
       throw new IllegalArgumentException("Illegal remote address:" + joineeRemoteAddress);
     }
 
-    String type = matcher.group(1);
-    String id = matcher.group(2);
+    String type = matcher.group(3);
+    String id = matcher.group(4);
 
     if (type.equalsIgnoreCase(RemoteParticipant.RemoteParticipant_TYPE_CALL)) {
       SIPCallImpl call = (SIPCallImpl) _context.getCall(id);
@@ -179,8 +153,8 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
       throw new IllegalArgumentException("Illegal remote address:" + joineeRemoteAddress);
     }
 
-    String type = matcher.group(1);
-    String id = matcher.group(2);
+    String type = matcher.group(3);
+    String id = matcher.group(4);
 
     if (type.equalsIgnoreCase(RemoteParticipant.RemoteParticipant_TYPE_CALL)) {
       SIPCallImpl call = (SIPCallImpl) _context.getCall(id);
@@ -210,8 +184,8 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
       throw new IllegalArgumentException("Illegal remote address:" + remoteAddress);
     }
 
-    String type = matcher.group(1);
-    String id = matcher.group(2);
+    String type = matcher.group(3);
+    String id = matcher.group(4);
 
     if (type.equalsIgnoreCase(RemoteParticipant.RemoteParticipant_TYPE_CALL)) {
       SIPCallImpl call = (SIPCallImpl) _context.getCall(id);
@@ -241,8 +215,8 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
       throw new IllegalArgumentException("Illegal remote address:" + remoteAddress);
     }
 
-    String type = matcher.group(1);
-    String id = matcher.group(2);
+    String type = matcher.group(3);
+    String id = matcher.group(4);
 
     if (type.equalsIgnoreCase(RemoteParticipant.RemoteParticipant_TYPE_CALL)) {
       SIPCallImpl call = (SIPCallImpl) _context.getCall(id);
@@ -275,5 +249,16 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
     else {
       throw new IllegalArgumentException("Unsupported type:" + type);
     }
+  }
+
+  protected String getRmiAddress(Matcher matcher) {
+    // TODO code refactor, use ParticipantIDParser
+
+    String ip = matcher.group(1);
+    String port = matcher.group(0);
+
+    String rmiAddress = "rmi://" + ip + ":" + port + "/RemoteCommunication";
+
+    return rmiAddress;
   }
 }
