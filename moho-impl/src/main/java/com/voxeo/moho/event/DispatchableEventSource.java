@@ -15,17 +15,13 @@
 package com.voxeo.moho.event;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.AttributeStoreImpl;
-import com.voxeo.moho.remote.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
-import com.voxeo.moho.spi.RemoteJoinDriver;
-import com.voxeo.moho.util.ParticipantIDParser;
 import com.voxeo.moho.util.Utils;
 import com.voxeo.moho.utils.EventListener;
 
@@ -48,21 +44,11 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
   protected ConcurrentHashMap<Observer, AutowiredEventListener> _observers = new ConcurrentHashMap<Observer, AutowiredEventListener>();
 
   protected DispatchableEventSource() {
-   
+
   }
-  
+
   public DispatchableEventSource(final ExecutionContext applicationContext) {
     this(applicationContext, true);
-    //_id = UUID.randomUUID().toString(); // TODO: better one?   
-    if(_context != null){
-      String uid = UUID.randomUUID().toString();
-      String rawid = ((RemoteJoinDriver) _context.getFramework().getDriverByProtocolFamily(
-          RemoteJoinDriver.PROTOCOL_REMOTEJOIN)).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_CALL, uid);
-      _id = ParticipantIDParser.encode(rawid);
-    }
-    else{
-      _id = UUID.randomUUID().toString();
-    }
   }
 
   public DispatchableEventSource(final ExecutionContext applicationContext, boolean orderedDispatch) {
@@ -94,7 +80,8 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
     }
   }
 
-  public <E extends MohoEvent<?>, T extends EventListener<E>> void addListeners(final Class<E> type, final T... listeners) {
+  public <E extends MohoEvent<?>, T extends EventListener<E>> void addListeners(final Class<E> type,
+      final T... listeners) {
     if (listeners != null) {
       for (final T listener : listeners) {
         this.addListener(type, listener);
