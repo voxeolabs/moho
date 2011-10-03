@@ -89,6 +89,9 @@ public abstract class CallImpl implements Call {
         RemoteJoinDriver.PROTOCOL_REMOTEJOIN)).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_CALL, uid);
     _id = ParticipantIDParser.encode(rawid);
 
+    //TODO: We need the Rayo build back green
+    _id = uid;
+    
     context.addCall(this);
   }
 
