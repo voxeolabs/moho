@@ -180,4 +180,9 @@ public class InputImpl<T extends EventSource> implements Input<T>, RayoListener 
   public void onRayoCommandResult(JID from, IQ iq) {
     // DO nothing.
   }
+  
+  public String getVerbId() {
+	  
+	  return _verbRef.getVerbId();
+  }
 }

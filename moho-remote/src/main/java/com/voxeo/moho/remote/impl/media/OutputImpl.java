@@ -272,4 +272,9 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
 
     return OutputCompleteEvent.Cause.ERROR;
   }
+  
+  public String getVerbId() {
+	  
+	  return _verbRef.getVerbId();
+  }
 }

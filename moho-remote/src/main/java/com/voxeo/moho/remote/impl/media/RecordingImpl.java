@@ -198,4 +198,9 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
   public void onRayoCommandResult(JID from, IQ iq) {
     // DO nothing.
   }
+  
+  public String getVerbId() {
+	  
+	  return _verbRef.getVerbId();
+  }
 }
