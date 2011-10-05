@@ -137,6 +137,7 @@ public class InputImpl<T extends EventSource> implements Input<T>, RayoListener 
       mohoEvent.setUtterance(event.getUtterance());
 
       this.done(mohoEvent);
+      _call.dispatch(mohoEvent);
     }
     else {
       LOG.error("Can't process presence:" + presence);
