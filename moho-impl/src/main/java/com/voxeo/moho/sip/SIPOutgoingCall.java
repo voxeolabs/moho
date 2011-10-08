@@ -1,14 +1,11 @@
 /**
- * Copyright 2010 Voxeo Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License.
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
+ * Copyright 2010 Voxeo Corporation Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -18,9 +15,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.media.mscontrol.MediaObject;
+import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
+
+import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.OutgoingCall;
@@ -29,7 +30,8 @@ import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 
 public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
-
+  private static final Logger LOG = Logger.getLogger(SIPCallImpl.class);
+  
   protected SIPEndpoint _from;
 
   protected SipApplicationSession _appSession;
@@ -104,7 +106,7 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
       }
     }
     else {
-      retval = new BridgeJoinDelegate(this, other, direction);
+      retval = new BridgeJoinDelegate(this, other, direction, type);
     }
     return retval;
   }
@@ -179,6 +181,17 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
 
     if (_appSession == null) {
       _appSession = _signal.getApplicationSession();
+    }
+    
+    if (_media != null) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Set nc id with call id :" + getSipSession().getCallId());
+      }
+
+      Parameters params = _media.createParameters();
+      params.put(MediaObject.MEDIAOBJECT_ID, "MS-" + getSipSession().getCallId());
+      params.put(MediaObject.MEDIAOBJECT_ID, "NC-" + getSipSession().getCallId());
+      _media.setParameters(params);
     }
 
     SessionUtils.setEventSource(_signal, this);

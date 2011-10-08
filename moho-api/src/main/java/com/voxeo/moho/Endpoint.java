@@ -32,5 +32,4 @@ public interface Endpoint {
      * @return the URI, such as SIP URI, of the endpoint
      */
     URI getURI();
-    
 }

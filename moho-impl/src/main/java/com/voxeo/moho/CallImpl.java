@@ -49,7 +49,10 @@ import com.voxeo.moho.media.Recording;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.record.RecordCommand;
+import com.voxeo.moho.remote.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.spi.RemoteJoinDriver;
+import com.voxeo.moho.util.ParticipantIDParser;
 import com.voxeo.moho.util.Utils;
 import com.voxeo.moho.utils.EventListener;
 
@@ -80,7 +83,15 @@ public abstract class CallImpl implements Call {
   protected CallImpl(ExecutionContext context) {
     _context = context;
     _dispatcher.setExecutor(getThreadPool(), true);
-    _id = UUID.randomUUID().toString();
+    // _id = UUID.randomUUID().toString();
+    String uid = UUID.randomUUID().toString();
+    String rawid = ((RemoteJoinDriver) _context.getFramework().getDriverByProtocolFamily(
+        RemoteJoinDriver.PROTOCOL_REMOTEJOIN)).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_CALL, uid);
+    _id = ParticipantIDParser.encode(rawid);
+
+    //TODO: We need the Rayo build back green
+    _id = uid;
+    
     context.addCall(this);
   }
 
@@ -286,7 +297,7 @@ public abstract class CallImpl implements Call {
         @Override
         public void run() {
           if (event instanceof EarlyMediaEvent) {
-            if (!((MohoEarlyMediaEvent) event).isProcessed()) {
+            if (!((MohoEarlyMediaEvent) event).isProcessed() && !((MohoEarlyMediaEvent) event).getAsync()) {
               try {
                 ((EarlyMediaEvent) event).reject(null);
               }
@@ -297,7 +308,8 @@ public abstract class CallImpl implements Call {
           }
 
           else if (event instanceof AcceptableEvent) {
-            if (!((AcceptableEvent) event).isAccepted() && !((AcceptableEvent) event).isRejected()) {
+            if (!((AcceptableEvent) event).isAccepted() && !((AcceptableEvent) event).isRejected()
+                && !((AcceptableEvent) event).getAsync()) {
               try {
                 ((AcceptableEvent) event).accept();
               }

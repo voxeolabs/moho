@@ -21,11 +21,12 @@ import com.voxeo.moho.sip.SIPCall.State;
 
 public class BridgeJoinDelegate extends JoinDelegate {
 
-  protected BridgeJoinDelegate(final SIPCallImpl call1, final SIPCallImpl call2, final Direction direction) {
+  protected BridgeJoinDelegate(final SIPCallImpl call1, final SIPCallImpl call2, final Direction direction,
+      final JoinType type) {
     _call1 = call1;
     _call2 = call2;
     _direction = direction;
-    _joinType = JoinType.BRIDGE;
+    _joinType = type;
   }
 
   @Override
@@ -57,7 +58,7 @@ public class BridgeJoinDelegate extends JoinDelegate {
       res.send();
     }
     else {
-      _call1.linkCall(_call2, JoinType.BRIDGE, _direction);
+      _call1.linkCall(_call2, _joinType, _direction);
 
       _call1.setBridgeJoiningPeer(null);
       _call2.setBridgeJoiningPeer(null);
@@ -72,7 +73,7 @@ public class BridgeJoinDelegate extends JoinDelegate {
       call.setSIPCallState(SIPCall.State.ANSWERED);
       call.processSDPAnswer(req);
 
-      _call1.linkCall(_call2, JoinType.BRIDGE, _direction);
+      _call1.linkCall(_call2, _joinType, _direction);
 
       _call1.setBridgeJoiningPeer(null);
       _call2.setBridgeJoiningPeer(null);

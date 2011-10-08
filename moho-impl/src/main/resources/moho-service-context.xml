@@ -15,7 +15,7 @@
   <bean class="com.voxeo.moho.sip.IncomingCallFactoryImpl">
   </bean>
   
-    <bean class="com.voxeo.moho.reg.RegistrarImpl">
+  <bean class="com.voxeo.moho.reg.RegistrarImpl">
   </bean>
   
   <bean class="com.voxeo.moho.presence.impl.PresenceServiceImpl">

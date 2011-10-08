@@ -41,7 +41,7 @@ public class SIPController extends SipServlet {
   protected ApplicationContextImpl _ctx = null;
 
   protected String _applicationClass = null;
-  
+
   protected SIPDriver _driver;
 
   @Override
@@ -49,7 +49,8 @@ public class SIPController extends SipServlet {
     try {
       _applicationClass = getInitParameter("ApplicationClass");
       if (_applicationClass == null) {
-        throw new IllegalArgumentException("Cannot found the application implementation class in this Moho application.");
+        throw new IllegalArgumentException(
+            "Cannot found the application implementation class in this Moho application.");
       }
       LOG.info("Moho application:" + _applicationClass);
       final Application app = createApplicationInstance();
@@ -85,7 +86,8 @@ public class SIPController extends SipServlet {
   }
 
   @SuppressWarnings("rawtypes")
-  private Application createApplicationInstance() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+  private Application createApplicationInstance() throws ClassNotFoundException, InstantiationException,
+      IllegalAccessException {
     Class clz = null;
     try {
       clz = this.getClass().getClassLoader().loadClass(_applicationClass);
@@ -111,7 +113,7 @@ public class SIPController extends SipServlet {
   @Override
   protected void doRequest(final SipServletRequest req) throws ServletException, IOException {
     _driver.doRequest(req);
- }
+  }
 
   @Override
   protected void doResponse(final SipServletResponse res) throws ServletException, IOException {

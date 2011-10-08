@@ -15,7 +15,6 @@
 package com.voxeo.moho.event;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
@@ -45,9 +44,9 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
   protected ConcurrentHashMap<Observer, AutowiredEventListener> _observers = new ConcurrentHashMap<Observer, AutowiredEventListener>();
 
   protected DispatchableEventSource() {
-    _id = UUID.randomUUID().toString(); // TODO: better one?    
+
   }
-  
+
   public DispatchableEventSource(final ExecutionContext applicationContext) {
     this(applicationContext, true);
   }
@@ -81,7 +80,8 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
     }
   }
 
-  public <E extends MohoEvent<?>, T extends EventListener<E>> void addListeners(final Class<E> type, final T... listeners) {
+  public <E extends MohoEvent<?>, T extends EventListener<E>> void addListeners(final Class<E> type,
+      final T... listeners) {
     if (listeners != null) {
       for (final T listener : listeners) {
         this.addListener(type, listener);

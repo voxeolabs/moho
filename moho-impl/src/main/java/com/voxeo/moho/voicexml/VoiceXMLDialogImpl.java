@@ -13,6 +13,7 @@ package com.voxeo.moho.voicexml;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -54,8 +55,8 @@ import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.remote.RemoteParticipant;
 import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.spi.ExecutionContext;
-import com.voxeo.moho.spi.ProtocolDriver;
 import com.voxeo.moho.spi.RemoteJoinDriver;
+import com.voxeo.moho.util.ParticipantIDParser;
 
 public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer {
 
@@ -88,6 +89,16 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   protected VoiceXMLDialogImpl(final ExecutionContext ctx, final VoiceXMLEndpoint address,
       final Map<Object, Object> params) {
     super(ctx);
+    //_id = UUID.randomUUID().toString(); // TODO: better one?   
+    if(_context != null){
+      String uid = UUID.randomUUID().toString();
+      String rawid = ((RemoteJoinDriver) _context.getFramework().getDriverByProtocolFamily(
+          RemoteJoinDriver.PROTOCOL_REMOTEJOIN)).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_DIALOG, uid);
+      _id = ParticipantIDParser.encode(rawid);
+    }
+    else{
+      _id = UUID.randomUUID().toString();
+    }
     try {
       _media = ctx.getMSFactory().createMediaSession();
       _dialog = _media.createVxmlDialog(null);
@@ -432,14 +443,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
 
   @Override
   public String getRemoteAddress() {
-    ProtocolDriver driver = _context.getFramework().getDriverByProtocolFamily(RemoteJoinDriver.PROTOCOL_REMOTEJOIN);
-    if (driver != null) {
-      return ((RemoteJoinDriver) driver)
-          .getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_DIALOG, this.getId());
-    }
-    else {
-      throw new UnsupportedOperationException("can't find RemoteJoinDriver");
-    }
+    return _id;
   }
 
   private Map<String, JoinDelegate> joinDelegates = new ConcurrentHashMap<String, JoinDelegate>();
@@ -456,5 +460,10 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
 
   public JoinDelegate getJoinDelegate(String id) {
     return joinDelegates.get(id);
+  }
+
+  @Override
+  public Direction getDirection(Participant participant) {
+    return _joinees.getDirection(participant);
   }
 }
