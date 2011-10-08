@@ -79,7 +79,7 @@ public class SIPMemoryPresenceStore extends AbstractPresenceStore implements SIP
   }
 
   @Override
-  public void removeSubscripton(SubscriptionContext context) {
+  public void removeSubscription(SubscriptionContext context) {
     _subscriptions.remove(context.getId());
     HashMap<String, ArrayList<SubscriptionID>> bodytypeVsId = _resourceVsSubcribtion.get(context.getSubscribee());
     if (bodytypeVsId != null) {

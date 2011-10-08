@@ -5,36 +5,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import me.prettyprint.cassandra.serializers.ObjectSerializer;
-import me.prettyprint.cassandra.serializers.StringSerializer;
-import me.prettyprint.hector.api.Cluster;
-import me.prettyprint.hector.api.Keyspace;
 import me.prettyprint.hector.api.beans.HColumn;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.mutation.Mutator;
-import me.prettyprint.hector.api.query.ColumnQuery;
-import me.prettyprint.hector.api.query.QueryResult;
 
 import com.voxeo.moho.event.SubscribeEvent.SubscriptionContext;
 import com.voxeo.moho.presence.NotifyBody;
 import com.voxeo.moho.presence.Resource;
 import com.voxeo.moho.presence.SubscriptionID;
-import com.voxeo.moho.presence.impl.AbstractPresenceStore;
+import com.voxeo.moho.presence.impl.AbstractCassandraPresenceStore;
 import com.voxeo.moho.presence.impl.sip.SIPPresenceStore;
 import com.voxeo.moho.presence.sip.EventSoftState;
 import com.voxeo.moho.presence.sip.SIPResource;
 import com.voxeo.moho.presence.sip.impl.SIPConstans;
 import com.voxeo.moho.sip.SIPSubscribeEvent.SIPSubscriptionContext;
 
-public class SIPCassandraPresenceStore extends AbstractPresenceStore implements SIPPresenceStore {
-  
-  private static final ObjectSerializer OBJECT_SERIALIZER = ObjectSerializer.get();
-  
-  private static final StringSerializer STRING_SERIALIZER = StringSerializer.get();
-  
-  private static final String DEFAULT_DATABASE_ADDRESS = "localhost:9160";
-  
-  private static final String DEFAULT_CLUSTER_NAME = "MohoCluster";
+public class SIPCassandraPresenceStore extends AbstractCassandraPresenceStore implements SIPPresenceStore {
   
   private static final String DEFAULT_KEYSPACE_NAME = "Presence";
   
@@ -48,18 +34,9 @@ public class SIPCassandraPresenceStore extends AbstractPresenceStore implements 
   
   private static final String RESOURCE_SUB_COLUMN_FAMILY_NAME = "IdxResourceSubs";
 
-  private Cluster _cluster;
-  
-  private Keyspace _keyspace;
-
   @Override
   public void init(Map<String, String> props) {
-    String databaseAddress = props.get("databaseAddress");
-    String clusterName = props.get("clusterName");
-    String keySapceName = props.get("keysapceName");
-    
-    _cluster = HFactory.getOrCreateCluster(clusterName != null ? clusterName : DEFAULT_CLUSTER_NAME, databaseAddress != null ? databaseAddress : DEFAULT_DATABASE_ADDRESS);
-    _keyspace = HFactory.createKeyspace(keySapceName != null ? keySapceName : DEFAULT_KEYSPACE_NAME, _cluster);
+    super.init(props);
   }
 
   @Override
@@ -79,16 +56,8 @@ public class SIPCassandraPresenceStore extends AbstractPresenceStore implements 
     mutator.execute();
   }
   
-  private Mutator<String> getStringMutator() {
-    return HFactory.createMutator(_keyspace, STRING_SERIALIZER);
-  }
-  
-  private Mutator<Object> getObjectMutator() {
-    return HFactory.createMutator(_keyspace, OBJECT_SERIALIZER);
-  }
-
   @Override
-  public void removeSubscripton(SubscriptionContext context) {
+  public void removeSubscription(SubscriptionContext context) {
     Mutator<Object> mutator = getObjectMutator();
     mutator.addDeletion(context.getId(), SUBSCRIPTION_COLUMN_FAMILY_NAME);
     mutator.execute();
@@ -155,10 +124,7 @@ public class SIPCassandraPresenceStore extends AbstractPresenceStore implements 
 
   @Override
   public void destroy() {
-    _cluster.getConnectionManager().shutdown();
-    HFactory.shutdownCluster(_cluster);
-    _keyspace = null;
-    _cluster = null;
+    super.destroy();
   }
 
   public EventSoftState getEventSoftState(String resourceUri, String entityTag) {
@@ -266,23 +232,8 @@ public class SIPCassandraPresenceStore extends AbstractPresenceStore implements 
     return queryResultByObjectKey(id, SUBSCRIPTION_COLUMN_FAMILY_NAME, "value");
   }
 
-  private HColumn<String, Object> queryResultByObjectKey(Object key, String columnFamily, String columnName) {
-    ColumnQuery<Object, String, Object> createColumnQuery = HFactory.createColumnQuery(_keyspace, OBJECT_SERIALIZER, STRING_SERIALIZER, OBJECT_SERIALIZER);
-    createColumnQuery.setColumnFamily(columnFamily);
-    createColumnQuery.setKey(key);
-    createColumnQuery.setName(columnName);
-    
-    QueryResult<HColumn<String, Object>> queryResult = createColumnQuery.execute();
-    return queryResult.get();
-  }
-  
-  private HColumn<String, Object> queryResultByStringKey(String key, String columnFamily, String columnName) {
-    ColumnQuery<String, String, Object> createColumnQuery = HFactory.createColumnQuery(_keyspace, STRING_SERIALIZER, STRING_SERIALIZER, OBJECT_SERIALIZER);
-    createColumnQuery.setColumnFamily(columnFamily);
-    createColumnQuery.setKey(key);
-    createColumnQuery.setName(columnName);
-    
-    QueryResult<HColumn<String, Object>> queryResult = createColumnQuery.execute();
-    return queryResult.get();
+  @Override
+  protected String getDefaultKeyspaceName() {
+    return DEFAULT_KEYSPACE_NAME;
   }
 }

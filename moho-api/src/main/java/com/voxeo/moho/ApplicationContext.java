@@ -57,12 +57,12 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
   SipFactory getSipFactory();
 
   /**
-   * @return the uderlying SDP factory.
+   * @return the underlying SDP factory.
    */
   SdpFactory getSdpFactory();
   
   /**
-   * @return the uderlying XMPP factory.
+   * @return the underlying XMPP factory.
    */
   XmppFactory getXmppFactory();
 

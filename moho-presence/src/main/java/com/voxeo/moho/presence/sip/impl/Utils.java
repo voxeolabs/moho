@@ -2,13 +2,11 @@ package com.voxeo.moho.presence.sip.impl;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
@@ -28,12 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipURI;
 import javax.servlet.sip.URI;
-
-import org.apache.commons.lang.StringUtils;
-import org.jdom.Document;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
-import org.xml.sax.InputSource;
 
 
 public class Utils {
@@ -109,7 +101,7 @@ public class Utils {
   }
 
   public static String shortenSIPAOR(String aor) {
-    if (StringUtils.isNotEmpty(aor)) {
+    if (isNotEmpty(aor)) {
       if (aor.startsWith(SIPConstans.SIP_URI_SCHEME)) {
         return aor.substring(4);
       }
@@ -120,9 +112,16 @@ public class Utils {
     return aor;
   }
 
+  public static boolean isEmpty(String str) {
+    return str == null || str.length() == 0;
+  }
 
+  public static boolean isNotEmpty(String str) {
+    return !isEmpty(str);
+  }
+  
   public static String getUserOfSIPURI(String uri) {
-    if (StringUtils.isNotEmpty(uri) 
+    if (isNotEmpty(uri) 
         && uri.indexOf(":") > -1 
         && uri.indexOf("@") > -1) {
       return uri.substring(uri.indexOf(":") + 1, uri.indexOf("@")).trim();
@@ -131,7 +130,7 @@ public class Utils {
   }
 
   public static String getDomainOfSIPURI(String uri) {
-    if (StringUtils.isNotEmpty(uri)) {
+    if (isNotEmpty(uri)) {
       int index = uri.indexOf("@");
       if (index >= 0) {
         return uri.substring(index + 1);
@@ -295,25 +294,6 @@ public class Utils {
     }
   }
   
-  public static Document getDocument(byte[] byteData, String encoding) throws JDOMException, IOException {
-    InputSource source = new InputSource(new ByteArrayInputStream(byteData));
-    if (encoding != null) {
-      source.setEncoding(encoding);
-    }
-    return getDocument(source);
-  }
-
-  public static Document getDocument(String xml) throws JDOMException, IOException {
-    InputSource source = new InputSource(new StringReader(xml));
-    return getDocument(source);
-  }
-
-  public static Document getDocument(InputSource source) throws JDOMException, IOException {
-    SAXBuilder saxBuilder = new SAXBuilder();
-    Document doc = saxBuilder.build(source);
-    return doc;
-  }
-
   public static Properties getPropertiesFileInClassesDir(String path) throws IOException {
     Properties prop = new Properties();
     InputStream is = Utils.class.getResourceAsStream(path);

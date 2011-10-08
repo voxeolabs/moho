@@ -73,10 +73,10 @@ public class SIPController extends SipServlet {
 
       MsControlFactory mscFactory = driver.getFactory(p);
 
-      final ApplicationContextImpl ctx = new ApplicationContextImpl(app, mscFactory, this);
+      _ctx = new ApplicationContextImpl(app, mscFactory, this);
 
-      _driver = (SIPDriver)ctx.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_SIP);
-      app.init(ctx);
+      _driver = (SIPDriver)_ctx.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_SIP);
+      app.init(_ctx);
     }
     catch (final Throwable t) {
       LOG.error("Unable to initialize Moho:", t);

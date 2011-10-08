@@ -24,6 +24,9 @@
   <bean class="com.voxeo.moho.presence.sip.impl.SIPPresenceServiceImpl">
   </bean>
   
+  <bean class="com.voxeo.moho.presence.xmpp.impl.XMPPPresenceServiceImpl">
+  </bean>
+  
   <bean class="com.voxeo.moho.presence.sip.SipPresenceFactory">
   </bean>
 </beans>

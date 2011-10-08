@@ -9,6 +9,8 @@ import com.voxeo.moho.presence.NotifyBody;
 import com.voxeo.moho.presence.PresenceStore;
 import com.voxeo.moho.presence.Resource;
 import com.voxeo.moho.presence.impl.StoreHolder;
+import com.voxeo.moho.presence.impl.sip.SIPPresenceStore;
+import com.voxeo.moho.presence.sip.SIPResource;
 import com.voxeo.moho.sip.SIPSubscribeEvent.SIPSubscriptionContext;
 
 public class NotifyRequest implements Runnable {
@@ -136,8 +138,8 @@ public class NotifyRequest implements Runnable {
     
     try {
       SipServletRequest notify = session.createRequest("NOTIFY");
-      PresenceStore presenceStore = StoreHolder.getPresenceStore();
-      Resource resource = presenceStore.getResource(subscription.getSubscribee(), subscription.getEventName());
+      SIPPresenceStore presenceStore = (SIPPresenceStore) StoreHolder.getPresenceStore();
+      SIPResource resource = (SIPResource) presenceStore.getResource(subscription.getSubscribee(), subscription.getEventName());
       NotifyBody notifyBody = resource.getNotifyBody(subscription.getNotifyBodyType());
       notify.setContent(notifyBody.getContent(), notifyBody.getName());
       notify.setHeader("Event", subscription.getEventName());

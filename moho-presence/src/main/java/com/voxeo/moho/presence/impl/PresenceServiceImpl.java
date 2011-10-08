@@ -50,11 +50,10 @@ public class PresenceServiceImpl implements PresenceService {
 
   @Override
   public void destroy() {
-    if (_sipPesenceService == null) {
-      _sipPesenceService = _context.getService(SIPPresenceService.class);
+    if (_sipPesenceService != null) {
+      _sipPesenceService.destroy();
+      _sipPesenceService = null;
     }
-    _sipPesenceService.destroy();
-    _sipPesenceService = null;
   }
 
   @Override
