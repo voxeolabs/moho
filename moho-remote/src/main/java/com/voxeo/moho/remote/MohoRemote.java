@@ -10,6 +10,8 @@ public interface MohoRemote extends EventSource {
 
   void connect(AuthenticationCallback callback, String server);
 
+  void connect(String userName, String passwd, String realm, String resource, String server);
+
   void disconnect();
 
   Endpoint createEndpoint(URI uri);

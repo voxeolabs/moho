@@ -46,17 +46,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   @Override
   public void connect(AuthenticationCallback callback, String server) {
-    _client = new RayoClient(server);
-
-    try {
-      _client.connect(callback.getUserName(), callback.getPassword(), callback.getResource());
-    }
-    catch (XmppException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-
-    _client.addStanzaListener(new MohoStanzaListener());
+    connect(callback.getUserName(), callback.getPassword(), callback.getRealm(), callback.getResource(), server);
   }
 
   @Override
@@ -163,5 +153,22 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   protected void removeCall(final String id) {
     _participants.remove(id);
+  }
+
+  @Override
+  public void connect(String userName, String passwd, String realm, String resource, String server) {
+    if (_client == null) {
+      _client = new RayoClient(server);
+
+      try {
+        _client.connect(userName, passwd, resource);
+      }
+      catch (XmppException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+
+      _client.addStanzaListener(new MohoStanzaListener());
+    }
   }
 }

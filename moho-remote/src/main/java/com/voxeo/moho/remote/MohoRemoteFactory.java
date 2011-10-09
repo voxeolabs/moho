@@ -2,6 +2,7 @@ package com.voxeo.moho.remote;
 
 import org.apache.log4j.Logger;
 
+@Deprecated
 public abstract class MohoRemoteFactory {
   protected static final Logger LOG = Logger.getLogger(MohoRemoteFactory.class);
 

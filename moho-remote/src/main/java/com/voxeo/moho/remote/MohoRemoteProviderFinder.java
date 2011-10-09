@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 
 import org.apache.log4j.Logger;
 
+@Deprecated
 class MohoRemoteProviderFinder {
   protected static final Logger LOG = Logger.getLogger(MohoRemoteProviderFinder.class);
 
