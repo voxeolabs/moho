@@ -19,7 +19,6 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.MediaException;
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
@@ -35,12 +34,13 @@ public class Media2NOJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws MediaException {
+  protected void doJoin() throws Exception {
+    super.doJoin();
     _call1.processSDPOffer(null);
   }
 
   @Override
-  protected  void doSdpEvent(final SdpPortManagerEvent event) {
+  protected void doSdpEvent(final SdpPortManagerEvent event) {
     if (event.getEventType().equals(SdpPortManagerEvent.OFFER_GENERATED)
         || event.getEventType().equals(SdpPortManagerEvent.ANSWER_GENERATED)) {
       if (event.isSuccessful()) {

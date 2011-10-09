@@ -59,8 +59,14 @@ public abstract class JoinDelegate {
 
   protected Exception _exception;
 
+  protected SIPCallImpl _peer;
+
   public void setSettableJoint(SettableJointImpl settableJoint) {
     _settableJoint = settableJoint;
+  }
+
+  public SettableJointImpl getSettableJoint() {
+    return _settableJoint;
   }
 
   public synchronized void done(final Cause cause, Exception exception) {
@@ -83,6 +89,11 @@ public abstract class JoinDelegate {
 
     _settableJoint.done(joinCompleteEvent);
     done = true;
+
+    _call1.continueQueuedJoin();
+    if (_call2 != null) {
+      _call2.continueQueuedJoin();
+    }
   }
 
   public JoinType getJoinType() {
@@ -90,14 +101,15 @@ public abstract class JoinDelegate {
   }
 
   public SIPCallImpl getInitiator() {
-    return _call1;
+    return _peer == _call2 ? _call1 : _call2;
   }
 
   public SIPCallImpl getPeer() {
-    return _call2;
+    return _peer;
   }
 
-  protected abstract void doJoin() throws Exception;
+  protected void doJoin() throws Exception {
+  }
 
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {

@@ -22,15 +22,17 @@ import com.voxeo.moho.sip.SIPCall.State;
 public class BridgeJoinDelegate extends JoinDelegate {
 
   protected BridgeJoinDelegate(final SIPCallImpl call1, final SIPCallImpl call2, final Direction direction,
-      final JoinType type) {
+      final JoinType type, final SIPCallImpl peer) {
     _call1 = call1;
     _call2 = call2;
     _direction = direction;
     _joinType = type;
+    _peer = peer;
   }
 
   @Override
   protected void doJoin() throws Exception {
+    super.doJoin();
     _call1.setBridgeJoiningPeer(_call2);
     _call2.setBridgeJoiningPeer(_call1);
 

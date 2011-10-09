@@ -20,7 +20,6 @@ import com.voxeo.moho.State;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.Observer;
-import com.voxeo.moho.event.OutputCompleteEvent;
 import com.voxeo.moho.remote.MohoRemote;
 import com.voxeo.moho.remote.impl.MohoRemoteImpl;
 

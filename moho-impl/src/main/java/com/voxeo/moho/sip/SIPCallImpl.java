@@ -13,8 +13,10 @@ package com.voxeo.moho.sip;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
@@ -71,8 +73,6 @@ import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.media.GenericMediaService;
 import com.voxeo.moho.remote.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
-import com.voxeo.moho.spi.ProtocolDriver;
-import com.voxeo.moho.spi.RemoteJoinDriver;
 import com.voxeo.moho.util.SessionUtils;
 
 public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEventListener<SdpPortManagerEvent>,
@@ -120,6 +120,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected MediaMixer _multiplejoiningMixerForMedGrop;
 
   protected Lock mediaServiceLock = new ReentrantLock();
+
+  protected Queue<JoinDelegate> _joinQueue = new LinkedList<JoinDelegate>();
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
@@ -422,14 +424,21 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       if (_joinDelegate != null
           && !(_joinDelegate instanceof BridgeJoinDelegate || _joinDelegate instanceof OtherParticipantJoinDelegate
               || _joinDelegate instanceof LocalRemoteJoinDelegate || _joinDelegate instanceof RemoteLocalJoinDelegate)) {
-        throw new IllegalStateException("other join operation in process.");
+
+        JoinDelegate joinDelegate = createJoinDelegate(direction);
+        SettableJointImpl joint = new SettableJointImpl();
+        joinDelegate.setSettableJoint(joint);
+        _joinQueue.add(joinDelegate);
+        return joint;
       }
     }
+
     _operationInProcess = true;
 
     try {
       if (_joinDelegate != null) {
         _oldJoinDelegate = _joinDelegate;
+        _joinDelegate = null;
       }
       _joinDelegate = createJoinDelegate(direction);
 
@@ -465,6 +474,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       _oldJoinDelegate = null;
       if (cause == JoinCompleteEvent.Cause.JOINED) {
         try {
+          _operationInProcess = true;
           _joinDelegate.doJoin();
         }
         catch (Exception e) {
@@ -474,12 +484,32 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       else {
         _joinDelegate.done(cause, exception);
       }
+
+      return;
     }
     else {
       _joinDelegate = null;
       _operationInProcess = false;
     }
+  }
 
+  public synchronized void continueQueuedJoin() {
+    JoinDelegate queuedJoinDelegate = _joinQueue.poll();
+
+    if (queuedJoinDelegate != null) {
+      try {
+        _joinDelegate = queuedJoinDelegate;
+        _operationInProcess = true;
+        if (_joinDelegate.getPeer() != null) {
+          _joinDelegate.getPeer().startJoin(this, _joinDelegate);
+        }
+        queuedJoinDelegate.doJoin();
+      }
+      catch (Exception e) {
+        queuedJoinDelegate.done(Cause.ERROR, e);
+        LOG.error("Exception when execute queued join", e);
+      }
+    }
   }
 
   @Override
@@ -492,7 +522,29 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
 
     if (_operationInProcess) {
-      throw new IllegalStateException("other operation in process.");
+      SettableJointImpl joint = new SettableJointImpl();
+      if (other instanceof SIPCallImpl) {
+        SIPCallImpl call = (SIPCallImpl) other;
+        JoinDelegate joinDelegate = createJoinDelegate(call, type, direction);
+        joinDelegate.setSettableJoint(joint);
+
+        _joinQueue.add(joinDelegate);
+      }
+
+      else if (other instanceof RemoteParticipant) {
+        RemoteParticipant remote = (RemoteParticipant) other;
+        JoinDelegate joinDelegate = new LocalRemoteJoinDelegate(this, remote, direction);
+        joinDelegate.setSettableJoint(joint);
+
+        _joinQueue.add(joinDelegate);
+      }
+      else {
+        JoinDelegate joinDelegate = new OtherParticipantJoinDelegate(this, other, direction);
+        joinDelegate.setSettableJoint(joint);
+
+        _joinQueue.add(joinDelegate);
+      }
+      return joint;
     }
 
     _operationInProcess = true;
@@ -1019,7 +1071,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     _joinDelegate = createJoinDelegate(other, type, direction);
     _joinDelegate.setSettableJoint(joint);
     other.startJoin(this, _joinDelegate);
-
     _joinDelegate.doJoin();
 
     return joint;

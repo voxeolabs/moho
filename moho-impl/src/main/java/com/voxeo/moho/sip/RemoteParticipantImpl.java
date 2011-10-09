@@ -221,7 +221,9 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
 
   @Override
   public void joinDone(Participant participant, JoinDelegate delegate) {
-    throw new UnsupportedOperationException();
+    _operationInProcess = false;
+    _joinDelegate = null;
+    _joiningParticipant = null;
   }
 
   @Override

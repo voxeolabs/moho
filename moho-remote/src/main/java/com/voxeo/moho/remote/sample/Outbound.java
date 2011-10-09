@@ -19,7 +19,6 @@ import java.net.URI;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.State;
-import com.voxeo.moho.event.AnsweredEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.remote.MohoRemote;
@@ -45,9 +44,9 @@ public class Outbound implements Observer {
       e.printStackTrace();
     }
   }
-  
+
   @State
   public void handleJoinComplete(final JoinCompleteEvent event) {
-    ((Call)event.getSource()).output("join complete");
+    ((Call) event.getSource()).output("join complete");
   }
 }

@@ -18,7 +18,6 @@ import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
 
-import com.voxeo.moho.MediaException;
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent;
@@ -32,7 +31,8 @@ public class Media2AIJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws MediaException {
+  protected void doJoin() throws Exception {
+    super.doJoin();
     _call1.processSDPOffer(null);
   }
 

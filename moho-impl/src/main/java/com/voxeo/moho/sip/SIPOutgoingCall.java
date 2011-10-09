@@ -31,7 +31,7 @@ import com.voxeo.moho.util.SessionUtils;
 
 public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
   private static final Logger LOG = Logger.getLogger(SIPCallImpl.class);
-  
+
   protected SIPEndpoint _from;
 
   protected SipApplicationSession _appSession;
@@ -71,42 +71,42 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
       if (isNoAnswered()) {
         if (other.isNoAnswered()) {
           if (other instanceof SIPOutgoingCall) {
-            retval = new DirectNO2NOJoinDelegate(this, (SIPOutgoingCall) other, direction);
+            retval = new DirectNO2NOJoinDelegate(this, (SIPOutgoingCall) other, direction, (SIPOutgoingCall) other);
           }
           else if (other instanceof SIPIncomingCall) {
-            retval = new DirectNI2NOJoinDelegate((SIPIncomingCall) other, this, direction);
+            retval = new DirectNI2NOJoinDelegate((SIPIncomingCall) other, this, direction, (SIPIncomingCall) other);
           }
         }
         else if (other.isAnswered()) {
           if (other instanceof SIPOutgoingCall) {
-            retval = new DirectNO2AOJoinDelegate(this, (SIPOutgoingCall) other, direction);
+            retval = new DirectNO2AOJoinDelegate(this, (SIPOutgoingCall) other, direction, (SIPOutgoingCall) other);
           }
           else if (other instanceof SIPIncomingCall) {
-            retval = new DirectAI2NOJoinDelegate((SIPIncomingCall) other, this, direction);
+            retval = new DirectAI2NOJoinDelegate((SIPIncomingCall) other, this, direction, (SIPIncomingCall) other);
           }
         }
       }
       else if (isAnswered()) {
         if (other.isNoAnswered()) {
           if (other instanceof SIPOutgoingCall) {
-            retval = new DirectNO2AOJoinDelegate((SIPOutgoingCall) other, this, direction);
+            retval = new DirectNO2AOJoinDelegate((SIPOutgoingCall) other, this, direction, (SIPOutgoingCall) other);
           }
           else if (other instanceof SIPIncomingCall) {
-            retval = new DirectNI2AOJoinDelegate((SIPIncomingCall) other, this, direction);
+            retval = new DirectNI2AOJoinDelegate((SIPIncomingCall) other, this, direction, (SIPIncomingCall) other);
           }
         }
         else if (other.isAnswered()) {
           if (other instanceof SIPOutgoingCall) {
-            retval = new DirectAO2AOJoinDelegate(this, (SIPOutgoingCall) other, direction);
+            retval = new DirectAO2AOJoinDelegate(this, (SIPOutgoingCall) other, direction, (SIPOutgoingCall) other);
           }
           else if (other instanceof SIPIncomingCall) {
-            retval = new DirectAI2AOJoinDelegate((SIPIncomingCall) other, this, direction);
+            retval = new DirectAI2AOJoinDelegate((SIPIncomingCall) other, this, direction, (SIPIncomingCall) other);
           }
         }
       }
     }
     else {
-      retval = new BridgeJoinDelegate(this, other, direction, type);
+      retval = new BridgeJoinDelegate(this, other, direction, type, other);
     }
     return retval;
   }
@@ -182,7 +182,7 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
     if (_appSession == null) {
       _appSession = _signal.getApplicationSession();
     }
-    
+
     if (_media != null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Set nc id with call id :" + getSipSession().getCallId());

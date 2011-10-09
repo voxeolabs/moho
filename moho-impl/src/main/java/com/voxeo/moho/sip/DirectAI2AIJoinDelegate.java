@@ -11,7 +11,6 @@
 
 package com.voxeo.moho.sip;
 
-import java.io.IOException;
 import java.util.Map;
 
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -25,14 +24,17 @@ public class DirectAI2AIJoinDelegate extends JoinDelegate {
 
   protected Direction _direction;
 
-  protected DirectAI2AIJoinDelegate(final SIPIncomingCall call1, final SIPIncomingCall call2, final Direction direction) {
+  protected DirectAI2AIJoinDelegate(final SIPIncomingCall call1, final SIPIncomingCall call2,
+      final Direction direction, final SIPCallImpl peer) {
     _call1 = call1;
     _call2 = call2;
     _direction = direction;
+    _peer = peer;
   }
 
   @Override
-  protected void doJoin() throws IOException {
+  protected void doJoin() throws Exception {
+    super.doJoin();
     final SipServletRequest req = _call2.getSipSession().createRequest("INVITE");
     if (_call1.getRemoteSdp() != null) {
       req.setContent(_call1.getRemoteSdp(), "application/sdp");

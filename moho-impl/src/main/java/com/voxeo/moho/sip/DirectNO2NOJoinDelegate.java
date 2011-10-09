@@ -11,10 +11,8 @@
 
 package com.voxeo.moho.sip;
 
-import java.io.IOException;
 import java.util.Map;
 
-import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletRequest;
@@ -38,14 +36,17 @@ public class DirectNO2NOJoinDelegate extends JoinDelegate {
 
   protected boolean _ackedCall2;
 
-  protected DirectNO2NOJoinDelegate(final SIPOutgoingCall call1, final SIPOutgoingCall call2, final Direction direction) {
+  protected DirectNO2NOJoinDelegate(final SIPOutgoingCall call1, final SIPOutgoingCall call2,
+      final Direction direction, final SIPOutgoingCall peer) {
     _call1 = call1;
     _call2 = call2;
     _direction = direction;
+    _peer = peer;
   }
 
   @Override
-  protected void doJoin() throws MsControlException, IOException {
+  protected void doJoin() throws Exception {
+    super.doJoin();
     ((SIPOutgoingCall) _call2).call(null);
   }
 

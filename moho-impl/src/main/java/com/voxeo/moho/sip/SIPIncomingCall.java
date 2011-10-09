@@ -65,42 +65,42 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
       if (isNoAnswered()) {
         if (other.isNoAnswered()) {
           if (other instanceof SIPOutgoingCall) {
-            retval = new DirectNI2NOJoinDelegate(this, (SIPOutgoingCall) other, direction);
+            retval = new DirectNI2NOJoinDelegate(this, (SIPOutgoingCall) other, direction, (SIPOutgoingCall) other);
           }
           else if (other instanceof SIPIncomingCall) {
-            retval = new DirectNI2NIJoinDelegate(this, (SIPIncomingCall) other, direction);
+            retval = new DirectNI2NIJoinDelegate(this, (SIPIncomingCall) other, direction, (SIPIncomingCall) other);
           }
         }
         else if (other.isAnswered()) {
           if (other instanceof SIPOutgoingCall) {
-            retval = new DirectNI2AOJoinDelegate(this, (SIPOutgoingCall) other, direction);
+            retval = new DirectNI2AOJoinDelegate(this, (SIPOutgoingCall) other, direction, (SIPOutgoingCall) other);
           }
           else if (other instanceof SIPIncomingCall) {
-            retval = new DirectNI2AIJoinDelegate(this, (SIPIncomingCall) other, direction);
+            retval = new DirectNI2AIJoinDelegate(this, (SIPIncomingCall) other, direction,  (SIPIncomingCall) other);
           }
         }
       }
       else if (isAnswered()) {
         if (other.isNoAnswered()) {
           if (other instanceof SIPOutgoingCall) {
-            retval = new DirectAI2NOJoinDelegate(this, (SIPOutgoingCall) other, direction);
+            retval = new DirectAI2NOJoinDelegate(this, (SIPOutgoingCall) other, direction, (SIPOutgoingCall) other);
           }
           else if (other instanceof SIPIncomingCall) {
-            retval = new DirectNI2AIJoinDelegate((SIPIncomingCall) other, this, direction);
+            retval = new DirectNI2AIJoinDelegate((SIPIncomingCall) other, this, direction, (SIPIncomingCall) other);
           }
         }
         else if (other.isAnswered()) {
           if (other instanceof SIPOutgoingCall) {
-            retval = new DirectAI2AOJoinDelegate(this, (SIPOutgoingCall) other, direction);
+            retval = new DirectAI2AOJoinDelegate(this, (SIPOutgoingCall) other, direction,  (SIPOutgoingCall) other);
           }
           else if (other instanceof SIPIncomingCall) {
-            retval = new DirectAI2AIJoinDelegate(this, (SIPIncomingCall) other, direction);
+            retval = new DirectAI2AIJoinDelegate(this, (SIPIncomingCall) other, direction, (SIPIncomingCall) other);
           }
         }
       }
     }
     else {
-      retval = new BridgeJoinDelegate(this, other, direction, type);
+      retval = new BridgeJoinDelegate(this, other, direction, type, other);
     }
     return retval;
   }
