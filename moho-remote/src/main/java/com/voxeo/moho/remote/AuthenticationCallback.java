@@ -1,5 +1,6 @@
 package com.voxeo.moho.remote;
 
+@Deprecated
 public interface AuthenticationCallback {
 
   String getUserName();
