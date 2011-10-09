@@ -172,6 +172,7 @@ public class RegistrarImpl implements Registrar, Runnable {
 
     _running = true;
     _runner = new Thread(this, "Registrar");
+    _runner.setDaemon(true);
     _runner.start();
   }
 

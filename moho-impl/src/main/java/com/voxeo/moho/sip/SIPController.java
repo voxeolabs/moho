@@ -76,7 +76,7 @@ public class SIPController extends SipServlet {
 
       _ctx = new ApplicationContextImpl(app, mscFactory, this);
 
-      _driver = (SIPDriver) _ctx.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_SIP);
+      _driver = (SIPDriver)_ctx.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_SIP);
       app.init(_ctx);
     }
     catch (final Throwable t) {

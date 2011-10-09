@@ -1,12 +1,16 @@
 package com.voxeo.moho.presence.impl;
 
 
-import com.voxeo.moho.event.SubscribeEvent.SubscriptionContext;
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.presence.PresenceStore;
 import com.voxeo.moho.presence.Resource;
 import com.voxeo.moho.spi.ExecutionContext;
 
+@SuppressWarnings("serial")
 public abstract class AbstractResource implements Resource {
+  
+  private static final Logger LOG = Logger.getLogger(AbstractResource.class);
   
   protected transient ExecutionContext _context;
   
@@ -16,40 +20,10 @@ public abstract class AbstractResource implements Resource {
     _context = context;
     _uri = resourceUri;
   }
-
-  @Override
-  public SubscriptionContext getSubscriptions() {
-    return null;
-  }
-
-  protected void insertSubscriptionContext(SubscriptionContext context) {
-    PresenceStore presenceStore = StoreHolder.getPresenceStore();
-    presenceStore.addSubscription(context);
-  }
   
-  protected void removeSubscriptionContext(SubscriptionContext context) {
-    PresenceStore presenceStore = StoreHolder.getPresenceStore();
-    presenceStore.removeSubscripton(context);
+  protected PresenceStore getStore() {
+    return (PresenceStore) StoreHolder.getPresenceStore();
   }
-
-//  @Override
-//  public SubscriptionState addSubscription(SubscriptionContext context) {
-//    PresenceStore presenceStore = StoreHolder.getPresenceStore();
-//    presenceStore.insertSubscription(context);
-//    return SubscriptionState.
-//  }
-
-//  @Override
-//  public SubscriptionState updateSubscripton(SubscriptionContext context) {
-//    // TODO Auto-generated method stub
-//
-//  }
-//
-//  @Override
-//  public SubscriptionState removeSubscripton(SubscriptionContext context) {
-//    // TODO Auto-generated method stub
-//
-//  }
 
   @Override
   public void setExecutionContext(ExecutionContext context) {
@@ -61,4 +35,13 @@ public abstract class AbstractResource implements Resource {
     return _uri;
   }
 
+  public Resource clone() {
+    try {
+      return (Resource) super.clone();
+    }
+    catch (CloneNotSupportedException e) {
+      LOG.error("Clone error for " + this, e);
+    }
+    return null;
+  }
 }

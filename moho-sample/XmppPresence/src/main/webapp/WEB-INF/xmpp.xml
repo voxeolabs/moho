@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmpp:xmpp-app xmlns:javaee="http://java.sun.com/xml/ns/javaee"
+  xmlns:xmpp="http://www.voxeo.com/sipmethod/xmpp" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="xmpp.xsd" version="1.1">
+
+  <xmpp:servlet>
+    <javaee:servlet-name>XmppContoller
+    </javaee:servlet-name>
+    <javaee:servlet-class>
+      com.voxeo.moho.xmpp.XMPPController
+    </javaee:servlet-class>
+    <javaee:load-on-startup>-1</javaee:load-on-startup>
+  </xmpp:servlet>
+  <!-- xmpp:serv-domains>
+    <xmpp:servdomain>xmpp.im.voxeo.com</xmpp:servdomain>
+  </xmpp:serv-domains>
+    <xmpp:servlet-selection>
+    <xmpp:main-servlet>EchoServlet
+    </xmpp:main-servlet>
+  </xmpp:servlet-selection-->
+
+	<listener>
+		<listener-class>com.voxeo.moho.presence.xmpp.impl.XmppPresenceSessionListener</listener-class>
+	</listener>
+  
+  <servlet-mapping>
+    <servlet-name>XmppContoller</servlet-name>
+    <domain>voxeo.com</domain>
+  </servlet-mapping>
+
+  <!-- the following is the main different part with SIP and HTTP descriptor -->
+  <xmpp:inboundclient-login-config>
+    <xmpp:SASL-configure>
+      <xmpp:SASL-mechanism>
+        <xmpp:auth-method>PLAIN</xmpp:auth-method>
+        <xmpp:realm-name>MemoryRealm</xmpp:realm-name>
+        <xmpp:NeedSecureTransport>FALSE</xmpp:NeedSecureTransport>
+      </xmpp:SASL-mechanism>
+    </xmpp:SASL-configure>
+    <xmpp:features>
+      <xmpp:resourcebinding />
+      <xmpp:session />
+    </xmpp:features>
+  </xmpp:inboundclient-login-config>
+
+  <xmpp:inbound-s2s-config>
+  </xmpp:inbound-s2s-config>
+
+  <xmpp:outbound-s2s-config>
+  </xmpp:outbound-s2s-config>
+</xmpp:xmpp-app>

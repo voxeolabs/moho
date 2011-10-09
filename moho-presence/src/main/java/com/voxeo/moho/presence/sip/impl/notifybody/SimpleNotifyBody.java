@@ -3,12 +3,9 @@ package com.voxeo.moho.presence.sip.impl.notifybody;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.log4j.Logger;
-import org.jdom.Document;
-import org.jdom.output.XMLOutputter;
 
 import com.voxeo.moho.presence.NotifyBody;
 import com.voxeo.moho.presence.sip.impl.SIPConstans;
-import com.voxeo.moho.presence.sip.impl.Utils;
 
 public abstract class SimpleNotifyBody implements NotifyBody {
   
@@ -18,7 +15,7 @@ public abstract class SimpleNotifyBody implements NotifyBody {
 
   protected String _content;
   
-  protected transient Document _document;
+//  protected transient Document _document;
   
   public SimpleNotifyBody(String encoding, byte[] content) {
     if (encoding == null) {
@@ -53,25 +50,25 @@ public abstract class SimpleNotifyBody implements NotifyBody {
    * 
    * @param doc
    */
-  public void setDocument(Document doc) {
-    _document = doc;
-    _content = new XMLOutputter().outputString(_document);
-  }
+//  public void setDocument(Document doc) {
+//    _document = doc;
+//    _content = new XMLOutputter().outputString(_document);
+//  }
 
   /**
    * @return the m_document
    */
-  public Document getDocument() {
-    if (_document == null) {
-      try {
-        _document = Utils.getDocument(_content);
-      }
-      catch (Exception e) {
-        LOG.error("Error converting to JDOM Object : " + _content, e);
-      }
-    }
-    return _document;
-  }
+//  public Document getDocument() {
+//    if (_document == null) {
+//      try {
+//        _document = Utils.getDocument(_content);
+//      }
+//      catch (Exception e) {
+//        LOG.error("Error converting to JDOM Object : " + _content, e);
+//      }
+//    }
+//    return _document;
+//  }
 
   public Object clone() {
     try {
