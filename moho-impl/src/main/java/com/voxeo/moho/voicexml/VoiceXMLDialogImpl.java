@@ -13,7 +13,6 @@ package com.voxeo.moho.voicexml;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -55,8 +54,6 @@ import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.remote.RemoteParticipant;
 import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.spi.ExecutionContext;
-import com.voxeo.moho.spi.RemoteJoinDriver;
-import com.voxeo.moho.util.ParticipantIDParser;
 
 public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer {
 
@@ -89,16 +86,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   protected VoiceXMLDialogImpl(final ExecutionContext ctx, final VoiceXMLEndpoint address,
       final Map<Object, Object> params) {
     super(ctx);
-    //_id = UUID.randomUUID().toString(); // TODO: better one?   
-    if(_context != null){
-      String uid = UUID.randomUUID().toString();
-      String rawid = ((RemoteJoinDriver) _context.getFramework().getDriverByProtocolFamily(
-          RemoteJoinDriver.PROTOCOL_REMOTEJOIN)).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_DIALOG, uid);
-      _id = ParticipantIDParser.encode(rawid);
-    }
-    else{
-      _id = UUID.randomUUID().toString();
-    }
+
     try {
       _media = ctx.getMSFactory().createMediaSession();
       _dialog = _media.createVxmlDialog(null);

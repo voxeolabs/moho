@@ -17,7 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -65,9 +64,6 @@ import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.remote.RemoteParticipant;
 import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.spi.ExecutionContext;
-import com.voxeo.moho.spi.ProtocolDriver;
-import com.voxeo.moho.spi.RemoteJoinDriver;
-import com.voxeo.moho.util.ParticipantIDParser;
 
 public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer {
 
@@ -95,16 +91,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   protected MixerImpl(final ExecutionContext context, final MixerEndpoint address, final Map<Object, Object> params,
       Parameters parameters) {
     super(context);
-    //_id = UUID.randomUUID().toString(); // TODO: better one?   
-    if(_context != null){
-      String uid = UUID.randomUUID().toString();
-      String rawid = ((RemoteJoinDriver) _context.getFramework().getDriverByProtocolFamily(
-          RemoteJoinDriver.PROTOCOL_REMOTEJOIN)).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_CONFERENCE, uid);
-      _id = ParticipantIDParser.encode(rawid);
-    }
-    else{
-      _id = UUID.randomUUID().toString();
-    }
+
     try {
       MsControlFactory mf = null;
       if (params == null || params.size() == 0) {

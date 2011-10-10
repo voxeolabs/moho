@@ -14,22 +14,17 @@
 
 package com.voxeo.moho.sample;
 
-import org.apache.log4j.Logger;
-
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.State;
-import com.voxeo.moho.event.HangupEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.OutputCommand.BargeinType;
 
 public class IVR implements Application {
-  
-  Logger LOG = Logger.getLogger(IVR.class);
 
   @Override
   public void init(final ApplicationContext ctx) {
@@ -37,29 +32,6 @@ public class IVR implements Application {
 
   @Override
   public void destroy() {
-  }
-  
-  @State
-  public void handleHuangup(final HangupEvent evnet){
-    LOG.info("========> received hangup");
-    evnet.setAsync(true);
-    
-    Thread thread = new Thread( new Runnable(){
-
-      @Override
-      public void run() {
-        try {
-          Thread.sleep(1);
-        }
-        catch (InterruptedException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-        evnet.accept();
-      }
-    });
-    thread.start();
-    LOG.info("========> processed hangup");
   }
 
   @State
@@ -99,7 +71,7 @@ public class IVR implements Application {
   public void menu21(final InputCompleteEvent<Call> evt) {
     switch (evt.getCause()) {
       case MATCH:
-        final Call call =  evt.getSource();
+        final Call call = evt.getSource();
         if (evt.getConcept().equals("1")) {
           call.setApplicationState("menu-simpmethod-sales");
           call.prompt("thank you for calling sipmethod sales", null, 0);

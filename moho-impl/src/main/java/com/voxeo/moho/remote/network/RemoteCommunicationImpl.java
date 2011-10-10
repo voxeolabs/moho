@@ -3,8 +3,6 @@ package com.voxeo.moho.remote.network;
 import java.rmi.Naming;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 
@@ -27,58 +25,35 @@ import com.voxeo.moho.util.ParticipantIDParser;
 public class RemoteCommunicationImpl implements RemoteCommunication {
   private static final Logger LOG = Logger.getLogger(RemoteCommunicationImpl.class);
 
-  private static Pattern patter = ParticipantIDParser.patter;
-
   // TODO need timer to deal with network problem?
   Map<String, RemoteParticipantImpl> remoteCommunications = new ConcurrentHashMap<String, RemoteParticipantImpl>();
 
   protected ExecutionContext _context;
 
-  public RemoteCommunicationImpl(ExecutionContext _context) {
+  public RemoteCommunicationImpl(ExecutionContext context) {
     super();
-    this._context = _context;
+    _context = context;
   }
 
   public void join(String joinerRemoteAddress, String joineeRemoteAddress, byte[] sdp) throws Exception {
-    Matcher matcher = patter.matcher(joineeRemoteAddress);
-    if (!matcher.matches()) {
-      throw new IllegalArgumentException("Illegal remote address:" + joineeRemoteAddress);
-    }
-
-    String rmiAddress = getRmiAddress(matcher);
+    String rmiAddress = getRmiAddress(joineeRemoteAddress);
     RemoteCommunication ske = null;
-
     ske = (RemoteCommunication) Naming.lookup(rmiAddress);
-
     ske.remoteJoin(joinerRemoteAddress, joineeRemoteAddress, sdp);
   }
 
   public void joinAnswer(String joinerRemoteAddress, String joineeRemoteAddress, byte[] sdp) throws Exception {
-    Matcher matcher = patter.matcher(joinerRemoteAddress);
-    if (!matcher.matches()) {
-      throw new IllegalArgumentException("Illegal remote address:" + joinerRemoteAddress);
-    }
-
-    String rmiAddress = getRmiAddress(matcher);
+    String rmiAddress = getRmiAddress(joinerRemoteAddress);
     RemoteCommunication ske = null;
-
     ske = (RemoteCommunication) Naming.lookup(rmiAddress);
-
     ske.remoteJoinAnswer(joinerRemoteAddress, joineeRemoteAddress, sdp);
   }
 
   public void joinDone(String invokerRemoteAddress, String remoteAddress, Cause cause, Exception exception) {
+    String rmiAddress = getRmiAddress(remoteAddress);
     try {
-      Matcher matcher = patter.matcher(remoteAddress);
-      if (!matcher.matches()) {
-        throw new IllegalArgumentException("Illegal remote address:" + remoteAddress);
-      }
-
-      String rmiAddress = getRmiAddress(matcher);
       RemoteCommunication ske = null;
-
       ske = (RemoteCommunication) Naming.lookup(rmiAddress);
-
       ske.remoteJoinDone(invokerRemoteAddress, remoteAddress, cause, exception);
     }
     catch (Exception ex) {
@@ -87,17 +62,10 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
   }
 
   public void unjoin(String invokerRemoteAddress, String remoteAddress) {
+    String rmiAddress = getRmiAddress(remoteAddress);
     try {
-      Matcher matcher = patter.matcher(remoteAddress);
-      if (!matcher.matches()) {
-        throw new IllegalArgumentException("Illegal remote address:" + remoteAddress);
-      }
-
-      String rmiAddress = getRmiAddress(matcher);
       RemoteCommunication ske = null;
-
       ske = (RemoteCommunication) Naming.lookup(rmiAddress);
-
       ske.remoteUnjoin(invokerRemoteAddress, remoteAddress);
     }
     catch (Exception ex) {
@@ -107,13 +75,10 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
 
   @Override
   public void remoteJoin(String joinerRemoteAddress, String joineeRemoteAddress, byte[] sdp) throws Exception {
-    Matcher matcher = patter.matcher(joineeRemoteAddress);
-    if (!matcher.matches()) {
-      throw new IllegalArgumentException("Illegal remote address:" + joineeRemoteAddress);
-    }
+    String[] parseResult = ParticipantIDParser.parseId(ParticipantIDParser.decode(joineeRemoteAddress));
 
-    String type = matcher.group(3);
-    String id = matcher.group(4);
+    String type = parseResult[2];
+    String id = parseResult[3];
 
     if (type.equalsIgnoreCase(RemoteParticipant.RemoteParticipant_TYPE_CALL)) {
       SIPCallImpl call = (SIPCallImpl) _context.getCall(id);
@@ -148,13 +113,10 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
 
   @Override
   public void remoteJoinAnswer(String joinerRemoteAddress, String joineeRemoteAddress, byte[] sdp) throws Exception {
-    Matcher matcher = patter.matcher(joinerRemoteAddress);
-    if (!matcher.matches()) {
-      throw new IllegalArgumentException("Illegal remote address:" + joineeRemoteAddress);
-    }
+    String[] parseResult = ParticipantIDParser.parseId(ParticipantIDParser.decode(joinerRemoteAddress));
 
-    String type = matcher.group(3);
-    String id = matcher.group(4);
+    String type = parseResult[2];
+    String id = parseResult[3];
 
     if (type.equalsIgnoreCase(RemoteParticipant.RemoteParticipant_TYPE_CALL)) {
       SIPCallImpl call = (SIPCallImpl) _context.getCall(id);
@@ -179,13 +141,10 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
 
   @Override
   public void remoteJoinDone(String invokerRemoteAddress, String remoteAddress, Cause cause, Exception exception) {
-    Matcher matcher = patter.matcher(remoteAddress);
-    if (!matcher.matches()) {
-      throw new IllegalArgumentException("Illegal remote address:" + remoteAddress);
-    }
+    String[] parseResult = ParticipantIDParser.parseId(ParticipantIDParser.decode(remoteAddress));
 
-    String type = matcher.group(3);
-    String id = matcher.group(4);
+    String type = parseResult[2];
+    String id = parseResult[3];
 
     if (type.equalsIgnoreCase(RemoteParticipant.RemoteParticipant_TYPE_CALL)) {
       SIPCallImpl call = (SIPCallImpl) _context.getCall(id);
@@ -210,13 +169,10 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
 
   @Override
   public void remoteUnjoin(String initiatorRemoteAddress, String remoteAddress) throws Exception {
-    Matcher matcher = patter.matcher(remoteAddress);
-    if (!matcher.matches()) {
-      throw new IllegalArgumentException("Illegal remote address:" + remoteAddress);
-    }
+    String[] parseResult = ParticipantIDParser.parseId(ParticipantIDParser.decode(remoteAddress));
 
-    String type = matcher.group(3);
-    String id = matcher.group(4);
+    String type = parseResult[2];
+    String id = parseResult[3];
 
     if (type.equalsIgnoreCase(RemoteParticipant.RemoteParticipant_TYPE_CALL)) {
       SIPCallImpl call = (SIPCallImpl) _context.getCall(id);
@@ -251,13 +207,10 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
     }
   }
 
-  protected String getRmiAddress(Matcher matcher) {
-    // TODO code refactor, use ParticipantIDParser
-
-    String ip = matcher.group(1);
-    String port = matcher.group(0);
-
-    String rmiAddress = "rmi://" + ip + ":" + port + "/RemoteCommunication";
+  protected String getRmiAddress(String encodedID) {
+    String rawID = ParticipantIDParser.decode(encodedID);
+    String[] parseResult = ParticipantIDParser.parseId(rawID);
+    String rmiAddress = "rmi://" + parseResult[0] + ":" + parseResult[1] + "/RemoteCommunication";
 
     return rmiAddress;
   }

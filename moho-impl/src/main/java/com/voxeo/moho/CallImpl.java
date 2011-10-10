@@ -83,15 +83,20 @@ public abstract class CallImpl implements Call {
   protected CallImpl(ExecutionContext context) {
     _context = context;
     _dispatcher.setExecutor(getThreadPool(), true);
-    // _id = UUID.randomUUID().toString();
     String uid = UUID.randomUUID().toString();
     String rawid = ((RemoteJoinDriver) _context.getFramework().getDriverByProtocolFamily(
         RemoteJoinDriver.PROTOCOL_REMOTEJOIN)).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_CALL, uid);
+    int a = 0;
+    if ((a = (rawid.length() * 2) % 3) != 0) {
+      if (a == 1) {
+        rawid = rawid.concat("a");
+      }
+      else {
+        rawid = rawid.concat("ab");
+      }
+    }
     _id = ParticipantIDParser.encode(rawid);
 
-    //TODO: We need the Rayo build back green
-    _id = uid;
-    
     context.addCall(this);
   }
 
