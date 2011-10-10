@@ -136,5 +136,5 @@ public interface AcceptableEvent {
 
   void setAsync(boolean async);
   
-  boolean getAsync();
+  boolean isAsync();
 }

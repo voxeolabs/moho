@@ -297,7 +297,7 @@ public abstract class CallImpl implements Call {
         @Override
         public void run() {
           if (event instanceof EarlyMediaEvent) {
-            if (!((MohoEarlyMediaEvent) event).isProcessed() && !((MohoEarlyMediaEvent) event).getAsync()) {
+            if (!((MohoEarlyMediaEvent) event).isProcessed() && !((MohoEarlyMediaEvent) event).isAsync()) {
               try {
                 ((EarlyMediaEvent) event).reject(null);
               }
@@ -309,7 +309,7 @@ public abstract class CallImpl implements Call {
 
           else if (event instanceof AcceptableEvent) {
             if (!((AcceptableEvent) event).isAccepted() && !((AcceptableEvent) event).isRejected()
-                && !((AcceptableEvent) event).getAsync()) {
+                && !((AcceptableEvent) event).isAsync()) {
               try {
                 ((AcceptableEvent) event).accept();
               }

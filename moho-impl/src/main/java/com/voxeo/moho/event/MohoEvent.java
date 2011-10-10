@@ -40,7 +40,7 @@ public class MohoEvent<Source extends EventSource> implements Event<Source> {
     _async = async;
   }
 
-  public boolean getAsync() {
+  public boolean isAsync() {
     return _async;
   }
 }

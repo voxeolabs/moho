@@ -288,7 +288,7 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   }
 
   @Override
-  public boolean getAsync() {
+  public boolean isAsync() {
     return false;
   }
 }

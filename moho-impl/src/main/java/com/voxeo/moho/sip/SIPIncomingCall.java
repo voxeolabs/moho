@@ -414,7 +414,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   }
 
   @Override
-  public boolean getAsync() {
+  public boolean isAsync() {
     return false;
   }
 }
