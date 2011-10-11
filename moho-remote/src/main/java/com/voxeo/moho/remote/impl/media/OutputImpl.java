@@ -233,8 +233,8 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
   public void onRayoEvent(JID from, Presence presence) {
     Object obj = presence.getExtension().getObject();
 
-    if (obj instanceof com.rayo.core.verb.OutputCompleteEvent) {
-      com.rayo.core.verb.OutputCompleteEvent event = (com.rayo.core.verb.OutputCompleteEvent) obj;
+    if (obj instanceof com.rayo.core.verb.VerbCompleteEvent) {
+      com.rayo.core.verb.VerbCompleteEvent event = (com.rayo.core.verb.VerbCompleteEvent) obj;
 
       MohoOutputCompleteEvent<T> mohoEvent = new MohoOutputCompleteEvent<T>(_todo,
           getMohoOutputCompleteReasonByRayoReason(event.getReason()), event.getErrorText());

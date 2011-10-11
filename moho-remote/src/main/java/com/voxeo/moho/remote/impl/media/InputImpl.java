@@ -112,29 +112,31 @@ public class InputImpl<T extends EventSource> implements Input<T>, RayoListener 
   public void onRayoEvent(JID from, Presence presence) {
     Object obj = presence.getExtension().getObject();
 
-    if (obj instanceof com.rayo.core.verb.InputCompleteEvent) {
-      com.rayo.core.verb.InputCompleteEvent event = (com.rayo.core.verb.InputCompleteEvent) obj;
+    if (obj instanceof com.rayo.core.verb.VerbCompleteEvent) {
+        com.rayo.core.verb.VerbCompleteEvent event = (com.rayo.core.verb.VerbCompleteEvent) obj;
 
       MohoInputCompleteEvent<T> mohoEvent = new MohoInputCompleteEvent<T>(_todo,
           getMohoInputCompleteReasonByRayoReason(event.getReason()), event.getErrorText());
-      mohoEvent.setConcept(event.getConcept());
-      mohoEvent.setConfidence(event.getConfidence());
+      if (event instanceof com.rayo.core.verb.InputCompleteEvent) {
+    	  mohoEvent.setConcept(((com.rayo.core.verb.InputCompleteEvent)event).getConcept());
+    	  mohoEvent.setConfidence(((com.rayo.core.verb.InputCompleteEvent)event).getConfidence());
 
-      com.voxeo.moho.media.InputMode mode = null;
-      if (event.getMode() == InputMode.DTMF) {
-        mode = com.voxeo.moho.media.InputMode.DTMF;
+    	  com.voxeo.moho.media.InputMode mode = null;
+	      if (((com.rayo.core.verb.InputCompleteEvent)event).getMode() == InputMode.DTMF) {
+	        mode = com.voxeo.moho.media.InputMode.DTMF;
+	      }
+	      else if (((com.rayo.core.verb.InputCompleteEvent)event).getMode() == InputMode.VOICE) {
+	        mode = com.voxeo.moho.media.InputMode.SPEECH;
+	      }
+	      else {
+	        mode = com.voxeo.moho.media.InputMode.ANY;
+	      }
+	      mohoEvent.setInputMode(mode);
+	      mohoEvent.setInterpretation(((com.rayo.core.verb.InputCompleteEvent)event).getInterpretation());
+	      mohoEvent.setNlsml(((com.rayo.core.verb.InputCompleteEvent)event).getNlsml());
+	      mohoEvent.setTag(((com.rayo.core.verb.InputCompleteEvent)event).getTag());
+	      mohoEvent.setUtterance(((com.rayo.core.verb.InputCompleteEvent)event).getUtterance());
       }
-      else if (event.getMode() == InputMode.VOICE) {
-        mode = com.voxeo.moho.media.InputMode.SPEECH;
-      }
-      else {
-        mode = com.voxeo.moho.media.InputMode.ANY;
-      }
-      mohoEvent.setInputMode(mode);
-      mohoEvent.setInterpretation(event.getInterpretation());
-      mohoEvent.setNlsml(event.getNlsml());
-      mohoEvent.setTag(event.getTag());
-      mohoEvent.setUtterance(event.getUtterance());
 
       this.done(mohoEvent);
       _call.dispatch(mohoEvent);
