@@ -42,6 +42,18 @@ public class ParticipantIDParser {
     }
     throw new IllegalArgumentException("Illegal ID format:" + raw);
   }
+  
+  public static String getIpAddress(String encoded) {
+	  
+	  String decoded = decode(encoded);
+	  if (decoded != null) {
+		  String[] parts = parseId(decoded);
+		  if (parts != null && parts.length > 0) {
+			  return parts[0];
+		  }
+	  }
+	  return null;
+  }
 
   public static String[] parseEncodedId(String encodedId) {
     String raw = ParticipantIDParser.decode(encodedId);
