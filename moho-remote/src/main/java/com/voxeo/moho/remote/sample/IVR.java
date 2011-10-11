@@ -70,11 +70,11 @@ public class IVR implements Observer {
         final Call call = evt.getSource();
         if (evt.getConcept().equals("1")) {
           call.setApplicationState("menu-simpmethod-sales");
-          hanupAfterPrompt(call, "thank you for calling sipmethod sales");
+          hangupAfterPrompt(call, "thank you for calling sipmethod sales");
         }
         else {
           call.setApplicationState("menu-prophecy-sales");
-          hanupAfterPrompt(call, "thank you for calling prophecy sales");
+          hangupAfterPrompt(call, "thank you for calling prophecy sales");
         }
         break;
     }
@@ -87,17 +87,17 @@ public class IVR implements Observer {
         final Call call = evt.getSource();
         if (evt.getConcept().equals("1")) {
           call.setApplicationState("menu-simpmethod-support");
-          hanupAfterOutput(call, "thank you for calling sipmethod support");
+          hangupAfterOutput(call, "thank you for calling sipmethod support");
         }
         else {
           call.setApplicationState("menu-prophecy-support");
-          hanupAfterOutput(call, "thank you for calling prophecy support");
+          hangupAfterOutput(call, "thank you for calling prophecy support");
         }
         break;
     }
   }
 
-  private void hanupAfterPrompt(Call call, String text) {
+  private void hangupAfterPrompt(Call call, String text) {
     Prompt<Call> prompt = call.prompt(text, null, 0);
     try {
       if (prompt.getOutput().get() != null) {
@@ -109,7 +109,7 @@ public class IVR implements Observer {
     }
   }
 
-  private void hanupAfterOutput(Call call, String text) {
+  private void hangupAfterOutput(Call call, String text) {
     Output<Call> output = call.output(text);
     try {
       if (output.get() != null) {
