@@ -186,7 +186,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
       try {
         IQ iq = null;
         if (upOrDown) {
-          iq = _call.getMohoRemote().getRayoClient().volumeDown(_verbRef);
+          iq = _call.getMohoRemote().getRayoClient().volumeUp(_verbRef);
         }
         else {
           iq = _call.getMohoRemote().getRayoClient().volumeDown(_verbRef);

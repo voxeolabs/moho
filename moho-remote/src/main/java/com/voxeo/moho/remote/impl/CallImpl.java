@@ -50,6 +50,7 @@ import com.rayo.core.verb.Choices;
 import com.rayo.core.verb.OffHoldEvent;
 import com.rayo.core.verb.OnHoldEvent;
 import com.rayo.core.verb.Record;
+import com.rayo.core.verb.Ssml;
 import com.rayo.core.verb.VerbRef;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
@@ -75,7 +76,11 @@ import com.voxeo.moho.media.Prompt;
 import com.voxeo.moho.media.Recording;
 import com.voxeo.moho.media.input.Grammar;
 import com.voxeo.moho.media.input.InputCommand;
+import com.voxeo.moho.media.input.SimpleGrammar;
+import com.voxeo.moho.media.output.AudibleResource;
+import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
+import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.remote.impl.event.DispatchableEventSource;
 import com.voxeo.moho.remote.impl.event.MohoCallCompleteEvent;
@@ -86,6 +91,7 @@ import com.voxeo.moho.remote.impl.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.remote.impl.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.remote.impl.media.InputImpl;
 import com.voxeo.moho.remote.impl.media.OutputImpl;
+import com.voxeo.moho.remote.impl.media.PromptImpl;
 import com.voxeo.moho.remote.impl.media.RecordingImpl;
 
 public abstract class CallImpl extends DispatchableEventSource implements Call, RayoListener {
@@ -184,8 +190,23 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       if (output.getVoiceName() != null) {
         rayoOutput.setVoice(output.getVoiceName());
       }
-
-      VerbRef verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
+      VerbRef verbRef = null;
+      if (output.getAudibleResources() != null && output.getAudibleResources().length > 0) {
+        if (output.getAudibleResources().length > 1) {
+          // TODO support multiple
+          throw new UnsupportedOperationException("Don't support multiple play yet");
+        }
+        AudibleResource ar = output.getAudibleResources()[0];
+        if (ar instanceof TextToSpeechResource) {
+          rayoOutput.setPrompt(new Ssml(((TextToSpeechResource) ar).getText()));
+        }
+        else if (ar instanceof AudioURIResource) {
+          verbRef = _mohoRemote.getRayoClient().output(ar.toURI(), this.getId());
+        }
+      }
+      if (verbRef == null) {
+        verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
+      }
 
       outputFuture = new OutputImpl<Call>(verbRef, this, this);
     }
@@ -198,17 +219,31 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
 
   @Override
   public Prompt<Call> prompt(String text, String grammar, int repeat) throws MediaException {
-    return null;
+    final OutputCommand output = text == null ? null : new OutputCommand(new TextToSpeechResource(text));
+    final InputCommand input = grammar == null ? null : new InputCommand(new SimpleGrammar(grammar));
+    return prompt(output, input, repeat);
   }
 
   @Override
   public Prompt<Call> prompt(URI media, String grammar, int repeat) throws MediaException {
-    return null;
+    final OutputCommand output = media == null ? null : new OutputCommand(new AudioURIResource(media));
+    final InputCommand input = grammar == null ? null : new InputCommand(new SimpleGrammar(grammar));
+    return prompt(output, input, repeat);
   }
 
   @Override
   public Prompt<Call> prompt(OutputCommand output, InputCommand input, int repeat) throws MediaException {
-    return null;
+    PromptImpl<Call> prompt = new PromptImpl<Call>(_mohoRemote.getExecutor());
+    if (output != null) {
+      for (int i = 0; i < repeat + 1; i++) {
+        prompt.setOutput(output(output));
+      }
+    }
+    if (input != null) {
+      prompt.setInput(input(input));
+    }
+
+    return prompt;
   }
 
   @Override
