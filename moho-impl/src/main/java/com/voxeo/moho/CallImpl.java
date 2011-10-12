@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
@@ -49,10 +48,8 @@ import com.voxeo.moho.media.Recording;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.record.RecordCommand;
-import com.voxeo.moho.remote.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
-import com.voxeo.moho.spi.RemoteJoinDriver;
-import com.voxeo.moho.util.ParticipantIDParser;
+import com.voxeo.moho.util.IDGenerator;
 import com.voxeo.moho.util.Utils;
 import com.voxeo.moho.utils.EventListener;
 
@@ -81,21 +78,10 @@ public abstract class CallImpl implements Call {
   protected List<Call> _peers = new ArrayList<Call>(0);
 
   protected CallImpl(ExecutionContext context) {
+	  
     _context = context;
-    _dispatcher.setExecutor(getThreadPool(), true);
-    String uid = UUID.randomUUID().toString();
-    String rawid = ((RemoteJoinDriver) _context.getFramework().getDriverByProtocolFamily(
-        RemoteJoinDriver.PROTOCOL_REMOTEJOIN)).getRemoteAddress(RemoteParticipant.RemoteParticipant_TYPE_CALL, uid);
-    int a = 0;
-    if ((a = (rawid.length() * 2) % 3) != 0) {
-      if (a == 1) {
-        rawid = rawid.concat("a");
-      }
-      else {
-        rawid = rawid.concat("ab");
-      }
-    }
-    _id = ParticipantIDParser.encode(rawid);
+    _dispatcher.setExecutor(getThreadPool(), true);    
+    _id = IDGenerator.generateId(_context);
 
     context.addCall(this);
   }
