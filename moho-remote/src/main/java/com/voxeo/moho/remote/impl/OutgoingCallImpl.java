@@ -12,6 +12,7 @@ import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.AnsweredEvent;
 import com.rayo.core.DialCommand;
 import com.rayo.core.EndEvent;
+import com.rayo.core.RingingEvent;
 import com.rayo.core.verb.VerbRef;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
@@ -19,7 +20,6 @@ import com.voxeo.moho.Joint;
 import com.voxeo.moho.OutgoingCall;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.JoinCompleteEvent;
-import com.voxeo.moho.event.RingEvent;
 import com.voxeo.moho.remote.impl.event.MohoAnsweredEvent;
 import com.voxeo.moho.remote.impl.event.MohoCallCompleteEvent;
 import com.voxeo.moho.remote.impl.event.MohoHangupEvent;
@@ -102,8 +102,8 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
         waitAnswerJoint = null;
       }
     }
-    else if (object instanceof RingEvent) {
-      RingEvent event = (RingEvent) object;
+    else if (object instanceof RingingEvent) {
+      RingingEvent event = (RingingEvent) object;
       MohoRingEvent mohoEvent = new MohoRingEvent(this, event.getHeaders());
       this.dispatch(mohoEvent);
     }
