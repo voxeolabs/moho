@@ -1189,6 +1189,8 @@ public class SIPOutgoingCallTest extends TestCase {
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
           allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).queuedJoinSize();
+          will(returnValue(0));
           allowing(outgoingCall).continueQueuedJoin();
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));
@@ -1229,6 +1231,8 @@ public class SIPOutgoingCallTest extends TestCase {
           will(returnValue(new Participant[]{}));
           
           allowing(outgoingCall).continueQueuedJoin();
+          allowing(outgoingCall).queuedJoinSize();
+          will(returnValue(0));
         }
       });
     }
@@ -1330,6 +1334,8 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
           allowing(outgoingCall).continueQueuedJoin();
+          allowing(outgoingCall).queuedJoinSize();
+          will(returnValue(0));
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));
           when(incomingCallStates.is("incomingCallInit"));
@@ -1410,6 +1416,8 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
           allowing(outgoingCall).continueQueuedJoin();
+          allowing(outgoingCall).queuedJoinSize();
+          will(returnValue(0));
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));
           when(incomingCallStates.is("incomingCallInit"));
@@ -1452,7 +1460,8 @@ public class SIPOutgoingCallTest extends TestCase {
 
           oneOf(outgoingCall).dispatch(with(any(MohoJoinCompleteEvent.class)));
           allowing(outgoingCall).continueQueuedJoin();
-          
+          allowing(outgoingCall).queuedJoinSize();
+          will(returnValue(0));
           oneOf(outgoingCall).addPeer(with(any(Call.class)), with(any(JoinType.class)), with(any(Direction.class)));
         }
       });
@@ -1592,6 +1601,8 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
           allowing(outgoingCall).continueQueuedJoin();
+          allowing(outgoingCall).queuedJoinSize();
+          will(returnValue(0));
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));
           when(outgoingCallStates.is("outgoingCallInit"));
@@ -1807,6 +1818,8 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
           allowing(outgoingCall).continueQueuedJoin();
+          allowing(outgoingCall).queuedJoinSize();
+          will(returnValue(0));
           allowing(outgoingCall).isAnswered();
           will(returnValue(false));
           when(outgoingCallStates.is("outgoingCallInit"));
@@ -2052,7 +2065,8 @@ public class SIPOutgoingCallTest extends TestCase {
           allowing(outgoingCall).getSipSession();
           will(returnValue(outgoingSession));
           allowing(outgoingCall).continueQueuedJoin();
-
+          allowing(outgoingCall).queuedJoinSize();
+          will(returnValue(0));
           allowing(outgoingSession).getApplicationSession();
           will(returnValue(outgoingAppSession));
 
@@ -2287,6 +2301,8 @@ public class SIPOutgoingCallTest extends TestCase {
           allowing(outgoingCall).unlinkDirectlyPeer();
           
           allowing(outgoingCall).continueQueuedJoin();
+          allowing(outgoingCall).queuedJoinSize();
+          will(returnValue(0));
         }
       });
     }

@@ -511,6 +511,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
     }
   }
+  
+  public synchronized int queuedJoinSize(){
+    return _joinQueue.size();
+  }
 
   @Override
   public synchronized Joint join(final Participant other, final JoinType type, final Direction direction) {

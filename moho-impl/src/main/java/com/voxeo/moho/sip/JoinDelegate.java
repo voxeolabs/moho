@@ -24,6 +24,7 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.MixerImpl.ClampDtmfMixerAdapter;
@@ -90,9 +91,22 @@ public abstract class JoinDelegate {
     _settableJoint.done(joinCompleteEvent);
     done = true;
 
-    _call1.continueQueuedJoin();
-    if (_call2 != null) {
-      _call2.continueQueuedJoin();
+    if (_call1.queuedJoinSize() > 0) {
+      ((ApplicationContextImpl) _call1.getApplicationContext()).getExecutor().execute(new Runnable() {
+        @Override
+        public void run() {
+          _call1.continueQueuedJoin();
+        }
+      });
+    }
+
+    if (_call2 != null && _call2.queuedJoinSize() > 0) {
+      ((ApplicationContextImpl) _call1.getApplicationContext()).getExecutor().execute(new Runnable() {
+        @Override
+        public void run() {
+          _call2.continueQueuedJoin();
+        }
+      });
     }
   }
 

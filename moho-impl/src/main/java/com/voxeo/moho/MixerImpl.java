@@ -127,6 +127,10 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
 
       _mixer.addListener(new MixerEventListener());
+
+      if (_context != null && getId() != null) {
+        ((ApplicationContextImpl) _context).addParticipant(this);
+      }
     }
     catch (final Exception e) {
       throw new MediaException(e);
@@ -173,6 +177,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public synchronized void disconnect() {
+    ((ApplicationContextImpl) _context).removeParticipant(getId());
     if (_service != null) {
       try {
         ((GenericMediaService) _service).release(true);

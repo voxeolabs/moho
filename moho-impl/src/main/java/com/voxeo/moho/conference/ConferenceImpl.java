@@ -23,6 +23,7 @@ import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.JointImpl;
@@ -58,6 +59,10 @@ public class ConferenceImpl extends MixerImpl implements Conference, Participant
     _id = id;
     _maxSeats = seats;
     _controller = controller;
+    
+    if (_context != null && getId() != null) {
+      ((ApplicationContextImpl) _context).addParticipant(this);
+    }
   }
 
   @Override

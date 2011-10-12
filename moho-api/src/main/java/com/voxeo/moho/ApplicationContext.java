@@ -93,4 +93,6 @@ public interface ApplicationContext extends AttributeStore, ParameterStore {
   <T extends Service> Collection<T> listServices();
 
   <T extends Service> boolean containsService(Class<T> def);
+  
+  Participant getParticipant(String id);
 }

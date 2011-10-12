@@ -10,8 +10,9 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.sip.SIPCallImpl;
 import com.voxeo.moho.State;
+import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.RingEvent;
 
 public class JoinTest implements Application {
   private static final Logger LOG = Logger.getLogger(JoinTest.class);
@@ -20,13 +21,11 @@ public class JoinTest implements Application {
 
   @Override
   public void init(ApplicationContext ctx) {
-    // TODO Auto-generated method stub
     _ctx = ctx;
   }
 
   @Override
   public void destroy() {
-    // TODO Auto-generated method stub
 
   }
 
@@ -40,11 +39,21 @@ public class JoinTest implements Application {
     CallableEndpoint endpoint2 = (CallableEndpoint) _ctx.createEndpoint("sip:sipuserf@127.0.0.1:64536");
     Call call2 = endpoint2.createCall("sip:martin@example.com");
 
-    try{
+    try {
       call2.join(call, JoinType.BRIDGE, Direction.DUPLEX);
-    }catch(Exception ex){
-      LOG.error("===============>", ex);
     }
-    
+    catch (Exception ex) {
+      LOG.error("Error", ex);
+    }
+  }
+
+  @State
+  public void handleInvite(final JoinCompleteEvent event) throws Exception {
+    System.out.println(event.getCause() + ".." + event.getParticipant());
+  }
+
+  @State
+  public void handleInvite(final RingEvent event) throws Exception {
+    System.out.println("Received ring event" + event);
   }
 }

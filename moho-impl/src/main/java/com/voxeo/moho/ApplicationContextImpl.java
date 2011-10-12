@@ -66,7 +66,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   protected SipServlet _sip;
 
   protected HttpServlet _http;
-  
+
   protected XmppServlet _xmpp;
 
   protected Application _application;
@@ -80,10 +80,8 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   protected SipFactory _sipFactory;
 
   protected SdpFactory _sdpFactory;
-  
-  protected XmppFactory _xmppFactory;
 
-  protected Map<String, Call> _calls = new ConcurrentHashMap<String, Call>();
+  protected XmppFactory _xmppFactory;
 
   protected Map<String, String> _parameters = new ConcurrentHashMap<String, String>();
 
@@ -94,6 +92,8 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   protected org.springframework.context.support.AbstractApplicationContext _springContext;
 
   protected org.springframework.context.support.AbstractApplicationContext _appSpringContext;
+
+  protected Map<String, Participant> _participants = new ConcurrentHashMap<String, Participant>();
 
   @SuppressWarnings("unchecked")
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipServlet servlet) {
@@ -272,17 +272,21 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   @Override
   public Call getCall(final String cid) {
-    return _calls.get(cid);
+    Participant p = _participants.get(cid);
+    if (p != null && p instanceof Call) {
+      return (Call) p;
+    }
+    return null;
   }
 
   @Override
   public void addCall(final Call call) {
-    _calls.put(call.getId(), call);
+    _participants.put(call.getId(), call);
   }
 
   @Override
   public void removeCall(final String id) {
-    _calls.remove(id);
+    _participants.remove(id);
   }
 
   @Override
@@ -460,7 +464,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   public XmppServlet getXMPPController() {
     return _xmpp;
   }
-  
+
   public void setXMPPController(XmppServlet xmpp) {
     _xmpp = xmpp;
   }
@@ -468,5 +472,18 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   @Override
   public XmppFactory getXmppFactory() {
     return _xmppFactory;
+  }
+
+  @Override
+  public Participant getParticipant(String id) {
+    return _participants.get(id);
+  }
+
+  public void addParticipant(Participant participant) {
+    _participants.put(participant.getId(), participant);
+  }
+
+  public void removeParticipant(String id) {
+    _participants.remove(id);
   }
 }

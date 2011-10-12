@@ -33,6 +33,7 @@ import javax.media.mscontrol.vxml.VxmlDialogEvent;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.JoinWorker;
@@ -104,6 +105,8 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
           }
         }
       }
+      
+      ((ApplicationContextImpl) _context).addParticipant(this);
     }
     catch (final MsControlException e) {
       throw new MediaException(e);
@@ -144,6 +147,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
 
   @Override
   public void disconnect() {
+    ((ApplicationContextImpl) _context).removeParticipant(getId());
     try {
       _dialog.terminate(true);
     }
