@@ -32,7 +32,7 @@ public class Outbound implements Observer {
 
     mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost");
 
-    CallableEndpoint endpoint = (CallableEndpoint) mohoRemote.createEndpoint(URI.create("sip:prism@127.0.0.1:58587"));
+    CallableEndpoint endpoint = (CallableEndpoint) mohoRemote.createEndpoint(URI.create("sip:prism@127.0.0.1:5678"));
 
     Call call = endpoint.createCall("sip:mohosample@example.com");
     call.addObserver(new Outbound());

@@ -157,11 +157,15 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
   public void onRayoEvent(JID from, Presence presence) {
     Object obj = presence.getExtension().getObject();
 
-    if (obj instanceof com.rayo.core.verb.RecordCompleteEvent) {
-      com.rayo.core.verb.RecordCompleteEvent event = (com.rayo.core.verb.RecordCompleteEvent) obj;
+    if (obj instanceof com.rayo.core.verb.VerbCompleteEvent) {
+        com.rayo.core.verb.VerbCompleteEvent event = (com.rayo.core.verb.VerbCompleteEvent) obj;
 
+        long duration = 0;
+        if (event instanceof com.rayo.core.verb.RecordCompleteEvent) {
+        	duration = ((com.rayo.core.verb.RecordCompleteEvent)event).getDuration().getMillis();
+        }
       MohoRecordCompleteEvent<T> mohoEvent = new MohoRecordCompleteEvent<T>(_todo,
-          getMohoOutputCompleteReasonByRayoReason(event.getReason()), event.getDuration().getMillis(),
+          getMohoOutputCompleteReasonByRayoReason(event.getReason()), duration,
           event.getErrorText());
 
       this.done(mohoEvent);
