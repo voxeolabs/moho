@@ -17,4 +17,12 @@
     <url>${svnUrlBase}/moho-sample/IVR</url>
   </scm>
   
+  <dependencies>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.16</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
 </project>

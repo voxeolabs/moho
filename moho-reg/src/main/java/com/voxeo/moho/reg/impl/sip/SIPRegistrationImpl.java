@@ -12,7 +12,7 @@
  * governing permissions and limitations under the License.
  */
 
-package com.voxeo.moho.sip;
+package com.voxeo.moho.reg.impl.sip;
 
 import java.io.IOException;
 

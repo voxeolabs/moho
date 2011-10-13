@@ -1,6 +1,7 @@
-package com.voxeo.moho.xmpp;
+package com.voxeo.moho.presence.xmpp.impl;
 
-import com.voxeo.moho.presence.xmpp.impl.RosterItemImpl;
+import com.voxeo.moho.xmpp.RosterEvent;
+import com.voxeo.moho.xmpp.RosterItemImpl;
 import com.voxeo.moho.xmpp.RosterEvent.RosterItem;
 
 public class RosterFactory {

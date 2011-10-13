@@ -115,7 +115,10 @@ public class XMPPMemoryPresenceStore extends AbstractPresenceStore implements XM
     if (resources != null) {
       List<XMPPPresenceResource> list = new ArrayList<XMPPPresenceResource>(resources.size());
       for (String fullJid : resources) {
-        list.add(getResource(fullJid));
+        XMPPPresenceResource resource = getResource(fullJid);
+        if (resource != null) {
+          list.add(resource);
+        }
       }
       return Collections.unmodifiableList(list);
     }

@@ -8,7 +8,6 @@ import java.util.Map;
 import org.w3c.dom.Element;
 
 import com.voxeo.moho.Framework;
-import com.voxeo.moho.presence.xmpp.impl.RosterItemImpl;
 import com.voxeo.moho.util.XmlUtils;
 import com.voxeo.servlet.xmpp.IQRequest;
 

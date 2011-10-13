@@ -1,8 +1,9 @@
-package com.voxeo.moho.presence.xmpp.impl;
+package com.voxeo.moho.xmpp;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import com.voxeo.moho.xmpp.RosterEvent;
 import com.voxeo.moho.xmpp.RosterEvent.Ask;
 import com.voxeo.moho.xmpp.RosterEvent.RosterItem;
 import com.voxeo.moho.xmpp.RosterEvent.XmppSubscription;

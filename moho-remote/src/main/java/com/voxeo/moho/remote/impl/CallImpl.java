@@ -470,8 +470,6 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       command.setCallId(this.getId());
       command.setTo(other.getId());
       command.setMedia(type);
-      // TODO stategy
-      // command.setStrategy(strategy)
       command.setDirection(direction);
       JoinDestinationType destinationType = null;
       if (other instanceof Call) {
