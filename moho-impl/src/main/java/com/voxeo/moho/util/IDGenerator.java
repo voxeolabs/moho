@@ -11,7 +11,7 @@ public class IDGenerator {
 	public static String generateId(ExecutionContext context) {
 
 		if (context != null) {
-			String uid = String.valueOf(new com.eaio.uuid.UUID().getTime());
+			String uid = String.valueOf(Math.abs(new com.eaio.uuid.UUID().getTime()));
 			String rawid = ((RemoteJoinDriver) context
 					.getFramework()
 					.getDriverByProtocolFamily(RemoteJoinDriver.PROTOCOL_REMOTEJOIN))
