@@ -30,7 +30,7 @@ public class JoinSample implements Observer {
     observer = new JoinSample();
     mohoRemote.addObserver(observer);
 
-    mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost");
+    mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost", "localhost");
 
     CallableEndpoint endpoint = (CallableEndpoint) mohoRemote
         .createEndpoint(URI.create("sip:sipuserf@127.0.0.1:5678"));

@@ -24,7 +24,7 @@ public class JoinTest implements Observer {
   public static void main(String[] args) {
     mohoRemote = new MohoRemoteImpl();
     mohoRemote.addObserver(new JoinTest());
-    mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost");
+    mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost", "localhost");
 
     try {
       Thread.sleep(100 * 60 * 1000);
@@ -42,7 +42,7 @@ public class JoinTest implements Observer {
 
     call.setApplicationState("personal-call");
     CallableEndpoint endpoint2 = (CallableEndpoint) mohoRemote.createEndpoint(URI
-        .create("sip:sipuserf@127.0.0.1:36692"));
+        .create("sip:mperez@localhost:3060"));
     Call call2 = endpoint2.createCall("sip:martin@example.com");
     call2.addObserver(this);
 

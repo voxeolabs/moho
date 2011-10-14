@@ -19,7 +19,7 @@ public class IVR implements Observer {
   public static void main(String[] args) {
     MohoRemote mohoRemote = new MohoRemoteImpl();
     mohoRemote.addObserver(new IVR());
-    mohoRemote.connect("usera", "1", "", "voxeo", "localhost");
+    mohoRemote.connect("usera", "1", "", "voxeo", "localhost", "localhost");
     try {
       Thread.sleep(100 * 60 * 1000);
     }

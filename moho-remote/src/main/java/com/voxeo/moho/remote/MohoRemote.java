@@ -9,9 +9,9 @@ import com.voxeo.moho.event.EventSource;
 public interface MohoRemote extends EventSource {
 
   @Deprecated
-  void connect(AuthenticationCallback callback, String server);
+  void connect(AuthenticationCallback callback, String xmppServer, String rayoServer);
 
-  void connect(String userName, String passwd, String realm, String resource, String server);
+  void connect(String userName, String passwd, String realm, String resource, String xmppServer, String rayoServer);
 
   void disconnect();
 

@@ -28,7 +28,7 @@ public class Ask implements Observer {
   public static void main(String[] args) throws Exception {
     MohoRemote mohoRemote = new MohoRemoteImpl();
     mohoRemote.addObserver(new Ask());
-    mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost");
+    mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost", "localhost");
     try {
       Thread.sleep(100 * 60 * 1000);
     }
