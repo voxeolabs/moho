@@ -714,7 +714,8 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
     _headers = null;
 
     // TODO
-    _componentListeners.clear();
+    // Commenting this as otherwise complete events for active verbs will not make it to the client
+    //_componentListeners.clear();
 
     Collection<JointImpl> joints = _joints.values();
     for (JointImpl joint : joints) {
@@ -756,7 +757,9 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   public void onRayoEvent(JID from, Presence presence) {
     if (from.getResource() != null) {
       RayoListener listener = _componentListeners.get(from.getResource());
-      listener.onRayoEvent(from, presence);
+      if (listener != null) {
+    	  listener.onRayoEvent(from, presence);
+      }
     }
     else {
       Object object = presence.getExtension().getObject();
@@ -837,7 +840,9 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   public void onRayoCommandResult(JID from, IQ iq) {
     if (from.getResource() != null) {
       RayoListener listener = _componentListeners.get(from.getResource());
-      listener.onRayoCommandResult(from, iq);
+      if (listener != null) {
+    	  listener.onRayoCommandResult(from, iq);
+      }
     }
     else {
 
