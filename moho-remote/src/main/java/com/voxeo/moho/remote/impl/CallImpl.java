@@ -576,7 +576,7 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
-        _isMuted = true;
+        _isMuted = false;
       }
     }
     catch (XmppException e) {
