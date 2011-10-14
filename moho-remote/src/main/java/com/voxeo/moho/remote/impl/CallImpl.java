@@ -23,6 +23,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.media.mscontrol.MediaObject;
 import javax.media.mscontrol.join.Joinable;
@@ -123,6 +126,8 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   protected boolean _isMuted;
 
   protected boolean _isHold;
+  
+  protected ReadWriteLock joinLock = new ReentrantReadWriteLock(); 
 
   protected CallImpl(MohoRemoteImpl mohoRemote, String callID, CallableEndpoint caller, CallableEndpoint callee,
       Map<String, String> headers) {
@@ -461,7 +466,9 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   @Override
   public Joint join(Participant other, JoinType type, Direction direction) {
     JointImpl joint = null;
+    Lock lock = joinLock.writeLock(); 
     try {
+    	lock.lock();
       this.startJoin();
       // TODO make a parent class implement participant.
       ((CallImpl) other).startJoin();
@@ -480,6 +487,7 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       }
       command.setType(destinationType);
 
+      
       IQ iq = _mohoRemote.getRayoClient().join(command, this.getId());
 
       if (iq.isError()) {
@@ -493,6 +501,8 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
     catch (XmppException e) {
       LOG.error("", e);
       throw new SignalException("", e);
+    } finally {
+    	lock.unlock();
     }
     return joint;
   }
@@ -770,21 +780,28 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         this.dispatch(mohoEvent);
       }
       else if (object instanceof JoinedEvent) {
-        JoinedEvent event = (JoinedEvent) object;
-        MohoJoinCompleteEvent mohoEvent = null;
-        String id = event.getTo();
-        JoinDestinationType type = event.getType();
-        JointImpl joint = _joints.remove(id);
-        if (type == JoinDestinationType.CALL) {
-          Call peer = (Call) this.getMohoRemote().getParticipant(id);
-          _joinees.add(peer, joint.getType(), joint.getDirection());
-          _peers.add(peer);
-          mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
-        }
-        else {
-          // TODO mixer unjoin.
-        }
-        this.dispatch(mohoEvent);
+
+    	  Lock lock = joinLock.readLock();
+		  lock.lock();
+    	  try {
+	        JoinedEvent event = (JoinedEvent) object;
+	        MohoJoinCompleteEvent mohoEvent = null;
+	        String id = event.getTo();
+	        JoinDestinationType type = event.getType();
+	        JointImpl joint = _joints.remove(id);
+	        if (type == JoinDestinationType.CALL) {
+	          Call peer = (Call) this.getMohoRemote().getParticipant(id);
+	          _joinees.add(peer, joint.getType(), joint.getDirection());
+	          _peers.add(peer);
+	          mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
+	        }
+	        else {
+	          // TODO mixer unjoin.
+	        }
+	        this.dispatch(mohoEvent);
+    	  } finally {
+    		  lock.unlock();
+    	  }
       }
 
       else if (object instanceof UnjoinedEvent) {
