@@ -486,19 +486,23 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         destinationType = JoinDestinationType.MIXER;
       }
       command.setType(destinationType);
-
+      
+      joint = new JointImpl(this, type, direction);
+      _joints.put(other.getId(), joint);
+      ((CallImpl) other)._joints.put(this.getId(), joint);
       
       IQ iq = _mohoRemote.getRayoClient().join(command, this.getId());
 
       if (iq.isError()) {
+          _joints.remove(other.getId());
+          ((CallImpl) other)._joints.remove(this.getId());
         com.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
-      joint = new JointImpl(this, type, direction);
-      _joints.put(other.getId(), joint);
-      ((CallImpl) other)._joints.put(this.getId(), joint);
     }
     catch (XmppException e) {
+        _joints.remove(other.getId());
+        ((CallImpl) other)._joints.remove(this.getId());
       LOG.error("", e);
       throw new SignalException("", e);
     } finally {
