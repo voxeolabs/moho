@@ -29,8 +29,6 @@ public class Media2NOJoinDelegate extends JoinDelegate {
 
   protected boolean processedAnswer = false;
 
-  protected boolean received200 = false;
-
   protected Media2NOJoinDelegate(final SIPOutgoingCall call) {
     _call1 = call;
   }
