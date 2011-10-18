@@ -305,6 +305,19 @@ public abstract class JoinDelegate {
     }
   }
 
+  public static String buildAlreadyJoinedExceptionMessage(final Participant part, final Participant other) {
+    StringBuffer sbuf = new StringBuffer();
+
+    if (part.getParticipants().length > 0) {
+      sbuf.append(part + " is already joined.");
+    }
+    else {
+      sbuf.append(other + " is already joined.");
+    }
+
+    return sbuf.toString();
+  }
+
   /**
    * It's used in the following join scenarion,
    * 

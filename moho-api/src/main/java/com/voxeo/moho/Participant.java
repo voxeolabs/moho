@@ -25,18 +25,30 @@ import com.voxeo.moho.event.EventSource;
 public interface Participant extends EventSource {
 
   public enum JoinType {
-    /** media is bridged at the media server */
-    BRIDGE, // BRIDGE_EXCLUSIVE_KEEP
+    /**
+     * Media is bridged at the media server. It equals to BRIDGE_EXCLUSIVE with
+     * 'force' set with false
+     */
+    @Deprecated
+    BRIDGE,
 
-    BRIDGE_EXCLUSIVE_REPLACE,
+    /**
+     * Media is bridged at the media server. The EXCLUSIVE qualifier indicates
+     * that the join is designed to be exclusive or not exist at all.
+     */
+    BRIDGE_EXCLUSIVE,
 
+    /**
+     * Media is bridged at the media server. The SHARED qualifier indicates that
+     * the participants can be concurrently joined to other parties.
+     */
     BRIDGE_SHARED,
 
     /** media is connected between two endpoints */
     DIRECT;
 
     public static boolean isBridge(JoinType type) {
-      if (type != null && (type.equals(BRIDGE) || type.equals(BRIDGE_EXCLUSIVE_REPLACE) || type.equals(BRIDGE_SHARED))) {
+      if (type != null && (type.equals(BRIDGE) || type.equals(BRIDGE_EXCLUSIVE) || type.equals(BRIDGE_SHARED))) {
         return true;
       }
       return false;
@@ -49,7 +61,9 @@ public interface Participant extends EventSource {
   Endpoint getAddress();
 
   /**
-   * Connect this participant with the specified participant.
+   * The same to
+   * {@link Participant#join(Participant, JoinType, boolean, Direction)} with
+   * 'force' specified with false.
    * 
    * @param other
    *          the other participant to be connected with.
@@ -63,6 +77,26 @@ public interface Participant extends EventSource {
    *           if the participant has been released.
    */
   Joint join(Participant other, JoinType type, Direction direction);
+
+  /**
+   * Connect this participant with the specified participant.
+   * 
+   * @param other
+   *          the other participant to be connected with.
+   * @param type
+   *          whether the media is bridged or direct between the two
+   *          participants
+   * @param force
+   *          'false' means the join operation results in an
+   *          AlreadyJoinedException, otherwise the requested participant is
+   *          joined
+   * @param direction
+   *          whether the media is full duplex or half-duplex between the two
+   *          participants
+   * @throws IllegalStateException
+   *           if the participant has been released.
+   */
+  Joint join(Participant other, JoinType type, boolean force, Direction direction);
 
   /**
    * Disconnect from the specified participant. If the specific participant is

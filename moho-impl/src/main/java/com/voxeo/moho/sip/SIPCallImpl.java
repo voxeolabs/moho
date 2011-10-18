@@ -511,13 +511,19 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
     }
   }
-  
-  public synchronized int queuedJoinSize(){
+
+  public synchronized int queuedJoinSize() {
     return _joinQueue.size();
   }
 
   @Override
   public synchronized Joint join(final Participant other, final JoinType type, final Direction direction) {
+    return this.join(other, type, false, direction);
+  }
+
+  @Override
+  public synchronized Joint join(final Participant other, final JoinType type, final boolean force,
+      final Direction direction) {
     if (isTerminated()) {
       throw new IllegalStateException("This call is already terminated.");
     }
@@ -543,7 +549,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         _joinQueue.add(joinDelegate);
       }
       else {
-        JoinDelegate joinDelegate = new OtherParticipantJoinDelegate(this, other, direction);
+        JoinDelegate joinDelegate = new OtherParticipantJoinDelegate(this, other, type, direction);
         joinDelegate.setSettableJoint(joint);
 
         _joinQueue.add(joinDelegate);
@@ -555,13 +561,13 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     try {
       if (other instanceof SIPCallImpl) {
-        return doJoin((SIPCallImpl) other, type, direction);
+        return doJoin((SIPCallImpl) other, type, force, direction);
       }
       else if (other instanceof RemoteParticipant) {
         return doJoin((RemoteParticipant) other, type, direction);
       }
       else {
-        return doJoin(other, type, direction);
+        return doJoin(other, type, false, direction);
       }
     }
     catch (Exception ex) {
@@ -1050,25 +1056,36 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     _callDelegate = delegate;
   }
 
-  protected Joint doJoin(final SIPCallImpl other, final JoinType type, final Direction direction) throws Exception {
+  protected Joint doJoin(final SIPCallImpl other, final JoinType type, final boolean force, final Direction direction)
+      throws Exception {
     SettableJointImpl joint = new SettableJointImpl();
 
-    // join strategy check
+    // join strategy check on either side
     final Participant[] parts = getParticipants();
-    if (parts.length > 0) {
-      if (type == JoinType.BRIDGE_EXCLUSIVE_REPLACE) {
-        // unjoin previous joined Participant
-        for (Participant part : parts) {
-          doUnjoin(part, true);
-        }
-      }
-      else if (type == JoinType.BRIDGE) {
+    final Participant[] otherParts = other.getParticipants();
+
+    if (parts.length > 0 || otherParts.length > 0) {
+      if (!force || type == JoinType.BRIDGE) {
         // dispatch BUSY event
-        Exception e = new ExecutionException("Busy join", null);
+        Exception e = new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(this, other), null);
         JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
         dispatch(joinCompleteEvent);
         joint.done(e);
         return joint;
+      }
+      if (type == JoinType.BRIDGE_EXCLUSIVE) {
+        // unjoin previous joined Participant
+        if (parts.length > 0) {
+          for (Participant part : parts) {
+            doUnjoin(part, true);
+          }
+        }
+        if (otherParts.length > 0) {
+          for (Participant part : otherParts) {
+            Unjoint unjoint = other.unjoin(part);
+            unjoint.get();
+          }
+        }
       }
     }
 
@@ -1091,25 +1108,22 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     return joint;
   }
 
-  protected Joint doJoin(final Participant other, final JoinType type, final Direction direction) throws Exception {
+  protected Joint doJoin(final Participant other, final JoinType type, final boolean force, final Direction direction)
+      throws Exception {
     if (!(other.getMediaObject() instanceof Joinable)) {
       throw new IllegalArgumentException("MediaObject is't joinable.");
     }
 
     SettableJointImpl joint = new SettableJointImpl();
 
-    // join strategy check
+    // join strategy check on either side
     final Participant[] parts = getParticipants();
-    if (parts.length > 0) {
-      if (type == JoinType.BRIDGE_EXCLUSIVE_REPLACE) {
-        // unjoin previous joined Participant
-        for (Participant part : parts) {
-          doUnjoin(part, true);
-        }
-      }
-      else if (type == JoinType.BRIDGE) {
+    final Participant[] otherParts = other.getParticipants();
+
+    if (parts.length > 0 || otherParts.length > 0) {
+      if (!force || type == JoinType.BRIDGE) {
         // dispatch BUSY event
-        Exception e = new ExecutionException("Busy join", null);
+        Exception e = new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(this, other), null);
         JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
         dispatch(joinCompleteEvent);
         JoinCompleteEvent peerJoinCompleteEvent = new MohoJoinCompleteEvent(other, this, Cause.BUSY, e, false);
@@ -1117,9 +1131,23 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         joint.done(e);
         return joint;
       }
+      if (type == JoinType.BRIDGE_EXCLUSIVE) {
+        // unjoin previous joined Participant
+        if (parts.length > 0) {
+          for (Participant part : parts) {
+            doUnjoin(part, true);
+          }
+        }
+        if (otherParts.length > 0) {
+          for (Participant part : otherParts) {
+            Unjoint unjoint = other.unjoin(part);
+            unjoint.get();
+          }
+        }
+      }
     }
 
-    _joinDelegate = new OtherParticipantJoinDelegate(this, other, direction);
+    _joinDelegate = new OtherParticipantJoinDelegate(this, other, type, direction);
     _joinDelegate.setSettableJoint(joint);
 
     _joinDelegate.doJoin();

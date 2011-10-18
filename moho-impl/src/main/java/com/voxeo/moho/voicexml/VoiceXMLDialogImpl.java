@@ -105,7 +105,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
           }
         }
       }
-      
+
       ((ApplicationContextImpl) _context).addParticipant(this);
     }
     catch (final MsControlException e) {
@@ -208,6 +208,12 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
 
   @Override
   public Joint join(final Participant other, final JoinType type, final Direction direction)
+      throws IllegalStateException {
+    return this.join(other, type, false, direction);
+  }
+
+  @Override
+  public Joint join(final Participant other, final JoinType type, final boolean force, final Direction direction)
       throws IllegalStateException {
     synchronized (_lock) {
       if (_state != DialogState.IDLE) {

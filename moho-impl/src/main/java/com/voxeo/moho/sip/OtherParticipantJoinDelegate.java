@@ -14,12 +14,12 @@ public class OtherParticipantJoinDelegate extends JoinDelegate {
 
   protected Participant otherParticipant;
 
-  protected OtherParticipantJoinDelegate(final SIPCallImpl call1, final Participant participant,
+  protected OtherParticipantJoinDelegate(final SIPCallImpl call1, final Participant participant, final JoinType type,
       final Direction direction) {
     _call1 = call1;
     otherParticipant = participant;
     _direction = direction;
-    _joinType = JoinType.BRIDGE;
+    _joinType = type;
   }
 
   @Override

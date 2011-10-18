@@ -265,6 +265,12 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   @Override
   public Joint join(final Participant other, final JoinType type, final Direction direction)
       throws IllegalStateException {
+    return this.join(other, type, false, direction);
+  }
+
+  @Override
+  public Joint join(final Participant other, final JoinType type, final boolean force, final Direction direction)
+      throws IllegalStateException {
     synchronized (this) {
       checkState();
       if (_joinees.contains(other)) {
@@ -272,25 +278,61 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
     }
 
+    // join strategy check on either side
+    final Participant[] parts = getParticipants();
+    final Participant[] otherParts = other.getParticipants();
+
+    if (parts.length > 0 || otherParts.length > 0) {
+      try {
+        if (!force || type == JoinType.BRIDGE) {
+          // dispatch BUSY event
+          Exception e = new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(this, other), null);
+          MohoJoinCompleteEvent event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.BUSY, e, true);
+          dispatch(event);
+          MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, MixerImpl.this, Cause.BUSY, e, false);
+          other.dispatch(event2);
+          throw e;
+        }
+        if (type == JoinType.BRIDGE_EXCLUSIVE) {
+          // unjoin previous joined Participant
+          if (parts.length > 0) {
+            for (Participant part : parts) {
+              doUnjoin(part, true);
+            }
+          }
+          if (otherParts.length > 0) {
+            for (Participant part : otherParts) {
+              Unjoint unjoint = other.unjoin(part);
+              unjoint.get();
+            }
+          }
+        }
+      }
+      catch (Exception ex) {
+        // TODO
+        throw new RuntimeException(ex);
+      }
+    }
+
     if (other instanceof CallImpl) {
       Joint joint = null;
       if (isClampDtmf(null)) {
         try {
-          joint = other.join(new ClampDtmfMixerAdapter(), type, JoinDelegate.reserve(direction));
+          joint = other.join(new ClampDtmfMixerAdapter(), type, force, JoinDelegate.reserve(direction));
         }
         catch (MsControlException ex) {
           LOG.warn("can't clamp DTMF", ex);
-          joint = other.join(this, type, JoinDelegate.reserve(direction));
+          joint = other.join(this, type, force, JoinDelegate.reserve(direction));
         }
       }
       else {
-        joint = other.join(this, type, JoinDelegate.reserve(direction));
+        joint = other.join(this, type, force, JoinDelegate.reserve(direction));
       }
 
       return joint;
     }
     else if (other instanceof RemoteParticipant) {
-      return other.join(this, type, JoinDelegate.reserve(direction));
+      return other.join(this, type, force, JoinDelegate.reserve(direction));
     }
     else {
       if (!(other.getMediaObject() instanceof Joinable)) {
@@ -300,26 +342,6 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         @Override
         public JoinCompleteEvent call() throws Exception {
           JoinCompleteEvent event = null;
-
-          // join strategy check
-          final Participant[] parts = MixerImpl.this.getParticipants();
-          if (parts.length > 0) {
-            if (type == JoinType.BRIDGE_EXCLUSIVE_REPLACE) {
-              // unjoin previous joined Participant
-              for (Participant part : parts) {
-                MixerImpl.this.doUnjoin(part, true);
-              }
-            }
-            else if (type == JoinType.BRIDGE) {
-              // dispatch BUSY event
-              Exception e = new ExecutionException("Busy join", null);
-              event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.BUSY, e, true);
-              MixerImpl.this.dispatch(event);
-              MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, MixerImpl.this, Cause.BUSY, e, false);
-              other.dispatch(event2);
-              throw e;
-            }
-          }
 
           try {
             synchronized (MixerImpl.this) {
@@ -808,6 +830,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     @Override
     public Direction getDirection(Participant participant) {
       return _joinees.getDirection(participant);
+    }
+
+    @Override
+    public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
+      return MixerImpl.this.join(other, type, force, direction);
     }
   }
 
