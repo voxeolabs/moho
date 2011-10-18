@@ -463,18 +463,14 @@ public abstract class JoinDelegate {
       return call.getMultipleJoiningMixer();
     }
     else if (part instanceof MixerImpl) {
+      // MediaMixer supports to listen to more than one resource, so just use
+      // MixerImpl's own MediaMixer
       final MixerImpl mixer = (MixerImpl) part;
-      if (createIfNotExisted && mixer.getMultipleJoiningMixer() == null) {
-        mixer.createMultipleJoiningMixer();
-      }
-      return mixer.getMultipleJoiningMixer();
+      return (MediaMixer) mixer.getMediaObject();
     }
     else if (part instanceof ClampDtmfMixerAdapter) {
       final ClampDtmfMixerAdapter adapter = (ClampDtmfMixerAdapter) part;
-      if (createIfNotExisted && adapter.getMultipleJoiningMixer() == null) {
-        adapter.createMultipleJoiningMixer();
-      }
-      return adapter.getMultipleJoiningMixer();
+      return (MediaMixer) adapter.getMixer().getMediaObject();
     }
     return null;
   }
@@ -484,14 +480,6 @@ public abstract class JoinDelegate {
       if (part instanceof SIPCallImpl) {
         final SIPCallImpl call = (SIPCallImpl) part;
         call.destroyMultipleJoiningMixer();
-      }
-      else if (part instanceof MixerImpl) {
-        final MixerImpl mixer = (MixerImpl) part;
-        mixer.destroyMultipleJoiningMixer();
-      }
-      else if (part instanceof ClampDtmfMixerAdapter) {
-        final ClampDtmfMixerAdapter adapter = (ClampDtmfMixerAdapter) part;
-        adapter.destroyMultipleJoiningMixer();
       }
     }
     catch (Throwable t) {
