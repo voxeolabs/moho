@@ -27,7 +27,6 @@ import javax.media.mscontrol.MediaObject;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.MsControlFactory;
-import javax.media.mscontrol.Parameter;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -82,11 +81,6 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   protected JoineeData _joinees = new JoineeData();
 
   protected Map<Object, Participant> activeInputParticipant = new HashMap<Object, Participant>();
-
-  protected MediaMixer _multiplejoiningMixer;
-
-  // TODO: join to MediaGroup
-  protected MediaMixer _MultiplejoiningMixerForMedGrop;
 
   protected MixerImpl(final ExecutionContext context, final MixerEndpoint address, final Map<Object, Object> params,
       Parameters parameters) {
@@ -189,7 +183,6 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
     try {
       _mixer.release();
-      destroyMultipleJoiningMixer();
     }
     catch (final Exception e) {
       LOG.warn("Exception when release mixer", e);
@@ -816,32 +809,6 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     public Direction getDirection(Participant participant) {
       return _joinees.getDirection(participant);
     }
-
-    public void createMultipleJoiningMixer() throws MsControlException {
-      MixerImpl.this.createMultipleJoiningMixer();
-    }
-
-    public void destroyMultipleJoiningMixer() throws MsControlException {
-      try {
-        if (_multiplejoiningMixer != null) {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("destroyMultipleJoiningMixer: " + _multiplejoiningMixer);
-          }
-
-          if (_mixerAdapter != null) {
-            _mixerAdapter.unjoin(_multiplejoiningMixer);
-          }
-          _multiplejoiningMixer.release();
-        }
-      }
-      finally {
-        _multiplejoiningMixer = null;
-      }
-    }
-
-    public MediaMixer getMultipleJoiningMixer() {
-      return MixerImpl.this.getMultipleJoiningMixer();
-    }
   }
 
   // listener for Active speaker event.
@@ -945,36 +912,5 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   @Override
   public Direction getDirection(Participant participant) {
     return _joinees.getDirection(participant);
-  }
-
-  public void createMultipleJoiningMixer() throws MsControlException {
-    if (_multiplejoiningMixer == null) {
-      Parameters params = Parameters.NO_PARAMETER;
-      params = _mixer.getParameters(new Parameter[] {MediaObject.MEDIAOBJECT_ID});
-      params.put(MediaObject.MEDIAOBJECT_ID, "JoinStrategy-ShadowMixer-" + params.get(MediaObject.MEDIAOBJECT_ID));
-      _multiplejoiningMixer = _media.createMediaMixer(_mixer.getConfig(), params);
-    }
-  }
-
-  public void destroyMultipleJoiningMixer() throws MsControlException {
-    try {
-      if (_multiplejoiningMixer != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("destroyMultipleJoiningMixer: " + _multiplejoiningMixer);
-        }
-
-        if (_mixer != null) {
-          _mixer.unjoin(_multiplejoiningMixer);
-        }
-        _multiplejoiningMixer.release();
-      }
-    }
-    finally {
-      _multiplejoiningMixer = null;
-    }
-  }
-
-  public MediaMixer getMultipleJoiningMixer() {
-    return _multiplejoiningMixer;
   }
 }
