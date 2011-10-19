@@ -1,4 +1,4 @@
-package com.voxeo.moho.remote;
+package com.voxeo.moho.remotejoin;
 
 import com.voxeo.moho.Participant;
 

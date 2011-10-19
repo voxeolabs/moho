@@ -71,7 +71,7 @@ import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.media.GenericMediaService;
-import com.voxeo.moho.remote.RemoteParticipant;
+import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 
@@ -799,7 +799,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         unjoinCause = UnjoinCompleteEvent.Cause.DISCONNECT;
       }
 
-      participant.dispatch(new MohoUnjoinCompleteEvent(participant, SIPCallImpl.this, unjoinCause, exception, false));
       dispatch(new MohoUnjoinCompleteEvent(this, participant, unjoinCause, exception, true));
 
       if (participant instanceof ParticipantContainer) {
