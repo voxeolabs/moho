@@ -61,7 +61,7 @@ import com.voxeo.moho.media.Recording;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.record.RecordCommand;
-import com.voxeo.moho.remote.RemoteParticipant;
+import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.spi.ExecutionContext;
 

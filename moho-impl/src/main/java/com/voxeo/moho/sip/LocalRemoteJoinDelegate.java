@@ -11,6 +11,7 @@ import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ApplicationContext;
+import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.Participant;
@@ -19,7 +20,7 @@ import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.MohoJoinCompleteEvent;
-import com.voxeo.moho.remote.RemoteParticipant;
+import com.voxeo.moho.remotejoin.RemoteParticipant;
 
 public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventListener<SdpPortManagerEvent> {
 
@@ -42,7 +43,7 @@ public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventL
   }
 
   @Override
-  protected void doJoin() throws Exception { 
+  protected void doJoin() throws Exception {
     _remoteParticipant.startJoin(_localParticipant, this);
 
     if (_localParticipant.getMediaObject() == null && _localParticipant instanceof Call) {
@@ -67,7 +68,8 @@ public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventL
 
         final byte[] sdp = event.getMediaServerSdp();
         try {
-          _remoteParticipant.remoteJoin(_localParticipant.getRemoteAddress(), sdp);
+          ((ApplicationContextImpl) _remoteParticipant.getApplicationContext()).getRemoteCommunication().join(
+              _localParticipant.getId(), _remoteParticipant.getId(), sdp);
         }
         catch (final Exception e) {
           LOG.error("", e);
@@ -133,13 +135,12 @@ public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventL
     if (cause == Cause.JOINED) {
       ((ParticipantContainer) _localParticipant).addParticipant(_remoteParticipant, _joinType, _direction, null);
     }
-    _localParticipant.dispatch(joinCompleteEvent);
-
     _remoteParticipant.joinDone(notifyRemote);
 
     _settableJoint.done(joinCompleteEvent);
+    
+    _localParticipant.dispatch(joinCompleteEvent);
     done = true;
   }
-  
-  
+
 }

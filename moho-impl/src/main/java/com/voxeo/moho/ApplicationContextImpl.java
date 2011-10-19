@@ -15,6 +15,11 @@
 package com.voxeo.moho;
 
 import java.io.File;
+import java.rmi.NoSuchObjectException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,13 +47,16 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 import com.voxeo.moho.conference.ConferenceDriverImpl;
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.event.DispatchableEventSource;
-import com.voxeo.moho.remote.RemoteJoinDriverImpl;
+import com.voxeo.moho.remote.network.RemoteCommunication;
+import com.voxeo.moho.remote.network.RemoteCommunicationImpl;
 import com.voxeo.moho.services.Service;
+import com.voxeo.moho.sip.RemoteParticipantImpl;
 import com.voxeo.moho.sip.SIPDriverImpl;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.ProtocolDriver;
-import com.voxeo.moho.spi.RemoteJoinDriver;
 import com.voxeo.moho.spi.SpiFramework;
+import com.voxeo.moho.util.NetworkUtils;
+import com.voxeo.moho.util.ParticipantIDParser;
 import com.voxeo.moho.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.utils.EventListener;
 import com.voxeo.moho.voicexml.VoiceXMLDriverImpl;
@@ -95,6 +103,21 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   protected Map<String, Participant> _participants = new ConcurrentHashMap<String, Participant>();
 
+  // remote join
+  protected Registry _registry = null;
+
+  protected RemoteCommunicationImpl _remoteCommunication;
+
+  protected String _remoteCommunicationRMIAddress;
+
+  protected int _remoteCommunicationPort;
+
+  protected String _remoteCommunicationAddress;
+
+  protected String _remoteObject;
+
+  protected String _schema = "moho";
+
   @SuppressWarnings("unchecked")
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipServlet servlet) {
     super();
@@ -136,7 +159,6 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       registerDriver(ProtocolDriver.PROTOCOL_SIP, SIPDriverImpl.class.getName());
       registerDriver(ProtocolDriver.PROTOCOL_VXML, VoiceXMLDriverImpl.class.getName());
       registerDriver(ProtocolDriver.PROTOCOL_CONF, ConferenceDriverImpl.class.getName());
-      registerDriver(RemoteJoinDriver.PROTOCOL_REMOTEJOIN, RemoteJoinDriverImpl.class.getName());
     }
     catch (Exception ex) {
       LOG.error("Moho is unable to register drivers: " + ex, ex);
@@ -194,6 +216,25 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
     _msFactory = this.getService(MediaServiceFactory.class);
     _confMgr = this.getService(ConferenceManager.class);
+
+    try {
+      // TODO configure address
+      _remoteCommunicationPort = 4231;
+      _remoteCommunicationAddress = NetworkUtils.getLocalAddress().toString();
+      if(_remoteCommunicationAddress.startsWith("/")){
+        _remoteCommunicationAddress = _remoteCommunicationAddress.substring(1);
+      }
+      _remoteObject = "RemoteCommunication";
+      _remoteCommunication = new RemoteCommunicationImpl(this);
+      _registry = LocateRegistry.createRegistry(4231);
+      RemoteCommunication stub = (RemoteCommunication) UnicastRemoteObject.exportObject(_remoteCommunication, 0);
+      _registry.rebind(_remoteObject, stub);
+      _remoteCommunicationRMIAddress = "rmi://" + _remoteCommunicationAddress + ":" + _remoteCommunicationPort + "/"
+          + _remoteObject;
+    }
+    catch (RemoteException ex) {
+      LOG.error("Error when initialize remote communication", ex);
+    }
   }
 
   @Override
@@ -205,26 +246,6 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     if (addr == null) {
       throw new IllegalArgumentException("argument is null");
     }
-    // if (addr.startsWith("sip:") || addr.startsWith("sips:") ||
-    // addr.startsWith("<sip:") || addr.startsWith("<sips:")) {
-    // return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
-    // }
-    // else if (addr.startsWith("mscontrol://")) {
-    // return new MixerEndpointImpl(this, addr);
-    // }
-    // else if (addr.startsWith("file://") || addr.startsWith("http://") ||
-    // addr.startsWith("https://")
-    // || addr.startsWith("ftp://")) {
-    // return new VoiceXMLEndpointImpl(this, addr);
-    // }
-    // else if (addr.startsWith("tel:") || addr.startsWith("fax:") ||
-    // addr.startsWith("<tel:")
-    // || addr.startsWith("<fax:")) {
-    // return new SIPEndpointImpl(this, _sipFactory.createAddress(addr));
-    // }
-    // else if (type != null && TextChannels.getProvider(type) != null) {
-    // return TextChannels.getProvider(type).createEndpoint(addr, this);
-    // }
     String schema = addr.split(":")[0];
     if (schema == null || schema.trim().length() == 0) {
       throw new IllegalArgumentException("Address must be in the form of URL or <URL>.");
@@ -331,6 +352,14 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     Collection<Service> beans = _springContext.getBeansOfType(Service.class).values();
     for (Service service : beans) {
       service.destroy();
+    }
+
+    try {
+      UnicastRemoteObject.unexportObject(_remoteCommunication, true);
+      UnicastRemoteObject.unexportObject(_registry, true);
+    }
+    catch (NoSuchObjectException e) {
+      LOG.warn("", e);
     }
   }
 
@@ -476,7 +505,13 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   @Override
   public Participant getParticipant(String id) {
-    return _participants.get(id);
+    String ip = ParticipantIDParser.getIpAddress(id);
+    if(ip.equalsIgnoreCase(_remoteCommunicationAddress)){
+      return _participants.get(id);
+    }
+    else{
+      return new RemoteParticipantImpl(this, id);
+    }
   }
 
   public void addParticipant(Participant participant) {
@@ -485,5 +520,28 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   public void removeParticipant(String id) {
     _participants.remove(id);
+  }
+
+  public String generateID(String type, String id) {
+    // TODO ADDRESS
+    String remoteAddress = _schema + "://" + _remoteCommunicationAddress + ":" + _remoteCommunicationPort + "/" + type
+        + "/" + id;
+    return remoteAddress;
+  }
+
+  public RemoteCommunicationImpl getRemoteCommunication() {
+    return _remoteCommunication;
+  }
+
+  public String getRemoteCommunicationRMIAddress() {
+    return _remoteCommunicationRMIAddress;
+  }
+
+  public int getRemoteCommunicationPort() {
+    return _remoteCommunicationPort;
+  }
+
+  public String getRemoteCommunicationAddress() {
+    return _remoteCommunicationAddress;
   }
 }

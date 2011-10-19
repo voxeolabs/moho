@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.voxeo.moho.remote.RemoteParticipant;
+import com.voxeo.moho.remotejoin.RemoteParticipant;
 
 public class ParticipantIDParser {
 

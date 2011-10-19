@@ -52,7 +52,7 @@ import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.MohoMediaResourceDisconnectEvent;
 import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
-import com.voxeo.moho.remote.RemoteParticipant;
+import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.spi.ExecutionContext;
 

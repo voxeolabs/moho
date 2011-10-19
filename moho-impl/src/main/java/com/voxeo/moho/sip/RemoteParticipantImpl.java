@@ -12,6 +12,7 @@ import javax.media.mscontrol.networkconnection.NetworkConnection;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ApplicationContext;
+import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.Participant;
@@ -26,13 +27,15 @@ import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.remote.RemoteEndpointImpl;
-import com.voxeo.moho.remote.RemoteParticipant;
+import com.voxeo.moho.remotejoin.RemoteParticipant;
 
 public class RemoteParticipantImpl implements RemoteParticipant, ParticipantContainer {
 
   private static final Logger LOG = Logger.getLogger(RemoteParticipantImpl.class);
 
-  protected RemoteEndpointImpl _endpoint;
+  protected String _id;
+
+  protected ApplicationContextImpl _appContext;
 
   protected MediaSession _mediaSession;
 
@@ -48,9 +51,10 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
 
   protected Participant _joiningParticipant;
 
-  public RemoteParticipantImpl(RemoteEndpointImpl endpoint) {
+  public RemoteParticipantImpl(final ApplicationContextImpl appContext, final String id) {
     super();
-    this._endpoint = endpoint;
+    _id = id;
+    _appContext = appContext;
   }
 
   @Override
@@ -77,7 +81,7 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
 
   @Override
   public ApplicationContext getApplicationContext() {
-    return _endpoint.getApplicationContext();
+    return _appContext;
   }
 
   @Override
@@ -103,7 +107,7 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
 
   @Override
   public String getId() {
-    return _endpoint.getName();
+    return _id;
   }
 
   @Override
@@ -124,7 +128,7 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
 
   @Override
   public Endpoint getAddress() {
-    return _endpoint;
+    return new RemoteEndpointImpl(_appContext, _id);
   }
 
   @Override
@@ -178,20 +182,12 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
 
   @Override
   public MediaObject getMediaObject() {
-    throw new UnsupportedOperationException();
-  }
-
-  public void remoteJoin(String joinerID, byte[] sdp) throws Exception {
-    _endpoint.getJoinDriver().getRemoteCommunication().join(joinerID, _endpoint.getAddress(), sdp);
-  }
-
-  public void remoteJoinAnswer(String joineeID, byte[] sdp) throws Exception {
-    _endpoint.getJoinDriver().getRemoteCommunication().joinAnswer(_endpoint.getAddress(), joineeID, sdp);
+    return _network;
   }
 
   @Override
   public String getRemoteAddress() {
-    return _endpoint.getName();
+    return _id;
   }
 
   public MediaSession getMediaSession() {
@@ -237,8 +233,8 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
       Exception exception = _joinDelegate.getException();
 
       if (notifyRemote) {
-        _endpoint.getJoinDriver().getRemoteCommunication()
-            .joinDone(_joiningParticipant.getRemoteAddress(), _endpoint.getAddress(), cause, exception);
+        _appContext.getRemoteCommunication().joinDone(_joiningParticipant.getRemoteAddress(), this.getId(), cause,
+            exception);
       }
     }
     finally {
@@ -249,13 +245,12 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
   }
 
   public Unjoint unjoin(final Participant other) {
-    Unjoint task = new UnjointImpl(_endpoint.getApplicationContext().getExecutor(),
-        new Callable<UnjoinCompleteEvent>() {
-          @Override
-          public UnjoinCompleteEvent call() throws Exception {
-            return doUnjoin(other, true);
-          }
-        });
+    Unjoint task = new UnjointImpl(_appContext.getExecutor(), new Callable<UnjoinCompleteEvent>() {
+      @Override
+      public UnjoinCompleteEvent call() throws Exception {
+        return doUnjoin(other, true);
+      }
+    });
 
     return task;
   }
@@ -266,8 +261,7 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
       disconnect();
 
       if (!_remoteInitiateUnjoin) {
-        _endpoint.getJoinDriver().getRemoteCommunication()
-            .remoteUnjoin(other.getRemoteAddress(), _endpoint.getAddress());
+        _appContext.getRemoteCommunication().unjoin(other.getRemoteAddress(), this.getId());
       }
 
       if (callPeerUnjoin) {
