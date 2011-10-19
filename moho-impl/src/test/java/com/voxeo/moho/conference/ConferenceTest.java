@@ -44,6 +44,7 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MixerEndpoint;
+import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
@@ -191,12 +192,15 @@ public class ConferenceTest extends TestCase {
           
           allowing(call).getMultipleJoiningMixer();
           will(returnValue(multipleJoiningMixer));
+          
+          allowing(call).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           oneOf(call).addObserver(with(any(Observer.class)));
           oneOf(call).input(exitCommand);
 
           // join
-          oneOf(call).join(mohoConference, JoinType.BRIDGE, Direction.DUPLEX);
+          oneOf(call).join(mohoConference, JoinType.BRIDGE,false, Direction.DUPLEX);
           will(new Action() {
             @Override
             public void describeTo(Description description) {

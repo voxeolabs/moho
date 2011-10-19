@@ -802,6 +802,9 @@ public class SIPIncomingCallTest extends TestCase {
 
           });
           
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
+          
           allowing(outgoingCall).getParticipants(with(any(Direction.class)));
           will(returnValue(new Participant[]{}));
           when(outgoingCallStates.is("resped"));
@@ -962,6 +965,9 @@ public class SIPIncomingCallTest extends TestCase {
             }
           });
 
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
+          
           allowing(outgoingCall).getParticipants(with(any(Direction.class)));
           will(returnValue(new Participant[]{}));
           when(outgoingCallStates.is("rejoined"));
@@ -1125,6 +1131,9 @@ public class SIPIncomingCallTest extends TestCase {
             }
           });
           
+          allowing(incomingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
+          
           allowing(incomingCall).getParticipants(with(any(Direction.class)));
           will(returnValue(new Participant[]{}));
           //when(incomingCallStates.is("rejoined"));
@@ -1234,6 +1243,9 @@ public class SIPIncomingCallTest extends TestCase {
           will(returnValue(true));
 
           oneOf(incomingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
+          
+          allowing(incomingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
           
           allowing(incomingCall).getParticipants(with(any(Direction.class)));
           will(returnValue(new Participant[]{}));
@@ -1430,6 +1442,9 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(outgoingCall).isTerminated();
           will(returnValue(false));
+          
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           allowing(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
 
@@ -1823,6 +1838,9 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(outgoingCall).isTerminated();
           will(returnValue(false));
+          
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           oneOf(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
 
@@ -2042,6 +2060,9 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(outgoingCall).isTerminated();
           will(returnValue(false));
+          
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           allowing(outgoingCall).isDirectlyJoined();
           will(returnValue(true));
@@ -2275,6 +2296,9 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(incomingCall).isTerminated();
           will(returnValue(false));
+          
+          allowing(incomingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           allowing(incomingCall).getRemoteSdp();
           will(returnValue(incomingCallInviteReqSDP));
@@ -2480,6 +2504,8 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(incomingCall).isTerminated();
           will(returnValue(false));
+          allowing(incomingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           allowing(incomingCall).getRemoteSdp();
           will(returnValue(null));
@@ -2746,6 +2772,9 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(incomingCall).isTerminated();
           will(returnValue(false));
+          
+          allowing(incomingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           allowing(incomingCall).isAnswered();
           will(returnValue(true));
@@ -3000,6 +3029,9 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(incomingCall).isTerminated();
           will(returnValue(false));
+          
+          allowing(incomingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           allowing(incomingCall).getSipSession();
           will(returnValue(incomingCallSession));
@@ -3333,6 +3365,9 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(outgoingCall).getMediaObject();
           will(returnValue(outgoingCallNetwork));
           when(outgoingCallStates.is("resped"));
+          
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           oneOf(outgoingCall).join(Direction.DUPLEX);
           will(new Action() {

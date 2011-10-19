@@ -1230,6 +1230,9 @@ public class SIPOutgoingCallTest extends TestCase {
           allowing(outgoingCall).getParticipants(with(any(Direction.class)));
           will(returnValue(new Participant[]{}));
           
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
+          
           allowing(outgoingCall).continueQueuedJoin();
           allowing(outgoingCall).queuedJoinSize();
           will(returnValue(0));
@@ -1367,6 +1370,9 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(outgoingCall).joinDone(with(any(SIPOutgoingCall.class)), with(any(JoinDelegate.class)));
 
           oneOf(outgoingCall).dispatch(with(any(MohoJoinCompleteEvent.class)));
+          
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
         }
       });
     }
@@ -1463,6 +1469,9 @@ public class SIPOutgoingCallTest extends TestCase {
           allowing(outgoingCall).queuedJoinSize();
           will(returnValue(0));
           oneOf(outgoingCall).addPeer(with(any(Call.class)), with(any(JoinType.class)), with(any(Direction.class)));
+          
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
         }
       });
     }
@@ -1628,6 +1637,9 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingSession).getApplicationSession();
           will(returnValue(outgoingAppSession));
+          
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           try {
             mockery.checking(new Expectations() {
@@ -1845,6 +1857,9 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingSession).getApplicationSession();
           will(returnValue(outgoingAppSession));
+          
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           try {
             mockery.checking(new Expectations() {
@@ -2069,6 +2084,9 @@ public class SIPOutgoingCallTest extends TestCase {
           will(returnValue(0));
           allowing(outgoingSession).getApplicationSession();
           will(returnValue(outgoingAppSession));
+          
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           oneOf(outgoingCall).call(null);
           will(new Action() {
@@ -2279,6 +2297,9 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCallSession).getApplicationSession();
           will(returnValue(outgoingAppSession));
+          
+          allowing(outgoingCall).getParticipants();
+          will(returnValue(new Participant[]{}));
 
           try {
             mockery.checking(new Expectations() {

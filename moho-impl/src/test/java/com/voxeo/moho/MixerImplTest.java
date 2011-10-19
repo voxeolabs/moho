@@ -133,9 +133,11 @@ public class MixerImplTest extends TestCase {
 
           allowing(call).getMultipleJoiningMixer();
           will(returnValue(multipleJoiningMixer));
-
+          
+          allowing(call).getParticipants();
+          will(returnValue(new Participant[]{}));
           // join
-          oneOf(call).join(mohoMixer, JoinType.BRIDGE, Direction.DUPLEX);
+          oneOf(call).join(mohoMixer, JoinType.BRIDGE,false, Direction.DUPLEX);
           will(new Action() {
             @Override
             public void describeTo(Description description) {
