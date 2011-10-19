@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
+import com.voxeo.moho.Mixer;
 import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.MixerImpl.ClampDtmfMixerAdapter;
 import com.voxeo.moho.Participant;
@@ -344,12 +345,21 @@ public abstract class JoinDelegate {
       final Participant peer, final Participant other, final MediaMixer otherMultipleJoiningMixer,
       final Direction direction) throws MsControlException {
     final Joinable joinable = getJoinable(part);
-    final Joinable peerJoinable = getJoinable(peer);
-    final MediaMixer peerMultipleJoiningMixer = getMultipleJoiningMixer(peer, false);
-    final Direction peerDirection = ((ParticipantContainer) part).getDirection(peer);
     final Joinable otherJoinable = getJoinable(other);
-    _sharedJoin(joinable, multipleJoiningMixer, peerJoinable, peerDirection, peerMultipleJoiningMixer, otherJoinable,
-        otherMultipleJoiningMixer, direction);
+    if (part instanceof Mixer) {
+      //
+      // we don't need to rejoin its peer Participant in RECV direction,
+      // because Mixer supports "listen to more than one".
+      //
+      _sharedJoin(joinable, multipleJoiningMixer, null, null, null, otherJoinable, otherMultipleJoiningMixer, direction);
+    }
+    else {
+      final Joinable peerJoinable = getJoinable(peer);
+      final MediaMixer peerMultipleJoiningMixer = getMultipleJoiningMixer(peer, false);
+      final Direction peerDirection = ((ParticipantContainer) part).getDirection(peer);
+      _sharedJoin(joinable, multipleJoiningMixer, peerJoinable, peerDirection, peerMultipleJoiningMixer, otherJoinable,
+          otherMultipleJoiningMixer, direction);
+    }
   }
 
   /**
@@ -379,8 +389,17 @@ public abstract class JoinDelegate {
       final Direction direction) throws MsControlException {
     final Joinable joinable = getJoinable(part);
     final Joinable otherJoinable = getJoinable(other);
-    _sharedJoin(joinable, multipleJoiningMixer, medGro, Direction.DUPLEX, null, otherJoinable,
-        otherMultipleJoiningMixer, direction);
+    if (part instanceof Mixer) {
+      //
+      // we don't need to rejoin its MediaService(MediaGroup),
+      // because Mixer supports "listen to more than one".
+      //
+      _sharedJoin(joinable, multipleJoiningMixer, null, null, null, otherJoinable, otherMultipleJoiningMixer, direction);
+    }
+    else {
+      _sharedJoin(joinable, multipleJoiningMixer, medGro, Direction.DUPLEX, null, otherJoinable,
+          otherMultipleJoiningMixer, direction);
+    }
   }
 
   /**
@@ -404,11 +423,20 @@ public abstract class JoinDelegate {
   protected static void sharedJoin(final Participant part, final MediaMixer multipleJoiningMixer,
       final Participant peer, final MediaGroup medGro) throws MsControlException {
     final Joinable joinable = getJoinable(part);
-    final Joinable peerJoinable = getJoinable(peer);
-    final Direction peerDirection = ((ParticipantContainer) part).getDirection(peer);
-    final MediaMixer peerMultipleJoiningMixer = getMultipleJoiningMixer(peer, false);
-    _sharedJoin(joinable, multipleJoiningMixer, peerJoinable, peerDirection, peerMultipleJoiningMixer, medGro, null,
-        Direction.DUPLEX);
+    if (part instanceof Mixer) {
+      //
+      // we don't need to rejoin its peer Participant,
+      // because Mixer supports "listen to more than one".
+      //
+      _sharedJoin(joinable, multipleJoiningMixer, null, null, null, medGro, null, Direction.DUPLEX);
+    }
+    else {
+      final Joinable peerJoinable = getJoinable(peer);
+      final Direction peerDirection = ((ParticipantContainer) part).getDirection(peer);
+      final MediaMixer peerMultipleJoiningMixer = getMultipleJoiningMixer(peer, false);
+      _sharedJoin(joinable, multipleJoiningMixer, peerJoinable, peerDirection, peerMultipleJoiningMixer, medGro, null,
+          Direction.DUPLEX);
+    }
   }
 
   private static void _sharedJoin(final Joinable joinable, final MediaMixer multipleJoiningMixer,
@@ -416,7 +444,7 @@ public abstract class JoinDelegate {
       final Joinable otherJoinable, final MediaMixer otherMultipleJoiningMixer, final Direction direction)
       throws MsControlException {
     // first rejoin to peer
-    if (!peerJoinable.equals(multipleJoiningMixer)) {
+    if (peerJoinable != null && !peerJoinable.equals(multipleJoiningMixer)) {
       joinable.unjoin(peerJoinable);
       joinable.join(Direction.RECV, multipleJoiningMixer);
       if (isRecv(peerDirection)) {
