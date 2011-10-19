@@ -16,7 +16,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
-import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.sdp.SdpException;
@@ -27,7 +26,6 @@ import javax.servlet.sip.SipServletResponse;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.NegotiateException;
-import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPCallImpl.HoldState;
@@ -49,9 +47,11 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   @Override
   protected void handleAck(final SIPCallImpl call, final SipServletRequest req) throws Exception {
     try {
-      call.processSDPAnswer(req);
-      _isWaiting = false;
-      call.notifyAll();
+      if (call.getHoldState() == HoldState.None) {
+        call.processSDPAnswer(req);
+        _isWaiting = false;
+        call.notifyAll();
+      }
     }
     catch (final Exception e) {
       LOG.error("Exception", e);
@@ -63,38 +63,21 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   protected void handleReinvite(final SIPCallImpl call, final SipServletRequest req, final Map<String, String> headers)
       throws Exception {
     _req = req;
-    _isWaiting = true;
-    call.processSDPOffer(req);
 
-    while (call.isAnswered() & _isWaiting) {
-      try {
-        call.wait();
-      }
-      catch (final InterruptedException e) {
-        // ignore
-      }
-    }
-    if (call.getSIPCallState() != State.ANSWERED) {
-      throw new SignalException("Call state error: " + call);
-    }
+    if (call.getHoldState() == HoldState.None) {
+      _isWaiting = true;
+      call.processSDPOffer(req);
 
-    // if it is a hold request, hold peer.
-    SIPCallImpl peerCall = (SIPCallImpl) call.getLastPeer();
-    if (peerCall != null) {
-
-      String sdp = new String(call.getRemoteSdp(), "iso8859-1");
-      if (sdp.indexOf("sendonly") > 0) {
-        if (JoinType.isBridge(call.getJoinType(peerCall))) {
-          ((NetworkConnection) peerCall.getMediaObject()).unjoin((NetworkConnection) call.getMediaObject());
+      while (call.isAnswered() & _isWaiting) {
+        try {
+          call.wait();
         }
-        peerCall.hold(true);
-      }
-      else if (sdp.indexOf("sendrecv") > 0) {
-        if (JoinType.isBridge(call.getJoinType(peerCall))) {
-          ((NetworkConnection) peerCall.getMediaObject()).join(Direction.DUPLEX,
-              (NetworkConnection) call.getMediaObject());
+        catch (final InterruptedException e) {
+          // ignore
         }
-        peerCall.unhold();
+      }
+      if (call.getSIPCallState() != State.ANSWERED) {
+        throw new SignalException("Call state error: " + call);
       }
     }
   }
