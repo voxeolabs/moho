@@ -88,8 +88,10 @@ public class Media2NOJoinDelegate extends JoinDelegate {
 
         if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
           if (SIPHelper.getRawContentWOException(res) != null) {
+        	  if (!processedAnswer) {
             processedAnswer = true;
             _call1.processSDPAnswer(res);
+        	  }
           }
 
           try {
