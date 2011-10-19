@@ -7,7 +7,6 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.presence.NotifyBody;
 import com.voxeo.moho.presence.PresenceStore;
-import com.voxeo.moho.presence.Resource;
 import com.voxeo.moho.presence.impl.StoreHolder;
 import com.voxeo.moho.presence.impl.sip.SIPPresenceStore;
 import com.voxeo.moho.presence.sip.SIPResource;
@@ -43,8 +42,8 @@ public class NotifyRequest implements Runnable {
     
   }
     
-  public NotifyRequest(SIPSubscriptionContext subscription, PresenceStore presenceStore) {
-    _presenceStore = presenceStore;
+  public NotifyRequest(SIPSubscriptionContext subscription) {
+    _presenceStore = StoreHolder.getPresenceStore();
     _subscription = subscription;
   }
 

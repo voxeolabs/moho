@@ -21,12 +21,14 @@ import javax.servlet.sip.Address;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.URI;
 
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.MohoSubscribeEvent;
-import com.voxeo.moho.presence.sip.impl.SIPSubscriptionContextImpl;
+import com.voxeo.moho.sip.SIPEndpoint;
+import com.voxeo.moho.sip.SIPSubscribeEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.SpiFramework;
 
@@ -113,10 +115,17 @@ public class SIPSubscribeEventImpl extends MohoSubscribeEvent implements SIPSubs
     try {
       Address from = _req.getAddressHeader("From");
       Address to = _req.getAddressHeader("To");
-      return new SIPSubscriptionContextImpl(from.getURI(), to.getURI(), _req);
+      return (SubscriptionContext) Class.forName("com.voxeo.moho.presence.sip.impl.SIPSubscriptionContextImpl")
+          .getConstructor(new Class<?>[] {URI.class, URI.class, SipServletRequest.class}).newInstance(from.getURI(), to.getURI(), _req);
+    }
+    catch (ClassNotFoundException e) {
+      throw new IllegalStateException("Can't find presence module", e);
     }
     catch (ServletParseException e) {
       throw new IllegalArgumentException(e);
+    }
+    catch (Exception e) {
+      throw new IllegalStateException(e);
     }
   }
 

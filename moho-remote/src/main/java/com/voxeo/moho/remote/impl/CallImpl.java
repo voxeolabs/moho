@@ -23,6 +23,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.media.mscontrol.MediaObject;
 import javax.media.mscontrol.join.Joinable;
@@ -123,6 +126,8 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   protected boolean _isMuted;
 
   protected boolean _isHold;
+  
+  protected ReadWriteLock joinLock = new ReentrantReadWriteLock(); 
 
   protected CallImpl(MohoRemoteImpl mohoRemote, String callID, CallableEndpoint caller, CallableEndpoint callee,
       Map<String, String> headers) {
@@ -461,7 +466,9 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   @Override
   public Joint join(Participant other, JoinType type, Direction direction) {
     JointImpl joint = null;
+    Lock lock = joinLock.writeLock(); 
     try {
+    	lock.lock();
       this.startJoin();
       // TODO make a parent class implement participant.
       ((CallImpl) other).startJoin();
@@ -470,8 +477,6 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       command.setCallId(this.getId());
       command.setTo(other.getId());
       command.setMedia(type);
-      // TODO stategy
-      // command.setStrategy(strategy)
       command.setDirection(direction);
       JoinDestinationType destinationType = null;
       if (other instanceof Call) {
@@ -481,20 +486,27 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         destinationType = JoinDestinationType.MIXER;
       }
       command.setType(destinationType);
-
-      IQ iq = _mohoRemote.getRayoClient().join(command, this.getId());
-
-      if (iq.isError()) {
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
-        throw new SignalException(error.getCondition() + error.getText());
-      }
+      
       joint = new JointImpl(this, type, direction);
       _joints.put(other.getId(), joint);
       ((CallImpl) other)._joints.put(this.getId(), joint);
+      
+      IQ iq = _mohoRemote.getRayoClient().join(command, this.getId());
+
+      if (iq.isError()) {
+          _joints.remove(other.getId());
+          ((CallImpl) other)._joints.remove(this.getId());
+        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+        throw new SignalException(error.getCondition() + error.getText());
+      }
     }
     catch (XmppException e) {
+        _joints.remove(other.getId());
+        ((CallImpl) other)._joints.remove(this.getId());
       LOG.error("", e);
       throw new SignalException("", e);
+    } finally {
+    	lock.unlock();
     }
     return joint;
   }
@@ -578,7 +590,7 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
-        _isMuted = true;
+        _isMuted = false;
       }
     }
     catch (XmppException e) {
@@ -706,7 +718,8 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
     _headers = null;
 
     // TODO
-    _componentListeners.clear();
+    // Commenting this as otherwise complete events for active verbs will not make it to the client
+    //_componentListeners.clear();
 
     Collection<JointImpl> joints = _joints.values();
     for (JointImpl joint : joints) {
@@ -748,7 +761,9 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   public void onRayoEvent(JID from, Presence presence) {
     if (from.getResource() != null) {
       RayoListener listener = _componentListeners.get(from.getResource());
-      listener.onRayoEvent(from, presence);
+      if (listener != null) {
+    	  listener.onRayoEvent(from, presence);
+      }
     }
     else {
       Object object = presence.getExtension().getObject();
@@ -772,21 +787,28 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         this.dispatch(mohoEvent);
       }
       else if (object instanceof JoinedEvent) {
-        JoinedEvent event = (JoinedEvent) object;
-        MohoJoinCompleteEvent mohoEvent = null;
-        String id = event.getTo();
-        JoinDestinationType type = event.getType();
-        JointImpl joint = _joints.remove(id);
-        if (type == JoinDestinationType.CALL) {
-          Call peer = (Call) this.getMohoRemote().getParticipant(id);
-          _joinees.add(peer, joint.getType(), joint.getDirection());
-          _peers.add(peer);
-          mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
-        }
-        else {
-          // TODO mixer unjoin.
-        }
-        this.dispatch(mohoEvent);
+
+    	  Lock lock = joinLock.readLock();
+		  lock.lock();
+    	  try {
+	        JoinedEvent event = (JoinedEvent) object;
+	        MohoJoinCompleteEvent mohoEvent = null;
+	        String id = event.getTo();
+	        JoinDestinationType type = event.getType();
+	        JointImpl joint = _joints.remove(id);
+	        if (type == JoinDestinationType.CALL) {
+	          Call peer = (Call) this.getMohoRemote().getParticipant(id);
+	          _joinees.add(peer, joint.getType(), joint.getDirection());
+	          _peers.add(peer);
+	          mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
+	        }
+	        else {
+	          // TODO mixer unjoin.
+	        }
+	        this.dispatch(mohoEvent);
+    	  } finally {
+    		  lock.unlock();
+    	  }
       }
 
       else if (object instanceof UnjoinedEvent) {
@@ -822,7 +844,9 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   public void onRayoCommandResult(JID from, IQ iq) {
     if (from.getResource() != null) {
       RayoListener listener = _componentListeners.get(from.getResource());
-      listener.onRayoCommandResult(from, iq);
+      if (listener != null) {
+    	  listener.onRayoCommandResult(from, iq);
+      }
     }
     else {
 

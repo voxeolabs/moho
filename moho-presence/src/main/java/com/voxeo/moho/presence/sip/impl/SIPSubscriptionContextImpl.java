@@ -11,7 +11,6 @@ import javax.servlet.sip.URI;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.presence.impl.StoreHolder;
 import com.voxeo.moho.presence.sip.SipSubscriptionState;
 import com.voxeo.moho.sip.SIPSubscribeEvent.SIPSubscriptionContext;
 import com.voxeo.moho.spi.ExecutionContext;
@@ -121,7 +120,7 @@ public class SIPSubscriptionContextImpl implements SIPSubscriptionContext {
   
   @Override
   public Runnable sendNotify() {
-    return new NotifyRequest(this, StoreHolder.getPresenceStore());
+    return new NotifyRequest(this);
   }
 
   public SipSubscriptionState getState() {

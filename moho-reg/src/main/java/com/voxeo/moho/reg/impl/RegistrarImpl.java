@@ -1,4 +1,4 @@
-package com.voxeo.moho.reg;
+package com.voxeo.moho.reg.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;

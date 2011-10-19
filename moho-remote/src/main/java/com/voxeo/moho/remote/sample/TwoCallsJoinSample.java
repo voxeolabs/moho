@@ -28,7 +28,7 @@ public class TwoCallsJoinSample implements Observer {
     mohoRemote = new MohoRemoteImpl();
     mohoRemote.addObserver(new TwoCallsJoinSample());
 
-    mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost");
+    mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost", "localhost");
 
     try {
       Thread.sleep(100 * 60 * 1000);

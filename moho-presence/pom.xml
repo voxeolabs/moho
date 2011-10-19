@@ -61,6 +61,17 @@
 			<groupId>me.prettyprint</groupId>
 			<artifactId>hector-core</artifactId>
 			<version>0.8.0-2</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>junit</artifactId>
+          <groupId>junit</groupId>
+        </exclusion>
+      </exclusions>
+		</dependency>
+		<dependency>
+		  <groupId>com.voxeo.moho</groupId>
+		  <artifactId>moho-impl</artifactId>
+		  <version>0.8-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

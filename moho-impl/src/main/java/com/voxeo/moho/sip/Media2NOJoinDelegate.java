@@ -63,7 +63,9 @@ public class Media2NOJoinDelegate extends JoinDelegate {
     else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
       if (event.isSuccessful()) {
         if (processedAnswer) {
-          done(JoinCompleteEvent.Cause.JOINED, null);
+        	if(_call1.getSIPCallState() == SIPCall.State.ANSWERED){
+                done(JoinCompleteEvent.Cause.JOINED, null);
+        	}
           return;
         }
       }
@@ -86,8 +88,10 @@ public class Media2NOJoinDelegate extends JoinDelegate {
 
         if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
           if (SIPHelper.getRawContentWOException(res) != null) {
+        	  if (!processedAnswer) {
             processedAnswer = true;
             _call1.processSDPAnswer(res);
+        	  }
           }
 
           try {
@@ -107,6 +111,9 @@ public class Media2NOJoinDelegate extends JoinDelegate {
         if (!processedAnswer) {
           processedAnswer = true;
           _call1.processSDPAnswer(res);
+        }
+        else{
+        	done(JoinCompleteEvent.Cause.JOINED, null);
         }
       }
       else if (SIPHelper.isErrorResponse(res)) {

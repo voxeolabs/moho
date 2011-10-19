@@ -16,6 +16,7 @@ import com.voxeo.moho.presence.xmpp.RosterService;
 import com.voxeo.moho.presence.xmpp.XMPPPresenceService;
 import com.voxeo.moho.xmpp.RosterEvent.Ask;
 import com.voxeo.moho.xmpp.RosterEvent.RosterItem;
+import com.voxeo.moho.xmpp.RosterItemImpl;
 import com.voxeo.moho.xmpp.RosterPush;
 import com.voxeo.servlet.xmpp.JID;
 import com.voxeo.servlet.xmpp.XmppSession;

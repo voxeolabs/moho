@@ -11,4 +11,11 @@
     <version>0.8-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
+  <dependencies>
+    <dependency>
+      <groupId>com.voxeo.moho</groupId>
+      <artifactId>moho-presence</artifactId>
+      <version>0.8-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
 </project>

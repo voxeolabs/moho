@@ -111,7 +111,7 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
         if (participant.getRemoteAddress().equalsIgnoreCase(initiatorRemoteAddress)) {
           RemoteParticipantImpl remote = (RemoteParticipantImpl) participant;
           remote.setRemoteInitiateUnjoin(true);
-          ((ParticipantContainer) localParticipant).doUnjoin(remote, false);
+          ((ParticipantContainer) localParticipant).doUnjoin(remote, true);
         }
       }
     }

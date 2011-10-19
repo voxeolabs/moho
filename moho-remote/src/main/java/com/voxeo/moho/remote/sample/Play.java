@@ -14,8 +14,12 @@
 
 package com.voxeo.moho.remote.sample;
 
+import java.util.concurrent.ExecutionException;
+
+import com.rayo.core.verb.Output;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.IncomingCall;
+import com.voxeo.moho.MediaException;
 import com.voxeo.moho.State;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.Observer;
@@ -28,7 +32,7 @@ public class Play implements Observer {
   public static void main(String[] args) throws Exception {
     MohoRemote mohoRemote = new MohoRemoteImpl();
     mohoRemote.addObserver(new Play());
-    mohoRemote.connect(new SimpleAuthenticateCallbackImpl("usera", "1", "", "voxeo"), "localhost");
+    mohoRemote.connect(new SimpleAuthenticateCallbackImpl("mpermar", "xxxx", "", "voxeo"), "jabber.org", "telefonica115.orl.voxeo.net");
     try {
       Thread.sleep(100 * 60 * 1000);
     }
@@ -42,7 +46,12 @@ public class Play implements Observer {
     call.answer();
     call.addObserver(this);
 
-    call.output("hello world");
+    try {
+		call.output("hello world. how are you. we are going to stop you").get();
+	} catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
   }
 
   @State

@@ -25,7 +25,6 @@ public class XMPPController extends XmppServlet {
   @Override
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
-    super.init(config);
     SpiFramework framework = (SpiFramework) getServletContext().getAttribute(ApplicationContext.FRAMEWORK);
     if(framework.getDriverByProtocolFamily(ProtocolDriver.PROTOCOL_XMPP) == null) {
       try {
