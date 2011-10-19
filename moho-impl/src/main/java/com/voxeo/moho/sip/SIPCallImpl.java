@@ -1064,7 +1064,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     final Participant[] otherParts = other.getParticipants();
 
     if (parts.length > 0 || otherParts.length > 0) {
-      if (!force || type == JoinType.BRIDGE) {
+      if (!force && type != JoinType.BRIDGE) {
         // dispatch BUSY event
         Exception e = new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(this, other), null);
         JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
@@ -1120,7 +1120,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     final Participant[] otherParts = other.getParticipants();
 
     if (parts.length > 0 || otherParts.length > 0) {
-      if (!force || type == JoinType.BRIDGE) {
+      if (!force && type != JoinType.BRIDGE) {
         // dispatch BUSY event
         Exception e = new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(this, other), null);
         JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);

@@ -26,8 +26,8 @@ public interface Participant extends EventSource {
 
   public enum JoinType {
     /**
-     * Media is bridged at the media server. It equals to BRIDGE_EXCLUSIVE with
-     * 'force' set with false
+     * Media is bridged at the media server. It equals to BRIDGE_SHARED with
+     * 'force' set with true
      */
     @Deprecated
     BRIDGE,

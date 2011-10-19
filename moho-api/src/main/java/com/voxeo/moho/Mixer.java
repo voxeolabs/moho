@@ -1,14 +1,11 @@
 /**
- * Copyright 2010-2011 Voxeo Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License.
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
+ * Copyright 2010-2011 Voxeo Corporation Licensed under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -40,8 +37,9 @@ public interface Mixer extends MultiStreamParticipant, MediaService<Mixer> {
   MediaService<Mixer> getMediaService();
 
   /**
-   * Connect this Mixer with the specified participant, can specify some
-   * properties such as playTones = false
+   * The same to
+   * {@link Mixer#join(Participant, com.voxeo.moho.Participant.JoinType, boolean, Direction, Properties)}
+   * with 'force' specified with false.
    * 
    * @param other
    *          the other participant to be connected with.
@@ -59,4 +57,27 @@ public interface Mixer extends MultiStreamParticipant, MediaService<Mixer> {
    */
   Joint join(Participant other, JoinType type, Direction direction, Properties props);
 
+  /**
+   * Connect this Mixer with the specified participant, can specify some
+   * properties such as playTones = false
+   * 
+   * @param other
+   *          the other participant to be connected with.
+   * @param type
+   *          whether the media is bridged or direct between the two
+   *          participants
+   * @param force
+   *          'false' means the join operation results in an
+   *          AlreadyJoinedException, otherwise the requested participant is
+   *          joined
+   * @param direction
+   *          whether the media is full duplex or halfplex between the two
+   *          participants
+   * @param props
+   *          specify parameters
+   * @throws IllegalStateException
+   *           if the participant has been released.
+   * @return
+   */
+  Joint join(Participant other, JoinType type, boolean force, Direction direction, Properties props);
 }
