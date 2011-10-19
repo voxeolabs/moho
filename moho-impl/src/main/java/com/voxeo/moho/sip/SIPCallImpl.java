@@ -261,8 +261,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           }
 
           _service = _context.getMediaServiceFactory().create((Call) this, _media, params);
+          JoinDelegate.bridgeJoin(this, _service.getMediaGroup());
         }
-        JoinDelegate.bridgeJoin(this, _service.getMediaGroup());
       }
       catch (final Exception e) {
         throw new MediaException(e);
