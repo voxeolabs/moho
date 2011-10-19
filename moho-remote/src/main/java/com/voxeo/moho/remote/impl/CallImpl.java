@@ -898,4 +898,10 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
   }
 
   public abstract void startJoin() throws XmppException;
+
+  @Override
+  public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }
