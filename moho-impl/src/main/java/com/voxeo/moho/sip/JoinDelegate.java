@@ -223,7 +223,7 @@ public abstract class JoinDelegate {
 
   public static void bridgeJoin(final Participant part, final Participant other, final Direction direction)
       throws MsControlException {
-    LOG.info("Join " + part + " with " + other + " in " + direction);
+    LOG.info(part + " joins to " + other + " in " + direction);
 
     final Joinable joinable = getJoinable(part);
     final Joinable otherJoinable = getJoinable(other);
@@ -271,6 +271,8 @@ public abstract class JoinDelegate {
   }
 
   public static void bridgeJoin(final Participant part, final MediaGroup medGro) throws MsControlException {
+    LOG.info(part + " joins to " + medGro + " in DUPLEX");
+
     final Participant[] parts = part.getParticipants(Direction.RECV);
     if (parts.length == 0) {
       getJoinable(part).join(Direction.DUPLEX, medGro);
@@ -282,6 +284,8 @@ public abstract class JoinDelegate {
   }
 
   public static void bridgeUnjoin(final Participant part, final Participant other) throws MsControlException {
+    LOG.info(part + " unjoins from " + other);
+
     final Joinable joinable = getJoinable(part);
     final Joinable otherJoinable = getJoinable(other);
 
@@ -328,7 +332,7 @@ public abstract class JoinDelegate {
    * </pre>
    * 
    * @param part
-   *          A participant.
+   *          A participant has previous join in RECV direction.
    * @param multipleJoiningMixer
    *          The MediaMixer of "part" used for SHARED join.
    * @param peer
@@ -371,7 +375,7 @@ public abstract class JoinDelegate {
    * </pre>
    * 
    * @param part
-   *          A participant.
+   *          A participant has previous join in RECV direction.
    * @param multipleJoiningMixer
    *          The MediaMixer of "part" used for SHARED join.
    * @param medGro
@@ -411,7 +415,7 @@ public abstract class JoinDelegate {
    * </pre>
    * 
    * @param part
-   *          A participant.
+   *          A participant has previous join in RECV direction.
    * @param multipleJoiningMixer
    *          The MediaMixer of "part" used for SHARED join.
    * @param peer
@@ -461,15 +465,36 @@ public abstract class JoinDelegate {
     }
 
     // then join to other
-    if (isRecv(direction)) {
-      otherJoinable.join(Direction.SEND, multipleJoiningMixer);
-    }
-    if (isSend(direction)) {
-      if (otherMultipleJoiningMixer == null) {
-        joinable.join(Direction.SEND, otherJoinable);
+    if (joinable instanceof MediaMixer) {
+      // 1, mx.join(mg);
+      // 2, mx1.join(mx2);
+      // 3, mx.join(nc); nc has no previous join
+      if (otherJoinable instanceof MediaGroup || otherJoinable instanceof MediaMixer
+          || otherMultipleJoiningMixer == null) {
+        joinable.join(direction, otherJoinable);
       }
       else {
-        joinable.join(Direction.SEND, otherMultipleJoiningMixer);
+        // 4, mx.join(nc); nc has previous join
+        if (isRecv(direction)) {
+          otherJoinable.join(Direction.SEND, multipleJoiningMixer);
+        }
+        if (isSend(direction)) {
+          joinable.join(Direction.SEND, otherMultipleJoiningMixer);
+        }
+      }
+    }
+    else {
+      // 5, other cases
+      if (isRecv(direction)) {
+        otherJoinable.join(Direction.SEND, multipleJoiningMixer);
+      }
+      if (isSend(direction)) {
+        if (otherMultipleJoiningMixer == null) {
+          joinable.join(Direction.SEND, otherJoinable);
+        }
+        else {
+          joinable.join(Direction.SEND, otherMultipleJoiningMixer);
+        }
       }
     }
   }
