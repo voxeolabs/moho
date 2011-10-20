@@ -686,7 +686,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
           errorText = e.getError() + ": " + e.getErrorText();
         }
-        final OutputCompleteEvent<T> outputCompleteEvent = new MohoOutputCompleteEvent<T>(_parent, cause, errorText);
+        final OutputCompleteEvent<T> outputCompleteEvent = new MohoOutputCompleteEvent<T>(_parent, cause, errorText,
+            _output);
         _parent.dispatch(outputCompleteEvent);
         _output.done(outputCompleteEvent);
         if (_prompt != null) {
@@ -765,7 +766,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
           errorText = e.getError() + ": " + e.getErrorText();
         }
-        final MohoInputCompleteEvent<T> inputCompleteEvent = new MohoInputCompleteEvent<T>(_parent, cause, errorText);
+        final MohoInputCompleteEvent<T> inputCompleteEvent = new MohoInputCompleteEvent<T>(_parent, cause, errorText,
+            _input);
         if (e instanceof SpeechRecognitionEvent) {
           String signalString = e.getSignalString();
           if (signalString != null) {
@@ -886,7 +888,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           errorText = e.getError() + ": " + e.getErrorText();
         }
         final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause,
-            e.getDuration(), errorText);
+            e.getDuration(), errorText, _recording);
         _parent.dispatch(recordCompleteEvent);
         _recording.done(recordCompleteEvent);
       }
@@ -897,7 +899,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       else if (t == RecorderEvent.RESUMED) {
         if (e.getError() == MediaErr.UNKNOWN_ERROR) {
           final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent,
-              RecordCompleteEvent.Cause.ERROR, e.getDuration());
+              RecordCompleteEvent.Cause.ERROR, e.getDuration(), _recording);
           _parent.dispatch(recordCompleteEvent);
           _recording.done(new MediaException(e.getErrorText()));
         }

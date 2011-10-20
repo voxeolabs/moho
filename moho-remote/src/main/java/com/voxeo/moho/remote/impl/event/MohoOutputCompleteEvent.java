@@ -16,6 +16,7 @@ package com.voxeo.moho.remote.impl.event;
 
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.OutputCompleteEvent;
+import com.voxeo.moho.remote.impl.media.OutputImpl;
 
 public class MohoOutputCompleteEvent<T extends EventSource> extends MohoMediaCompleteEvent<T> implements
     OutputCompleteEvent<T> {
@@ -24,14 +25,13 @@ public class MohoOutputCompleteEvent<T extends EventSource> extends MohoMediaCom
 
   protected String _errorText;
 
-  public MohoOutputCompleteEvent(T source, Cause cause) {
-    super(source);
+  public MohoOutputCompleteEvent(T source, Cause cause, OutputImpl<T> mediaOperation) {
+    super(source, mediaOperation);
     _cause = cause;
   }
 
-  public MohoOutputCompleteEvent(T source, Cause cause, String errorText) {
-    super(source);
-    _cause = cause;
+  public MohoOutputCompleteEvent(T source, Cause cause, String errorText, OutputImpl<T> mediaOperation) {
+    this(source, cause, mediaOperation);
     _errorText = errorText;
   }
 
@@ -44,5 +44,4 @@ public class MohoOutputCompleteEvent<T extends EventSource> extends MohoMediaCom
   public String getErrorText() {
     return _errorText;
   }
-
 }

@@ -16,11 +16,19 @@ package com.voxeo.moho.remote.impl.event;
 
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.MediaCompleteEvent;
+import com.voxeo.moho.media.MediaOperation;
 
 public class MohoMediaCompleteEvent<T extends EventSource> extends MohoMediaEvent<T> implements MediaCompleteEvent<T> {
 
-  public MohoMediaCompleteEvent(T source) {
+  protected MediaOperation _mediaOperation;
+
+  public MohoMediaCompleteEvent(T source, MediaOperation mediaOperation) {
     super(source);
+    _mediaOperation = mediaOperation;
   }
 
+  @Override
+  public MediaOperation getMediaOperation() {
+    return _mediaOperation;
+  }
 }

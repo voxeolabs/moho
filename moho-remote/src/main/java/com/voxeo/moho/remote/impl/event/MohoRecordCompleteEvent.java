@@ -16,6 +16,7 @@ package com.voxeo.moho.remote.impl.event;
 
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.RecordCompleteEvent;
+import com.voxeo.moho.media.Recording;
 
 public class MohoRecordCompleteEvent<T extends EventSource> extends MohoMediaCompleteEvent<T> implements
     RecordCompleteEvent<T> {
@@ -25,14 +26,15 @@ public class MohoRecordCompleteEvent<T extends EventSource> extends MohoMediaCom
 
   protected String _errorText;
 
-  public MohoRecordCompleteEvent(final T source, final Cause cause, long duration) {
-    super(source);
+  public MohoRecordCompleteEvent(final T source, final Cause cause, long duration, Recording<T> mediaOperation) {
+    super(source, mediaOperation);
     _cause = cause;
     _duration = duration;
   }
 
-  public MohoRecordCompleteEvent(final T source, final Cause cause, long duration, String errorText) {
-    this(source, cause, duration);
+  public MohoRecordCompleteEvent(final T source, final Cause cause, long duration, String errorText,
+      Recording<T> mediaOperation) {
+    this(source, cause, duration, mediaOperation);
     _errorText = errorText;
   }
 

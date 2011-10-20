@@ -113,29 +113,29 @@ public class InputImpl<T extends EventSource> implements Input<T>, RayoListener 
     Object obj = presence.getExtension().getObject();
 
     if (obj instanceof com.rayo.core.verb.VerbCompleteEvent) {
-        com.rayo.core.verb.VerbCompleteEvent event = (com.rayo.core.verb.VerbCompleteEvent) obj;
+      com.rayo.core.verb.VerbCompleteEvent event = (com.rayo.core.verb.VerbCompleteEvent) obj;
 
       MohoInputCompleteEvent<T> mohoEvent = new MohoInputCompleteEvent<T>(_todo,
-          getMohoInputCompleteReasonByRayoReason(event.getReason()), event.getErrorText());
+          getMohoInputCompleteReasonByRayoReason(event.getReason()), event.getErrorText(), this);
       if (event instanceof com.rayo.core.verb.InputCompleteEvent) {
-    	  mohoEvent.setConcept(((com.rayo.core.verb.InputCompleteEvent)event).getConcept());
-    	  mohoEvent.setConfidence(((com.rayo.core.verb.InputCompleteEvent)event).getConfidence());
+        mohoEvent.setConcept(((com.rayo.core.verb.InputCompleteEvent) event).getConcept());
+        mohoEvent.setConfidence(((com.rayo.core.verb.InputCompleteEvent) event).getConfidence());
 
-    	  com.voxeo.moho.media.InputMode mode = null;
-	      if (((com.rayo.core.verb.InputCompleteEvent)event).getMode() == InputMode.DTMF) {
-	        mode = com.voxeo.moho.media.InputMode.DTMF;
-	      }
-	      else if (((com.rayo.core.verb.InputCompleteEvent)event).getMode() == InputMode.VOICE) {
-	        mode = com.voxeo.moho.media.InputMode.SPEECH;
-	      }
-	      else {
-	        mode = com.voxeo.moho.media.InputMode.ANY;
-	      }
-	      mohoEvent.setInputMode(mode);
-	      mohoEvent.setInterpretation(((com.rayo.core.verb.InputCompleteEvent)event).getInterpretation());
-	      mohoEvent.setNlsml(((com.rayo.core.verb.InputCompleteEvent)event).getNlsml());
-	      mohoEvent.setTag(((com.rayo.core.verb.InputCompleteEvent)event).getTag());
-	      mohoEvent.setUtterance(((com.rayo.core.verb.InputCompleteEvent)event).getUtterance());
+        com.voxeo.moho.media.InputMode mode = null;
+        if (((com.rayo.core.verb.InputCompleteEvent) event).getMode() == InputMode.DTMF) {
+          mode = com.voxeo.moho.media.InputMode.DTMF;
+        }
+        else if (((com.rayo.core.verb.InputCompleteEvent) event).getMode() == InputMode.VOICE) {
+          mode = com.voxeo.moho.media.InputMode.SPEECH;
+        }
+        else {
+          mode = com.voxeo.moho.media.InputMode.ANY;
+        }
+        mohoEvent.setInputMode(mode);
+        mohoEvent.setInterpretation(((com.rayo.core.verb.InputCompleteEvent) event).getInterpretation());
+        mohoEvent.setNlsml(((com.rayo.core.verb.InputCompleteEvent) event).getNlsml());
+        mohoEvent.setTag(((com.rayo.core.verb.InputCompleteEvent) event).getTag());
+        mohoEvent.setUtterance(((com.rayo.core.verb.InputCompleteEvent) event).getUtterance());
       }
 
       this.done(mohoEvent);
@@ -183,9 +183,9 @@ public class InputImpl<T extends EventSource> implements Input<T>, RayoListener 
   public void onRayoCommandResult(JID from, IQ iq) {
     // DO nothing.
   }
-  
+
   public String getVerbId() {
-	  
-	  return _verbRef.getVerbId();
+
+    return _verbRef.getVerbId();
   }
 }

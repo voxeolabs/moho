@@ -14,10 +14,20 @@
 
 package com.voxeo.moho.event;
 
+import com.voxeo.moho.media.MediaOperation;
+
 public class MohoMediaCompleteEvent<T extends EventSource> extends MohoMediaEvent<T> implements MediaCompleteEvent<T> {
 
-  public MohoMediaCompleteEvent(T source) {
+  protected MediaOperation _mediaOperation;
+
+  public MohoMediaCompleteEvent(T source, MediaOperation mediaOperation) {
     super(source);
+    _mediaOperation = mediaOperation;
   }
 
+  @Override
+  public MediaOperation getMediaOperation() {
+    // TODO Au_mediaOperationto-generated method stub
+    return _mediaOperation;
+  }
 }

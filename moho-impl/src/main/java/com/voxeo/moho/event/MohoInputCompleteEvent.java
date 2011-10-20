@@ -13,6 +13,7 @@
  */
 package com.voxeo.moho.event;
 
+import com.voxeo.moho.media.InputImpl;
 import com.voxeo.moho.media.InputMode;
 
 public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaCompleteEvent<T> implements
@@ -38,17 +39,16 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
 
   protected String _errorText;
 
-  public MohoInputCompleteEvent(final T source, final Cause cause) {
-    super(source);
+  public MohoInputCompleteEvent(final T source, final Cause cause, InputImpl<T> mediaOperation) {
+    super(source, mediaOperation);
     _cause = cause;
     if (_cause == Cause.MATCH) {
       _successful = true;
     }
   }
 
-  public MohoInputCompleteEvent(final T source, final Cause cause, String errorText) {
-    this(source, cause);
-
+  public MohoInputCompleteEvent(final T source, final Cause cause, String errorText, InputImpl<T> mediaOperation) {
+    this(source, cause, mediaOperation);
     _errorText = errorText;
   }
 
@@ -141,5 +141,4 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
   public String getErrorText() {
     return _errorText;
   }
-
 }

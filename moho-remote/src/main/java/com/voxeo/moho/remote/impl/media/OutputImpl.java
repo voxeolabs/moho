@@ -237,7 +237,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
       com.rayo.core.verb.VerbCompleteEvent event = (com.rayo.core.verb.VerbCompleteEvent) obj;
 
       MohoOutputCompleteEvent<T> mohoEvent = new MohoOutputCompleteEvent<T>(_todo,
-          getMohoOutputCompleteReasonByRayoReason(event.getReason()), event.getErrorText());
+          getMohoOutputCompleteReasonByRayoReason(event.getReason()), event.getErrorText(), this);
 
       this.done(mohoEvent);
       _call.dispatch(mohoEvent);
@@ -272,9 +272,9 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
 
     return OutputCompleteEvent.Cause.ERROR;
   }
-  
+
   public String getVerbId() {
-	  
-	  return _verbRef.getVerbId();
+
+    return _verbRef.getVerbId();
   }
 }

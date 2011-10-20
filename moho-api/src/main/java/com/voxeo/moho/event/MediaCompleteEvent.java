@@ -14,11 +14,14 @@
 
 package com.voxeo.moho.event;
 
+import com.voxeo.moho.media.MediaOperation;
+
 /**
  * This interface marks all the event related the completion of a media operation.
  * 
  * @author wchen
- *
  */
 public interface MediaCompleteEvent<T extends EventSource> extends MediaEvent<T> {
+
+   MediaOperation getMediaOperation();
 }
