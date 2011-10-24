@@ -779,47 +779,49 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         final MohoInputCompleteEvent<T> inputCompleteEvent = new MohoInputCompleteEvent<T>(_parent, cause, errorText,
             _input);
         if (e instanceof SpeechRecognitionEvent) {
+          final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
           String signalString = e.getSignalString();
           if (signalString != null) {
-            inputCompleteEvent.setConcept(signalString);
+            inputCompleteEvent.setConcept(se.getTag());
+            inputCompleteEvent.setTag(se.getTag());
             inputCompleteEvent.setConfidence(1.0F);
             inputCompleteEvent.setInterpretation(signalString);
             inputCompleteEvent.setUtterance(signalString);
             inputCompleteEvent.setInputMode(InputMode.DTMF);
           }
           else {
-            final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
             inputCompleteEvent.setUtterance(se.getUserInput());
             inputCompleteEvent.setTag(se.getTag());
             inputCompleteEvent.setConcept(se.getTag());
-            final URL semanticResult = se.getSemanticResult();
-            if (semanticResult != null && "application/x-nlsml".equalsIgnoreCase(semanticResult.getHost())) {
-              try {
-                inputCompleteEvent.setNlsml(semanticResult.getPath());
-                final List<Map<String, String>> nlsml = NLSMLParser.parse(inputCompleteEvent.getNlsml());
-                for (final Map<String, String> reco : nlsml) {
-                  final String conf = reco.get("_confidence");
-                  if (conf != null) {
-                    inputCompleteEvent.setConfidence(Float.parseFloat(conf));
+          }
+
+          final URL semanticResult = se.getSemanticResult();
+          if (semanticResult != null && "application/x-nlsml".equalsIgnoreCase(semanticResult.getHost())) {
+            try {
+              inputCompleteEvent.setNlsml(semanticResult.getPath());
+              final List<Map<String, String>> nlsml = NLSMLParser.parse(inputCompleteEvent.getNlsml());
+              for (final Map<String, String> reco : nlsml) {
+                final String conf = reco.get("_confidence");
+                if (conf != null && signalString == null) {
+                  inputCompleteEvent.setConfidence(Float.parseFloat(conf));
+                }
+                final String interpretation = reco.get("_interpretation");
+                if (interpretation != null) {
+                  inputCompleteEvent.setInterpretation(interpretation);
+                }
+                final String inputmode = reco.get("_inputmode");
+                if (inputmode != null && signalString == null) {
+                  if (inputmode.equalsIgnoreCase("speech") || inputmode.equalsIgnoreCase("voice")) {
+                    inputCompleteEvent.setInputMode(InputMode.SPEECH);
                   }
-                  final String interpretation = reco.get("_interpretation");
-                  if (interpretation != null) {
-                    inputCompleteEvent.setInterpretation(interpretation);
-                  }
-                  final String inputmode = reco.get("_inputmode");
-                  if (inputmode != null) {
-                    if (inputmode.equalsIgnoreCase("speech") || inputmode.equalsIgnoreCase("voice")) {
-                      inputCompleteEvent.setInputMode(InputMode.SPEECH);
-                    }
-                    else {
-                      inputCompleteEvent.setInputMode(InputMode.DTMF);
-                    }
+                  else {
+                    inputCompleteEvent.setInputMode(InputMode.DTMF);
                   }
                 }
               }
-              catch (final Exception e1) {
-                LOG.warn("No NLSML", e1);
-              }
+            }
+            catch (final Exception e1) {
+              LOG.warn("No NLSML", e1);
             }
           }
         }
