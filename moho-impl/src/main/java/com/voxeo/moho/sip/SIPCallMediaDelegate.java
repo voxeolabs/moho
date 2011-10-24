@@ -100,6 +100,26 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
         call.fail(e);
       }
     }
+    else if (res.getRequest().getAttribute(SIPCallDelegate.SIPCALL_MUTE_REQUEST) != null
+        || res.getRequest().getAttribute(SIPCallDelegate.SIPCALL_UNMUTE_REQUEST) != null) {
+      try {
+        _res.createAck().send();
+        if (call.getMuteState() == HoldState.Muting) {
+          call.setMuteState(HoldState.Muted);
+        }
+        else if (call.getMuteState() == HoldState.UnMuting) {
+          call.setMuteState(HoldState.None);
+        }
+      }
+      catch (IOException e) {
+        LOG.error("IOException when sending ACK", e);
+        call.setHoldState(HoldState.None);
+        call.fail(e);
+      }
+      finally {
+        call.notify();
+      }
+    }
     else {
       call.processSDPOffer(res);
     }
@@ -109,26 +129,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   protected void handleSdpEvent(final SIPCallImpl call, final SdpPortManagerEvent event) {
     if (event.getEventType().equals(SdpPortManagerEvent.OFFER_GENERATED)
         || event.getEventType().equals(SdpPortManagerEvent.ANSWER_GENERATED)) {
-      if (call.isMutingProcess()) {
-        try {
-          _res.createAck().send();
-          if (call.getMuteState() == HoldState.Muting) {
-            call.setMuteState(HoldState.Muted);
-          }
-          else if (call.getMuteState() == HoldState.UnMuting) {
-            call.setMuteState(HoldState.None);
-          }
-        }
-        catch (IOException e) {
-          LOG.error("IOException when sending ACK", e);
-          call.setHoldState(HoldState.None);
-          call.fail(e);
-        }
-        finally {
-          call.notify();
-        }
-      }
-      else if (call.isHoldingProcess()) {
+      if (call.isHoldingProcess()) {
         call.holdResp();
       }
       else {

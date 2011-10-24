@@ -113,11 +113,10 @@
     <module>moho-api</module>
     <module>moho-impl</module>
     <module>moho-sample</module>
-    <module>moho-artifacts</module>
     <module>moho-reg</module>
     <module>moho-remote</module>
-
     <module>moho-presence</module>
+    <module>moho-artifacts</module>
   </modules>
 
   <distributionManagement>
