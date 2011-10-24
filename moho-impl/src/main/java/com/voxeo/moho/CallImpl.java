@@ -48,6 +48,7 @@ import com.voxeo.moho.media.Recording;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.record.RecordCommand;
+import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.IDGenerator;
 import com.voxeo.moho.util.Utils;
@@ -81,7 +82,7 @@ public abstract class CallImpl implements Call {
 	  
     _context = context;
     _dispatcher.setExecutor(getThreadPool(), true);    
-    _id = IDGenerator.generateId(_context);
+    _id = IDGenerator.generateId(_context, RemoteParticipant.RemoteParticipant_TYPE_CALL);
 
     context.addCall(this);
   }
