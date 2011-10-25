@@ -92,6 +92,7 @@ public class SIPPresenceServiceImpl implements SIPPresenceService {
       // validate supported notifyBodyType
       // getResource
       final String resourceKey = Utils.getCleanUri(req.getTo().getURI()).toString();
+      //TODO refactor all request related staff to event level
       EventHeader eventHeader = new EventHeader(req.getHeader("Event"));
       SIPPresenceResource resource = (SIPPresenceResource) getResource(_presenceFactory, resourceKey,
           eventHeader.getEventName());
@@ -221,6 +222,7 @@ public class SIPPresenceServiceImpl implements SIPPresenceService {
           _store.rollbackTx();
         }
         if (state == SipSubscriptionStateImpl.TERMINATED) {
+          //FIXME do it when receiving the 200OK of NOTIFY
           invalidateApplicationSession(event.getSipRequest());
         }
       }

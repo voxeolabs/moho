@@ -137,7 +137,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     return new CallableEndpointImpl(this, uri);
   }
 
-  protected Executor getExecutor() {
+  public Executor getExecutor() {
     return _executor;
   }
 

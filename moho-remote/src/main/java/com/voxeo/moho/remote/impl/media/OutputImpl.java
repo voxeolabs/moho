@@ -33,6 +33,7 @@ import com.voxeo.moho.MediaException;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.OutputCompleteEvent;
 import com.voxeo.moho.media.Output;
+import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.remote.impl.CallImpl;
 import com.voxeo.moho.remote.impl.JID;
 import com.voxeo.moho.remote.impl.RayoListener;
@@ -50,21 +51,43 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
   protected VerbRef _verbRef;
 
   protected CallImpl _call;
+  
+  protected OutputCommand _next;
 
   protected T _todo;
 
   protected boolean paused;
 
-  public OutputImpl(final VerbRef verbRef, final CallImpl call, T todo) {
+  public OutputImpl(final VerbRef verbRef, final OutputCommand next, final CallImpl call, T todo) {
     _verbRef = verbRef;
     _call = call;
+    _next = next;
     _todo = todo;
     _call.addComponentListener(_verbRef.getVerbId(), this);
   }
 
+  public OutputImpl(final VerbRef verbRef, final CallImpl call, T todo) {
+    this(verbRef, null, call, todo);
+  }
+
+  @SuppressWarnings("unchecked")
   protected void done(final OutputCompleteEvent<T> event) {
-    _future.setResult(event);
     _call.removeComponentListener(_verbRef.getVerbId());
+    if (_next == null) {
+      _future.setResult(event);
+    }
+    else {
+      //avoid dead wait on output
+      _call.getMohoRemote().getExecutor().execute(new Runnable() {
+        @Override
+        public void run() {
+          OutputImpl<T> outputImpl = ((OutputImpl<T>) _call.output(_next));
+          _verbRef = outputImpl._verbRef;
+          _next = outputImpl._next;
+          _call.addComponentListener(_verbRef.getVerbId(), OutputImpl.this);
+        }
+      });
+    }
   }
 
   protected void done(final MediaException exception) {
@@ -240,7 +263,9 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
           getMohoOutputCompleteReasonByRayoReason(event.getReason()), event.getErrorText(), this);
 
       this.done(mohoEvent);
-      _call.dispatch(mohoEvent);
+      if (_next == null) {
+        _call.dispatch(mohoEvent);
+      }
     }
     else {
       LOG.error("Can't process presence:" + presence);
