@@ -561,6 +561,9 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
       return joint;
     }
+    else if (other instanceof RemoteParticipant) {
+      return other.join(this, type, force, JoinDelegate.reserve(direction));
+    }
     else {
       if (!(other.getMediaObject() instanceof Joinable)) {
         throw new IllegalArgumentException("MediaObject is't joinable.");

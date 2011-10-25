@@ -1098,11 +1098,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected Joint doJoin(final RemoteParticipant other, final JoinType type, final Direction direction)
       throws Exception {
-    _joinDelegate = new LocalRemoteJoinDelegate(this, other, direction);
+    JoinDelegate joinDelegate = new LocalRemoteJoinDelegate(this, other, direction);
     SettableJointImpl joint = new SettableJointImpl();
-    _joinDelegate.setSettableJoint(joint);
+    joinDelegate.setSettableJoint(joint);
 
-    _joinDelegate.doJoin();
+    joinDelegate.doJoin();
 
     return joint;
   }

@@ -45,7 +45,8 @@ public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventL
   @Override
   protected void doJoin() throws Exception {
     _remoteParticipant.startJoin(_localParticipant, this);
-
+    ((ParticipantContainer) _localParticipant).startJoin(_remoteParticipant, this);
+    
     if (_localParticipant.getMediaObject() == null && _localParticipant instanceof Call) {
       ((Call) _localParticipant).join(Direction.DUPLEX);
       return;

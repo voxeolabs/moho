@@ -138,12 +138,12 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
 
   @Override
   public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
-    LocalRemoteJoinDelegate joinDelegate = new LocalRemoteJoinDelegate(other, this, direction);
+    JoinDelegate joinDelegate = new LocalRemoteJoinDelegate(other, this, direction);
     SettableJointImpl joint = new SettableJointImpl();
-    joinDelegate.setSettableJoint(joint);
+    joinDelegate .setSettableJoint(joint);
 
     try {
-      _joinDelegate.doJoin();
+      joinDelegate.doJoin();
     }
     catch (Exception e) {
       // TODO
