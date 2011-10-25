@@ -9,11 +9,15 @@ import com.voxeo.moho.spi.ExecutionContext;
 public class IDGenerator {
 
 	public static String generateId(ExecutionContext context) {
+	
+		return generateId(context, RemoteParticipant.RemoteParticipant_TYPE_CALL);
+	}
+	
+	public static String generateId(ExecutionContext context, String type) {
 
 		if (context != null) {
 			String uid = String.valueOf(new com.eaio.uuid.UUID().getTime());
-			String rawid = ((ApplicationContextImpl)context).generateID(
-							RemoteParticipant.RemoteParticipant_TYPE_CALL, uid);
+			String rawid = ((ApplicationContextImpl)context).generateID(type, uid);
 			
 			return ParticipantIDParser.encode(rawid);
 		} else {

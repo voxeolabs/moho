@@ -63,6 +63,7 @@ import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.util.IDGenerator;
 
 public class MixerImpl extends DispatchableEventSource implements Mixer, ParticipantContainer {
 
@@ -85,6 +86,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   protected MixerImpl(final ExecutionContext context, final MixerEndpoint address, final Map<Object, Object> params,
       Parameters parameters) {
     super(context);
+    _id = IDGenerator.generateId(_context, RemoteParticipant.RemoteParticipant_TYPE_CONFERENCE);
 
     try {
       MsControlFactory mf = null;
