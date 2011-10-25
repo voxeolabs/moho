@@ -99,7 +99,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
           final String value = entry.getValue() == null ? "" : entry.getValue().toString();
           props.setProperty(key, value);
         }
-        if (props.getProperty(MsControlFactory.MEDIA_SERVER_URI) == null && address != null) {
+        if (props.getProperty(MsControlFactory.MEDIA_SERVER_URI) == null && address != null
+            && !address.getName().equalsIgnoreCase(MixerEndpoint.DEFAULT_MIXER_ENDPOINT)) {
           props.setProperty(MsControlFactory.MEDIA_SERVER_URI, address.getURI().toString());
         }
         mf = driver.getFactory(props);

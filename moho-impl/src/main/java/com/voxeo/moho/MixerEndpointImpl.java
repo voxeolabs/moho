@@ -37,9 +37,12 @@ public class MixerEndpointImpl implements MixerEndpoint {
     _context = ctx;
     if (uri == null || uri.equals(MixerEndpoint.DEFAULT_MIXER_ENDPOINT)) {
       String resultUri = ctx.getMSFactory().getProperties().getProperty(MsControlFactory.MEDIA_SERVER_URI);
-      if(resultUri != null) {
+      if (resultUri != null) {
         _uri = URI.create(resultUri);
       }
+    }
+    if (_uri == null) {
+      _uri = URI.create(uri);
     }
   }
 
@@ -91,5 +94,4 @@ public class MixerEndpointImpl implements MixerEndpoint {
   public void setProperty(String key, String value) {
     _props.setProperty(key, value);
   }
-
 }
