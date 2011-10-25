@@ -58,7 +58,8 @@ public class ConferenceImpl extends MixerImpl implements Conference, Participant
       final Map<Object, Object> params, final String id, final int seats, final ConferenceController controller,
       Parameters parameters) {
     super(context, address, params, parameters);
-    _id = IDGenerator.generateId(_context, RemoteParticipant.RemoteParticipant_TYPE_CONFERENCE, id);
+    //TODO 
+    _id = id;
     _maxSeats = seats;
     _controller = controller;
     
