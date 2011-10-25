@@ -50,7 +50,7 @@ import org.apache.log4j.Logger;
  * @author wchen
  *
  */
-public class OutputCommand implements Parameters {
+public class OutputCommand implements Parameters, Cloneable {
 
   private static final Logger LOG = Logger.getLogger(OutputCommand.class);
 
@@ -182,6 +182,11 @@ public class OutputCommand implements Parameters {
    * @param resources {@link AudibleResource AudibleResource}s
    */
   public OutputCommand(final AudibleResource[] resources) {
+    _resources = resources;
+  }
+  
+  
+  public void setAudibleResource(final AudibleResource[] resources) {
     _resources = resources;
   }
 
@@ -560,5 +565,15 @@ public class OutputCommand implements Parameters {
 
   public void setLanguage(String language) {
     this._language = language;
+  }
+  
+  @Override
+  public Object clone() {
+    try {
+      return super.clone();
+    }
+    catch (CloneNotSupportedException e) {
+      return null;
+    }
   }
 }

@@ -16,6 +16,7 @@ package com.voxeo.moho.remote.impl;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -196,11 +197,8 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         rayoOutput.setVoice(output.getVoiceName());
       }
       VerbRef verbRef = null;
+      OutputCommand next = null;
       if (output.getAudibleResources() != null && output.getAudibleResources().length > 0) {
-        if (output.getAudibleResources().length > 1) {
-          // TODO support multiple
-          throw new UnsupportedOperationException("Don't support multiple play yet");
-        }
         AudibleResource ar = output.getAudibleResources()[0];
         if (ar instanceof TextToSpeechResource) {
           rayoOutput.setPrompt(new Ssml(((TextToSpeechResource) ar).getText()));
@@ -208,12 +206,16 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         else if (ar instanceof AudioURIResource) {
           verbRef = _mohoRemote.getRayoClient().output(ar.toURI(), this.getId());
         }
+        if (output.getAudibleResources().length > 1) {
+          next = (OutputCommand) output.clone();
+          next.setAudibleResource(Arrays.copyOfRange(output.getAudibleResources(), 1, output.getAudibleResources().length));
+        }
       }
       if (verbRef == null) {
         verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
       }
 
-      outputFuture = new OutputImpl<Call>(verbRef, this, this);
+      outputFuture = new OutputImpl<Call>(verbRef, next, this, this);
     }
     catch (XmppException e) {
       LOG.error("", e);
