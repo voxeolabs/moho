@@ -36,7 +36,9 @@ import com.voxeo.moho.UnjointImpl;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
+import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.util.IDGenerator;
 
 public class ConferenceImpl extends MixerImpl implements Conference, ParticipantContainer {
 
@@ -56,7 +58,7 @@ public class ConferenceImpl extends MixerImpl implements Conference, Participant
       final Map<Object, Object> params, final String id, final int seats, final ConferenceController controller,
       Parameters parameters) {
     super(context, address, params, parameters);
-    _id = id;
+    _id = IDGenerator.generateId(_context, RemoteParticipant.RemoteParticipant_TYPE_CONFERENCE, id);
     _maxSeats = seats;
     _controller = controller;
     

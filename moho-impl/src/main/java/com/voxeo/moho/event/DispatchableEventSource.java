@@ -15,6 +15,7 @@
 package com.voxeo.moho.event;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
@@ -22,7 +23,6 @@ import java.util.concurrent.Future;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.AttributeStoreImpl;
 import com.voxeo.moho.spi.ExecutionContext;
-import com.voxeo.moho.util.IDGenerator;
 import com.voxeo.moho.util.Utils;
 import com.voxeo.moho.utils.EventListener;
 
@@ -53,11 +53,10 @@ public class DispatchableEventSource extends AttributeStoreImpl implements Event
   }
 
   public DispatchableEventSource(final ExecutionContext applicationContext, boolean orderedDispatch) {
-    
 	  this();
       _context = applicationContext;
       _dispatcher.setExecutor(getThreadPool(), orderedDispatch);
-      _id = IDGenerator.generateId(_context);
+      _id = UUID.randomUUID().toString();
   }
 
   // Event Handling

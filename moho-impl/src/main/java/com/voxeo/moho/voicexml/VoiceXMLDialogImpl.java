@@ -55,6 +55,7 @@ import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.util.IDGenerator;
 
 public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialog, ParticipantContainer {
 
@@ -87,7 +88,7 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   protected VoiceXMLDialogImpl(final ExecutionContext ctx, final VoiceXMLEndpoint address,
       final Map<Object, Object> params) {
     super(ctx);
-
+    _id = IDGenerator.generateId(_context, RemoteParticipant.RemoteParticipant_TYPE_DIALOG);
     try {
       _media = ctx.getMSFactory().createMediaSession();
       _dialog = _media.createVxmlDialog(null);
