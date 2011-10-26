@@ -21,9 +21,9 @@ import com.rayo.core.OfferEvent;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Participant;
+import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.remote.AuthenticationCallback;
 import com.voxeo.moho.remote.MohoRemote;
-import com.voxeo.moho.remote.impl.event.DispatchableEventSource;
 import com.voxeo.moho.remote.impl.utils.Utils.DaemonThreadFactory;
 
 public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemote {

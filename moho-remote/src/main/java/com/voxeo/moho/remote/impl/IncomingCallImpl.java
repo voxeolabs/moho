@@ -20,9 +20,9 @@ import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
-import com.voxeo.moho.remote.impl.event.MohoJoinCompleteEvent;
 
 public class IncomingCallImpl extends CallImpl implements IncomingCall {
   private static final Logger LOG = Logger.getLogger(IncomingCallImpl.class);

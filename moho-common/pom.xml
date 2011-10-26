@@ -18,13 +18,6 @@
 
   <dependencies>
     <dependency>
-
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.15</version>
@@ -48,11 +41,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>dom4j</groupId>
-      <artifactId>dom4j</artifactId>
-      <version>1.6.1</version>
-    </dependency>
+   
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -95,49 +84,11 @@
       <version>1.1</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>sipservlet-api</artifactId>
-      <version>1.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>mscontrol-api</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
+
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-api</artifactId>
       <version>0.8-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>3.0.0.RELEASE</version>
-    </dependency>
-    <dependency>
-      <groupId>javax.sdp</groupId>
-      <artifactId>sdp-api</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.voxeo.xmpp</groupId>
-      <artifactId>xmppservlet-api</artifactId>
-      <version>2.0-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.github.stephenc.eaio-uuid</groupId>
-      <artifactId>uuid</artifactId>
-      <version>3.2.0</version>
     </dependency>
   </dependencies>
 

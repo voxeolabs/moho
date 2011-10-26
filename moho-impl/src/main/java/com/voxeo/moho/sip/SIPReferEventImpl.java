@@ -130,7 +130,7 @@ public class SIPReferEventImpl extends MohoReferEvent implements SIPReferEvent {
         // set the event source.
         final SIPSubscriptionImpl retval = new SIPSubscriptionImpl(appContext, Type.REFER, 180, new SIPEndpointImpl(
             appContext, _req.getFrom()), endpoint);
-        //TODO should set event listener or observer.
+        // TODO should set event listener or observer.
         final SipSession outSession = req.getSession();
         outSession.setHandler(appContext.getSIPController().getServletName());
         SessionUtils.setEventSource(outSession, retval);
@@ -249,7 +249,6 @@ public class SIPReferEventImpl extends MohoReferEvent implements SIPReferEvent {
       LOG.error("IOException when sending notify message.", t);
     }
   }
-  
 
   public SipServletRequest getSipRequest() {
     return _req;
@@ -258,6 +257,11 @@ public class SIPReferEventImpl extends MohoReferEvent implements SIPReferEvent {
   @Override
   public void reject(Reason reason, Map<String, String> headers) throws SignalException {
     // TODO Auto-generated method stub
-    
+
+  }
+
+  @Override
+  public void accept() throws SignalException {
+    accept(JoinType.DIRECT, Direction.DUPLEX, null);
   }
 }

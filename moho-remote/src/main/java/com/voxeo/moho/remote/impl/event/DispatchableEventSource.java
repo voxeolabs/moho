@@ -21,6 +21,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
 import com.voxeo.moho.ApplicationContext;
+import com.voxeo.moho.common.AttributeStoreImpl;
+import com.voxeo.moho.common.event.AutowiredEventListener;
+import com.voxeo.moho.common.event.AutowiredEventTarget;
+import com.voxeo.moho.common.event.EventDispatcher;
+import com.voxeo.moho.common.event.MohoEvent;
 import com.voxeo.moho.event.Event;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.Observer;

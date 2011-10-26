@@ -14,18 +14,23 @@
 
 package com.voxeo.moho.remote.impl.event;
 
+import java.util.Map;
+
+import com.voxeo.moho.common.event.MohoAnsweredEvent;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.MediaEvent;
 
-public class MohoMediaEvent<T extends EventSource> extends MohoEvent<T> implements MediaEvent<T> {
+public class MohoAnsweredEventImpl<T extends EventSource> extends MohoAnsweredEvent<T> {
 
-    public MohoMediaEvent(T source) {
-        super(source);
-    }
+  private Map<String, String> _headers;
 
-    @Override
-    public T getSource() {
-        return source;
-    }
+  public MohoAnsweredEventImpl(final T source, Map<String, String> headers) {
+    super(source);
+    _headers = headers;
+  }
+
+  @Override
+  public Map<String, String> getHeaders() {
+    return _headers;
+  }
 
 }

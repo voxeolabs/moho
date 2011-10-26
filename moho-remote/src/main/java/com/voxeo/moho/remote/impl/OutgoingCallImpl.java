@@ -19,12 +19,12 @@ import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.OutgoingCall;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.common.event.MohoCallCompleteEvent;
+import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
-import com.voxeo.moho.remote.impl.event.MohoAnsweredEvent;
-import com.voxeo.moho.remote.impl.event.MohoCallCompleteEvent;
-import com.voxeo.moho.remote.impl.event.MohoHangupEvent;
-import com.voxeo.moho.remote.impl.event.MohoJoinCompleteEvent;
-import com.voxeo.moho.remote.impl.event.MohoRingEvent;
+import com.voxeo.moho.remote.impl.event.MohoAnsweredEventImpl;
+import com.voxeo.moho.remote.impl.event.MohoHangupEventImpl;
+import com.voxeo.moho.remote.impl.event.MohoRingEventImpl;
 
 public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
   private static final Logger LOG = Logger.getLogger(OutgoingCallImpl.class);
@@ -91,7 +91,7 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
     Object object = presence.getExtension().getObject();
     if (object instanceof AnsweredEvent) {
       AnsweredEvent event = (AnsweredEvent) object;
-      MohoAnsweredEvent<Call> mohoEvent = new MohoAnsweredEvent<Call>(this, event.getHeaders());
+      MohoAnsweredEventImpl<Call> mohoEvent = new MohoAnsweredEventImpl<Call>(this, event.getHeaders());
       _state = State.CONNECTED;
       this.dispatch(mohoEvent);
 
@@ -104,14 +104,14 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
     }
     else if (object instanceof RingingEvent) {
       RingingEvent event = (RingingEvent) object;
-      MohoRingEvent mohoEvent = new MohoRingEvent(this, event.getHeaders());
+      MohoRingEventImpl mohoEvent = new MohoRingEventImpl(this, event.getHeaders());
       this.dispatch(mohoEvent);
     }
     else if (object instanceof EndEvent) {
       EndEvent event = (EndEvent) object;
       EndEvent.Reason rayoReason = event.getReason();
       if (rayoReason == EndEvent.Reason.HANGUP) {
-        MohoHangupEvent mohoEvent = new MohoHangupEvent(this);
+        MohoHangupEventImpl mohoEvent = new MohoHangupEventImpl(this);
         this.dispatch(mohoEvent);
       }
 

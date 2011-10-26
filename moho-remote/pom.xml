@@ -54,6 +54,11 @@
 			<artifactId>moho-api</artifactId>
 			<version>0.8-SNAPSHOT</version>
 		</dependency>
+    <dependency>
+      <groupId>com.voxeo.moho</groupId>
+      <artifactId>moho-common</artifactId>
+      <version>0.8-SNAPSHOT</version>
+    </dependency>
 		<dependency>
 			<groupId>com.rayo</groupId>
 			<artifactId>rayo-java-client</artifactId>

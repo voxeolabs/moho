@@ -16,22 +16,17 @@ package com.voxeo.moho.remote.impl.event;
 
 import java.util.Map;
 
-import com.voxeo.moho.Endpoint;
-import com.voxeo.moho.Framework;
+import com.voxeo.moho.Call;
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.RegisterEvent;
+import com.voxeo.moho.common.event.MohoHangupEvent;
 
-public abstract class MohoRegisterEvent extends MohoEvent<Framework> implements RegisterEvent {
+public class MohoHangupEventImpl extends MohoHangupEvent {
 
   protected boolean _rejected = false;
 
   protected boolean _accepted = false;
 
-  protected boolean _redirected = false;
-
-  protected boolean _proxied = false;
-
-  protected MohoRegisterEvent(final Framework source) {
+  public MohoHangupEventImpl(final Call source) {
     super(source);
   }
 
@@ -41,23 +36,8 @@ public abstract class MohoRegisterEvent extends MohoEvent<Framework> implements 
   }
 
   @Override
-  public boolean isRedirected() {
-    return _redirected;
-  }
-
-  @Override
-  public synchronized void redirect(Endpoint other) throws SignalException {
-    redirect(other, null);
-  }
-
-  @Override
   public void accept() throws SignalException {
-    accept(null);
-  }
-
-  @Override
-  public void accept(final Map<String, String> headers) throws SignalException {
-    accept(getContacts(), headers);
+    this.accept(null);
   }
 
   @Override
@@ -71,18 +51,17 @@ public abstract class MohoRegisterEvent extends MohoEvent<Framework> implements 
   }
 
   @Override
-  public boolean isProxied() {
-    return _proxied;
+  public boolean isProcessed() {
+    return isAccepted() || isRejected();
   }
 
   @Override
-  public boolean isProcessed() {
-    return isAccepted() || isRejected() || isProxied();
+  public void accept(Map<String, String> headers) throws SignalException {
+
   }
 
-  protected synchronized void checkState() {
-    if (isProcessed()) {
-      throw new IllegalStateException("Event is already processed and can not be processed.");
-    }
+  @Override
+  public void reject(Reason reason, Map<String, String> headers) throws SignalException {
+
   }
 }
