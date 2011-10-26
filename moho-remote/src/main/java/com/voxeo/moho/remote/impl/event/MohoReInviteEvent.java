@@ -18,6 +18,7 @@ import java.util.Map;
 
 import com.voxeo.moho.Call;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.common.event.MohoCallEvent;
 import com.voxeo.moho.event.ReInviteEvent;
 
 public class MohoReInviteEvent extends MohoCallEvent implements ReInviteEvent {

@@ -64,6 +64,12 @@ import com.voxeo.moho.MediaException;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Unjoint;
+import com.voxeo.moho.common.event.DispatchableEventSource;
+import com.voxeo.moho.common.event.MohoCallCompleteEvent;
+import com.voxeo.moho.common.event.MohoEarlyMediaEvent;
+import com.voxeo.moho.common.event.MohoInputDetectedEvent;
+import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
+import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.AcceptableEvent;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.CallEvent;
@@ -86,13 +92,7 @@ import com.voxeo.moho.media.output.AudioURIResource;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
-import com.voxeo.moho.remote.impl.event.DispatchableEventSource;
-import com.voxeo.moho.remote.impl.event.MohoCallCompleteEvent;
-import com.voxeo.moho.remote.impl.event.MohoEarlyMediaEvent;
-import com.voxeo.moho.remote.impl.event.MohoHangupEvent;
-import com.voxeo.moho.remote.impl.event.MohoInputDetectedEvent;
-import com.voxeo.moho.remote.impl.event.MohoJoinCompleteEvent;
-import com.voxeo.moho.remote.impl.event.MohoUnjoinCompleteEvent;
+import com.voxeo.moho.remote.impl.event.MohoHangupEventImpl;
 import com.voxeo.moho.remote.impl.media.InputImpl;
 import com.voxeo.moho.remote.impl.media.OutputImpl;
 import com.voxeo.moho.remote.impl.media.PromptImpl;
@@ -773,7 +773,7 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         EndEvent event = (EndEvent) object;
         EndEvent.Reason rayoReason = event.getReason();
         if (rayoReason == EndEvent.Reason.HANGUP) {
-          MohoHangupEvent mohoEvent = new MohoHangupEvent(this);
+          MohoHangupEventImpl mohoEvent = new MohoHangupEventImpl(this);
           this.dispatch(mohoEvent);
         }
         MohoCallCompleteEvent mohoEvent = new MohoCallCompleteEvent(this,

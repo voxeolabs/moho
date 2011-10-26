@@ -14,14 +14,9 @@
 
 package com.voxeo.moho.common.event;
 
-import java.util.Map;
-
-import javax.media.mscontrol.join.Joinable.Direction;
-
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.ReferEvent;
 
 public abstract class MohoReferEvent extends MohoCallEvent implements ReferEvent {
@@ -29,7 +24,9 @@ public abstract class MohoReferEvent extends MohoCallEvent implements ReferEvent
   private static final long serialVersionUID = 4342028709927637088L;
 
   protected boolean _forwarded = false;
+
   protected boolean _accepted = false;
+
   protected boolean _rejected = false;
 
   public enum TransferType {
@@ -43,22 +40,12 @@ public abstract class MohoReferEvent extends MohoCallEvent implements ReferEvent
   public abstract CallableEndpoint getReferee();
 
   public abstract CallableEndpoint getReferredBy();
-  
+
   @Override
   public boolean isAccepted() {
     return _accepted;
   }
-  
-  @Override
-  public void accept() throws SignalException {
-    accept(JoinType.DIRECT, Direction.DUPLEX, null);
-  }
-  
-  @Override
-  public void accept(final Map<String, String> headers) throws SignalException {
-    accept(JoinType.DIRECT, Direction.DUPLEX, headers);
-  }
-  
+
   @Override
   public void forwardTo(final Call call) throws SignalException {
     forwardTo(call, null);
@@ -68,7 +55,7 @@ public abstract class MohoReferEvent extends MohoCallEvent implements ReferEvent
   public boolean isRejected() {
     return _rejected;
   }
-  
+
   @Override
   public void reject(Reason reason) {
     reject(reason, null);

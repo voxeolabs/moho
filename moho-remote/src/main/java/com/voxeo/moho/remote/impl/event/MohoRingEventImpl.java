@@ -17,13 +17,13 @@ package com.voxeo.moho.remote.impl.event;
 import java.util.Map;
 
 import com.voxeo.moho.Call;
-import com.voxeo.moho.event.RingEvent;
+import com.voxeo.moho.common.event.MohoRingEvent;
 
-public class MohoRingEvent extends MohoCallEvent implements RingEvent {
+public class MohoRingEventImpl extends MohoRingEvent {
 
   private Map<String, String> _headers;
 
-  public MohoRingEvent(final Call source, Map<String, String> headers) {
+  public MohoRingEventImpl(final Call source, Map<String, String> headers) {
     super(source);
     _headers = headers;
   }
