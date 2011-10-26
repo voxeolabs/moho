@@ -21,9 +21,9 @@ import java.util.concurrent.TimeoutException;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.signals.SignalDetector;
 
+import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputCompleteEvent;
-import com.voxeo.moho.util.SettableResultFuture;
 
 public class InputImpl<T extends EventSource> implements Input<T> {
 

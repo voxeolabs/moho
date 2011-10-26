@@ -6,7 +6,7 @@ import org.w3c.dom.Element;
 
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.TextableEndpoint;
-import com.voxeo.moho.event.MohoTextEvent;
+import com.voxeo.moho.common.event.MohoTextEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.servlet.xmpp.JID;
 import com.voxeo.servlet.xmpp.XmppServletRequest;

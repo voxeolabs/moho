@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.voxeo.moho.common.util.StringUtils;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 
 public class ParticipantIDParser {

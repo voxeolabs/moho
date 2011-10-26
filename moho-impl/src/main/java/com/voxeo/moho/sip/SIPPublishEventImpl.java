@@ -8,7 +8,7 @@ import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.MohoPublishEvent;
+import com.voxeo.moho.common.event.MohoPublishEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.SpiFramework;
 

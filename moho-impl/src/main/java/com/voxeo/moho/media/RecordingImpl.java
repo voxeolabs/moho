@@ -25,9 +25,9 @@ import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Recorder;
 
 import com.voxeo.moho.MediaException;
+import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.RecordCompleteEvent;
-import com.voxeo.moho.util.SettableResultFuture;
 
 public class RecordingImpl<T extends EventSource> implements Recording<T> {
 

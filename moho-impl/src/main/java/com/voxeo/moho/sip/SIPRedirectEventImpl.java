@@ -20,8 +20,8 @@ import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.common.event.MohoRedirectEvent;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.MohoRedirectEvent;
 
 public class SIPRedirectEventImpl<T extends EventSource> extends MohoRedirectEvent<T> implements SIPRedirectEvent<T> {
 

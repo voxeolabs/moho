@@ -26,7 +26,7 @@ import javax.servlet.sip.URI;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.MohoSubscribeEvent;
+import com.voxeo.moho.common.event.MohoSubscribeEvent;
 import com.voxeo.moho.sip.SIPEndpoint;
 import com.voxeo.moho.sip.SIPSubscribeEvent;
 import com.voxeo.moho.spi.ExecutionContext;

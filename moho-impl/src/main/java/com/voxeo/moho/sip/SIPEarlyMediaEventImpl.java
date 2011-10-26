@@ -7,7 +7,7 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.MohoEarlyMediaEvent;
+import com.voxeo.moho.common.event.MohoEarlyMediaEvent;
 
 public class SIPEarlyMediaEventImpl extends MohoEarlyMediaEvent implements SIPEarlyMediaEvent {
 

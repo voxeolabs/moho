@@ -4,8 +4,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.JoinCompleteEvent;
-import com.voxeo.moho.util.SettableResultFuture;
 
 public class SettableJointImpl implements Joint {
 

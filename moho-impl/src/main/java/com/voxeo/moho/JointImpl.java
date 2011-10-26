@@ -20,9 +20,9 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
-import com.voxeo.moho.event.MohoJoinCompleteEvent;
 
 public class JointImpl implements Joint {
 

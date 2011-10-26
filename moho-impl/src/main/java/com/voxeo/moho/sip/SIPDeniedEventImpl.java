@@ -16,8 +16,8 @@ package com.voxeo.moho.sip;
 
 import javax.servlet.sip.SipServletResponse;
 
+import com.voxeo.moho.common.event.MohoDeniedEvent;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.MohoDeniedEvent;
 
 // TODO 401 and 407
 

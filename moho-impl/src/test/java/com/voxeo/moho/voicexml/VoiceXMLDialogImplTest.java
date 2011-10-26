@@ -41,7 +41,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.MohoHangupEvent;
+import com.voxeo.moho.common.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockMediaSession;
 import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.media.fake.MockVxmlDialog;

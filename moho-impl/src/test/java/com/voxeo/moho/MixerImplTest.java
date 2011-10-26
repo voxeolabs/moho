@@ -37,7 +37,7 @@ import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
 
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.MohoHangupEvent;
+import com.voxeo.moho.common.event.MohoHangupEvent;
 import com.voxeo.moho.media.fake.MockMediaMixer;
 import com.voxeo.moho.media.fake.MockMediaSession;
 import com.voxeo.moho.sip.SIPCallImpl;

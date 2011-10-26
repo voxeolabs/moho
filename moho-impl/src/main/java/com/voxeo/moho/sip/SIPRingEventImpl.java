@@ -20,7 +20,7 @@ import java.util.Map;
 
 import javax.servlet.sip.SipServletResponse;
 
-import com.voxeo.moho.event.MohoRingEvent;
+import com.voxeo.moho.common.event.MohoRingEvent;
 
 public class SIPRingEventImpl extends MohoRingEvent implements SIPRingEvent {
 

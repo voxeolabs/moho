@@ -113,6 +113,11 @@
       <version>0.8-SNAPSHOT</version>
     </dependency>
     <dependency>
+      <groupId>com.voxeo.moho</groupId>
+      <artifactId>moho-common</artifactId>
+      <version>0.8-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
       <version>4.0</version>

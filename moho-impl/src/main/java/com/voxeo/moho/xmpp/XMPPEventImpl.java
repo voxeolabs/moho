@@ -5,7 +5,7 @@ import java.util.List;
 import org.w3c.dom.Element;
 
 import com.voxeo.moho.Framework;
-import com.voxeo.moho.event.MohoEvent;
+import com.voxeo.moho.common.event.MohoEvent;
 import com.voxeo.servlet.xmpp.JID;
 import com.voxeo.servlet.xmpp.XmppServletRequest;
 

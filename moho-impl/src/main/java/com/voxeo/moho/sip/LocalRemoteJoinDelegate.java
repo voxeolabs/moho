@@ -17,9 +17,9 @@ import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.ParticipantContainer;
+import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
-import com.voxeo.moho.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 
 public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventListener<SdpPortManagerEvent> {

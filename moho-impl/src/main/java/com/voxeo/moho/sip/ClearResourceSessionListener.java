@@ -4,7 +4,7 @@ import javax.servlet.sip.SipSessionEvent;
 import javax.servlet.sip.SipSessionListener;
 import javax.servlet.sip.annotation.SipListener;
 
-import com.voxeo.moho.event.MohoCallCompleteEvent;
+import com.voxeo.moho.common.event.MohoCallCompleteEvent;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.util.SessionUtils;
 

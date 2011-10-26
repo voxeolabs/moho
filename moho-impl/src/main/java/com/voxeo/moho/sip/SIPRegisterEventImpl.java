@@ -30,7 +30,7 @@ import javax.servlet.sip.SipURI;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.MohoRegisterEvent;
+import com.voxeo.moho.common.event.MohoRegisterEvent;
 import com.voxeo.moho.sip.SIPEndpoint;
 import com.voxeo.moho.spi.ExecutionContext;
 

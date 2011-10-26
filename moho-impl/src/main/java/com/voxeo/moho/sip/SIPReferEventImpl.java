@@ -36,7 +36,7 @@ import com.voxeo.moho.MediaException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription.Type;
-import com.voxeo.moho.event.MohoReferEvent;
+import com.voxeo.moho.common.event.MohoReferEvent;
 import com.voxeo.moho.util.SessionUtils;
 
 public class SIPReferEventImpl extends MohoReferEvent implements SIPReferEvent {

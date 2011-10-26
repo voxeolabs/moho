@@ -14,7 +14,7 @@
 
 package com.voxeo.moho.queue;
 
-import com.voxeo.moho.event.MohoEvent;
+import com.voxeo.moho.common.event.MohoEvent;
 
 /**
  * Base class for queue related events.

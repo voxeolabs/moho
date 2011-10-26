@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Call;
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.MohoReInviteEvent;
+import com.voxeo.moho.common.event.MohoReInviteEvent;
 
 public class SIPReInviteEventImpl extends MohoReInviteEvent implements SIPReInviteEvent {
 

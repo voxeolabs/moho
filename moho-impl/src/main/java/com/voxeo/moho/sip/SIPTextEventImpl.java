@@ -8,8 +8,8 @@ import javax.servlet.sip.SipServletRequest;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.TextableEndpoint;
+import com.voxeo.moho.common.event.MohoTextEvent;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.MohoTextEvent;
 import com.voxeo.moho.sip.SIPTextEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 

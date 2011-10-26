@@ -36,10 +36,10 @@ import com.voxeo.moho.RedirectException;
 import com.voxeo.moho.RejectException;
 import com.voxeo.moho.SettableJointImpl;
 import com.voxeo.moho.TimeoutException;
+import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
-import com.voxeo.moho.event.MohoJoinCompleteEvent;
 
 public abstract class JoinDelegate {
 

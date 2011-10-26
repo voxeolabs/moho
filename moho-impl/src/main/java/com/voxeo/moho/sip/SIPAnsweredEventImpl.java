@@ -20,8 +20,8 @@ import java.util.Map;
 
 import javax.servlet.sip.SipServletResponse;
 
+import com.voxeo.moho.common.event.MohoAnsweredEvent;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.MohoAnsweredEvent;
 
 public class SIPAnsweredEventImpl<T extends EventSource> extends
 		MohoAnsweredEvent<T> implements SIPAnsweredEvent<T> {

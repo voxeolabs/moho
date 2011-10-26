@@ -6,9 +6,9 @@ import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.ParticipantContainer;
+import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
-import com.voxeo.moho.event.MohoJoinCompleteEvent;
 
 public class OtherParticipantJoinDelegate extends JoinDelegate {
 

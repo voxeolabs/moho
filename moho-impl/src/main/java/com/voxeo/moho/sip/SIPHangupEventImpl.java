@@ -21,7 +21,7 @@ import java.util.Map;
 import javax.servlet.sip.SipServletRequest;
 
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.MohoHangupEvent;
+import com.voxeo.moho.common.event.MohoHangupEvent;
 
 public class SIPHangupEventImpl extends MohoHangupEvent implements
 		SIPHangupEvent {

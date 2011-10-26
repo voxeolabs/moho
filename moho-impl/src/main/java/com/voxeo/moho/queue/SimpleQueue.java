@@ -24,7 +24,7 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.Mixer;
 import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.spi.ExecutionContext;

@@ -14,7 +14,7 @@ package com.voxeo.moho;
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import com.voxeo.moho.Participant.JoinType;
-import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
+import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.sip.JoinDelegate;
 
 /**

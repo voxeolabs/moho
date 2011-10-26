@@ -21,7 +21,7 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription;
-import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 

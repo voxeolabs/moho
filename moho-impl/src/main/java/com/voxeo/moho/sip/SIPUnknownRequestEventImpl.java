@@ -26,8 +26,8 @@ import javax.servlet.sip.URI;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.common.event.MohoEvent;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.MohoEvent;
 import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPUnknownRequestEventImpl<T extends EventSource> extends MohoEvent<T> implements SIPUnknownRequestEvent<T> {

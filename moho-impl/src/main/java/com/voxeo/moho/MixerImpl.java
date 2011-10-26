@@ -41,15 +41,15 @@ import javax.media.mscontrol.spi.DriverManager;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.common.event.DispatchableEventSource;
+import com.voxeo.moho.common.event.MohoActiveSpeakerEvent;
+import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
+import com.voxeo.moho.common.event.MohoMediaResourceDisconnectEvent;
+import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.Event;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
-import com.voxeo.moho.event.MohoActiveSpeakerEvent;
-import com.voxeo.moho.event.MohoJoinCompleteEvent;
-import com.voxeo.moho.event.MohoMediaResourceDisconnectEvent;
-import com.voxeo.moho.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.media.GenericMediaService;

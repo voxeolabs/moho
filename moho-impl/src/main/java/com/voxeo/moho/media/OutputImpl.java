@@ -25,9 +25,9 @@ import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Player;
 
+import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.OutputCompleteEvent;
-import com.voxeo.moho.util.SettableResultFuture;
 
 public class OutputImpl<T extends EventSource> implements Output<T> {
 

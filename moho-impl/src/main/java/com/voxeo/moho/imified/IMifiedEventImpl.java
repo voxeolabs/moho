@@ -4,7 +4,7 @@ import java.util.Map;
 
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.TextableEndpoint;
-import com.voxeo.moho.event.MohoTextEvent;
+import com.voxeo.moho.common.event.MohoTextEvent;
 import com.voxeo.moho.imified.IMifiedEvent;
 
 public class IMifiedEventImpl extends MohoTextEvent<Framework> implements IMifiedEvent {

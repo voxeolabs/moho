@@ -111,6 +111,7 @@
 
   <modules>
     <module>moho-api</module>
+	<module>moho-common</module>
     <module>moho-impl</module>
     <module>moho-sample</module>
     <module>moho-reg</module>

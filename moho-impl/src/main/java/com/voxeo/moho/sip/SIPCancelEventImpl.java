@@ -18,7 +18,7 @@ import java.util.Map;
 import javax.servlet.sip.SipServletRequest;
 
 import com.voxeo.moho.SignalException;
-import com.voxeo.moho.event.MohoCancelEvent;
+import com.voxeo.moho.common.event.MohoCancelEvent;
 
 public abstract class SIPCancelEventImpl extends MohoCancelEvent implements SIPCancelEvent {
   protected SipServletRequest _req;

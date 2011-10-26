@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Element;
 
-import com.voxeo.moho.event.DispatchableEventSource;
+import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.presence.xmpp.XMPPPresenceService;
 import com.voxeo.moho.xmpp.RosterEvent.RosterItem;
 import com.voxeo.moho.xmpp.RosterPush;

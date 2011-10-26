@@ -23,7 +23,7 @@ import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.State;
-import com.voxeo.moho.event.MohoReferEvent;
+import com.voxeo.moho.event.ReferEvent;
 
 /**
  * Transfer: support unattended transfer and attended transfer. for unattended
@@ -56,7 +56,7 @@ public class Transfer implements Application {
   }
 
   @State("wait")
-  public void transfer(final MohoReferEvent ev) throws SignalException {
+  public void transfer(final ReferEvent ev) throws SignalException {
     // you can do your own things here. if you need not do this, you can just
     // remove this method, so you need not set the call in 'supervised' mode in
     // the above handleInvite method.

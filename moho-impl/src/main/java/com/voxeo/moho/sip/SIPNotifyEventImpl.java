@@ -30,8 +30,8 @@ import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.Subscription.Type;
+import com.voxeo.moho.common.event.MohoNotifyEvent;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.event.MohoNotifyEvent;
 
 public class SIPNotifyEventImpl<T extends EventSource> extends MohoNotifyEvent<T> implements SIPNotifyEvent<T> {
 
