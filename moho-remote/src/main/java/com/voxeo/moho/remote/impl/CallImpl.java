@@ -467,50 +467,8 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
 
   @Override
   public Joint join(Participant other, JoinType type, Direction direction) {
-    JointImpl joint = null;
-    Lock lock = joinLock.writeLock(); 
-    try {
-    	lock.lock();
-      this.startJoin();
-      // TODO make a parent class implement participant.
-      ((CallImpl) other).startJoin();
 
-      JoinCommand command = new JoinCommand();
-      command.setCallId(this.getId());
-      command.setTo(other.getId());
-      command.setMedia(type);
-      command.setDirection(direction);
-      JoinDestinationType destinationType = null;
-      if (other instanceof Call) {
-        destinationType = JoinDestinationType.CALL;
-      }
-      else {
-        destinationType = JoinDestinationType.MIXER;
-      }
-      command.setType(destinationType);
-      
-      joint = new JointImpl(this, type, direction);
-      _joints.put(other.getId(), joint);
-      ((CallImpl) other)._joints.put(this.getId(), joint);
-      
-      IQ iq = _mohoRemote.getRayoClient().join(command, this.getId());
-
-      if (iq.isError()) {
-          _joints.remove(other.getId());
-          ((CallImpl) other)._joints.remove(this.getId());
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
-        throw new SignalException(error.getCondition() + error.getText());
-      }
-    }
-    catch (XmppException e) {
-        _joints.remove(other.getId());
-        ((CallImpl) other)._joints.remove(this.getId());
-      LOG.error("", e);
-      throw new SignalException("", e);
-    } finally {
-    	lock.unlock();
-    }
-    return joint;
+	  return join(other, type, Boolean.TRUE, direction);
   }
 
   @Override
@@ -903,7 +861,51 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
 
   @Override
   public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
-    // TODO Auto-generated method stub
-    return null;
+
+	    JointImpl joint = null;
+	    Lock lock = joinLock.writeLock(); 
+	    try {
+	    	lock.lock();
+	      this.startJoin();
+	      // TODO make a parent class implement participant.
+	      ((CallImpl) other).startJoin();
+
+	      JoinCommand command = new JoinCommand();
+	      command.setCallId(this.getId());
+	      command.setTo(other.getId());
+	      command.setMedia(type);
+	      command.setDirection(direction);
+	      command.setForce(force);
+	      JoinDestinationType destinationType = null;
+	      if (other instanceof Call) {
+	        destinationType = JoinDestinationType.CALL;
+	      }
+	      else {
+	        destinationType = JoinDestinationType.MIXER;
+	      }
+	      command.setType(destinationType);
+	      
+	      joint = new JointImpl(this, type, direction);
+	      _joints.put(other.getId(), joint);
+	      ((CallImpl) other)._joints.put(this.getId(), joint);
+	      
+	      IQ iq = _mohoRemote.getRayoClient().join(command, this.getId());
+
+	      if (iq.isError()) {
+	          _joints.remove(other.getId());
+	          ((CallImpl) other)._joints.remove(this.getId());
+	        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+	        throw new SignalException(error.getCondition() + error.getText());
+	      }
+	    }
+	    catch (XmppException e) {
+	        _joints.remove(other.getId());
+	        ((CallImpl) other)._joints.remove(this.getId());
+	      LOG.error("", e);
+	      throw new SignalException("", e);
+	    } finally {
+	    	lock.unlock();
+	    }
+	    return joint;
   }
 }
