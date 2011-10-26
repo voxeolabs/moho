@@ -42,6 +42,7 @@ import org.joda.time.Duration;
 import com.rayo.client.XmppException;
 import com.rayo.client.xmpp.stanza.IQ;
 import com.rayo.client.xmpp.stanza.Presence;
+import com.rayo.core.AnsweredEvent;
 import com.rayo.core.CallRejectReason;
 import com.rayo.core.DtmfEvent;
 import com.rayo.core.EndEvent;
@@ -49,6 +50,7 @@ import com.rayo.core.HangupCommand;
 import com.rayo.core.JoinCommand;
 import com.rayo.core.JoinDestinationType;
 import com.rayo.core.JoinedEvent;
+import com.rayo.core.RingingEvent;
 import com.rayo.core.UnjoinedEvent;
 import com.rayo.core.verb.Choices;
 import com.rayo.core.verb.OffHoldEvent;
@@ -793,6 +795,11 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       }
       else if (object instanceof OnHoldEvent) {
         // TODO for conference
+      }  else if (object instanceof AnsweredEvent) {
+    	  // TODO for answered
+      }
+      else if (object instanceof RingingEvent) {
+    	  // TODO for answered
       }
       else {
         LOG.error("Can't process presence:" + presence);
