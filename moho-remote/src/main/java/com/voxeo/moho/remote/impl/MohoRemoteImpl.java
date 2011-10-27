@@ -79,7 +79,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       JID fromJID = new JID(iq.getFrom());
       String id = fromJID.getNode();
       if (id != null) {
-        Participant participant = MohoRemoteImpl.this._participants.get(id);
+        Participant participant = MohoRemoteImpl.this.getParticipant(id);
         if (participant != null) {
           // TODO crate a parent class to implement the RayoListener
           if (participant instanceof Call) {
@@ -116,7 +116,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       else {
         // dispatch the stanza to corresponding call.
         String callID = fromJID.getNode();
-        Participant participant = MohoRemoteImpl.this._participants.get(callID);
+        Participant participant = MohoRemoteImpl.this.getParticipant(callID);
         if (participant != null) {
           // TODO crate a parent class to implement the RayoListener
           if (participant instanceof Call) {
