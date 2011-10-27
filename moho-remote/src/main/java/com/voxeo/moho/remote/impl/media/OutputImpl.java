@@ -268,7 +268,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
       }
     }
     else {
-      LOG.error("Can't process presence:" + presence);
+      LOG.error("OutputImpl Can't process presence:" + presence);
     }
   }
 

@@ -51,19 +51,20 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   @Override
   public void disconnect() {
-    _executor.shutdown();
 
+    Collection<Participant> participants = _participants.values();
+    for (Participant participant : participants) {
+      participant.disconnect();
+    }
+    
     try {
       _client.disconnect();
     }
     catch (XmppException e) {
       LOG.error("", e);
     }
-
-    Collection<Participant> participants = _participants.values();
-    for (Participant participant : participants) {
-      participant.disconnect();
-    }
+    
+    _executor.shutdown();
   }
 
   class MohoStanzaListener implements StanzaListener {

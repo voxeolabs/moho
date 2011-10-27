@@ -171,7 +171,7 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
       _call.dispatch(mohoEvent);
     }
     else {
-      LOG.error("Can't process presence:" + presence);
+      LOG.error("RecordingImpl Can't process presence:" + presence);
     }
 
   }
