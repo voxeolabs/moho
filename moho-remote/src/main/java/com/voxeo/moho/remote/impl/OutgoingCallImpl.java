@@ -42,8 +42,16 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
       command.setFrom(_caller.getURI());
       command.setTo(_callee.getURI());
       command.setHeaders(_headers);
-      VerbRef verbRef = _mohoRemote.getRayoClient().dial(command);
-      setID(verbRef.getVerbId());
+
+      _mohoRemote.getComponentCommandLock().lock();
+      try {
+        VerbRef verbRef = _mohoRemote.getRayoClient().dial(command);
+        setID(verbRef.getVerbId());
+      }
+      finally {
+        _mohoRemote.getComponentCommandLock().lock();
+      }
+
       _state = State.INITIALIZED;
     }
   }

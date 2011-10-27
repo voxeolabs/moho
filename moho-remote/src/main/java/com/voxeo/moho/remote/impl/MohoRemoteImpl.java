@@ -8,6 +8,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 
@@ -36,6 +38,8 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   protected Map<String, Participant> _participants = new ConcurrentHashMap<String, Participant>();
 
+  protected Lock _componentCommandLock = new ReentrantLock();
+
   public MohoRemoteImpl() {
     super();
     int eventDispatcherThreadPoolSize = 10;
@@ -46,7 +50,8 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   @Override
   public void connect(AuthenticationCallback callback, String xmppServer, String rayoServer) {
-    connect(callback.getUserName(), callback.getPassword(), callback.getRealm(), callback.getResource(), xmppServer, rayoServer);
+    connect(callback.getUserName(), callback.getPassword(), callback.getRealm(), callback.getResource(), xmppServer,
+        rayoServer);
   }
 
   @Override
@@ -55,14 +60,14 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     for (Participant participant : participants) {
       participant.disconnect();
     }
-    
+
     try {
       _client.disconnect();
     }
     catch (XmppException e) {
       LOG.error("", e);
     }
-    
+
     _executor.shutdown();
   }
 
@@ -97,8 +102,8 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     @Override
     public void onPresence(Presence presence) {
       JID fromJID = new JID(presence.getFrom());
-      if(!presence.hasExtension()) {
-    	  return;
+      if (!presence.hasExtension()) {
+        return;
       }
       if (presence.getExtension().getStanzaName().equalsIgnoreCase("offer")) {
         OfferEvent offerEvent = (OfferEvent) presence.getExtension().getObject();
@@ -147,7 +152,15 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   @Override
   public Participant getParticipant(final String cid) {
-    return _participants.get(cid);
+    _componentCommandLock.lock();
+    Participant participant = null;
+    try {
+      participant = _participants.get(cid);
+    }
+    finally {
+      _componentCommandLock.unlock();
+    }
+    return participant;
   }
 
   protected void addCall(final CallImpl call) {
@@ -159,7 +172,8 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
   }
 
   @Override
-  public void connect(String userName, String passwd, String realm, String resource, String xmppServer, String rayoServer) {
+  public void connect(String userName, String passwd, String realm, String resource, String xmppServer,
+      String rayoServer) {
     if (_client == null) {
       _client = new RayoClient(xmppServer, rayoServer);
 
@@ -174,4 +188,9 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       _client.addStanzaListener(new MohoStanzaListener());
     }
   }
+
+  public Lock getComponentCommandLock() {
+    return _componentCommandLock;
+  }
+
 }
