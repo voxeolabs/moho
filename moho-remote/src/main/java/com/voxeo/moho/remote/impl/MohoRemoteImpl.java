@@ -51,7 +51,6 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   @Override
   public void disconnect() {
-
     Collection<Participant> participants = _participants.values();
     for (Participant participant : participants) {
       participant.disconnect();

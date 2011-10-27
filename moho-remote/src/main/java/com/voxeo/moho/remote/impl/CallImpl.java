@@ -42,6 +42,7 @@ import org.joda.time.Duration;
 import com.rayo.client.XmppException;
 import com.rayo.client.xmpp.stanza.IQ;
 import com.rayo.client.xmpp.stanza.Presence;
+import com.rayo.core.AnsweredEvent;
 import com.rayo.core.CallRejectReason;
 import com.rayo.core.DtmfEvent;
 import com.rayo.core.EndEvent;
@@ -49,6 +50,7 @@ import com.rayo.core.HangupCommand;
 import com.rayo.core.JoinCommand;
 import com.rayo.core.JoinDestinationType;
 import com.rayo.core.JoinedEvent;
+import com.rayo.core.RingingEvent;
 import com.rayo.core.UnjoinedEvent;
 import com.rayo.core.verb.Choices;
 import com.rayo.core.verb.OffHoldEvent;
@@ -467,50 +469,8 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
 
   @Override
   public Joint join(Participant other, JoinType type, Direction direction) {
-    JointImpl joint = null;
-    Lock lock = joinLock.writeLock(); 
-    try {
-    	lock.lock();
-      this.startJoin();
-      // TODO make a parent class implement participant.
-      ((CallImpl) other).startJoin();
 
-      JoinCommand command = new JoinCommand();
-      command.setCallId(this.getId());
-      command.setTo(other.getId());
-      command.setMedia(type);
-      command.setDirection(direction);
-      JoinDestinationType destinationType = null;
-      if (other instanceof Call) {
-        destinationType = JoinDestinationType.CALL;
-      }
-      else {
-        destinationType = JoinDestinationType.MIXER;
-      }
-      command.setType(destinationType);
-      
-      joint = new JointImpl(this, type, direction);
-      _joints.put(other.getId(), joint);
-      ((CallImpl) other)._joints.put(this.getId(), joint);
-      
-      IQ iq = _mohoRemote.getRayoClient().join(command, this.getId());
-
-      if (iq.isError()) {
-          _joints.remove(other.getId());
-          ((CallImpl) other)._joints.remove(this.getId());
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
-        throw new SignalException(error.getCondition() + error.getText());
-      }
-    }
-    catch (XmppException e) {
-        _joints.remove(other.getId());
-        ((CallImpl) other)._joints.remove(this.getId());
-      LOG.error("", e);
-      throw new SignalException("", e);
-    } finally {
-    	lock.unlock();
-    }
-    return joint;
+	  return join(other, type, Boolean.TRUE, direction);
   }
 
   @Override
@@ -835,6 +795,11 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
       }
       else if (object instanceof OnHoldEvent) {
         // TODO for conference
+      }  else if (object instanceof AnsweredEvent) {
+    	  // TODO for answered
+      }
+      else if (object instanceof RingingEvent) {
+    	  // TODO for answered
       }
       else {
         LOG.error("Can't process presence:" + presence);
@@ -903,7 +868,51 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
 
   @Override
   public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
-    // TODO Auto-generated method stub
-    return null;
+
+	    JointImpl joint = null;
+	    Lock lock = joinLock.writeLock(); 
+	    try {
+	    	lock.lock();
+	      this.startJoin();
+	      // TODO make a parent class implement participant.
+	      ((CallImpl) other).startJoin();
+
+	      JoinCommand command = new JoinCommand();
+	      command.setCallId(this.getId());
+	      command.setTo(other.getId());
+	      command.setMedia(type);
+	      command.setDirection(direction);
+	      command.setForce(force);
+	      JoinDestinationType destinationType = null;
+	      if (other instanceof Call) {
+	        destinationType = JoinDestinationType.CALL;
+	      }
+	      else {
+	        destinationType = JoinDestinationType.MIXER;
+	      }
+	      command.setType(destinationType);
+	      
+	      joint = new JointImpl(this, type, direction);
+	      _joints.put(other.getId(), joint);
+	      ((CallImpl) other)._joints.put(this.getId(), joint);
+	      
+	      IQ iq = _mohoRemote.getRayoClient().join(command, this.getId());
+
+	      if (iq.isError()) {
+	          _joints.remove(other.getId());
+	          ((CallImpl) other)._joints.remove(this.getId());
+	        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+	        throw new SignalException(error.getCondition() + error.getText());
+	      }
+	    }
+	    catch (XmppException e) {
+	        _joints.remove(other.getId());
+	        ((CallImpl) other)._joints.remove(this.getId());
+	      LOG.error("", e);
+	      throw new SignalException("", e);
+	    } finally {
+	    	lock.unlock();
+	    }
+	    return joint;
   }
 }
