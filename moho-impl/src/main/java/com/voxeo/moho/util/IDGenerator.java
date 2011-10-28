@@ -16,7 +16,7 @@ public class IDGenerator {
   public static String generateId(ExecutionContext context, String type, String uid) {
     if (context != null) {
       if (uid == null) {
-        uid = String.valueOf(new com.eaio.uuid.UUID().getTime());
+        uid = String.valueOf(Math.abs(new com.eaio.uuid.UUID().getTime()));
       }
       String rawid = ((ApplicationContextImpl) context).generateID(type, uid);
 
