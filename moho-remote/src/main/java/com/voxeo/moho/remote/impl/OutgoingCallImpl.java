@@ -49,7 +49,7 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
         setID(verbRef.getVerbId());
       }
       finally {
-        _mohoRemote.getComponentCommandLock().lock();
+        _mohoRemote.getComponentCommandLock().unlock();
       }
 
       _state = State.INITIALIZED;
