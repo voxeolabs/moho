@@ -88,6 +88,22 @@
           </formats>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>com.voxeo.moho.remote.test.RayoTest</mainClass>
+              <addClasspath>true</addClasspath>              
+            </manifest>
+	        <manifestEntries>
+	            <Class-Path>../../../../lib/jars/log4j-1.2.15.jar ../../../../lib/jars/dom4j-1.6.1.jar ../../../../common/lib/mscontrol.jar</Class-Path>
+	        </manifestEntries>            
+          </archive>
+        </configuration>
+      </plugin>      
     </plugins>
   </reporting>
 </project>
