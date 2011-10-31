@@ -205,9 +205,10 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
         if (ar instanceof TextToSpeechResource) {
           rayoOutput.setPrompt(new Ssml(((TextToSpeechResource) ar).getText()));
         }
-        else if (ar instanceof AudioURIResource) {
+        else  {
           verbRef = _mohoRemote.getRayoClient().output(ar.toURI(), this.getId());
         }
+        
         if (output.getAudibleResources().length > 1) {
           next = (OutputCommand) output.clone();
           next.setAudibleResource(Arrays.copyOfRange(output.getAudibleResources(), 1, output.getAudibleResources().length));
