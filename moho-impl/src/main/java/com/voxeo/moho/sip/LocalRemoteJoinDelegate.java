@@ -43,10 +43,10 @@ public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventL
   }
 
   @Override
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
     _remoteParticipant.startJoin(_localParticipant, this);
     ((ParticipantContainer) _localParticipant).startJoin(_remoteParticipant, this);
-    
+
     if (_localParticipant.getMediaObject() == null && _localParticipant instanceof Call) {
       ((Call) _localParticipant).join(Direction.DUPLEX);
       return;
@@ -70,7 +70,7 @@ public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventL
         final byte[] sdp = event.getMediaServerSdp();
         try {
           ((ApplicationContextImpl) _remoteParticipant.getApplicationContext()).getRemoteCommunication().join(
-              _localParticipant.getId(), _remoteParticipant.getId(), sdp);
+              _localParticipant.getId(), _remoteParticipant.getId(), _joinType, sdp);
         }
         catch (final Exception e) {
           LOG.error("", e);
@@ -139,7 +139,7 @@ public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventL
     _remoteParticipant.joinDone(notifyRemote);
 
     _settableJoint.done(joinCompleteEvent);
-    
+
     _localParticipant.dispatch(joinCompleteEvent);
     done = true;
   }

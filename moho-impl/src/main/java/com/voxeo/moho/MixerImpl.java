@@ -11,6 +11,7 @@
 
 package com.voxeo.moho;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -889,6 +890,21 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
       return MixerImpl.this.join(other, type, force, direction);
     }
+
+    @Override
+    public byte[] getJoinSDP() {
+      throw new UnsupportedOperationException("");
+    }
+
+    @Override
+    public void processSDPAnswer(byte[] sdp) throws IOException {
+      throw new UnsupportedOperationException("");
+    }
+
+    @Override
+    public byte[] processSDPOffer(byte[] sdp) throws IOException {
+      throw new UnsupportedOperationException("");
+    }
   }
 
   // listener for Active speaker event.
@@ -992,5 +1008,20 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   @Override
   public Direction getDirection(Participant participant) {
     return _joinees.getDirection(participant);
+  }
+
+  @Override
+  public byte[] getJoinSDP() {
+    throw new UnsupportedOperationException("");
+  }
+
+  @Override
+  public void processSDPAnswer(byte[] sdp) throws IOException {
+    throw new UnsupportedOperationException("");
+  }
+
+  @Override
+  public byte[] processSDPOffer(byte[] sdp) throws IOException {
+    throw new UnsupportedOperationException("");
   }
 }

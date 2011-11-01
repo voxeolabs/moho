@@ -1,5 +1,6 @@
 package com.voxeo.moho.sip;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -138,9 +139,16 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
 
   @Override
   public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
-    JoinDelegate joinDelegate = new LocalRemoteJoinDelegate(other, this, direction);
+    JoinDelegate joinDelegate = null;
+    if (type != JoinType.DIRECT) {
+      joinDelegate = new LocalRemoteJoinDelegate(other, this, direction);
+    }
+    else {
+      joinDelegate = new DirectLocalRemoteJoinDelegate((SIPCallImpl) other, this, direction);
+    }
+
     SettableJointImpl joint = new SettableJointImpl();
-    joinDelegate .setSettableJoint(joint);
+    joinDelegate.setSettableJoint(joint);
 
     try {
       joinDelegate.doJoin();
@@ -306,5 +314,21 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
   public Direction getDirection(Participant participant) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  @Override
+  public byte[] getJoinSDP() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void processSDPAnswer(byte[] sdp) throws IOException {
+    throw new UnsupportedOperationException();
+
+  }
+
+  @Override
+  public byte[] processSDPOffer(byte[] sdp) throws IOException {
+    throw new UnsupportedOperationException();
   }
 }

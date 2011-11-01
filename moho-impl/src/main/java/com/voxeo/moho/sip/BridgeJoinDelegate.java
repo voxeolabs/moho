@@ -31,7 +31,7 @@ public class BridgeJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
     super.doJoin();
     _call1.setBridgeJoiningPeer(_call2);
     _call2.setBridgeJoiningPeer(_call1);

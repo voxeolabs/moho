@@ -36,7 +36,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
     super.doJoin();
     ((SIPOutgoingCall) _call2).call(_call1.getRemoteSdp(), _call1.getSipSession().getApplicationSession(),
         _call1.useReplacesHeader());

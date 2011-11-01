@@ -7,12 +7,14 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Participant;
+import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
+import com.voxeo.moho.sip.DirectRemoteLocalJoinDelegate;
 import com.voxeo.moho.sip.JoinDelegate;
-import com.voxeo.moho.sip.LocalRemoteJoinDelegate;
 import com.voxeo.moho.sip.RemoteLocalJoinDelegate;
 import com.voxeo.moho.sip.RemoteParticipantImpl;
+import com.voxeo.moho.sip.SIPCallImpl;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.ParticipantIDParser;
 
@@ -26,10 +28,11 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
     _context = context;
   }
 
-  public void join(String joinerRemoteAddress, String joineeRemoteAddress, byte[] sdp) throws Exception {
+  public void join(String joinerRemoteAddress, String joineeRemoteAddress, JoinType joinType, byte[] sdp)
+      throws Exception {
     String rmiAddress = getRmiAddress(joineeRemoteAddress);
     RemoteCommunication ske = (RemoteCommunication) Naming.lookup(rmiAddress);
-    ske.remoteJoin(joinerRemoteAddress, joineeRemoteAddress, sdp);
+    ske.remoteJoin(joinerRemoteAddress, joineeRemoteAddress, joinType, sdp);
   }
 
   public void joinAnswer(String joinerRemoteAddress, String joineeRemoteAddress, byte[] sdp) throws Exception {
@@ -63,12 +66,19 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
   }
 
   @Override
-  public void remoteJoin(String joinerRemoteAddress, String joineeRemoteAddress, byte[] sdp) throws Exception {
+  public void remoteJoin(String joinerRemoteAddress, String joineeRemoteAddress, JoinType joinType, byte[] sdp)
+      throws Exception {
     Participant localParticipant = _context.getParticipant(joineeRemoteAddress);
     RemoteParticipantImpl remoteParticipant = (RemoteParticipantImpl) _context.getParticipant(joinerRemoteAddress);
 
-    RemoteLocalJoinDelegate joinDelegate = new RemoteLocalJoinDelegate(remoteParticipant, localParticipant,
-        Direction.DUPLEX, sdp);
+    JoinDelegate joinDelegate = null;
+    if (joinType != JoinType.DIRECT) {
+      joinDelegate = new RemoteLocalJoinDelegate(remoteParticipant, localParticipant, Direction.DUPLEX, sdp);
+    }
+    else {
+      joinDelegate = new DirectRemoteLocalJoinDelegate(remoteParticipant, (SIPCallImpl) localParticipant,
+          Direction.DUPLEX, sdp);
+    }
 
     joinDelegate.doJoin();
   }
@@ -77,8 +87,7 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
   public void remoteJoinAnswer(String joinerRemoteAddress, String joineeRemoteAddress, byte[] sdp) throws Exception {
     Participant localParticipant = _context.getParticipant(joinerRemoteAddress);
     if (localParticipant instanceof ParticipantContainer) {
-      LocalRemoteJoinDelegate joinDelegate = (LocalRemoteJoinDelegate) ((ParticipantContainer) localParticipant)
-          .getJoinDelegate(joineeRemoteAddress);
+      JoinDelegate joinDelegate = ((ParticipantContainer) localParticipant).getJoinDelegate(joineeRemoteAddress);
 
       joinDelegate.remoteJoinAnswer(sdp);
     }

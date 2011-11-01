@@ -30,7 +30,7 @@ public class Media2NIJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
     super.doJoin();
     _call1.setSIPCallState(SIPCall.State.ANSWERING);
     _call1.processSDPOffer(_call1.getSipInitnalRequest());

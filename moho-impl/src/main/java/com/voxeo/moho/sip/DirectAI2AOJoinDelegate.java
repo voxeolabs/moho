@@ -35,7 +35,7 @@ public class DirectAI2AOJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
     super.doJoin();
     ((SIPOutgoingCall) _call2).call(null);
   }

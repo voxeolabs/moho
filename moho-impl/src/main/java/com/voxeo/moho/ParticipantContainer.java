@@ -11,6 +11,8 @@
 
 package com.voxeo.moho;
 
+import java.io.IOException;
+
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import com.voxeo.moho.Participant.JoinType;
@@ -33,4 +35,15 @@ public interface ParticipantContainer {
   public JoinDelegate getJoinDelegate(String participantID);
 
   Direction getDirection(Participant participant);
+
+  // ///the following method is used for direct remote join.
+  // return sdp async(by joinDelegate.doInviteReponse) or sync(not answered
+  // incoming call)
+  byte[] getJoinSDP() throws IOException;
+
+  void processSDPAnswer(byte[] sdp) throws IOException;
+
+  // return sdp async(by joinDelegate.doInviteReponse) or sync(not answered
+  // incoming call)
+  byte[] processSDPOffer(byte[] sdp) throws IOException;
 }

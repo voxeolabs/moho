@@ -15,6 +15,7 @@ import java.util.Map;
 
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.servlet.sip.Rel100Exception;
+import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
@@ -34,9 +35,9 @@ public class Media2NOJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
     super.doJoin();
-    _call1.processSDPOffer(null);
+    _call1.processSDPOffer((SipServletMessage)null);
   }
 
   @Override

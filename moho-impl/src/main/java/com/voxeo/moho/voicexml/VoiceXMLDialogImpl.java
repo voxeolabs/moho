@@ -11,6 +11,7 @@
 
 package com.voxeo.moho.voicexml;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -464,5 +465,21 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   @Override
   public Direction getDirection(Participant participant) {
     return _joinees.getDirection(participant);
+  }
+
+  @Override
+  public byte[] getJoinSDP() {
+    throw new UnsupportedOperationException("");
+  }
+
+  @Override
+  public void processSDPAnswer(byte[] sdp) throws IOException {
+    throw new UnsupportedOperationException("");
+
+  }
+
+  @Override
+  public byte[] processSDPOffer(byte[] sdp) throws IOException {
+    throw new UnsupportedOperationException("");
   }
 }

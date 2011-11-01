@@ -11,6 +11,7 @@
 
 package com.voxeo.moho.sip;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
@@ -123,7 +124,7 @@ public abstract class JoinDelegate {
     return _peer;
   }
 
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
   }
 
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
@@ -589,5 +590,10 @@ public abstract class JoinDelegate {
       return true;
     }
     return false;
+  }
+  
+  //used for remote join
+  public void remoteJoinAnswer(byte[] sdp) throws Exception{
+    
   }
 }

@@ -36,7 +36,7 @@ public class DirectNI2AIJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
     super.doJoin();
     final SipServletRequest req = _call2.getSipSession().createRequest("INVITE");
     if (_call1.getRemoteSdp() != null) {

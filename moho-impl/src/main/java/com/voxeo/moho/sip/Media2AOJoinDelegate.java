@@ -32,9 +32,9 @@ public class Media2AOJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
     super.doJoin();
-    _call1.processSDPOffer(null);
+    _call1.processSDPOffer((SipServletMessage)null);
   }
 
   @Override

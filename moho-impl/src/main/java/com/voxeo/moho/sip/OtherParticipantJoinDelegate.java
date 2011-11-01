@@ -23,7 +23,7 @@ public class OtherParticipantJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
     super.doJoin();
     _call1.unlinkDirectlyPeer();
     if (_call1.getMediaObject() == null) {

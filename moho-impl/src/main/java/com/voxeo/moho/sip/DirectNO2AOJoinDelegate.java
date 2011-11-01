@@ -42,7 +42,7 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doJoin() throws Exception {
+  public void doJoin() throws Exception {
     super.doJoin();
     ((SIPOutgoingCall) _call1).call(null, _call2.getSipSession().getApplicationSession());
   }

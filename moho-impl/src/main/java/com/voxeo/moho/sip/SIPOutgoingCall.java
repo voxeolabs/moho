@@ -203,4 +203,28 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
       throw new SignalException(e);
     }
   }
+
+  @Override
+  public byte[] getJoinSDP() throws IOException{
+    this.call(null);
+    return null;
+  }
+
+  @Override
+  public void processSDPAnswer(byte[] sdp) throws IOException{
+    if(_inviteResponse != null){
+      SipServletRequest ack = _inviteResponse.createAck();
+      ack.setContent(sdp, "application/sdp");
+      ack.send();
+    }
+    else{
+      throw new IllegalStateException("");
+    }
+  }
+
+  @Override
+  public byte[] processSDPOffer(byte[] sdp) throws IOException{
+    this.call(sdp);
+    return null;
+  }
 }

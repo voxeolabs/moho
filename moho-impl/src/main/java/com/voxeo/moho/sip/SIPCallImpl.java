@@ -123,6 +123,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected Queue<JoinDelegate> _joinQueue = new LinkedList<JoinDelegate>();
 
+  protected SipServletResponse _inviteResponse;
+
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
     _caller = new SIPEndpointImpl(context, req.getFrom());
@@ -543,7 +545,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
       else if (other instanceof RemoteParticipant) {
         RemoteParticipant remote = (RemoteParticipant) other;
-        JoinDelegate joinDelegate = new LocalRemoteJoinDelegate(this, remote, direction);
+        JoinDelegate joinDelegate = null;
+        if (type != JoinType.DIRECT) {
+          joinDelegate = new LocalRemoteJoinDelegate(this, remote, direction);
+        }
+        else {
+          joinDelegate = new DirectLocalRemoteJoinDelegate(this, remote, direction);
+        }
+
         joinDelegate.setSettableJoint(joint);
 
         _joinQueue.add(joinDelegate);
@@ -676,6 +685,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug(res);
     }
     if (SIPHelper.isInvite(res)) {
+      _inviteResponse = res;
       if (SIPHelper.isSuccessResponse(res)) {
         final byte[] content = SIPHelper.getRawContentWOException(res);
         if (content != null) {
@@ -1098,7 +1108,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected Joint doJoin(final RemoteParticipant other, final JoinType type, final Direction direction)
       throws Exception {
-    JoinDelegate joinDelegate = new LocalRemoteJoinDelegate(this, other, direction);
+    JoinDelegate joinDelegate = null;
+    if (type != JoinType.DIRECT) {
+      joinDelegate = new LocalRemoteJoinDelegate(this, other, direction);
+    }
+    else {
+      joinDelegate = new DirectLocalRemoteJoinDelegate(this, other, direction);
+    }
+
     SettableJointImpl joint = new SettableJointImpl();
     joinDelegate.setSettableJoint(joint);
 

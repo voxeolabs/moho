@@ -76,7 +76,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
             retval = new DirectNI2AOJoinDelegate(this, (SIPOutgoingCall) other, direction, (SIPOutgoingCall) other);
           }
           else if (other instanceof SIPIncomingCall) {
-            retval = new DirectNI2AIJoinDelegate(this, (SIPIncomingCall) other, direction,  (SIPIncomingCall) other);
+            retval = new DirectNI2AIJoinDelegate(this, (SIPIncomingCall) other, direction, (SIPIncomingCall) other);
           }
         }
       }
@@ -91,7 +91,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
         }
         else if (other.isAnswered()) {
           if (other instanceof SIPOutgoingCall) {
-            retval = new DirectAI2AOJoinDelegate(this, (SIPOutgoingCall) other, direction,  (SIPOutgoingCall) other);
+            retval = new DirectAI2AOJoinDelegate(this, (SIPOutgoingCall) other, direction, (SIPOutgoingCall) other);
           }
           else if (other instanceof SIPIncomingCall) {
             retval = new DirectAI2AIJoinDelegate(this, (SIPIncomingCall) other, direction, (SIPIncomingCall) other);
@@ -410,11 +410,56 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
 
   @Override
   public void setAsync(boolean async) {
-    
+
   }
 
   @Override
   public boolean isAsync() {
     return false;
+  }
+
+  @Override
+  public byte[] getJoinSDP() throws IOException {
+    if (!isAnswered()) {
+      return _invite.getRawContent();
+    }
+    else {
+      _invite = getSipSession().createRequest("INVITE");
+      _invite.send();
+      return null;
+    }
+  }
+
+  @Override
+  public void processSDPAnswer(byte[] sdp) throws IOException {
+    if (!isAnswered()) {
+      SipServletResponse newRes = _invite.createResponse(SipServletResponse.SC_OK);
+      newRes.setContent(sdp, "application/sdp");
+      newRes.send();
+    }
+    else if (_inviteResponse != null) {
+      SipServletRequest ack = _inviteResponse.createAck();
+      ack.setContent(sdp, "application/sdp");
+      ack.send();
+    }
+    else {
+      throw new IllegalStateException("SIPIncomingCall, answered and no re-INVITE response.");
+    }
+  }
+
+  @Override
+  public byte[] processSDPOffer(byte[] sdp) throws IOException {
+    if (!isAnswered()) {
+      final SipServletResponse newRes = _invite.createResponse(SipServletResponse.SC_OK);
+      newRes.setContent(sdp, "application/sdp");
+      newRes.send();
+      return _invite.getRawContent();
+    }
+    else {
+      _invite = getSipSession().createRequest("INVITE");
+      _invite.setContent(sdp, "application/sdp");
+      _invite.send();
+      return null;
+    }
   }
 }
