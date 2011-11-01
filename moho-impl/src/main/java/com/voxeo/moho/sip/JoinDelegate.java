@@ -11,8 +11,8 @@
 
 package com.voxeo.moho.sip;
 
-import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.join.Joinable;
@@ -37,6 +37,7 @@ import com.voxeo.moho.RedirectException;
 import com.voxeo.moho.RejectException;
 import com.voxeo.moho.SettableJointImpl;
 import com.voxeo.moho.TimeoutException;
+import com.voxeo.moho.Unjoint;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
@@ -222,6 +223,73 @@ public abstract class JoinDelegate {
     return _exception;
   }
 
+  public static ExecutionException checkJoinStrategy(final Participant part, final Participant other,
+      final JoinType type, final boolean force) throws Exception {
+    final Participant[] parts = part.getParticipants();
+    final Participant[] otherParts = other.getParticipants();
+
+    if (parts.length > 0 || otherParts.length > 0) {
+      if (type == JoinType.DIRECT || type == JoinType.BRIDGE_EXCLUSIVE) {
+        if (force) {
+          // unjoin previous joined Participant
+          Unjoint unjoint = null;
+          if (parts.length > 0) {
+            for (Participant participant : parts) {
+              unjoint = part.unjoin(participant);
+              unjoint.get();
+            }
+          }
+          if (otherParts.length > 0) {
+            for (Participant participant : otherParts) {
+              unjoint = other.unjoin(participant);
+              unjoint.get();
+            }
+          }
+        }
+        else {
+          // "AlreadyJoined" error
+          return new ExecutionException(parts.length > 0 ? JoinDelegate.buildAlreadyJoinedExceptionMessage(part)
+              : JoinDelegate.buildAlreadyJoinedExceptionMessage(other), null);
+        }
+      }
+      else { // BRIDGE_SHARED
+        if (!force) {
+          JoinType checkJoinType = null;
+          if (parts.length > 0) {
+            for (final Participant participant : parts) {
+              checkJoinType = getJoinType(part, participant);
+              if (checkJoinType == JoinType.DIRECT || checkJoinType == JoinType.BRIDGE_EXCLUSIVE) {
+                // "AlreadyJoined" error
+                return new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(part), null);
+              }
+            }
+          }
+          if (otherParts.length > 0) {
+            for (final Participant participant : otherParts) {
+              checkJoinType = getJoinType(other, participant);
+              if (checkJoinType == JoinType.DIRECT || checkJoinType == JoinType.BRIDGE_EXCLUSIVE) {
+                // "AlreadyJoined" error
+                return new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(other), null);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  protected static JoinType getJoinType(final Participant part, final Participant other) {
+    if (part instanceof SIPCallImpl) {
+      return ((SIPCallImpl) part).getJoinType(other);
+    }
+    if (part instanceof MixerImpl) {
+      return ((MixerImpl) part).getJoinType(other);
+    }
+    return null;
+  }
+
   public static void bridgeJoin(final Participant part, final Participant other, final Direction direction)
       throws MsControlException {
     LOG.info(part + " joins to " + other + " in " + direction);
@@ -311,16 +379,9 @@ public abstract class JoinDelegate {
     }
   }
 
-  public static String buildAlreadyJoinedExceptionMessage(final Participant part, final Participant other) {
-    StringBuffer sbuf = new StringBuffer();
-
-    if (part.getParticipants().length > 0) {
-      sbuf.append(part + " is already joined.");
-    }
-    else {
-      sbuf.append(other + " is already joined.");
-    }
-
+  public static String buildAlreadyJoinedExceptionMessage(final Participant part) {
+    final StringBuffer sbuf = new StringBuffer();
+    sbuf.append(part + " is already joined.");
     return sbuf.toString();
   }
 
@@ -591,9 +652,9 @@ public abstract class JoinDelegate {
     }
     return false;
   }
-  
-  //used for remote join
-  public void remoteJoinAnswer(byte[] sdp) throws Exception{
-    
+
+  // used for remote join
+  public void remoteJoinAnswer(byte[] sdp) throws Exception {
+
   }
 }

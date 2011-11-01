@@ -283,39 +283,20 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
 
     // join strategy check on either side
-    final Participant[] parts = getParticipants();
-    final Participant[] otherParts = other.getParticipants();
-
-    if (parts.length > 0 || otherParts.length > 0) {
-      try {
-        if (!force && type != JoinType.BRIDGE) {
-          // dispatch BUSY event
-          Exception e = new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(this, other), null);
-          MohoJoinCompleteEvent event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.BUSY, e, true);
-          dispatch(event);
-          MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, MixerImpl.this, Cause.BUSY, e, false);
-          other.dispatch(event2);
-          throw e;
-        }
-        if (type == JoinType.BRIDGE_EXCLUSIVE) {
-          // unjoin previous joined Participant
-          if (parts.length > 0) {
-            for (Participant part : parts) {
-              doUnjoin(part, true);
-            }
-          }
-          if (otherParts.length > 0) {
-            for (Participant part : otherParts) {
-              Unjoint unjoint = other.unjoin(part);
-              unjoint.get();
-            }
-          }
-        }
+    try {
+      final ExecutionException e = JoinDelegate.checkJoinStrategy(this, other, type, force);
+      if (e != null) {
+        // dispatch BUSY event
+        final MohoJoinCompleteEvent event = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
+        dispatch(event);
+        final MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, this, Cause.BUSY, e, false);
+        other.dispatch(event2);
+        throw e;
       }
-      catch (Exception ex) {
-        // TODO
-        throw new RuntimeException(ex);
-      }
+    }
+    catch (Exception e) {
+      // TODO
+      throw new RuntimeException(e);
     }
 
     if (other instanceof CallImpl) {
@@ -510,39 +491,20 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
 
     // join strategy check on either side
-    final Participant[] parts = getParticipants();
-    final Participant[] otherParts = other.getParticipants();
-
-    if (parts.length > 0 || otherParts.length > 0) {
-      try {
-        if (!force && type != JoinType.BRIDGE) {
-          // dispatch BUSY event
-          Exception e = new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(this, other), null);
-          MohoJoinCompleteEvent event = new MohoJoinCompleteEvent(MixerImpl.this, other, Cause.BUSY, e, true);
-          dispatch(event);
-          MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, MixerImpl.this, Cause.BUSY, e, false);
-          other.dispatch(event2);
-          throw e;
-        }
-        if (type == JoinType.BRIDGE_EXCLUSIVE) {
-          // unjoin previous joined Participant
-          if (parts.length > 0) {
-            for (Participant part : parts) {
-              doUnjoin(part, true);
-            }
-          }
-          if (otherParts.length > 0) {
-            for (Participant part : otherParts) {
-              Unjoint unjoint = other.unjoin(part);
-              unjoint.get();
-            }
-          }
-        }
+    try {
+      final ExecutionException e = JoinDelegate.checkJoinStrategy(this, other, type, force);
+      if (e != null) {
+        // dispatch BUSY event
+        final MohoJoinCompleteEvent event = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
+        dispatch(event);
+        final MohoJoinCompleteEvent event2 = new MohoJoinCompleteEvent(other, this, Cause.BUSY, e, false);
+        other.dispatch(event2);
+        throw e;
       }
-      catch (Exception ex) {
-        // TODO
-        throw new RuntimeException(ex);
-      }
+    }
+    catch (Exception e) {
+      // TODO
+      throw new RuntimeException(e);
     }
 
     if (other instanceof CallImpl) {
@@ -1008,6 +970,10 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   @Override
   public Direction getDirection(Participant participant) {
     return _joinees.getDirection(participant);
+  }
+
+  public JoinType getJoinType(Participant participant) {
+    return _joinees.getJoinType(participant);
   }
 
   @Override
