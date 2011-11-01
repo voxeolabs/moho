@@ -1071,38 +1071,18 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     SettableJointImpl joint = new SettableJointImpl();
 
     // join strategy check on either side
-    final Participant[] parts = getParticipants();
-    final Participant[] otherParts = other.getParticipants();
-
-    if (parts.length > 0 || otherParts.length > 0) {
-      if (!force && type != JoinType.BRIDGE) {
-        // dispatch BUSY event
-        Exception e = new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(this, other), null);
-        JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
-        dispatch(joinCompleteEvent);
-        joint.done(e);
-        return joint;
-      }
-      if (type == JoinType.BRIDGE_EXCLUSIVE) {
-        // unjoin previous joined Participant
-        if (parts.length > 0) {
-          for (Participant part : parts) {
-            doUnjoin(part, true);
-          }
-        }
-        if (otherParts.length > 0) {
-          for (Participant part : otherParts) {
-            Unjoint unjoint = other.unjoin(part);
-            unjoint.get();
-          }
-        }
-      }
+    final ExecutionException e = JoinDelegate.checkJoinStrategy(this, other, type, force);
+    if (e == null) {
+      _joinDelegate = createJoinDelegate(other, type, direction);
+      _joinDelegate.setSettableJoint(joint);
+      other.startJoin(this, _joinDelegate);
+      _joinDelegate.doJoin();
     }
-
-    _joinDelegate = createJoinDelegate(other, type, direction);
-    _joinDelegate.setSettableJoint(joint);
-    other.startJoin(this, _joinDelegate);
-    _joinDelegate.doJoin();
+    else {
+      // dispatch BUSY event
+      JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
+      dispatch(joinCompleteEvent);
+    }
 
     return joint;
   }
@@ -1134,41 +1114,20 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     SettableJointImpl joint = new SettableJointImpl();
 
     // join strategy check on either side
-    final Participant[] parts = getParticipants();
-    final Participant[] otherParts = other.getParticipants();
-
-    if (parts.length > 0 || otherParts.length > 0) {
-      if (!force && type != JoinType.BRIDGE) {
-        // dispatch BUSY event
-        Exception e = new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(this, other), null);
-        JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
-        dispatch(joinCompleteEvent);
-        JoinCompleteEvent peerJoinCompleteEvent = new MohoJoinCompleteEvent(other, this, Cause.BUSY, e, false);
-        other.dispatch(peerJoinCompleteEvent);
-        joint.done(e);
-        return joint;
-      }
-      if (type == JoinType.BRIDGE_EXCLUSIVE) {
-        // unjoin previous joined Participant
-        if (parts.length > 0) {
-          for (Participant part : parts) {
-            doUnjoin(part, true);
-          }
-        }
-        if (otherParts.length > 0) {
-          for (Participant part : otherParts) {
-            Unjoint unjoint = other.unjoin(part);
-            unjoint.get();
-          }
-        }
-      }
+    final ExecutionException e = JoinDelegate.checkJoinStrategy(this, other, type, force);
+    if (e == null) {
+      _joinDelegate = new OtherParticipantJoinDelegate(this, other, type, direction);
+      _joinDelegate.setSettableJoint(joint);
+      _joinDelegate.doJoin();
     }
-
-    _joinDelegate = new OtherParticipantJoinDelegate(this, other, type, direction);
-    _joinDelegate.setSettableJoint(joint);
-
-    _joinDelegate.doJoin();
-
+    else {
+      // dispatch BUSY event
+      JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, other, Cause.BUSY, e, true);
+      dispatch(joinCompleteEvent);
+      JoinCompleteEvent peerJoinCompleteEvent = new MohoJoinCompleteEvent(other, this, Cause.BUSY, e, false);
+      other.dispatch(peerJoinCompleteEvent);
+      joint.done(e);
+    }
     return joint;
   }
 
