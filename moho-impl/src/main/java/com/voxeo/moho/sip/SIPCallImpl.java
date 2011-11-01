@@ -305,6 +305,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     return _joinees.getJoinees(direction);
   }
 
+  @Override
   public JoinType getJoinType(Participant participant) {
     return _joinees.getJoinType(participant);
   }
@@ -1538,4 +1539,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   public MediaMixer getMultipleJoiningMixer() {
     return _multiplejoiningMixer;
   }
+  
+  
 }

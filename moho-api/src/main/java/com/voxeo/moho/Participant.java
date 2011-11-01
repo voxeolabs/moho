@@ -121,6 +121,8 @@ public interface Participant extends EventSource {
    */
   Participant[] getParticipants(Joinable.Direction direction);
 
+  JoinType getJoinType(Participant participant);
+
   /**
    * disconnect this participant.
    */

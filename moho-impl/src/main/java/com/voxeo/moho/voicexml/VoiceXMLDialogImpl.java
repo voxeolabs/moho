@@ -482,4 +482,9 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   public byte[] processSDPOffer(byte[] sdp) throws IOException {
     throw new UnsupportedOperationException("");
   }
+
+  @Override
+  public JoinType getJoinType(Participant participant) {
+    return _joinees.getJoinType(participant);
+  }
 }

@@ -331,4 +331,9 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
   public byte[] processSDPOffer(byte[] sdp) throws IOException {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public JoinType getJoinType(Participant participant) {
+    throw new UnsupportedOperationException();
+  }
 }

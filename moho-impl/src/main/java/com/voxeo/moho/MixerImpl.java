@@ -905,6 +905,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     public byte[] processSDPOffer(byte[] sdp) throws IOException {
       throw new UnsupportedOperationException("");
     }
+
+    @Override
+    public JoinType getJoinType(Participant participant) {
+      return MixerImpl.this.getJoinType(participant);
+    }
   }
 
   // listener for Active speaker event.
@@ -1023,5 +1028,10 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   @Override
   public byte[] processSDPOffer(byte[] sdp) throws IOException {
     throw new UnsupportedOperationException("");
+  }
+
+  @Override
+  public JoinType getJoinType(Participant participant) {
+    return _joinees.getJoinType(participant);
   }
 }

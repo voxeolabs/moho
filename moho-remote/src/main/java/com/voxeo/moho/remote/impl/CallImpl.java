@@ -66,6 +66,7 @@ import com.voxeo.moho.MediaException;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Unjoint;
+import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.common.event.MohoCallCompleteEvent;
 import com.voxeo.moho.common.event.MohoEarlyMediaEvent;
@@ -917,5 +918,10 @@ public abstract class CallImpl extends DispatchableEventSource implements Call, 
 	    	lock.unlock();
 	    }
 	    return joint;
+  }
+  
+  @Override
+  public JoinType getJoinType(Participant participant) {
+    return _joinees.getJoinType(participant);
   }
 }
