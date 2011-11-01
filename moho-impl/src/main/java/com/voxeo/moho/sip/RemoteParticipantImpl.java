@@ -336,4 +336,16 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
   public JoinType getJoinType(Participant participant) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public Unjoint unjoin(final Participant other, final boolean callPeerUnjoin) throws Exception {
+    Unjoint task = new UnjointImpl(_appContext.getExecutor(), new Callable<UnjoinCompleteEvent>() {
+      @Override
+      public UnjoinCompleteEvent call() throws Exception {
+        return doUnjoin(other, callPeerUnjoin);
+      }
+    });
+
+    return task;
+  }
 }

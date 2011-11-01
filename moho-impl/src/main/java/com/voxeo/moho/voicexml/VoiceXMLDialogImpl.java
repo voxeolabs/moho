@@ -487,4 +487,16 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
   public JoinType getJoinType(Participant participant) {
     return _joinees.getJoinType(participant);
   }
+
+  @Override
+  public Unjoint unjoin(final Participant other, final boolean callPeerUnjoin) throws Exception {
+    Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
+      @Override
+      public UnjoinCompleteEvent call() throws Exception {
+        return doUnjoin(other, callPeerUnjoin);
+      }
+    });
+
+    return task;
+  }
 }

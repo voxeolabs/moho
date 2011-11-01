@@ -27,6 +27,8 @@ public interface ParticipantContainer {
   void addParticipant(Participant p, JoinType type, Direction direction, Participant realJoined);
 
   MohoUnjoinCompleteEvent doUnjoin(Participant other, boolean callPeerUnjoin) throws Exception;
+  
+  Unjoint unjoin(Participant other, boolean callPeerUnjoin) throws Exception;
 
   void startJoin(Participant participant, JoinDelegate delegate);
 

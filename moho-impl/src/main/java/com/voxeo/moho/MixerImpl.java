@@ -429,6 +429,17 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     return task;
   }
 
+  public Unjoint unjoin(final Participant other, final boolean isInitiator) {
+    Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
+      @Override
+      public UnjoinCompleteEvent call() throws Exception {
+        return doUnjoin(other, isInitiator);
+      }
+    });
+
+    return task;
+  }
+
   @Override
   public MediaObject getMediaObject() {
     return _mixer;
@@ -872,6 +883,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     public JoinType getJoinType(Participant participant) {
       return MixerImpl.this.getJoinType(participant);
     }
+
+    @Override
+    public Unjoint unjoin(Participant other, boolean callPeerUnjoin) throws Exception {
+      return MixerImpl.this.unjoin(other, callPeerUnjoin);
+    }
   }
 
   // listener for Active speaker event.
@@ -975,10 +991,6 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   @Override
   public Direction getDirection(Participant participant) {
     return _joinees.getDirection(participant);
-  }
-
-  public JoinType getJoinType(Participant participant) {
-    return _joinees.getJoinType(participant);
   }
 
   @Override
