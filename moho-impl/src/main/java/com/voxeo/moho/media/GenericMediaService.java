@@ -254,38 +254,11 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     return output != null && output.getAudibleResources() != null && output.getAudibleResources().length > 0;
   }
 
-  @SuppressWarnings("deprecation")
-  @Override
-  public synchronized Prompt<T> prompt(final OutputCommand output, final InputCommand input, final int repeat)
-      throws MediaException {
-    final PromptImpl<T> retval = new PromptImpl<T>();
-    OutputImpl<T> outFuture = null;
-    InputImpl<T> inFuture = null;
-    if (output != null) {
-      outFuture = new OutputImpl<T>(_group);
-      retval.setOutput(outFuture);
-    }
-    if (input != null) {
-      inFuture = new InputImpl<T>(_group);
-      retval.setInput(inFuture);
-    }
-    OutputCommandInputCommandPair outinputPair = new OutputCommandInputCommandPair(output, input, inFuture, outFuture,
-        repeat, retval);
-    if (haveOutput(output) && _currentOutput != null) {
-      if (output.getBehavior() == OutputCommand.BehaviorIfBusy.ERROR) {
-        throw new MediaException("WrongState, Other output is in progress.");
-      }
-      else if (output.getBehavior() == OutputCommand.BehaviorIfBusy.STOP) {
-        _outputQueue.clear();
-        _outputQueue.add(outinputPair);
-        _group.triggerAction(Player.STOP);
-        return retval;
-      }
-      else {
-        _outputQueue.add(outinputPair);
-        return retval;
-      }
-    }
+  private Prompt<T> internaOutput(OutputCommandInputCommandPair outinputPair) {
+    OutputCommand output = outinputPair.getOutputCommand();
+    int repeat = outinputPair.getRepeat();
+
+    Prompt<T> retval = outinputPair.getPrompt();
 
     if (haveOutput(output)) {
       _currentOutput = outinputPair;
@@ -382,9 +355,45 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       }
     }
     else {
-      detectSignal(input, inFuture);
+      detectSignal(outinputPair.getInputCommand(), (InputImpl<T>) retval.getInput());
     }
     return retval;
+  }
+
+  @SuppressWarnings("deprecation")
+  @Override
+  public synchronized Prompt<T> prompt(final OutputCommand output, final InputCommand input, final int repeat)
+      throws MediaException {
+    final PromptImpl<T> retval = new PromptImpl<T>();
+    OutputImpl<T> outFuture = null;
+    InputImpl<T> inFuture = null;
+    if (output != null) {
+      outFuture = new OutputImpl<T>(_group);
+      retval.setOutput(outFuture);
+    }
+    if (input != null) {
+      inFuture = new InputImpl<T>(_group);
+      retval.setInput(inFuture);
+    }
+    OutputCommandInputCommandPair outinputPair = new OutputCommandInputCommandPair(output, input, inFuture, outFuture,
+        repeat, retval);
+    if (haveOutput(output) && _currentOutput != null) {
+      if (output.getBehavior() == OutputCommand.BehaviorIfBusy.ERROR) {
+        throw new MediaException("WrongState, Other output is in progress.");
+      }
+      else if (output.getBehavior() == OutputCommand.BehaviorIfBusy.STOP) {
+        _outputQueue.clear();
+        _outputQueue.add(outinputPair);
+        _group.triggerAction(Player.STOP);
+        return retval;
+      }
+      else {
+        _outputQueue.add(outinputPair);
+        return retval;
+      }
+    }
+
+    return internaOutput(outinputPair);
   }
 
   @Override
@@ -687,6 +696,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
               }
               final OutputCompleteEvent<T> outputCompleteEvent = new MohoOutputCompleteEvent<T>(_parent, cause,
                   errorText, _currentOutput.getOutput());
+
               _parent.dispatch(outputCompleteEvent);
               _currentOutput.getOutput().done(outputCompleteEvent);
               _futures.remove(_currentOutput.getOutput());
@@ -1022,8 +1032,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     OutputCommandInputCommandPair queuedOutputCommand = _outputQueue.poll();
     if (queuedOutputCommand != null) {
       try {
-        GenericMediaService.this.prompt(queuedOutputCommand.getOutputCommand(), queuedOutputCommand.getInputCommand(),
-            queuedOutputCommand.getRepeat());
+        this.internaOutput(queuedOutputCommand);
       }
       catch (MediaException ex) {
         LOG.error("Exception when executing queued output", ex);
