@@ -13,6 +13,8 @@ public interface MohoRemote extends EventSource {
 
   void connect(String userName, String passwd, String realm, String resource, String xmppServer, String rayoServer) throws MohoRemoteException;
 
+  void connect(String userName, String passwd, String realm, String resource, String xmppServer, String rayoServer, int timeout) throws MohoRemoteException;
+
   void disconnect() throws MohoRemoteException;
 
   Endpoint createEndpoint(URI uri);

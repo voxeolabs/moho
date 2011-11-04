@@ -176,11 +176,17 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
   @Override
   public void connect(String userName, String passwd, String realm, String resource, String xmppServer,
       String rayoServer) throws MohoRemoteException {
+	  connect(userName, passwd, realm, resource, xmppServer, rayoServer, 5);
+  }
+
+  @Override
+  public void connect(String userName, String passwd, String realm, String resource, String xmppServer,
+      String rayoServer, int timeout) throws MohoRemoteException {
     if (_client == null) {
       _client = new RayoClient(xmppServer, rayoServer);
 
       try {
-        _client.connect(userName, passwd, resource);
+        _client.connect(userName, passwd, resource, timeout);
       }
       catch (XmppException e) {
        	throw new MohoRemoteException(e);
