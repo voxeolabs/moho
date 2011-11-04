@@ -26,8 +26,10 @@ import com.voxeo.moho.Participant;
 import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.remote.AuthenticationCallback;
 import com.voxeo.moho.remote.MohoRemote;
+import com.voxeo.moho.remote.MohoRemoteException;
 import com.voxeo.moho.remote.impl.utils.Utils.DaemonThreadFactory;
 
+@SuppressWarnings("deprecation")
 public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemote {
 
   protected static final Logger LOG = Logger.getLogger(MohoRemoteImpl.class);
@@ -48,14 +50,14 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     _dispatcher.setExecutor(_executor, false);
   }
 
-  @Override
-  public void connect(AuthenticationCallback callback, String xmppServer, String rayoServer) {
+@Override
+  public void connect(AuthenticationCallback callback, String xmppServer, String rayoServer) throws MohoRemoteException {
     connect(callback.getUserName(), callback.getPassword(), callback.getRealm(), callback.getResource(), xmppServer,
         rayoServer);
   }
 
   @Override
-  public void disconnect() {
+  public void disconnect() throws MohoRemoteException {
     Collection<Participant> participants = _participants.values();
     for (Participant participant : participants) {
       participant.disconnect();
@@ -65,7 +67,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       _client.disconnect();
     }
     catch (XmppException e) {
-      LOG.error("", e);
+     	throw new MohoRemoteException(e);
     }
 
     _executor.shutdown();
@@ -89,14 +91,14 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
         }
         else {
-          MohoRemoteImpl.this.LOG.error("Can't find call for rayo event:" + iq);
+          LOG.error("Can't find call for rayo event:" + iq);
         }
       }
     }
 
     @Override
     public void onMessage(Message message) {
-      MohoRemoteImpl.this.LOG.error("Received message from rayo:" + message);
+      LOG.error("Received message from rayo:" + message);
     }
 
     @Override
@@ -125,14 +127,14 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
           }
         }
         else {
-          MohoRemoteImpl.this.LOG.error("Can't find call for rayo event:" + presence);
+          LOG.error("Can't find call for rayo event:" + presence);
         }
       }
     }
 
     @Override
     public void onError(com.rayo.client.xmpp.stanza.Error error) {
-      MohoRemoteImpl.this.LOG.error("Got error" + error);
+      LOG.error("Got error" + error);
 
     }
   }
@@ -173,7 +175,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   @Override
   public void connect(String userName, String passwd, String realm, String resource, String xmppServer,
-      String rayoServer) {
+      String rayoServer) throws MohoRemoteException {
     if (_client == null) {
       _client = new RayoClient(xmppServer, rayoServer);
 
@@ -181,8 +183,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
         _client.connect(userName, passwd, resource);
       }
       catch (XmppException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+       	throw new MohoRemoteException(e);
       }
 
       _client.addStanzaListener(new MohoStanzaListener());
