@@ -26,7 +26,9 @@ import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.common.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.remote.AuthenticationCallback;
 import com.voxeo.moho.remote.MohoRemote;
+import com.voxeo.moho.remote.MohoRemoteException;
 
+@SuppressWarnings("deprecation")
 public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemote {
 
   protected static final Logger LOG = Logger.getLogger(MohoRemoteImpl.class);
@@ -48,7 +50,23 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     _dispatcher.setExecutor(_executor, false);
   }
 
-  // TODO ask the thread model of RayoClient.
+  @Override
+  public void disconnect() throws MohoRemoteException {
+    Collection<ParticipantImpl> participants = _participants.values();
+    for (Participant participant : participants) {
+      participant.disconnect();
+    }
+
+    try {
+      _client.disconnect();
+    }
+    catch (XmppException e) {
+      throw new MohoRemoteException(e);
+    }
+
+    _executor.shutdown();
+  }
+
   class MohoStanzaListener implements StanzaListener {
 
     @Override
@@ -62,14 +80,14 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
           participant.onRayoCommandResult(fromJID, iq);
         }
         else {
-          MohoRemoteImpl.this.LOG.error("Can't find participant for rayo event:" + iq);
+          LOG.error("Can't find call for rayo event:" + iq);
         }
       }
     }
 
     @Override
     public void onMessage(Message message) {
-      MohoRemoteImpl.this.LOG.error("Received message from rayo:" + message);
+      LOG.error("Received message from rayo:" + message);
     }
 
     @Override
@@ -94,14 +112,14 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
           participant.onRayoEvent(fromJID, presence);
         }
         else {
-          MohoRemoteImpl.this.LOG.error("Can't find call for rayo event:" + presence);
+          LOG.error("Can't find call for rayo event:" + presence);
         }
       }
     }
 
     @Override
     public void onError(com.rayo.client.xmpp.stanza.Error error) {
-      MohoRemoteImpl.this.LOG.error("Got error stanza:" + error);
+      LOG.error("Got error" + error);
     }
   }
 
@@ -134,7 +152,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     return _participanstLock;
   }
 
-  // TODO connection error handling, ask 
+  // TODO connection error handling, ask
   @Override
   public void connect(AuthenticationCallback callback, String xmppServer, String rayoServer) {
     connect(callback.getUserName(), callback.getPassword(), callback.getRealm(), callback.getResource(), xmppServer,
@@ -142,35 +160,24 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
   }
 
   @Override
-  public synchronized void connect(String userName, String passwd, String realm, String resource, String xmppServer,
-      String rayoServer) {
+  public void connect(String userName, String passwd, String realm, String resource, String xmppServer,
+      String rayoServer) throws MohoRemoteException {
+    connect(userName, passwd, realm, resource, xmppServer, rayoServer, 5);
+  }
+
+  @Override
+  public void connect(String userName, String passwd, String realm, String resource, String xmppServer,
+      String rayoServer, int timeout) throws MohoRemoteException {
     if (_client == null) {
       _client = new RayoClient(xmppServer, rayoServer);
       _client.addStanzaListener(new MohoStanzaListener());
     }
     try {
-      _client.connect(userName, passwd, resource);
+      _client.connect(userName, passwd, resource, timeout);
     }
     catch (XmppException e) {
       LOG.error("Error connecting server", e);
     }
-  }
-
-  @Override
-  public synchronized void disconnect() {
-    Collection<ParticipantImpl> participants = _participants.values();
-    for (Participant participant : participants) {
-      participant.disconnect();
-    }
-
-    try {
-      _client.disconnect();
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-    }
-
-    _executor.shutdown();
   }
 
   @Override

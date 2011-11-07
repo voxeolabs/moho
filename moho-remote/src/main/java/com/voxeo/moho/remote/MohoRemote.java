@@ -9,11 +9,13 @@ import com.voxeo.moho.event.EventSource;
 public interface MohoRemote extends EventSource {
 
   @Deprecated
-  void connect(AuthenticationCallback callback, String xmppServer, String rayoServer);
+  void connect(AuthenticationCallback callback, String xmppServer, String rayoServer) throws MohoRemoteException;
 
-  void connect(String userName, String passwd, String realm, String resource, String xmppServer, String rayoServer);
+  void connect(String userName, String passwd, String realm, String resource, String xmppServer, String rayoServer) throws MohoRemoteException;
 
-  void disconnect();
+  void connect(String userName, String passwd, String realm, String resource, String xmppServer, String rayoServer, int timeout) throws MohoRemoteException;
+
+  void disconnect() throws MohoRemoteException;
 
   Endpoint createEndpoint(URI uri);
 
