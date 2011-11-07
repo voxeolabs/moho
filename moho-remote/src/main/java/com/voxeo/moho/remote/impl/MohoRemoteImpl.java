@@ -20,13 +20,12 @@ import com.rayo.client.xmpp.stanza.IQ;
 import com.rayo.client.xmpp.stanza.Message;
 import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.OfferEvent;
-import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.common.event.DispatchableEventSource;
+import com.voxeo.moho.common.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.remote.AuthenticationCallback;
 import com.voxeo.moho.remote.MohoRemote;
-import com.voxeo.moho.remote.impl.utils.Utils.DaemonThreadFactory;
 
 public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemote {
 
@@ -36,41 +35,20 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   protected ThreadPoolExecutor _executor;
 
-  protected Map<String, Participant> _participants = new ConcurrentHashMap<String, Participant>();
+  protected Map<String, ParticipantImpl> _participants = new ConcurrentHashMap<String, ParticipantImpl>();
 
-  protected Lock _componentCommandLock = new ReentrantLock();
+  protected Lock _participanstLock = new ReentrantLock();
 
   public MohoRemoteImpl() {
     super();
+    // TODO make configurable
     int eventDispatcherThreadPoolSize = 10;
     _executor = new ThreadPoolExecutor(eventDispatcherThreadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
         new SynchronousQueue<Runnable>(), new DaemonThreadFactory("MohoContext"));
     _dispatcher.setExecutor(_executor, false);
   }
 
-  @Override
-  public void connect(AuthenticationCallback callback, String xmppServer, String rayoServer) {
-    connect(callback.getUserName(), callback.getPassword(), callback.getRealm(), callback.getResource(), xmppServer,
-        rayoServer);
-  }
-
-  @Override
-  public void disconnect() {
-    Collection<Participant> participants = _participants.values();
-    for (Participant participant : participants) {
-      participant.disconnect();
-    }
-
-    try {
-      _client.disconnect();
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-    }
-
-    _executor.shutdown();
-  }
-
+  // TODO ask the thread model of RayoClient.
   class MohoStanzaListener implements StanzaListener {
 
     @Override
@@ -79,17 +57,12 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       JID fromJID = new JID(iq.getFrom());
       String id = fromJID.getNode();
       if (id != null) {
-        Participant participant = MohoRemoteImpl.this.getParticipant(id);
+        ParticipantImpl participant = MohoRemoteImpl.this.getParticipant(id);
         if (participant != null) {
-          // TODO crate a parent class to implement the RayoListener
-          if (participant instanceof Call) {
-            CallImpl call = (CallImpl) participant;
-            call.onRayoCommandResult(fromJID, iq);
-          }
-
+          participant.onRayoCommandResult(fromJID, iq);
         }
         else {
-          MohoRemoteImpl.this.LOG.error("Can't find call for rayo event:" + iq);
+          MohoRemoteImpl.this.LOG.error("Can't find participant for rayo event:" + iq);
         }
       }
     }
@@ -116,13 +89,9 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       else {
         // dispatch the stanza to corresponding call.
         String callID = fromJID.getNode();
-        Participant participant = MohoRemoteImpl.this.getParticipant(callID);
+        ParticipantImpl participant = MohoRemoteImpl.this.getParticipant(callID);
         if (participant != null) {
-          // TODO crate a parent class to implement the RayoListener
-          if (participant instanceof Call) {
-            CallImpl call = (CallImpl) participant;
-            call.onRayoEvent(fromJID, presence);
-          }
+          participant.onRayoEvent(fromJID, presence);
         }
         else {
           MohoRemoteImpl.this.LOG.error("Can't find call for rayo event:" + presence);
@@ -132,9 +101,76 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
     @Override
     public void onError(com.rayo.client.xmpp.stanza.Error error) {
-      MohoRemoteImpl.this.LOG.error("Got error" + error);
-
+      MohoRemoteImpl.this.LOG.error("Got error stanza:" + error);
     }
+  }
+
+  @Override
+  public ParticipantImpl getParticipant(final String cid) {
+    getParticipantsLock().lock();
+    try {
+      return _participants.get(cid);
+    }
+    finally {
+      getParticipantsLock().unlock();
+    }
+  }
+
+  protected void addParticipant(final ParticipantImpl participant) {
+    _participants.put(participant.getId(), participant);
+  }
+
+  protected void removeParticipant(final String id) {
+    getParticipantsLock().lock();
+    try {
+      _participants.remove(id);
+    }
+    finally {
+      getParticipantsLock().unlock();
+    }
+  }
+
+  public Lock getParticipantsLock() {
+    return _participanstLock;
+  }
+
+  // TODO connection error handling, ask 
+  @Override
+  public void connect(AuthenticationCallback callback, String xmppServer, String rayoServer) {
+    connect(callback.getUserName(), callback.getPassword(), callback.getRealm(), callback.getResource(), xmppServer,
+        rayoServer);
+  }
+
+  @Override
+  public synchronized void connect(String userName, String passwd, String realm, String resource, String xmppServer,
+      String rayoServer) {
+    if (_client == null) {
+      _client = new RayoClient(xmppServer, rayoServer);
+      _client.addStanzaListener(new MohoStanzaListener());
+    }
+    try {
+      _client.connect(userName, passwd, resource);
+    }
+    catch (XmppException e) {
+      LOG.error("Error connecting server", e);
+    }
+  }
+
+  @Override
+  public synchronized void disconnect() {
+    Collection<ParticipantImpl> participants = _participants.values();
+    for (Participant participant : participants) {
+      participant.disconnect();
+    }
+
+    try {
+      _client.disconnect();
+    }
+    catch (XmppException e) {
+      LOG.error("", e);
+    }
+
+    _executor.shutdown();
   }
 
   @Override
@@ -149,48 +185,4 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
   public RayoClient getRayoClient() {
     return _client;
   }
-
-  @Override
-  public Participant getParticipant(final String cid) {
-    _componentCommandLock.lock();
-    Participant participant = null;
-    try {
-      participant = _participants.get(cid);
-    }
-    finally {
-      _componentCommandLock.unlock();
-    }
-    return participant;
-  }
-
-  protected void addCall(final CallImpl call) {
-    _participants.put(call.getId(), call);
-  }
-
-  protected void removeCall(final String id) {
-    _participants.remove(id);
-  }
-
-  @Override
-  public void connect(String userName, String passwd, String realm, String resource, String xmppServer,
-      String rayoServer) {
-    if (_client == null) {
-      _client = new RayoClient(xmppServer, rayoServer);
-
-      try {
-        _client.connect(userName, passwd, resource);
-      }
-      catch (XmppException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-
-      _client.addStanzaListener(new MohoStanzaListener());
-    }
-  }
-
-  public Lock getComponentCommandLock() {
-    return _componentCommandLock;
-  }
-
 }

@@ -23,8 +23,8 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.JoinCompleteEvent;
-import com.voxeo.moho.remote.impl.utils.SettableResultFuture;
 
 public class JointImpl implements Joint {
   protected SettableResultFuture<JoinCompleteEvent> _future = new SettableResultFuture<JoinCompleteEvent>();

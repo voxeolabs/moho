@@ -3,8 +3,6 @@ package com.voxeo.moho.remote.impl;
 import java.net.URI;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
@@ -12,8 +10,6 @@ import com.voxeo.moho.Subscription;
 import com.voxeo.moho.Subscription.Type;
 
 public class CallableEndpointImpl implements CallableEndpoint {
-  private static final Logger LOG = Logger.getLogger(CallableEndpointImpl.class);
-
   protected URI _uri;
 
   protected MohoRemoteImpl _mohoRemote;
