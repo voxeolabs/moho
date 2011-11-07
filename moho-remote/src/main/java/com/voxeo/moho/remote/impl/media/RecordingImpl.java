@@ -30,8 +30,8 @@ import com.voxeo.moho.common.event.MohoRecordCompleteEvent;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.RecordCompleteEvent;
 import com.voxeo.moho.media.Recording;
-import com.voxeo.moho.remote.impl.CallImpl;
 import com.voxeo.moho.remote.impl.JID;
+import com.voxeo.moho.remote.impl.MediaServiceSupport;
 import com.voxeo.moho.remote.impl.RayoListener;
 import com.voxeo.moho.remote.impl.utils.SettableResultFuture;
 
@@ -43,13 +43,13 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
 
   protected VerbRef _verbRef;
 
-  protected CallImpl _call;
+  protected MediaServiceSupport<T> _call;
 
   protected T _todo;
 
   protected boolean paused;
 
-  public RecordingImpl(final VerbRef verbRef, final CallImpl call, T todo) {
+  public RecordingImpl(final VerbRef verbRef, final MediaServiceSupport<T> call, T todo) {
     _verbRef = verbRef;
     _call = call;
     _todo = todo;

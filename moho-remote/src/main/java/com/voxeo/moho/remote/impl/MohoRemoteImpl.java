@@ -22,6 +22,8 @@ import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.OfferEvent;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
+import com.voxeo.moho.Mixer;
+import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.remote.AuthenticationCallback;
@@ -123,6 +125,10 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
             CallImpl call = (CallImpl) participant;
             call.onRayoEvent(fromJID, presence);
           }
+          else if (participant instanceof Mixer) {
+            MixerImpl mixer = (MixerImpl) participant;
+            mixer.onRayoEvent(fromJID, presence);
+          }
         }
         else {
           MohoRemoteImpl.this.LOG.error("Can't find call for rayo event:" + presence);
@@ -142,6 +148,10 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     return new CallableEndpointImpl(this, uri);
   }
 
+  public MixerEndpoint createEndpoint(String mixerName) {
+    return new MixerEndpointImpl(this, mixerName);
+  }
+  
   public Executor getExecutor() {
     return _executor;
   }
@@ -165,6 +175,10 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   protected void addCall(final CallImpl call) {
     _participants.put(call.getId(), call);
+  }
+  
+  protected void addMixer(final Mixer mixer) {
+    _participants.put(mixer.getId(), mixer);
   }
 
   protected void removeCall(final String id) {

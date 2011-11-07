@@ -16,6 +16,8 @@ public interface MohoRemote extends EventSource {
   void disconnect();
 
   Endpoint createEndpoint(URI uri);
+  
+  Endpoint createEndpoint(String mixerName);
 
   Participant getParticipant(final String id);
 }
