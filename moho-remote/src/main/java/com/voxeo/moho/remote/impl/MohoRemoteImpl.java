@@ -67,11 +67,12 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     _executor.shutdown();
   }
 
+  //TODO ask Rayo-client thread model, figure out all possible concurrent issue
   class MohoStanzaListener implements StanzaListener {
 
     @Override
     public void onIQ(IQ iq) {
-      // dispatch the stanza to corresponding call.
+      // dispatch the stanza to corresponding participant.
       JID fromJID = new JID(iq.getFrom());
       String id = fromJID.getNode();
       if (id != null) {
@@ -105,7 +106,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
         MohoRemoteImpl.this.dispatch(call);
       }
       else {
-        // dispatch the stanza to corresponding call.
+        // dispatch the stanza to corresponding participant.
         String callID = fromJID.getNode();
         ParticipantImpl participant = MohoRemoteImpl.this.getParticipant(callID);
         if (participant != null) {

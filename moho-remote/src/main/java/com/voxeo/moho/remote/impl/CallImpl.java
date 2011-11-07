@@ -139,6 +139,7 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
     _headers = headers;
   }
 
+  // ///////////////media related///////
   @Override
   public Output<Call> output(String text) throws MediaException {
     OutputImpl<Call> output = null;
@@ -285,7 +286,7 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
         Choices choice = new Choices();
         if (grammar.getText() != null) {
           choice.setContent(grammar.getText());
-          choice.setContentType(Choices.VOXEO_GRAMMAR);
+          choice.setContentType(grammar.getContentType());
         }
         else {
           choice.setUri(grammar.getUri());
@@ -395,6 +396,8 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
   public MediaGroup getMediaGroup() {
     throw new UnsupportedOperationException(Constants.unsupported_operation);
   }
+
+  // ///////////////media related end///////
 
   @Override
   public void hangup() {
