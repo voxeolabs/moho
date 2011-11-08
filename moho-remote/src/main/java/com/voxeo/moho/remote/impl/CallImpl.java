@@ -102,7 +102,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     _headers = headers;
   }
 
-  @Override
+  // ///////////////media related///////
   public void hangup() {
     hangup(null);
   }
