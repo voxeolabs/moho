@@ -14,7 +14,9 @@
 
 package com.voxeo.moho.remote.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +38,9 @@ import javax.media.mscontrol.mediagroup.MediaGroup;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 import org.joda.time.Duration;
 
 import com.rayo.client.XmppException;
@@ -159,7 +164,7 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
   public Output<Call> output(URI media) throws MediaException {
     OutputImpl<Call> output = null;
     try {
-      VerbRef verbRef = _mohoRemote.getRayoClient().output(media, this.getId());
+      VerbRef verbRef = _mohoRemote.getRayoClient().output(getSsmlFromURI(media).getText(), this.getId());
 
       output = new OutputImpl<Call>(verbRef, this, this);
     }
@@ -201,7 +206,7 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
           rayoOutput.setPrompt(new Ssml(((TextToSpeechResource) ar).getText()));
         }
         else {
-          verbRef = _mohoRemote.getRayoClient().output(ar.toURI(), this.getId());
+          rayoOutput.setPrompt(getSsmlFromURI(ar.toURI()));
         }
 
         if (output.getAudibleResources().length > 1) {
@@ -210,9 +215,10 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
               output.getAudibleResources().length));
         }
       }
-      if (verbRef == null) {
-        verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
+      else {
+        throw new IllegalArgumentException("no AudibleResources.");
       }
+      verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
 
       outputFuture = new OutputImpl<Call>(verbRef, next, this, this);
     }
@@ -916,5 +922,36 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
 
   public void setState(State state) {
     this._state = state;
+  }
+
+  private Ssml getSsmlFromURI(URI uri) {
+    Ssml ssml = null;
+    String uriString = uri.toString();
+    if (uriString.startsWith("data:")) {
+      String decoded = null;
+      try {
+        decoded = URLDecoder.decode(uriString, "UTF-8");
+      }
+      catch (UnsupportedEncodingException e1) {
+        throw new IllegalArgumentException("Wrong URI:" + uri);
+      }
+      int xmlIndex = decoded.indexOf(",");
+      if (xmlIndex < 0) {
+        throw new IllegalArgumentException("Wrong URI:" + uri);
+      }
+      String xml = decoded.substring(xmlIndex + 1);
+
+      try {
+        Element element = DocumentHelper.parseText(xml).getRootElement();
+        ssml = new Ssml(element.asXML());
+      }
+      catch (DocumentException e) {
+        throw new IllegalArgumentException("Wrong URI:" + uri);
+      }
+    }
+    else {
+      ssml = new Ssml(String.format("<audio src=\"%s\"/>", uri.toString()));
+    }
+    return ssml;
   }
 }
