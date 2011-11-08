@@ -20,7 +20,7 @@ public class JID implements Serializable {
       node = stringJID.substring(0, atIndex);
     }
 
-    int slashIndex = stringJID.indexOf("/");
+    int slashIndex = stringJID.indexOf("/", atIndex);
 
     if (slashIndex > 0) {
       resource = stringJID.substring(slashIndex + 1);

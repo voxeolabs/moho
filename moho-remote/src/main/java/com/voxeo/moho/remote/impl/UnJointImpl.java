@@ -20,8 +20,8 @@ import java.util.concurrent.TimeoutException;
 
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Unjoint;
+import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
-import com.voxeo.moho.remote.impl.utils.SettableResultFuture;
 
 public class UnJointImpl implements Unjoint {
   protected SettableResultFuture<UnjoinCompleteEvent> _future = new SettableResultFuture<UnjoinCompleteEvent>();

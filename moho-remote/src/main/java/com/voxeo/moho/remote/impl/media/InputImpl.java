@@ -28,13 +28,13 @@ import com.rayo.core.verb.VerbCompleteReason;
 import com.rayo.core.verb.VerbRef;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.common.event.MohoInputCompleteEvent;
+import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.remote.impl.JID;
 import com.voxeo.moho.remote.impl.MediaServiceSupport;
 import com.voxeo.moho.remote.impl.RayoListener;
-import com.voxeo.moho.remote.impl.utils.SettableResultFuture;
 
 //TODO exception and IQ error handling
 public class InputImpl<T extends EventSource> implements Input<T>, RayoListener {

@@ -38,7 +38,7 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   public IncomingCallImpl(MohoRemoteImpl mohoRemote, String callID, CallableEndpoint caller, CallableEndpoint callee,
       Map<String, String> headers) {
     super(mohoRemote, callID, caller, callee, headers);
-    _state = Call.State.INITIALIZED;
+    this.setState(Call.State.INITIALIZED);
   }
 
   @Override
@@ -231,7 +231,8 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   }
 
   // TODO make _mohoRemote.getRayoClient().answer() asynchronous, and make this
-  // method just send out command, the joint and event stuff should be processed in the
+  // method just send out command, the joint and event stuff should be processed
+  // in the
   // join() method, wait for the result or error IQ.
   private Joint internalAnswer(Map<String, String> headers) {
     if (waitAnswerJoint == null) {
@@ -284,11 +285,16 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
 
   @Override
   public void setAsync(boolean async) {
-    
+
   }
 
   @Override
   public boolean isAsync() {
     return false;
+  }
+
+  @Override
+  public Endpoint getAddress() {
+    return _caller;
   }
 }

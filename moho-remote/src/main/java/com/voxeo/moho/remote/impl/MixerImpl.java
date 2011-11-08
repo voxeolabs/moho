@@ -35,7 +35,7 @@ public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
     _mixerEndpoint = mixerEndpoint;
     _params = params;
     _id = _mixerEndpoint.getConferenceName();
-    _mohoRemote.addMixer(this);
+    _mohoRemote.addParticipant(this);
   }
 
   @Override

@@ -16,6 +16,7 @@ import com.rayo.core.RingingEvent;
 import com.rayo.core.verb.VerbRef;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
+import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.OutgoingCall;
 import com.voxeo.moho.SignalException;
@@ -43,16 +44,16 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
       command.setTo(_callee.getURI());
       command.setHeaders(_headers);
 
-      _mohoRemote.getComponentCommandLock().lock();
+      _mohoRemote.getParticipantsLock().lock();
       try {
         VerbRef verbRef = _mohoRemote.getRayoClient().dial(command);
         setID(verbRef.getVerbId());
       }
       finally {
-        _mohoRemote.getComponentCommandLock().unlock();
+        _mohoRemote.getParticipantsLock().unlock();
       }
 
-      _state = State.INITIALIZED;
+      this.setState(Call.State.INITIALIZED);
     }
   }
 
@@ -90,7 +91,7 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
   private void setID(String id) {
     _id = id;
     if (_id != null) {
-      _mohoRemote.addCall(this);
+      _mohoRemote.addParticipant(this);
     }
   }
 
@@ -166,5 +167,10 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
       default:
         return JoinCompleteEvent.Cause.ERROR;
     }
+  }
+  
+  @Override
+  public Endpoint getAddress() {
+    return _callee;
   }
 }

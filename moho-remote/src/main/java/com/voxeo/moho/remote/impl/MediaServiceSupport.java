@@ -21,7 +21,6 @@ import com.rayo.core.verb.Ssml;
 import com.rayo.core.verb.VerbRef;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
-import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Output;
@@ -40,14 +39,12 @@ import com.voxeo.moho.remote.impl.media.OutputImpl;
 import com.voxeo.moho.remote.impl.media.PromptImpl;
 import com.voxeo.moho.remote.impl.media.RecordingImpl;
 
-public abstract class MediaServiceSupport<T extends EventSource> extends DispatchableEventSource implements MediaService<T>, RayoListener {
+public abstract class MediaServiceSupport<T extends EventSource> extends ParticipantImpl implements MediaService<T> {
   
   protected static final Logger LOG = Logger.getLogger(MediaServiceSupport.class);
 
   protected MohoRemoteImpl _mohoRemote;
   
-  protected JoineeData _joinees = new JoineeData();
-
   protected Map<String, JointImpl> _joints = new ConcurrentHashMap<String, JointImpl>();
 
   protected Map<String, UnJointImpl> _unjoints = new ConcurrentHashMap<String, UnJointImpl>();
