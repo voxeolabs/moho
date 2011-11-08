@@ -70,7 +70,7 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
   public void pause() {
     if (!_future.isDone() && !paused) {
       try {
-        IQ iq = _call.getMohoRemote().getRayoClient().pause(_verbRef);
+        IQ iq = _call.getMohoRemote().getRayoClient().pauseRecord(_verbRef);
         if (iq.isError()) {
           com.rayo.client.xmpp.stanza.Error error = iq.getError();
           throw new MediaException(error.getCondition() + error.getText());
@@ -90,7 +90,7 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
   public void resume() {
     if (!_future.isDone() && paused) {
       try {
-        IQ iq = _call.getMohoRemote().getRayoClient().resume(_verbRef);
+        IQ iq = _call.getMohoRemote().getRayoClient().resumeRecord(_verbRef);
         if (iq.isError()) {
           com.rayo.client.xmpp.stanza.Error error = iq.getError();
           LOG.error(error.getCondition() + error.getText());
