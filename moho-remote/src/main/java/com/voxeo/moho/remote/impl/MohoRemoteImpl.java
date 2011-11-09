@@ -181,7 +181,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       _client.connect(userName, passwd, resource, timeout);
     }
     catch (XmppException e) {
-      LOG.error("Error connecting server", e);
+      throw new MohoRemoteException("Error connecting to server", e);
     }
   }
 
