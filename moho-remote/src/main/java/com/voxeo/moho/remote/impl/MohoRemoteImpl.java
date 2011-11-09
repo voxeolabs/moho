@@ -115,7 +115,9 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
           participant.onRayoEvent(fromJID, presence);
         }
         else {
-          LOG.error("Can't find call for rayo event:" + presence);
+        	if (presence.getShow() == null) {
+        		LOG.error("Can't find call for rayo event:" + presence);
+        	}
         }
       }
     }
