@@ -1,6 +1,8 @@
 package com.voxeo.moho.remote.impl;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,6 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 
 import org.apache.log4j.Logger;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
 import org.joda.time.Duration;
 
 import com.rayo.client.XmppException;
@@ -87,7 +92,7 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
   public Output<T> output(URI media) throws MediaException {
     OutputImpl<T> output = null;
     try {
-      VerbRef verbRef = _mohoRemote.getRayoClient().output(media, this.getId());
+      VerbRef verbRef = _mohoRemote.getRayoClient().output(getSsmlFromURI(media).getText(), this.getId());
 
       output = new OutputImpl<T>(verbRef, this, (T) this);
     }
@@ -129,7 +134,7 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
           rayoOutput.setPrompt(new Ssml(((TextToSpeechResource) ar).getText()));
         }
         else  {
-          verbRef = _mohoRemote.getRayoClient().output(ar.toURI(), this.getId());
+          rayoOutput.setPrompt(getSsmlFromURI(ar.toURI()));
         }
         
         if (output.getAudibleResources().length > 1) {
@@ -137,9 +142,10 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
           next.setAudibleResource(Arrays.copyOfRange(output.getAudibleResources(), 1, output.getAudibleResources().length));
         }
       }
-      if (verbRef == null) {
-        verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
+      else {
+        throw new IllegalArgumentException("no AudibleResources.");
       }
+      verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
 
       outputFuture = new OutputImpl<T>(verbRef, next, this, (T) this);
     }
@@ -213,7 +219,7 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
         Choices choice = new Choices();
         if (grammar.getText() != null) {
           choice.setContent(grammar.getText());
-          choice.setContentType(Choices.VOXEO_GRAMMAR);
+          choice.setContentType(grammar.getContentType());
         }
         else {
           choice.setUri(grammar.getUri());
@@ -345,4 +351,34 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
     throw new UnsupportedOperationException(Constants.unsupported_operation);
   }
 
+  private Ssml getSsmlFromURI(URI uri) {
+    Ssml ssml = null;
+    String uriString = uri.toString();
+    if (uriString.startsWith("data:")) {
+      String decoded = null;
+      try {
+        decoded = URLDecoder.decode(uriString, "UTF-8");
+      }
+      catch (UnsupportedEncodingException e1) {
+        throw new IllegalArgumentException("Wrong URI:" + uri);
+      }
+      int xmlIndex = decoded.indexOf(",");
+      if (xmlIndex < 0) {
+        throw new IllegalArgumentException("Wrong URI:" + uri);
+      }
+      String xml = decoded.substring(xmlIndex + 1);
+
+      try {
+        Element element = DocumentHelper.parseText(xml).getRootElement();
+        ssml = new Ssml(element.asXML());
+      }
+      catch (DocumentException e) {
+        throw new IllegalArgumentException("Wrong URI:" + uri);
+      }
+    }
+    else {
+      ssml = new Ssml(String.format("<audio src=\"%s\"/>", uri.toString()));
+    }
+    return ssml;
+  }
 }

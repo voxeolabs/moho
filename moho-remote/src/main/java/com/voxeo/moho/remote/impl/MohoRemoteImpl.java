@@ -73,18 +73,20 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
     @Override
     public void onIQ(IQ iq) {
-      // dispatch the stanza to corresponding participant.
-      JID fromJID = new JID(iq.getFrom());
-      String id = fromJID.getNode();
-      if (id != null) {
-        ParticipantImpl participant = MohoRemoteImpl.this.getParticipant(id);
-        if (participant != null) {
-          participant.onRayoCommandResult(fromJID, iq);
-        }
-        else {
-          LOG.error("Can't find call for rayo event:" + iq);
-        }
-      }
+    	if (iq.getFrom() != null) {
+	      // dispatch the stanza to corresponding participant.
+	      JID fromJID = new JID(iq.getFrom());
+	      String id = fromJID.getNode();
+	      if (id != null) {
+	        ParticipantImpl participant = MohoRemoteImpl.this.getParticipant(id);
+	        if (participant != null) {
+	          participant.onRayoCommandResult(fromJID, iq);
+	        }
+	        else {
+	          LOG.error("Can't find call for rayo event:" + iq);
+	        }
+	      }
+    	}
     }
 
     @Override
