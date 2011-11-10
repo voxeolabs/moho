@@ -45,8 +45,8 @@ public class SimpleConference implements Observer {
     mixer.addObserver(this);
     Joint join = mixer.join(call, JoinType.BRIDGE, Direction.DUPLEX);
     Thread.sleep(2000);
-    mixer.unjoin(call);
-//    mixer.output("sound from heaven");
+//    mixer.unjoin(call);
+    mixer.output("sound from heaven");
   }
 
   @State

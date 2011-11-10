@@ -116,7 +116,9 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
           participant.onRayoEvent(fromJID, presence);
         }
         else {
-          LOG.error("Can't find participant for rayo event:" + presence);
+        	if (presence.getShow() == null) {
+        		LOG.error("Can't find call for rayo event:" + presence);
+        	}
         }
       }
     }
@@ -184,7 +186,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       _client.connect(userName, passwd, resource, timeout);
     }
     catch (XmppException e) {
-      LOG.error("Error connecting server", e);
+      throw new MohoRemoteException("Error connecting to server", e);
     }
   }
 
