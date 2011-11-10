@@ -14,9 +14,6 @@
 
 package com.voxeo.moho.remote.impl;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -34,9 +31,6 @@ import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.JoinableStream.StreamType;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
 
 import com.rayo.client.XmppException;
 import com.rayo.client.xmpp.stanza.IQ;
@@ -53,7 +47,6 @@ import com.rayo.core.RingingEvent;
 import com.rayo.core.UnjoinedEvent;
 import com.rayo.core.verb.OffHoldEvent;
 import com.rayo.core.verb.OnHoldEvent;
-import com.rayo.core.verb.Ssml;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
