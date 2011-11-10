@@ -87,6 +87,8 @@ public class RayoTest implements Observer {
 		    mohoRemote.connect(new SimpleAuthenticateCallbackImpl(username, password, "", "voxeo"), xmppServer, rayoServer);
 	    	System.out.println("[MOHO] User authenticated.");
 			
+	    	Thread.sleep(2000);
+	    	
 		    if (autodial) {
 		    	System.out.println("[MOHO] Dialing.");
 		    	OutgoingCall outgoing = dial(mohoRemote);

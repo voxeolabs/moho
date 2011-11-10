@@ -21,6 +21,7 @@ import com.rayo.client.xmpp.stanza.Message;
 import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.OfferEvent;
 import com.voxeo.moho.CallableEndpoint;
+import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.common.util.Utils.DaemonThreadFactory;
@@ -72,18 +73,20 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
     @Override
     public void onIQ(IQ iq) {
-      // dispatch the stanza to corresponding participant.
-      JID fromJID = new JID(iq.getFrom());
-      String id = fromJID.getNode();
-      if (id != null) {
-        ParticipantImpl participant = MohoRemoteImpl.this.getParticipant(id);
-        if (participant != null) {
-          participant.onRayoCommandResult(fromJID, iq);
-        }
-        else {
-          LOG.error("Can't find call for rayo event:" + iq);
-        }
-      }
+    	if (iq.getFrom() != null) {
+	      // dispatch the stanza to corresponding participant.
+	      JID fromJID = new JID(iq.getFrom());
+	      String id = fromJID.getNode();
+	      if (id != null) {
+	        ParticipantImpl participant = MohoRemoteImpl.this.getParticipant(id);
+	        if (participant != null) {
+	          participant.onRayoCommandResult(fromJID, iq);
+	        }
+	        else {
+	          LOG.error("Can't find call for rayo event:" + iq);
+	        }
+	      }
+    	}
     }
 
     @Override
@@ -113,7 +116,9 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
           participant.onRayoEvent(fromJID, presence);
         }
         else {
-          LOG.error("Can't find call for rayo event:" + presence);
+        	if (presence.getShow() == null) {
+        		LOG.error("Can't find call for rayo event:" + presence);
+        	}
         }
       }
     }
@@ -124,7 +129,11 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     }
   }
 
-  @Override
+
+  public MixerEndpoint createEndpoint(String mixerName) {
+    return new MixerEndpointImpl(this, mixerName);
+  }
+  
   public ParticipantImpl getParticipant(final String cid) {
     getParticipantsLock().lock();
     try {
@@ -177,7 +186,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
       _client.connect(userName, passwd, resource, timeout);
     }
     catch (XmppException e) {
-      LOG.error("Error connecting server", e);
+      throw new MohoRemoteException("Error connecting to server", e);
     }
   }
 

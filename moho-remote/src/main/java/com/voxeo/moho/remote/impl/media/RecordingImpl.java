@@ -31,8 +31,8 @@ import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.RecordCompleteEvent;
 import com.voxeo.moho.media.Recording;
-import com.voxeo.moho.remote.impl.CallImpl;
 import com.voxeo.moho.remote.impl.JID;
+import com.voxeo.moho.remote.impl.MediaServiceSupport;
 import com.voxeo.moho.remote.impl.RayoListener;
 
 //TODO exception and IQ error handling
@@ -43,13 +43,13 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
 
   protected VerbRef _verbRef;
 
-  protected CallImpl _call;
+  protected MediaServiceSupport<T> _call;
 
   protected T _todo;
 
   protected boolean paused;
 
-  public RecordingImpl(final VerbRef verbRef, final CallImpl call, T todo) {
+  public RecordingImpl(final VerbRef verbRef, final MediaServiceSupport<T> call, T todo) {
     _verbRef = verbRef;
     _call = call;
     _todo = todo;
@@ -70,7 +70,7 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
   public void pause() {
     if (!_future.isDone() && !paused) {
       try {
-        IQ iq = _call.getMohoRemote().getRayoClient().pause(_verbRef);
+        IQ iq = _call.getMohoRemote().getRayoClient().pauseRecord(_verbRef);
         if (iq.isError()) {
           com.rayo.client.xmpp.stanza.Error error = iq.getError();
           throw new MediaException(error.getCondition() + error.getText());
@@ -90,7 +90,7 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
   public void resume() {
     if (!_future.isDone() && paused) {
       try {
-        IQ iq = _call.getMohoRemote().getRayoClient().resume(_verbRef);
+        IQ iq = _call.getMohoRemote().getRayoClient().resumeRecord(_verbRef);
         if (iq.isError()) {
           com.rayo.client.xmpp.stanza.Error error = iq.getError();
           LOG.error(error.getCondition() + error.getText());

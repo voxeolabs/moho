@@ -14,15 +14,12 @@
 
 package com.voxeo.moho.remote.impl;
 
-import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -32,11 +29,8 @@ import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.JoinableStream.StreamType;
-import javax.media.mscontrol.mediagroup.MediaGroup;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.log4j.Logger;
-import org.joda.time.Duration;
 
 import com.rayo.client.XmppException;
 import com.rayo.client.xmpp.stanza.IQ;
@@ -51,17 +45,13 @@ import com.rayo.core.JoinDestinationType;
 import com.rayo.core.JoinedEvent;
 import com.rayo.core.RingingEvent;
 import com.rayo.core.UnjoinedEvent;
-import com.rayo.core.verb.Choices;
 import com.rayo.core.verb.OffHoldEvent;
 import com.rayo.core.verb.OnHoldEvent;
-import com.rayo.core.verb.Record;
-import com.rayo.core.verb.Ssml;
-import com.rayo.core.verb.VerbRef;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Joint;
-import com.voxeo.moho.MediaException;
+import com.voxeo.moho.Mixer;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.Unjoint;
@@ -80,27 +70,9 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.RequestEvent;
 import com.voxeo.moho.event.ResponseEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
-import com.voxeo.moho.media.Input;
-import com.voxeo.moho.media.Output;
-import com.voxeo.moho.media.Prompt;
-import com.voxeo.moho.media.Recording;
-import com.voxeo.moho.media.input.Grammar;
-import com.voxeo.moho.media.input.InputCommand;
-import com.voxeo.moho.media.input.SimpleGrammar;
-import com.voxeo.moho.media.output.AudibleResource;
-import com.voxeo.moho.media.output.AudioURIResource;
-import com.voxeo.moho.media.output.OutputCommand;
-import com.voxeo.moho.media.output.TextToSpeechResource;
-import com.voxeo.moho.media.record.RecordCommand;
 import com.voxeo.moho.remote.impl.event.MohoHangupEventImpl;
-import com.voxeo.moho.remote.impl.media.InputImpl;
-import com.voxeo.moho.remote.impl.media.OutputImpl;
-import com.voxeo.moho.remote.impl.media.PromptImpl;
-import com.voxeo.moho.remote.impl.media.RecordingImpl;
 
-public abstract class CallImpl extends ParticipantImpl implements Call, RayoListener {
-
-  private static final Logger LOG = Logger.getLogger(CallImpl.class);
+public abstract class CallImpl extends MediaServiceSupport<Call> implements Call, RayoListener {
 
   protected CallableEndpoint _caller;
 
@@ -108,17 +80,9 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
 
   protected List<Call> _peers = new ArrayList<Call>(0);
 
-  protected MohoRemoteImpl _mohoRemote;
-
   protected State _state;
 
   protected Map<String, String> _headers;
-
-  protected Map<String, RayoListener> _componentListeners = new ConcurrentHashMap<String, RayoListener>();
-
-  protected Map<String, JointImpl> _joints = new ConcurrentHashMap<String, JointImpl>();
-
-  protected Map<String, UnJointImpl> _unjoints = new ConcurrentHashMap<String, UnJointImpl>();
 
   protected boolean _isMuted;
 
@@ -128,8 +92,7 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
 
   protected CallImpl(MohoRemoteImpl mohoRemote, String callID, CallableEndpoint caller, CallableEndpoint callee,
       Map<String, String> headers) {
-    _mohoRemote = mohoRemote;
-    _dispatcher.setExecutor(_mohoRemote.getExecutor(), true);
+    super(mohoRemote);
     _caller = caller;
     _callee = callee;
     _id = callID;
@@ -140,266 +103,6 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
   }
 
   // ///////////////media related///////
-  @Override
-  public Output<Call> output(String text) throws MediaException {
-    OutputImpl<Call> output = null;
-    try {
-      VerbRef verbRef = _mohoRemote.getRayoClient().output(text, this.getId());
-
-      output = new OutputImpl<Call>(verbRef, this, this);
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-      throw new MediaException(e);
-    }
-    return output;
-  }
-
-  @Override
-  public Output<Call> output(URI media) throws MediaException {
-    OutputImpl<Call> output = null;
-    try {
-      VerbRef verbRef = _mohoRemote.getRayoClient().output(media, this.getId());
-
-      output = new OutputImpl<Call>(verbRef, this, this);
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-      throw new MediaException(e);
-    }
-    return output;
-  }
-
-  @Override
-  public Output<Call> output(OutputCommand output) throws MediaException {
-    OutputImpl<Call> outputFuture = null;
-    try {
-      com.rayo.core.verb.Output rayoOutput = new com.rayo.core.verb.Output();
-      if (output.getStartingOffset() > 0) {
-        rayoOutput.setStartOffset(Duration.standardSeconds(output.getStartingOffset() / 1000));
-      }
-      if (output.isStartInPausedMode()) {
-        rayoOutput.setStartPaused(true);
-      }
-      if (output.getRepeatInterval() > 0) {
-        rayoOutput.setRepeatInterval(Duration.standardSeconds(output.getRepeatInterval() / 1000));
-      }
-      if (output.getRepeatTimes() > 0) {
-        rayoOutput.setRepeatTimes(output.getRepeatTimes());
-      }
-      if (output.getMaxtime() > 0) {
-        rayoOutput.setMaxTime(Duration.standardSeconds(output.getMaxtime() / 1000));
-      }
-      if (output.getVoiceName() != null) {
-        rayoOutput.setVoice(output.getVoiceName());
-      }
-      VerbRef verbRef = null;
-      OutputCommand next = null;
-      if (output.getAudibleResources() != null && output.getAudibleResources().length > 0) {
-        AudibleResource ar = output.getAudibleResources()[0];
-        if (ar instanceof TextToSpeechResource) {
-          rayoOutput.setPrompt(new Ssml(((TextToSpeechResource) ar).getText()));
-        }
-        else {
-          verbRef = _mohoRemote.getRayoClient().output(ar.toURI(), this.getId());
-        }
-
-        if (output.getAudibleResources().length > 1) {
-          next = (OutputCommand) output.clone();
-          next.setAudibleResource(Arrays.copyOfRange(output.getAudibleResources(), 1,
-              output.getAudibleResources().length));
-        }
-      }
-      if (verbRef == null) {
-        verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
-      }
-
-      outputFuture = new OutputImpl<Call>(verbRef, next, this, this);
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-      throw new MediaException(e);
-    }
-    return outputFuture;
-  }
-
-  @Override
-  public Prompt<Call> prompt(String text, String grammar, int repeat) throws MediaException {
-    final OutputCommand output = text == null ? null : new OutputCommand(new TextToSpeechResource(text));
-    final InputCommand input = grammar == null ? null : new InputCommand(new SimpleGrammar(grammar));
-    return prompt(output, input, repeat);
-  }
-
-  @Override
-  public Prompt<Call> prompt(URI media, String grammar, int repeat) throws MediaException {
-    final OutputCommand output = media == null ? null : new OutputCommand(new AudioURIResource(media));
-    final InputCommand input = grammar == null ? null : new InputCommand(new SimpleGrammar(grammar));
-    return prompt(output, input, repeat);
-  }
-
-  @Override
-  public Prompt<Call> prompt(OutputCommand output, InputCommand input, int repeat) throws MediaException {
-    PromptImpl<Call> prompt = new PromptImpl<Call>(_mohoRemote.getExecutor());
-    if (output != null) {
-      for (int i = 0; i < repeat + 1; i++) {
-        prompt.setOutput(output(output));
-      }
-    }
-    if (input != null) {
-      prompt.setInput(input(input));
-    }
-
-    return prompt;
-  }
-
-  @Override
-  public Input<Call> input(String grammar) throws MediaException {
-    InputImpl<Call> input = null;
-    try {
-      Choices choice = new Choices();
-      choice.setContent(grammar);
-      choice.setContentType(Choices.VOXEO_GRAMMAR);
-
-      List<Choices> list = new ArrayList<Choices>(1);
-      list.add(choice);
-      com.rayo.core.verb.Input command = new com.rayo.core.verb.Input();
-      command.setCallId(this.getId());
-      command.setGrammars(list);
-
-      VerbRef verbRef = _mohoRemote.getRayoClient().input(command, this.getId());
-      input = new InputImpl<Call>(verbRef, this, this);
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-      throw new MediaException(e);
-    }
-    return input;
-  }
-
-  @Override
-  public Input<Call> input(InputCommand inputCommand) throws MediaException {
-    InputImpl<Call> input = null;
-    try {
-      Grammar[] grammars = inputCommand.getGrammars();
-      List<Choices> list = new ArrayList<Choices>(grammars.length);
-      for (Grammar grammar : grammars) {
-        Choices choice = new Choices();
-        if (grammar.getText() != null) {
-          choice.setContent(grammar.getText());
-          choice.setContentType(grammar.getContentType());
-        }
-        else {
-          choice.setUri(grammar.getUri());
-        }
-        list.add(choice);
-      }
-
-      com.rayo.core.verb.Input command = new com.rayo.core.verb.Input();
-      command.setCallId(this.getId());
-      command.setGrammars(list);
-      if (inputCommand.getInitialTimeout() > 0) {
-        command.setInitialTimeout(Duration.standardSeconds(inputCommand.getInitialTimeout() / 1000));
-      }
-      if (inputCommand.getInterDigitsTimeout() > 0) {
-        command.setInterDigitTimeout(Duration.standardSeconds(inputCommand.getInterDigitsTimeout()));
-      }
-      if (inputCommand.getTerminator() != null) {
-        command.setTerminator(inputCommand.getTerminator());
-      }
-      if (inputCommand.getMinConfidence() > 0) {
-        command.setMinConfidence(inputCommand.getMinConfidence());
-      }
-      if (inputCommand.getRecognizer() != null) {
-        command.setRecognizer(inputCommand.getRecognizer());
-      }
-      if (inputCommand.getInputMode() != null) {
-        if (inputCommand.getInputMode() == com.voxeo.moho.media.InputMode.DTMF) {
-          command.setMode(com.rayo.core.verb.InputMode.DTMF);
-        }
-        else if (inputCommand.getInputMode() == com.voxeo.moho.media.InputMode.SPEECH) {
-          command.setMode(com.rayo.core.verb.InputMode.VOICE);
-        }
-        else {
-          command.setMode(com.rayo.core.verb.InputMode.ANY);
-        }
-      }
-      if (inputCommand.getSensitivity() > 0) {
-        command.setSensitivity(inputCommand.getSensitivity());
-      }
-
-      VerbRef verbRef = _mohoRemote.getRayoClient().input(command, this.getId());
-      input = new InputImpl<Call>(verbRef, this, this);
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-      throw new MediaException(e);
-    }
-    return input;
-  }
-
-  @Override
-  public Recording<Call> record(URI recordURI) throws MediaException {
-    Recording<Call> recording = null;
-    try {
-      Record record = new Record();
-      record.setTo(recordURI);
-      record.setCallId(this.getId());
-      VerbRef verbRef = _mohoRemote.getRayoClient().record(record, this.getId());
-
-      recording = new RecordingImpl<Call>(verbRef, this, this);
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-      throw new MediaException(e);
-    }
-    return recording;
-  }
-
-  @Override
-  public Recording<Call> record(RecordCommand command) throws MediaException {
-    Recording<Call> recording = null;
-    try {
-      Record record = new Record();
-      record.setTo(command.getRecordURI());
-      record.setCallId(this.getId());
-
-      if (command.getFinalTimeout() > 0) {
-        record.setFinalTimeout(Duration.standardSeconds(command.getFinalTimeout() / 1000));
-      }
-      if (command.getFileFormat() != null) {
-        record.setFormat(command.getFileFormat().toString());
-      }
-      if (command.getMaxDuration() > 0) {
-        record.setMaxDuration(Duration.standardSeconds(command.getMaxDuration() / 1000));
-      }
-      if (command.isStartBeep()) {
-        record.setStartBeep(true);
-      }
-      if (command.isStartInPausedMode()) {
-        record.setStartPaused(true);
-      }
-      if (command.getInitialTimeout() > 0) {
-        record.setInitialTimeout(Duration.standardSeconds(command.getInitialTimeout() / 1000));
-      }
-      VerbRef verbRef = _mohoRemote.getRayoClient().record(record, this.getId());
-
-      recording = new RecordingImpl<Call>(verbRef, this, this);
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-      throw new MediaException(e);
-    }
-    return recording;
-  }
-
-  @Override
-  public MediaGroup getMediaGroup() {
-    throw new UnsupportedOperationException(Constants.unsupported_operation);
-  }
-
-  // ///////////////media related end///////
-
-  @Override
   public void hangup() {
     hangup(null);
   }
@@ -714,13 +417,7 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
   public void onRayoEvent(JID from, Presence presence) {
 	  
     if (from.getResource() != null) {
-      RayoListener listener = _componentListeners.get(from.getResource());
-      if (listener != null) {
-        listener.onRayoEvent(from, presence);
-      }
-      else{
-    	  LOG.error("Can't find corresponding component, Can't process presence:"+ presence);
-      }
+      super.onRayoEvent(from, presence);
     }
     else {
     	LOG.debug("Recived presence, processing:"+ presence);
@@ -761,7 +458,10 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
             mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
           }
           else {
-            // TODO mixer unjoin.
+            // TODO mixer join.
+            Mixer peer = (Mixer) this.getMohoRemote().getParticipant(id);
+            _joinees.add(peer, joint.getType(), joint.getDirection());
+            mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
           }
           this.dispatch(mohoEvent);
         }
@@ -781,11 +481,14 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
           _joinees.remove(peer);
           _peers.remove(peer);
           mohoEvent = new MohoUnjoinCompleteEvent(this, peer, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
-          this.dispatch(mohoEvent);
         }
         else {
           // TODO mixer unjoin.
+          Mixer peer = (Mixer) this.getMohoRemote().getParticipant(id);
+          _joinees.remove(peer);
+          mohoEvent = new MohoUnjoinCompleteEvent(this, peer, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
         }
+        this.dispatch(mohoEvent);
       }
       else if (object instanceof OffHoldEvent) {
         // TODO for conference
@@ -802,19 +505,6 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
       else {
         LOG.error("Can't process presence:" + presence);
       }
-    }
-  }
-
-  @Override
-  public void onRayoCommandResult(JID from, IQ iq) {
-    if (from.getResource() != null) {
-      RayoListener listener = _componentListeners.get(from.getResource());
-      if (listener != null) {
-        listener.onRayoCommandResult(from, iq);
-      }
-    }
-    else {
-
     }
   }
 
@@ -850,18 +540,6 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
     }
   }
 
-  public MohoRemoteImpl getMohoRemote() {
-    return _mohoRemote;
-  }
-
-  public void removeComponentListener(String id) {
-    _componentListeners.remove(id);
-  }
-
-  public void addComponentListener(String id, RayoListener listener) {
-    _componentListeners.put(id, listener);
-  }
-
   public abstract void startJoin() throws XmppException;
 
   @Override
@@ -872,8 +550,10 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
     try {
       lock.lock();
       this.startJoin();
-      // TODO make a parent class implement participant.
-      ((CallImpl) other).startJoin();
+      if (other instanceof Call) {
+        // TODO make a parent class implement participant.
+        ((CallImpl) other).startJoin();
+      }
 
       JoinCommand command = new JoinCommand();
       command.setCallId(this.getId());
@@ -892,20 +572,20 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
 
       joint = new JointImpl(this, type, direction);
       _joints.put(other.getId(), joint);
-      ((CallImpl) other)._joints.put(this.getId(), joint);
+      ((MediaServiceSupport<?>) other)._joints.put(this.getId(), joint);
 
       IQ iq = _mohoRemote.getRayoClient().join(command, this.getId());
 
       if (iq.isError()) {
         _joints.remove(other.getId());
-        ((CallImpl) other)._joints.remove(this.getId());
+        ((MediaServiceSupport<?>) other)._joints.remove(this.getId());
         com.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
     }
     catch (XmppException e) {
       _joints.remove(other.getId());
-      ((CallImpl) other)._joints.remove(this.getId());
+      ((MediaServiceSupport<?>) other)._joints.remove(this.getId());
       LOG.error("", e);
       throw new SignalException("", e);
     }
@@ -914,7 +594,7 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
     }
     return joint;
   }
-
+  
   public State getState() {
     return _state;
   }

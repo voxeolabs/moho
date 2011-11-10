@@ -36,8 +36,8 @@ import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.OutputCompleteEvent;
 import com.voxeo.moho.media.Output;
 import com.voxeo.moho.media.output.OutputCommand;
-import com.voxeo.moho.remote.impl.CallImpl;
 import com.voxeo.moho.remote.impl.JID;
+import com.voxeo.moho.remote.impl.MediaServiceSupport;
 import com.voxeo.moho.remote.impl.RayoListener;
 
 //TODO exception and IQ error handling
@@ -50,7 +50,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
 
   protected VerbRef _verbRef;
 
-  protected CallImpl _call;
+  protected MediaServiceSupport<T> _call;
   
   protected OutputCommand _next;
 
@@ -58,7 +58,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
 
   protected boolean paused;
 
-  public OutputImpl(final VerbRef verbRef, final OutputCommand next, final CallImpl call, T todo) {
+  public OutputImpl(final VerbRef verbRef, final OutputCommand next, final MediaServiceSupport<T> call, T todo) {
     _verbRef = verbRef;
     _call = call;
     _next = next;
@@ -66,7 +66,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
     _call.addComponentListener(_verbRef.getVerbId(), this);
   }
 
-  public OutputImpl(final VerbRef verbRef, final CallImpl call, T todo) {
+  public OutputImpl(final VerbRef verbRef, final MediaServiceSupport<T> call, T todo) {
     this(verbRef, null, call, todo);
   }
 
