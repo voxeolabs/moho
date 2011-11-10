@@ -254,6 +254,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
 
   @Override
   public void onRayoEvent(JID from, Presence presence) {
+	  LOG.debug("OutputImpl Recived presence, processing:" + presence);
     Object obj = presence.getExtension().getObject();
 
     if (obj instanceof com.rayo.core.verb.VerbCompleteEvent) {

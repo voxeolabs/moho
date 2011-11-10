@@ -712,13 +712,18 @@ public abstract class CallImpl extends ParticipantImpl implements Call, RayoList
 
   @Override
   public void onRayoEvent(JID from, Presence presence) {
+	  
     if (from.getResource() != null) {
       RayoListener listener = _componentListeners.get(from.getResource());
       if (listener != null) {
         listener.onRayoEvent(from, presence);
       }
+      else{
+    	  LOG.error("Can't find corresponding component, Can't process presence:"+ presence);
+      }
     }
     else {
+    	LOG.debug("Recived presence, processing:"+ presence);
       Object object = presence.getExtension().getObject();
       if (object instanceof EndEvent) {
         EndEvent event = (EndEvent) object;

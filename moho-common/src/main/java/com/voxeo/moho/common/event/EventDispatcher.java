@@ -201,6 +201,7 @@ public class EventDispatcher {
           out: do {
             final List<Object> list = clazzListeners.get(clazz);
             if (list != null) {
+            	 LOG.debug("Dispatching Event to listener:" +event);
               for (final Object listener : list) {
                 try {
                   ((EventListener<T>) listener).onEvent(event);
@@ -222,6 +223,7 @@ public class EventDispatcher {
           final EnumEvent<S, ? extends Enum<?>> enumEvent = (EnumEvent<S, ? extends Enum<?>>) event;
           final List<Object> list = enumListeners.get(enumEvent.getType());
           if (list != null) {
+        	  LOG.debug("Dispatching Event to listener:" +event);
             for (final Object listener : list) {
               try {
                 ((EventListener<T>) listener).onEvent(event);

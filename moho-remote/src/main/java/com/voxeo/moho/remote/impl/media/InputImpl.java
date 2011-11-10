@@ -110,6 +110,7 @@ public class InputImpl<T extends EventSource> implements Input<T>, RayoListener 
 
   @Override
   public void onRayoEvent(JID from, Presence presence) {
+	  LOG.debug("InputImpl Recived presence, processing:"+ presence);
     Object obj = presence.getExtension().getObject();
 
     if (obj instanceof com.rayo.core.verb.VerbCompleteEvent) {

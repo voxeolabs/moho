@@ -155,6 +155,7 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
 
   @Override
   public void onRayoEvent(JID from, Presence presence) {
+	  LOG.debug("RecordingImpl Recived presence, processing:" + presence);
     Object obj = presence.getExtension().getObject();
 
     if (obj instanceof com.rayo.core.verb.VerbCompleteEvent) {
