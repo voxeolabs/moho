@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.media.mscontrol.mediagroup.MediaGroup;
 
@@ -56,6 +58,8 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
   
   protected Map<String, RayoListener> _componentListeners = new ConcurrentHashMap<String, RayoListener>();
   
+     protected Lock _componentstLock = new ReentrantLock();
+
   public MediaServiceSupport(MohoRemoteImpl mohoRemote) {
     _mohoRemote = mohoRemote;
     _dispatcher.setExecutor(_mohoRemote.getExecutor(), true);
@@ -66,8 +70,24 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
   }
   
   public void removeComponentListener(String id) {
-    _componentListeners.remove(id);
+	  getComponentstLock().lock();
+	    try {
+	       _componentListeners.remove(id);
+	    }
+	    finally {
+	    	getComponentstLock().unlock();
+	    }
   }
+  
+  public RayoListener getComponentListener(final String id) {
+	  getComponentstLock().lock();
+	    try {
+	      return _componentListeners.get(id);
+	    }
+	    finally {
+	    	getComponentstLock().unlock();
+	    }
+	  }
 
   public void addComponentListener(String id, RayoListener listener) {
     _componentListeners.put(id, listener);
@@ -76,6 +96,7 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
   @Override
   public Output<T> output(String text) throws MediaException {
     OutputImpl<T> output = null;
+    getComponentstLock().lock();
     try {
       VerbRef verbRef = _mohoRemote.getRayoClient().output(text, this.getId());
 
@@ -85,12 +106,16 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
+    finally{
+    	getComponentstLock().unlock();
+    }
     return output;
   }
 
   @Override
   public Output<T> output(URI media) throws MediaException {
     OutputImpl<T> output = null;
+    getComponentstLock().lock();
     try {
       VerbRef verbRef = _mohoRemote.getRayoClient().output(getSsmlFromURI(media).getText(), this.getId());
 
@@ -100,12 +125,16 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
+    finally{
+    	getComponentstLock().unlock();
+    }
     return output;
   }
 
   @Override
   public Output<T> output(OutputCommand output) throws MediaException {
     OutputImpl<T> outputFuture = null;
+    getComponentstLock().lock();
     try {
       com.rayo.core.verb.Output rayoOutput = new com.rayo.core.verb.Output();
       if (output.getStartingOffset() > 0) {
@@ -153,6 +182,9 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
+    finally{
+    	getComponentstLock().unlock();
+    }
     return outputFuture;
   }
 
@@ -188,6 +220,7 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
   @Override
   public Input<T> input(String grammar) throws MediaException {
     InputImpl<T> input = null;
+    getComponentstLock().lock();
     try {
       Choices choice = new Choices();
       choice.setContent(grammar);
@@ -206,12 +239,16 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
+    finally{
+    	getComponentstLock().unlock();
+    }
     return input;
   }
 
   @Override
   public Input<T> input(InputCommand inputCommand) throws MediaException {
     InputImpl<T> input = null;
+    getComponentstLock().lock();
     try {
       Grammar[] grammars = inputCommand.getGrammars();
       List<Choices> list = new ArrayList<Choices>(grammars.length);
@@ -267,12 +304,16 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
+    finally{
+    	getComponentstLock().unlock();
+    }
     return input;
   }
 
   @Override
   public Recording<T> record(URI recordURI) throws MediaException {
     Recording<T> recording = null;
+    getComponentstLock().lock();
     try {
       Record record = new Record();
       record.setTo(recordURI);
@@ -285,12 +326,16 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
+    finally{
+    	getComponentstLock().unlock();
+    }
     return recording;
   }
 
   @Override
   public Recording<T> record(RecordCommand command) throws MediaException {
     Recording<T> recording = null;
+    getComponentstLock().lock();
     try {
       Record record = new Record();
       record.setTo(command.getRecordURI());
@@ -322,12 +367,15 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
+    finally{
+    	getComponentstLock().unlock();
+    }
     return recording;
   }
   
   @Override
   public void onRayoEvent(JID from, Presence presence) {
-    RayoListener listener = _componentListeners.get(from.getResource());
+    RayoListener listener = getComponentListener(from.getResource());
     if (listener != null) {
       listener.onRayoEvent(from, presence);
     }
@@ -343,9 +391,12 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       if (listener != null) {
         listener.onRayoCommandResult(from, iq);
       }
+      else{
+    	  LOG.warn("Unprocessed IQ:"+iq);
+      }
     }
     else {
-
+LOG.warn("Unprocessed IQ:"+iq);
     }
   }
 
@@ -384,4 +435,8 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
     }
     return ssml;
   }
+
+public Lock getComponentstLock() {
+	return _componentstLock;
+}
 }

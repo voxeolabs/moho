@@ -182,7 +182,7 @@ public class InputImpl<T extends EventSource> implements Input<T>, RayoListener 
 
   @Override
   public void onRayoCommandResult(JID from, IQ iq) {
-    // DO nothing.
+	  LOG.warn("Unprocessed IQ:"+iq);
   }
 
   public String getVerbId() {

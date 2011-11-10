@@ -86,6 +86,12 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 	          LOG.error("Can't find call for rayo event:" + iq);
 	        }
 	      }
+	      else {
+	    	  LOG.warn("Unprocessed IQ:"+iq);
+	      }
+    	}
+    	else{
+    		LOG.warn("Unprocessed IQ:"+iq);
     	}
     }
 

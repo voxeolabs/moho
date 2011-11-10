@@ -275,7 +275,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
 
   @Override
   public void onRayoCommandResult(JID from, IQ iq) {
-    // DO nothing.
+	  LOG.warn("Unprocessed IQ:"+iq);
   }
 
   protected OutputCompleteEvent.Cause getMohoOutputCompleteReasonByRayoReason(VerbCompleteReason reason) {

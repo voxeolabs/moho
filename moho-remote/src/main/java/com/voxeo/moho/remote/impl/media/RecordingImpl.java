@@ -200,7 +200,7 @@ public class RecordingImpl<T extends EventSource> implements Recording<T>, RayoL
 
   @Override
   public void onRayoCommandResult(JID from, IQ iq) {
-    // DO nothing.
+	  LOG.warn("Unprocessed IQ:"+iq);
   }
 
   public String getVerbId() {
