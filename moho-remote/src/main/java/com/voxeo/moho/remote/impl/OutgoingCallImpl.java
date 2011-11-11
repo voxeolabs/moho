@@ -98,6 +98,7 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
   @Override
   public void onRayoEvent(JID from, Presence presence) {
     Object object = presence.getExtension().getObject();
+    LOG.debug("OutgoingCallImpl Recived presence, processing:"+ presence);
     if (object instanceof AnsweredEvent) {
       AnsweredEvent event = (AnsweredEvent) object;
       MohoAnsweredEventImpl<Call> mohoEvent = new MohoAnsweredEventImpl<Call>(this, event.getHeaders());

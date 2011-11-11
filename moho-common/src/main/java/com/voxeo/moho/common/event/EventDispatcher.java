@@ -244,7 +244,7 @@ public class EventDispatcher {
 
       }
     }, event);
-
+    LOG.debug("Preparing to dispatch event:" +event);
     if (needOrder) {
       synchronized (_queue) {
         boolean excuteProcessor = false;

@@ -420,7 +420,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
       super.onRayoEvent(from, presence);
     }
     else {
-    	LOG.debug("Recived presence, processing:"+ presence);
+    	LOG.debug("CallImpl Recived presence, processing:"+ presence);
       Object object = presence.getExtension().getObject();
       if (object instanceof EndEvent) {
         EndEvent event = (EndEvent) object;
@@ -503,7 +503,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
         // TODO for answered
       }
       else {
-        LOG.error("Can't process presence:" + presence);
+        LOG.error("CallImpl Can't process presence:" + presence);
       }
     }
   }
