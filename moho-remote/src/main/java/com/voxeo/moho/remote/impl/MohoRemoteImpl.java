@@ -53,10 +53,15 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   @Override
   public void disconnect() throws MohoRemoteException {
-    Collection<ParticipantImpl> participants = _participants.values();
-    for (Participant participant : participants) {
-      participant.disconnect();
-    }
+	  try{
+		  Collection<ParticipantImpl> participants = _participants.values();
+		    for (Participant participant : participants) {
+		      participant.disconnect();
+		    }
+	  }
+	  catch(Exception ex){
+		  LOG.warn("", ex);
+	  }
 
     try {
       _client.disconnect();
@@ -64,8 +69,9 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     catch (XmppException e) {
       throw new MohoRemoteException(e);
     }
-
-    _executor.shutdown();
+finally{
+	_executor.shutdown();
+}
   }
 
   //TODO ask Rayo-client thread model, figure out all possible concurrent issue
