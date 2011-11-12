@@ -108,6 +108,7 @@ finally{
 
     @Override
     public void onPresence(Presence presence) {
+    	LOG.debug("MohoRemote Received presence from rayo, processing:" + presence);
       JID fromJID = new JID(presence.getFrom());
       if (!presence.hasExtension()) {
         return;
