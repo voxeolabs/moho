@@ -133,59 +133,7 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
 
   @Override
   public Output<T> output(OutputCommand output) throws MediaException {
-    OutputImpl<T> outputFuture = null;
-    getComponentstLock().lock();
-    try {
-      com.rayo.core.verb.Output rayoOutput = new com.rayo.core.verb.Output();
-      if (output.getStartingOffset() > 0) {
-        rayoOutput.setStartOffset(Duration.standardSeconds(output.getStartingOffset() / 1000));
-      }
-      if (output.isStartInPausedMode()) {
-        rayoOutput.setStartPaused(true);
-      }
-      if (output.getRepeatInterval() > 0) {
-        rayoOutput.setRepeatInterval(Duration.standardSeconds(output.getRepeatInterval() / 1000));
-      }
-      if (output.getRepeatTimes() > 0) {
-        rayoOutput.setRepeatTimes(output.getRepeatTimes());
-      }
-      if (output.getMaxtime() > 0) {
-        rayoOutput.setMaxTime(Duration.standardSeconds(output.getMaxtime() / 1000));
-      }
-      if (output.getVoiceName() != null) {
-        rayoOutput.setVoice(output.getVoiceName());
-      }
-      VerbRef verbRef = null;
-      OutputCommand next = null;
-      if (output.getAudibleResources() != null && output.getAudibleResources().length > 0) {
-        AudibleResource ar = output.getAudibleResources()[0];
-        if (ar instanceof TextToSpeechResource) {
-          rayoOutput.setPrompt(new Ssml(((TextToSpeechResource) ar).getText()));
-        }
-        else  {
-          rayoOutput.setPrompt(getSsmlFromURI(ar.toURI()));
-        }
-        
-        if (output.getAudibleResources().length > 1) {
-          next = (OutputCommand) output.clone();
-          next.setAudibleResource(Arrays.copyOfRange(output.getAudibleResources(), 1, output.getAudibleResources().length));
-        }
-      }
-      else {
-        throw new IllegalArgumentException("no AudibleResources.");
-      }
-      verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
-
-      outputFuture = new OutputImpl<T>(verbRef, next, this, (T) this);
-    }
-    catch (XmppException e) {
-      LOG.error("", e);
-      throw new MediaException(e);
-    }
-    finally{
-    	getComponentstLock().unlock();
-    }
-    return outputFuture;
+	    return internalOutput(output, 0);
   }
 
   @Override
@@ -204,18 +152,74 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
 
   @Override
   public Prompt<T> prompt(OutputCommand output, InputCommand input, int repeat) throws MediaException {
-    PromptImpl<T> prompt = new PromptImpl<T>(_mohoRemote.getExecutor());
-    if (output != null) {
-      for (int i = 0; i < repeat + 1; i++) {
-        prompt.setOutput(output(output));
-      }
-    }
-    if (input != null) {
-      prompt.setInput(input(input));
-    }
+	  PromptImpl<T> prompt = new PromptImpl<T>(_mohoRemote.getExecutor());
+	    if (output != null) {
+	      prompt.setOutput(internalOutput(output, repeat));
+	    }
+	    if (input != null) {
+	      prompt.setInput(input(input));
+	    }
 
-    return prompt;
+	    return prompt;
   }
+  
+  private Output<T> internalOutput(OutputCommand output, int repeat) throws MediaException {
+	    OutputImpl<T> outputFuture = null;
+	    try {
+	      com.rayo.core.verb.Output rayoOutput = new com.rayo.core.verb.Output();
+	      if (output.getStartingOffset() > 0) {
+	        rayoOutput.setStartOffset(Duration.standardSeconds(output.getStartingOffset() / 1000));
+	      }
+	      if (output.isStartInPausedMode()) {
+	        rayoOutput.setStartPaused(true);
+	      }
+	      if (output.getRepeatInterval() > 0) {
+	        rayoOutput.setRepeatInterval(Duration.standardSeconds(output.getRepeatInterval() / 1000));
+	      }
+	      if (output.getRepeatTimes() > 0) {
+	        rayoOutput.setRepeatTimes(output.getRepeatTimes());
+	      }
+
+	      if (repeat > 0) {
+	        rayoOutput.setRepeatTimes(repeat);
+	      }
+
+	      if (output.getMaxtime() > 0) {
+	        rayoOutput.setMaxTime(Duration.standardSeconds(output.getMaxtime() / 1000));
+	      }
+	      if (output.getVoiceName() != null) {
+	        rayoOutput.setVoice(output.getVoiceName());
+	      }
+	      VerbRef verbRef = null;
+	      OutputCommand next = null;
+	      if (output.getAudibleResources() != null && output.getAudibleResources().length > 0) {
+	        AudibleResource ar = output.getAudibleResources()[0];
+	        if (ar instanceof TextToSpeechResource) {
+	          rayoOutput.setPrompt(new Ssml(((TextToSpeechResource) ar).getText()));
+	        }
+	        else {
+	          rayoOutput.setPrompt(getSsmlFromURI(ar.toURI()));
+	        }
+
+	        if (output.getAudibleResources().length > 1) {
+	          next = (OutputCommand) output.clone();
+	          next.setAudibleResource(Arrays.copyOfRange(output.getAudibleResources(), 1,
+	              output.getAudibleResources().length));
+	        }
+	      }
+	      else {
+	        throw new IllegalArgumentException("no AudibleResources.");
+	      }
+	      verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
+
+	      outputFuture = new OutputImpl<T>(verbRef, next, this, (T) this);
+	    }
+	    catch (XmppException e) {
+	      LOG.error("", e);
+	      throw new MediaException(e);
+	    }
+	    return outputFuture;
+	  }
 
   @Override
   public Input<T> input(String grammar) throws MediaException {
