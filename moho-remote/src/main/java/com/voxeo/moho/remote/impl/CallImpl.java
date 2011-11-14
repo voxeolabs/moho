@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.Future;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -196,14 +195,13 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
       if (iq.isError()) {
         _unjoints.remove(other.getId());
         com.rayo.client.xmpp.stanza.Error error = iq.getError();
-        throw new SignalException(error.getCondition() + error.getText());
+        throw  new SignalException(error.getCondition() + error.getText());
       }
-
     }
     catch (XmppException e) {
       _unjoints.remove(other.getId());
       LOG.error("", e);
-      throw new SignalException("", e);
+      throw  new SignalException("", e);
     }
     return unJoint;
   }
@@ -442,10 +440,6 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
         this.dispatch(mohoEvent);
       }
       else if (object instanceof JoinedEvent) {
-
-        Lock lock = joinLock.readLock();
-        lock.lock();
-        try {
           JoinedEvent event = (JoinedEvent) object;
           MohoJoinCompleteEvent mohoEvent = null;
           String id = event.getTo();
@@ -456,6 +450,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
             _joinees.add(peer, joint.getType(), joint.getDirection());
             _peers.add(peer);
             mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
+            joint.done(mohoEvent);
           }
           else {
             // TODO mixer join.
@@ -464,23 +459,19 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
             mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
           }
           this.dispatch(mohoEvent);
-        }
-        finally {
-          lock.unlock();
-        }
       }
-
       else if (object instanceof UnjoinedEvent) {
         UnjoinedEvent event = (UnjoinedEvent) object;
         MohoUnjoinCompleteEvent mohoEvent = null;
         String id = event.getFrom();
         JoinDestinationType type = event.getType();
-        _unjoints.remove(id);
+        UnJointImpl unjoint = _unjoints.remove(id);
         if (type == JoinDestinationType.CALL) {
           Call peer = (Call) _mohoRemote.getParticipant(id);
           _joinees.remove(peer);
           _peers.remove(peer);
           mohoEvent = new MohoUnjoinCompleteEvent(this, peer, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
+          
         }
         else {
           // TODO mixer unjoin.
@@ -544,11 +535,8 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
   @Override
   public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
-
     JointImpl joint = null;
-    Lock lock = joinLock.writeLock();
     try {
-      lock.lock();
       this.startJoin();
       if (other instanceof Call) {
         // TODO make a parent class implement participant.
@@ -589,9 +577,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
       LOG.error("", e);
       throw new SignalException("", e);
     }
-    finally {
-      lock.unlock();
-    }
+
     return joint;
   }
   

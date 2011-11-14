@@ -48,6 +48,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     int eventDispatcherThreadPoolSize = 10;
     _executor = new ThreadPoolExecutor(eventDispatcherThreadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
         new SynchronousQueue<Runnable>(), new DaemonThreadFactory("MohoContext"));
+    _executor.prestartAllCoreThreads();
     _dispatcher.setExecutor(_executor, false);
   }
 
