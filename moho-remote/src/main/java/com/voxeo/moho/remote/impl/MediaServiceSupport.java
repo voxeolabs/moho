@@ -165,6 +165,7 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
   
   private Output<T> internalOutput(OutputCommand output, int repeat) throws MediaException {
 	    OutputImpl<T> outputFuture = null;
+	    getComponentstLock().lock();
 	    try {
 	      com.rayo.core.verb.Output rayoOutput = new com.rayo.core.verb.Output();
 	      if (output.getStartingOffset() > 0) {
@@ -217,6 +218,9 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
 	    catch (XmppException e) {
 	      LOG.error("", e);
 	      throw new MediaException(e);
+	    }
+	    finally{
+	      getComponentstLock().unlock();
 	    }
 	    return outputFuture;
 	  }
