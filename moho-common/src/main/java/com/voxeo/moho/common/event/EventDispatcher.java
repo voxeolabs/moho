@@ -185,12 +185,12 @@ public class EventDispatcher {
   public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType) {
     return fire(event, narrowType, null);
   }
-  
+
   public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType,
       final Runnable afterExec) {
 
     final FutureTask<T> task = new FutureTask<T>(new Runnable() {
-      @SuppressWarnings({ "unchecked"})
+      @SuppressWarnings({"unchecked"})
       public void run() {
         if (LOG.isTraceEnabled()) {
           LOG.trace("Firing event :" + event);
@@ -201,7 +201,7 @@ public class EventDispatcher {
           out: do {
             final List<Object> list = clazzListeners.get(clazz);
             if (list != null) {
-            	 LOG.debug("Dispatching Event to listener:" +event);
+              LOG.debug("Dispatching Event to listener:" + event);
               for (final Object listener : list) {
                 try {
                   ((EventListener<T>) listener).onEvent(event);
@@ -223,7 +223,7 @@ public class EventDispatcher {
           final EnumEvent<S, ? extends Enum<?>> enumEvent = (EnumEvent<S, ? extends Enum<?>>) event;
           final List<Object> list = enumListeners.get(enumEvent.getType());
           if (list != null) {
-        	  LOG.debug("Dispatching Event to listener:" +event);
+            LOG.debug("Dispatching Event to listener:" + event);
             for (final Object listener : list) {
               try {
                 ((EventListener<T>) listener).onEvent(event);
@@ -244,7 +244,7 @@ public class EventDispatcher {
 
       }
     }, event);
-    LOG.debug("Preparing to dispatch event:" +event);
+
     if (needOrder) {
       synchronized (_queue) {
         boolean excuteProcessor = false;
@@ -294,9 +294,9 @@ public class EventDispatcher {
     this.executor = executor;
     this.needOrder = order;
   }
-  
+
   protected <S extends EventSource> Future<Event<S>> HandleUncaughtException(Exception ex, Event<S> evt) {
     Event<S> newEvt = new UncaughtExceptionEventImpl<S>(evt.getSource(), ex, evt);
-    return fire(newEvt,true);
+    return fire(newEvt, true);
   }
 }

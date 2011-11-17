@@ -21,8 +21,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.Future;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -34,7 +34,6 @@ import org.apache.commons.collections.CollectionUtils;
 import com.rayo.client.XmppException;
 import com.rayo.client.xmpp.stanza.IQ;
 import com.rayo.client.xmpp.stanza.Presence;
-import com.rayo.core.AnsweredEvent;
 import com.rayo.core.CallRejectReason;
 import com.rayo.core.DtmfEvent;
 import com.rayo.core.EndEvent;
@@ -42,7 +41,6 @@ import com.rayo.core.HangupCommand;
 import com.rayo.core.JoinCommand;
 import com.rayo.core.JoinDestinationType;
 import com.rayo.core.JoinedEvent;
-import com.rayo.core.RingingEvent;
 import com.rayo.core.UnjoinedEvent;
 import com.rayo.core.verb.OffHoldEvent;
 import com.rayo.core.verb.OnHoldEvent;
@@ -69,8 +67,11 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.RequestEvent;
 import com.voxeo.moho.event.ResponseEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
+import com.voxeo.moho.remote.MohoRemoteException;
 import com.voxeo.moho.remote.impl.event.MohoHangupEventImpl;
 
+// TODO if we join two call in DIRECT mode, then one side hangup, we want join
+// another side to media again, for example say something. how to do that with  Rayo protocol?
 public abstract class CallImpl extends MediaServiceSupport<Call> implements Call, RayoListener {
 
   protected CallableEndpoint _caller;
@@ -83,11 +84,11 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
   protected Map<String, String> _headers;
 
-  protected boolean _isMuted;
+  protected Boolean _isMuted = false;
 
-  protected boolean _isHold;
+  protected Boolean _isHold = false;
 
-  protected ReadWriteLock joinLock = new ReentrantReadWriteLock();
+  protected Lock _stateLock = new ReentrantLock();
 
   protected CallImpl(MohoRemoteImpl mohoRemote, String callID, CallableEndpoint caller, CallableEndpoint callee,
       Map<String, String> headers) {
@@ -99,11 +100,6 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
       _mohoRemote.addParticipant(this);
     }
     _headers = headers;
-  }
-
-  // ///////////////media related///////
-  public void hangup() {
-    hangup(null);
   }
 
   @Override
@@ -147,9 +143,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
   @Override
   public Call[] getPeers() {
-    synchronized (_peers) {
-      return _peers.toArray(new CallImpl[_peers.size()]);
-    }
+    return _peers.toArray(new CallImpl[_peers.size()]);
   }
 
   @Override
@@ -170,7 +164,6 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
   @Override
   public Joint join(Participant other, JoinType type, Direction direction) {
-
     return join(other, type, Boolean.TRUE, direction);
   }
 
@@ -195,13 +188,13 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
       if (iq.isError()) {
         _unjoints.remove(other.getId());
         com.rayo.client.xmpp.stanza.Error error = iq.getError();
-        throw  new SignalException(error.getCondition() + error.getText());
+        throw new SignalException(error.getCondition() + error.getText());
       }
     }
     catch (XmppException e) {
       _unjoints.remove(other.getId());
       LOG.error("", e);
-      throw  new SignalException("", e);
+      throw new MohoRemoteException(e);
     }
     return unJoint;
   }
@@ -217,12 +210,8 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
   }
 
   @Override
-  public State getCallState() {
-    return _state;
-  }
-
-  @Override
   public void mute() {
+    checkIsConnected();
     if (_isMuted) {
       return;
     }
@@ -238,12 +227,13 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     }
     catch (XmppException e) {
       LOG.error("", e);
-      throw new SignalException("", e);
+      throw new MohoRemoteException(e);
     }
   }
 
   @Override
   public void unmute() {
+    checkIsConnected();
     if (!_isMuted) {
       throw new IllegalStateException("This call hasn't been muted");
     }
@@ -259,12 +249,13 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     }
     catch (XmppException e) {
       LOG.error("", e);
-      throw new SignalException("", e);
+      throw new MohoRemoteException(e);
     }
   }
 
   @Override
-  public synchronized void hold() {
+  public void hold() {
+    checkIsConnected();
     if (_isHold) {
       return;
     }
@@ -280,12 +271,13 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     }
     catch (XmppException e) {
       LOG.error("", e);
-      throw new SignalException("", e);
+      throw new MohoRemoteException(e);
     }
   }
 
   @Override
   public void unhold() {
+    checkIsConnected();
     if (!_isHold) {
       throw new IllegalStateException("This call hasn't been hold");
     }
@@ -301,32 +293,8 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     }
     catch (XmppException e) {
       LOG.error("", e);
-      throw new SignalException("", e);
+      throw new MohoRemoteException(e);
     }
-  }
-
-  @Override
-  public void hangup(Map<String, String> headers) {
-    if (_state == Call.State.ACCEPTED || _state == Call.State.CONNECTED || _state == Call.State.INPROGRESS) {
-      try {
-        HangupCommand command = new HangupCommand();
-        command.setCallId(this.getId());
-        command.setHeaders(headers);
-
-        IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
-
-        if (iq.isError()) {
-          com.rayo.client.xmpp.stanza.Error error = iq.getError();
-          throw new SignalException(error.getCondition() + error.getText());
-        }
-      }
-      catch (XmppException e) {
-        LOG.error("", e);
-        throw new SignalException("", e);
-      }
-    }
-
-    cleanUp();
   }
 
   @Override
@@ -339,6 +307,35 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     return _isMuted;
   }
 
+  public void hangup() {
+    hangup(null);
+  }
+
+  @Override
+  public void hangup(Map<String, String> headers) {
+    if (_state == Call.State.INPROGRESS || _state == Call.State.INITIALIZED || _state == Call.State.ACCEPTED
+        || _state == Call.State.CONNECTED || _state == Call.State.INPROGRESS) {
+      try {
+        HangupCommand command = new HangupCommand();
+        command.setCallId(this.getId());
+        command.setHeaders(headers);
+
+        IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
+
+        if (iq.isError()) {
+          cleanUp();
+          com.rayo.client.xmpp.stanza.Error error = iq.getError();
+          throw new SignalException(error.getCondition() + error.getText());
+        }
+      }
+      catch (XmppException e) {
+        cleanUp();
+        LOG.error("", e);
+        throw new MohoRemoteException(e);
+      }
+    }
+  }
+
   @Override
   public JoinableStream getJoinableStream(StreamType value) {
     throw new UnsupportedOperationException(Constants.unsupported_operation);
@@ -347,11 +344,6 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
   @Override
   public JoinableStream[] getJoinableStreams() {
     throw new UnsupportedOperationException(Constants.unsupported_operation);
-  }
-
-  @Override
-  public String getRemoteAddress() {
-    return _caller.getURI().toString();
   }
 
   @Override
@@ -370,10 +362,10 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
   }
 
   protected void cleanUp() {
+    _mohoRemote.removeParticipant(_id);
+
     _peers.clear();
     _joinees.clear();
-
-    _headers = null;
 
     // TODO
     // Commenting this as otherwise complete events for active verbs will not
@@ -382,13 +374,13 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
     Collection<JointImpl> joints = _joints.values();
     for (JointImpl joint : joints) {
-      joint.done(new SignalException("Call disconnect."));
+      joint.done(new SignalException("Call end."));
     }
     _joints.clear();
 
     Collection<UnJointImpl> unjoints = _unjoints.values();
     for (UnJointImpl unjoint : unjoints) {
-      unjoint.done(new SignalException("Call disconnect."));
+      unjoint.done(new SignalException("Call end."));
     }
     _unjoints.clear();
   }
@@ -413,12 +405,11 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
   @Override
   public void onRayoEvent(JID from, Presence presence) {
-	  
     if (from.getResource() != null) {
       super.onRayoEvent(from, presence);
     }
     else {
-    	LOG.debug("CallImpl Recived presence, processing:"+ presence);
+      LOG.debug("CallImpl Recived presence, processing:" + presence);
       Object object = presence.getExtension().getObject();
       if (object instanceof EndEvent) {
         EndEvent event = (EndEvent) object;
@@ -429,9 +420,8 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
         }
         MohoCallCompleteEvent mohoEvent = new MohoCallCompleteEvent(this,
             getMohoReasonByRayoEndEventReason(event.getReason()), null, event.getHeaders());
+        this.setCallState(State.DISCONNECTED);
         this.dispatch(mohoEvent);
-
-        _state = State.DISCONNECTED;
         cleanUp();
       }
       else if (object instanceof DtmfEvent) {
@@ -440,25 +430,24 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
         this.dispatch(mohoEvent);
       }
       else if (object instanceof JoinedEvent) {
-          JoinedEvent event = (JoinedEvent) object;
-          MohoJoinCompleteEvent mohoEvent = null;
-          String id = event.getTo();
-          JoinDestinationType type = event.getType();
-          JointImpl joint = _joints.remove(id);
-          if (type == JoinDestinationType.CALL) {
-            Call peer = (Call) this.getMohoRemote().getParticipant(id);
-            _joinees.add(peer, joint.getType(), joint.getDirection());
-            _peers.add(peer);
-            mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
-            joint.done(mohoEvent);
-          }
-          else {
-            // TODO mixer join.
-            Mixer peer = (Mixer) this.getMohoRemote().getParticipant(id);
-            _joinees.add(peer, joint.getType(), joint.getDirection());
-            mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
-          }
-          this.dispatch(mohoEvent);
+        JoinedEvent event = (JoinedEvent) object;
+        MohoJoinCompleteEvent mohoEvent = null;
+        String id = event.getTo();
+        JoinDestinationType type = event.getType();
+        JointImpl joint = _joints.remove(id);
+        if (type == JoinDestinationType.CALL) {
+          Call peer = (Call) this.getMohoRemote().getParticipant(id);
+          _joinees.add(peer, joint.getType(), joint.getDirection());
+          _peers.add(peer);
+          mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
+        }
+        else {
+          Mixer peer = (Mixer) this.getMohoRemote().getParticipant(id);
+          _joinees.add(peer, joint.getType(), joint.getDirection());
+          mohoEvent = new MohoJoinCompleteEvent(this, peer, JoinCompleteEvent.Cause.JOINED, true);
+        }
+        this.dispatch(mohoEvent);
+        joint.done(mohoEvent);
       }
       else if (object instanceof UnjoinedEvent) {
         UnjoinedEvent event = (UnjoinedEvent) object;
@@ -471,27 +460,22 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
           _joinees.remove(peer);
           _peers.remove(peer);
           mohoEvent = new MohoUnjoinCompleteEvent(this, peer, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
-          
         }
         else {
-          // TODO mixer unjoin.
           Mixer peer = (Mixer) this.getMohoRemote().getParticipant(id);
           _joinees.remove(peer);
           mohoEvent = new MohoUnjoinCompleteEvent(this, peer, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, true);
         }
         this.dispatch(mohoEvent);
+        if (unjoint != null) {
+          unjoint.done(mohoEvent);
+        }
       }
       else if (object instanceof OffHoldEvent) {
         // TODO for conference
       }
       else if (object instanceof OnHoldEvent) {
         // TODO for conference
-      }
-      else if (object instanceof AnsweredEvent) {
-        // TODO for answered
-      }
-      else if (object instanceof RingingEvent) {
-        // TODO for answered
       }
       else {
         LOG.error("CallImpl Can't process presence:" + presence);
@@ -531,21 +515,20 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     }
   }
 
-  public abstract void startJoin() throws XmppException;
-
   @Override
   public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
     JointImpl joint = null;
     try {
-      this.startJoin();
-      if (other instanceof Call) {
-        // TODO make a parent class implement participant.
-        ((CallImpl) other).startJoin();
-      }
+      joint = new JointImpl(this, type, direction);
+      String thisID = startJoin();
+      String otherID = ((ParticipantImpl) other).startJoin();
+
+      _joints.put(other.getId(), joint);
+      ((MediaServiceSupport<?>) other)._joints.put(this.getId(), joint);
 
       JoinCommand command = new JoinCommand();
-      command.setCallId(this.getId());
-      command.setTo(other.getId());
+      command.setCallId(thisID);
+      command.setTo(otherID);
       command.setMedia(type);
       command.setDirection(direction);
       command.setForce(force);
@@ -558,12 +541,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
       }
       command.setType(destinationType);
 
-      joint = new JointImpl(this, type, direction);
-      _joints.put(other.getId(), joint);
-      ((MediaServiceSupport<?>) other)._joints.put(this.getId(), joint);
-
       IQ iq = _mohoRemote.getRayoClient().join(command, this.getId());
-
       if (iq.isError()) {
         _joints.remove(other.getId());
         ((MediaServiceSupport<?>) other)._joints.remove(this.getId());
@@ -575,17 +553,64 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
       _joints.remove(other.getId());
       ((MediaServiceSupport<?>) other)._joints.remove(this.getId());
       LOG.error("", e);
-      throw new SignalException("", e);
+      throw new MohoRemoteException(e);
     }
 
     return joint;
   }
-  
-  public State getState() {
-    return _state;
+
+  public boolean compareAndsetState(List<State> oldStates, State newValue) {
+    _stateLock.lock();
+    try {
+      if (oldStates.contains(_state)) {
+        _state = newValue;
+        return true;
+      }
+      return false;
+    }
+    finally {
+      _stateLock.unlock();
+    }
   }
 
-  public void setState(State state) {
-    this._state = state;
+  public boolean compareAndsetState(State oldState, State newValue) {
+    _stateLock.lock();
+    try {
+      if (oldState == _state) {
+        _state = newValue;
+        return true;
+      }
+      return false;
+    }
+    finally {
+      _stateLock.unlock();
+    }
+  }
+
+  @Override
+  public State getCallState() {
+    _stateLock.lock();
+    try {
+      return _state;
+    }
+    finally {
+      _stateLock.unlock();
+    }
+  }
+
+  public void setCallState(State state) {
+    _stateLock.lock();
+    try {
+      _state = state;
+    }
+    finally {
+      _stateLock.unlock();
+    }
+  }
+
+  public void checkIsConnected() {
+    if (_state != State.CONNECTED) {
+      throw new IllegalStateException("Isn't connected");
+    }
   }
 }

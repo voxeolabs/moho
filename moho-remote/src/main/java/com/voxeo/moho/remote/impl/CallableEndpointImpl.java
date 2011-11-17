@@ -67,13 +67,13 @@ public class CallableEndpointImpl implements CallableEndpoint {
 
   @Override
   public Call createCall(String caller) {
-    CallableEndpoint ed = _mohoRemote.createEndpoint(URI.create(caller));
+    CallableEndpoint ed = (CallableEndpoint) _mohoRemote.createEndpoint(URI.create(caller));
     return createCall(ed);
   }
 
   @Override
   public Call createCall(String caller, Map<String, String> headers) {
-    CallableEndpoint ed = _mohoRemote.createEndpoint(URI.create(caller));
+    CallableEndpoint ed = (CallableEndpoint) _mohoRemote.createEndpoint(URI.create(caller));
     return createCall(ed, headers);
   }
 }

@@ -23,6 +23,7 @@ import com.voxeo.moho.SignalException;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
+import com.voxeo.moho.remote.MohoRemoteException;
 
 public class IncomingCallImpl extends CallImpl implements IncomingCall {
   private static final Logger LOG = Logger.getLogger(IncomingCallImpl.class);
@@ -38,7 +39,7 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   public IncomingCallImpl(MohoRemoteImpl mohoRemote, String callID, CallableEndpoint caller, CallableEndpoint callee,
       Map<String, String> headers) {
     super(mohoRemote, callID, caller, callee, headers);
-    this.setState(Call.State.INITIALIZED);
+    this.setCallState(Call.State.INITIALIZED);
   }
 
   @Override
@@ -65,17 +66,18 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
       command.setReason(getRayoCallRejectReasonByMohoReason(reason));
       IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
       if (iq.isError()) {
+        this.setCallState(Call.State.FAILED);
         com.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
         isRejected = true;
-        _state = Call.State.DISCONNECTED;
+        this.setCallState(Call.State.DISCONNECTED);
       }
     }
     catch (XmppException e) {
       LOG.error("", e);
-      throw new SignalException(e);
+      throw new MohoRemoteException(e);
     }
   }
 
@@ -100,17 +102,18 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
       IQ iq = _mohoRemote.getRayoClient().command(redirect, this.getId());
 
       if (iq.isError()) {
+        this.setCallState(Call.State.FAILED);
         com.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
         isRedirected = true;
-        _state = Call.State.DISCONNECTED;
+        this.setCallState(Call.State.DISCONNECTED);
       }
     }
     catch (XmppException e) {
       LOG.error("", e);
-      throw new SignalException(e);
+      throw new MohoRemoteException(e);
     }
   }
 
@@ -150,17 +153,18 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
       command.setCallId(this.getId());
       IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
       if (iq.isError()) {
+        this.setCallState(Call.State.FAILED);
         com.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
         isAccepted = true;
-        _state = Call.State.ACCEPTED;
+        this.setCallState(Call.State.ACCEPTED);
       }
     }
     catch (XmppException e) {
       LOG.error("", e);
-      throw new SignalException(e);
+      throw new MohoRemoteException(e);
     }
   }
 
@@ -183,7 +187,7 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
 
   @Override
   public void answer(Map<String, String> headers) throws SignalException, MediaException {
-    final Joint joint = this.join();
+    final Joint joint = this.internalAnswer(null, headers);
     while (!joint.isDone()) {
       try {
         joint.get();
@@ -217,7 +221,6 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   public void proxyTo(boolean recordRoute, boolean parallel, Map<String, String> headers, Endpoint... destinations) {
     // does rayo support proxyTo?
     // TODO Auto-generated method stub
-
   }
 
   @Override
@@ -226,18 +229,18 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   }
 
   @Override
-  public void startJoin() throws XmppException {
-
+  public String startJoin() throws MohoRemoteException {
+    return _id;
   }
 
-  // TODO make _mohoRemote.getRayoClient().answer() asynchronous, and make this
-  // method just send out command, the joint and event stuff should be processed
-  // in the
-  // join() method, wait for the result or error IQ.
-  private Joint internalAnswer(Map<String, String> headers) {
+  // TODO this method is sync now.
+  // should make _mohoRemote.getRayoClient().answer() asynchronous, and make
+  // this method just send out command, the joint and event stuff should be
+  // processed in the join() method, wait for the result or error IQ.
+  private Joint internalAnswer(Direction direction, Map<String, String> headers) {
     if (waitAnswerJoint == null) {
-      waitAnswerJoint = new JointImpl(this, null);
-      MohoJoinCompleteEvent joinComplete = null;
+      waitAnswerJoint = new JointImpl(this, direction);
+      MohoJoinCompleteEvent joinCompleteEvent = null;
       try {
         AnswerCommand command = new AnswerCommand();
         command.setHeaders(headers);
@@ -245,42 +248,43 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
         IQ iq = _mohoRemote.getRayoClient().answer(this.getId(), command);
 
         if (iq.isError()) {
+          this.setCallState(Call.State.FAILED);
           com.rayo.client.xmpp.stanza.Error error = iq.getError();
-          joinComplete = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.ERROR, new SignalException(
-              error.getCondition() + error.getText()), true);
+          SignalException exception = new SignalException(error.getCondition() + error.getText());
+          joinCompleteEvent = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.ERROR, exception, true);
+          dispatch(joinCompleteEvent);
+          waitAnswerJoint.done(exception);
         }
         else {
           isAccepted = true;
-          _state = Call.State.CONNECTED;
-          joinComplete = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.JOINED, true);
+          this.setCallState(Call.State.CONNECTED);
+          joinCompleteEvent = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.JOINED, true);
+          dispatch(joinCompleteEvent);
+          waitAnswerJoint.done(joinCompleteEvent);
         }
-        waitAnswerJoint.done(joinComplete);
       }
       catch (XmppException e) {
         LOG.error("", e);
-        waitAnswerJoint.done(new SignalException(e));
+        throw new MohoRemoteException(e);
       }
     }
-    else {
-      if (waitAnswerJoint.isDone()) {
-        try {
-          JoinCompleteEvent event = waitAnswerJoint.get();
-          dispatch(event);
-        }
-        catch (InterruptedException e) {
-          // can't happen
-        }
-        catch (ExecutionException e) {
-          // can't happen
-        }
-      }
-    }
+
     return waitAnswerJoint;
   }
 
   @Override
   public Joint join(Direction direction) {
-    return internalAnswer(null);
+    return internalAnswer(direction, null);
+  }
+
+  @Override
+  public Endpoint getAddress() {
+    return _caller;
+  }
+
+  @Override
+  public String getRemoteAddress() {
+    return _callee.getURI().toString();
   }
 
   @Override
@@ -291,10 +295,5 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   @Override
   public boolean isAsync() {
     return false;
-  }
-
-  @Override
-  public Endpoint getAddress() {
-    return _caller;
   }
 }

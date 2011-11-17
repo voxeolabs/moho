@@ -6,6 +6,7 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.common.event.DispatchableEventSource;
+import com.voxeo.moho.remote.MohoRemoteException;
 
 public abstract class ParticipantImpl extends DispatchableEventSource implements Participant, RayoListener {
   protected JoineeData _joinees = new JoineeData();
@@ -52,4 +53,6 @@ public abstract class ParticipantImpl extends DispatchableEventSource implements
   protected void removeParticipant(Participant peer) {
     _joinees.remove(peer);
   }
+
+  public abstract String startJoin() throws MohoRemoteException;
 }

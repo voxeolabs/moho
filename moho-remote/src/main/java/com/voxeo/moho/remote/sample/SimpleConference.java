@@ -1,5 +1,7 @@
 package com.voxeo.moho.remote.sample;
 
+import java.net.URI;
+
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import com.voxeo.moho.Call;
@@ -39,7 +41,7 @@ public class SimpleConference implements Observer {
     call.answer();
     Output<Call> output = call.output("welcome to conference 1234, joining");
     output.get();
-    MixerEndpoint endpoint = mohoRemote.createEndpoint("1234");
+    MixerEndpoint endpoint = (MixerEndpoint)mohoRemote.createEndpoint(URI.create("mscontrol://1234"));
     
     Mixer mixer = endpoint.create(null);
     mixer.addObserver(this);

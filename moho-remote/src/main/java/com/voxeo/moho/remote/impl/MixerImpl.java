@@ -23,6 +23,7 @@ import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
+import com.voxeo.moho.remote.MohoRemoteException;
 
 public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
 
@@ -174,5 +175,11 @@ public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
       }
       this.dispatch(mohoEvent);
     }
+  }
+
+  @Override
+  public String startJoin() throws MohoRemoteException {
+    // TODO Auto-generated method stub
+    return _id;
   }
 }

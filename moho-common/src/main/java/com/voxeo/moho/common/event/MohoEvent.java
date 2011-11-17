@@ -29,8 +29,8 @@ public class MohoEvent<Source extends EventSource> implements Event<Source> {
 
   @Override
   public String toString() {
-    return String.format("[Event class=%s sourceClass=%s]", getClass().getName(), (source != null ? source.getClass()
-        .getSimpleName() : null));
+    return String.format("[Event class=%s sourceClass=%s id=%s]", getClass().getName(), (source != null ? source
+        .getClass().getSimpleName() : null), hashCode());
   }
 
   @Override

@@ -21,7 +21,7 @@ import com.rayo.client.xmpp.stanza.Message;
 import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.OfferEvent;
 import com.voxeo.moho.CallableEndpoint;
-import com.voxeo.moho.MixerEndpoint;
+import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.common.util.Utils.DaemonThreadFactory;
@@ -54,15 +54,17 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   @Override
   public void disconnect() throws MohoRemoteException {
-	  try{
-		  Collection<ParticipantImpl> participants = _participants.values();
-		    for (Participant participant : participants) {
-		      participant.disconnect();
-		    }
-	  }
-	  catch(Exception ex){
-		  LOG.warn("", ex);
-	  }
+    try {
+      Collection<ParticipantImpl> participants = _participants.values();
+      for (Participant participant : participants) {
+        participant.disconnect();
+      }
+
+      _participants.clear();
+    }
+    catch (Exception ex) {
+      LOG.warn("", ex);
+    }
 
     try {
       _client.disconnect();
@@ -70,36 +72,35 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     catch (XmppException e) {
       throw new MohoRemoteException(e);
     }
-finally{
-	_executor.shutdown();
-}
+    finally {
+      _executor.shutdown();
+    }
   }
 
-  //TODO ask Rayo-client thread model, figure out all possible concurrent issue
   class MohoStanzaListener implements StanzaListener {
 
     @Override
     public void onIQ(IQ iq) {
-    	if (iq.getFrom() != null) {
-	      // dispatch the stanza to corresponding participant.
-	      JID fromJID = new JID(iq.getFrom());
-	      String id = fromJID.getNode();
-	      if (id != null) {
-	        ParticipantImpl participant = MohoRemoteImpl.this.getParticipant(id);
-	        if (participant != null) {
-	          participant.onRayoCommandResult(fromJID, iq);
-	        }
-	        else {
-	          LOG.error("Can't find call for rayo event:" + iq);
-	        }
-	      }
-	      else {
-	    	  LOG.warn("Unprocessed IQ:"+iq);
-	      }
-    	}
-    	else{
-    		LOG.warn("Unprocessed IQ:"+iq);
-    	}
+      if (iq.getFrom() != null) {
+        // dispatch the stanza to corresponding participant.
+        JID fromJID = new JID(iq.getFrom());
+        String id = fromJID.getNode();
+        if (id != null) {
+          ParticipantImpl participant = MohoRemoteImpl.this.getParticipant(id);
+          if (participant != null) {
+            participant.onRayoCommandResult(fromJID, iq);
+          }
+          else {
+            LOG.error("Can't find participant for rayo event:" + iq);
+          }
+        }
+        else {
+          LOG.warn("Unprocessed IQ, No node ID:" + iq);
+        }
+      }
+      else {
+        LOG.warn("Unprocessed IQ, No from attribute:" + iq);
+      }
     }
 
     @Override
@@ -109,16 +110,18 @@ finally{
 
     @Override
     public void onPresence(Presence presence) {
-    	LOG.debug("MohoRemote Received presence from rayo, processing:" + presence);
-      JID fromJID = new JID(presence.getFrom());
       if (!presence.hasExtension()) {
+        LOG.debug("MohoRemote Received presence without extension, discarding:" + presence);
         return;
       }
+
+      JID fromJID = new JID(presence.getFrom());
       if (presence.getExtension().getStanzaName().equalsIgnoreCase("offer")) {
         OfferEvent offerEvent = (OfferEvent) presence.getExtension().getObject();
 
         IncomingCallImpl call = new IncomingCallImpl(MohoRemoteImpl.this, fromJID.getNode(),
-            createEndpoint(offerEvent.getFrom()), createEndpoint(offerEvent.getTo()), offerEvent.getHeaders());
+            (CallableEndpoint) createEndpoint(offerEvent.getFrom()),
+            (CallableEndpoint) createEndpoint(offerEvent.getTo()), offerEvent.getHeaders());
 
         MohoRemoteImpl.this.dispatch(call);
       }
@@ -130,9 +133,9 @@ finally{
           participant.onRayoEvent(fromJID, presence);
         }
         else {
-        	if (presence.getShow() == null) {
-        		LOG.error("Can't find call for rayo event:" + presence);
-        	}
+          if (presence.getShow() == null) {
+            LOG.error("Can't find call for rayo event:" + presence);
+          }
         }
       }
     }
@@ -143,11 +146,6 @@ finally{
     }
   }
 
-
-  public MixerEndpoint createEndpoint(String mixerName) {
-    return new MixerEndpointImpl(this, mixerName);
-  }
-  
   public ParticipantImpl getParticipant(final String cid) {
     getParticipantsLock().lock();
     try {
@@ -176,7 +174,8 @@ finally{
     return _participanstLock;
   }
 
-  // TODO connection error handling, ask
+  // TODO connection error handling, rayo-java-client should re-try
+  // automatically
   @Override
   public void connect(AuthenticationCallback callback, String xmppServer, String rayoServer) {
     connect(callback.getUserName(), callback.getPassword(), callback.getRealm(), callback.getResource(), xmppServer,
@@ -205,8 +204,20 @@ finally{
   }
 
   @Override
-  public CallableEndpoint createEndpoint(URI uri) {
-    return new CallableEndpointImpl(this, uri);
+  public Endpoint createEndpoint(URI uri) {
+    String uriString = uri.toString().trim();
+    if (uriString.startsWith("mscontrol://")) {
+      String mixerName = uriString.substring(12);
+      if (mixerName.length() > 0) {
+        return new MixerEndpointImpl(this, mixerName);
+      }
+      else {
+        throw new IllegalArgumentException("Illegal mixer name:" + uri);
+      }
+    }
+    else {
+      return new CallableEndpointImpl(this, uri);
+    }
   }
 
   public Executor getExecutor() {

@@ -1,7 +1,6 @@
 package com.voxeo.moho.remote.impl;
 
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 
@@ -19,10 +18,10 @@ import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.OutgoingCall;
-import com.voxeo.moho.SignalException;
 import com.voxeo.moho.common.event.MohoCallCompleteEvent;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.remote.MohoRemoteException;
 import com.voxeo.moho.remote.impl.event.MohoAnsweredEventImpl;
 import com.voxeo.moho.remote.impl.event.MohoHangupEventImpl;
 import com.voxeo.moho.remote.impl.event.MohoRingEventImpl;
@@ -37,53 +36,37 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
     super(mohoRemote, callID, caller, callee, headers);
   }
 
-  protected synchronized void call() throws XmppException {
-    if (getId() == null) {
-      DialCommand command = new DialCommand();
-      command.setFrom(_caller.getURI());
-      command.setTo(_callee.getURI());
-      command.setHeaders(_headers);
-
-      _mohoRemote.getParticipantsLock().lock();
-      try {
+  protected boolean internalCall(Direction direction) throws MohoRemoteException {
+    _mohoRemote.getParticipantsLock().lock();
+    try {
+      if (_id == null) {
+        DialCommand command = new DialCommand();
+        command.setFrom(_caller.getURI());
+        command.setTo(_callee.getURI());
+        command.setHeaders(_headers);
+        waitAnswerJoint = new JointImpl(this, direction);
+        
         VerbRef verbRef = _mohoRemote.getRayoClient().dial(command);
         setID(verbRef.getVerbId());
+        return true;
       }
-      finally {
-        _mohoRemote.getParticipantsLock().unlock();
+      else {
+        return false;
       }
-
-      this.setState(Call.State.INITIALIZED);
+    }
+    catch (XmppException ex) {
+      this.setCallState(null);
+      waitAnswerJoint = null;
+      throw new MohoRemoteException(ex);
+    }
+    finally {
+      _mohoRemote.getParticipantsLock().unlock();
     }
   }
 
   @Override
-  public synchronized Joint join(Direction direction) {
-    if (waitAnswerJoint == null) {
-      waitAnswerJoint = new JointImpl(this, direction);
-      try {
-        call();
-      }
-      catch (XmppException e) {
-        LOG.error("", e);
-        waitAnswerJoint = null;
-        throw new SignalException(e);
-      }
-    }
-    else {
-      if (waitAnswerJoint.isDone()) {
-        try {
-          JoinCompleteEvent event = waitAnswerJoint.get();
-          dispatch(event);
-        }
-        catch (InterruptedException e) {
-          // can't happen
-        }
-        catch (ExecutionException e) {
-          // can't happen
-        }
-      }
-    }
+  public Joint join(Direction direction) {
+    internalCall(direction);
 
     return waitAnswerJoint;
   }
@@ -98,19 +81,16 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
   @Override
   public void onRayoEvent(JID from, Presence presence) {
     Object object = presence.getExtension().getObject();
-    LOG.debug("OutgoingCallImpl Recived presence, processing:"+ presence);
+    LOG.debug("OutgoingCallImpl Recived presence, processing:" + presence);
     if (object instanceof AnsweredEvent) {
       AnsweredEvent event = (AnsweredEvent) object;
       MohoAnsweredEventImpl<Call> mohoEvent = new MohoAnsweredEventImpl<Call>(this, event.getHeaders());
-      _state = State.CONNECTED;
+      this.setCallState(State.CONNECTED);
       this.dispatch(mohoEvent);
 
-      if (waitAnswerJoint != null) {
-        MohoJoinCompleteEvent joinComplete = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.JOINED, true);
-        this.dispatch(joinComplete);
-        waitAnswerJoint.done(joinComplete);
-        waitAnswerJoint = null;
-      }
+      MohoJoinCompleteEvent joinComplete = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.JOINED, true);
+      this.dispatch(joinComplete);
+      waitAnswerJoint.done(joinComplete);
     }
     else if (object instanceof RingingEvent) {
       RingingEvent event = (RingingEvent) object;
@@ -125,22 +105,16 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
         this.dispatch(mohoEvent);
       }
 
-      if (_state == State.CONNECTED) {
-        _state = State.DISCONNECTED;
-      }
-      else {
+      if (!compareAndsetState(State.CONNECTED, State.DISCONNECTED)) {
         _state = State.FAILED;
-      }
-      MohoCallCompleteEvent mohoEvent = new MohoCallCompleteEvent(this,
-          getMohoReasonByRayoEndEventReason(event.getReason()), null, event.getHeaders());
-      this.dispatch(mohoEvent);
-
-      if (waitAnswerJoint != null) {
         MohoJoinCompleteEvent joinComplete = new MohoJoinCompleteEvent(this, null,
             getMohoJoinCompleteReasonByRayoEndEventReason(rayoReason), true);
         waitAnswerJoint.done(joinComplete);
-        waitAnswerJoint = null;
       }
+
+      MohoCallCompleteEvent mohoEvent = new MohoCallCompleteEvent(this,
+          getMohoReasonByRayoEndEventReason(event.getReason()), null, event.getHeaders());
+      this.dispatch(mohoEvent);
 
       cleanUp();
     }
@@ -149,8 +123,10 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
     }
   }
 
-  public void startJoin() throws XmppException {
-    call();
+  @Override
+  public String startJoin() throws MohoRemoteException {
+    internalCall(Direction.DUPLEX);
+    return _id;
   }
 
   protected JoinCompleteEvent.Cause getMohoJoinCompleteReasonByRayoEndEventReason(EndEvent.Reason reason) {
@@ -169,9 +145,14 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
         return JoinCompleteEvent.Cause.ERROR;
     }
   }
-  
+
   @Override
   public Endpoint getAddress() {
     return _callee;
+  }
+
+  @Override
+  public String getRemoteAddress() {
+    return _caller.getURI().toString();
   }
 }
