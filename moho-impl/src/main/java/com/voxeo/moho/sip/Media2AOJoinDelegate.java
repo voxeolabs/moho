@@ -18,14 +18,19 @@ import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 
 public class Media2AOJoinDelegate extends JoinDelegate {
+  private static final Logger LOG = Logger.getLogger(Media2AOJoinDelegate.class);
 
   protected boolean processedAnswer = false;
+
+  protected SipServletResponse _response;
 
   protected Media2AOJoinDelegate(final SIPOutgoingCall call) {
     _call1 = call;
@@ -34,7 +39,7 @@ public class Media2AOJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
-    _call1.processSDPOffer((SipServletMessage)null);
+    _call1.processSDPOffer((SipServletMessage) null);
   }
 
   @Override
@@ -60,8 +65,17 @@ public class Media2AOJoinDelegate extends JoinDelegate {
     else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
       if (event.isSuccessful()) {
         if (processedAnswer) {
-          doDisengage(_call1, JoinType.BRIDGE);
-          done(JoinCompleteEvent.Cause.JOINED, null);
+          try {
+            _response.createAck().send();
+            doDisengage(_call1, JoinType.BRIDGE);
+            done(JoinCompleteEvent.Cause.JOINED, null);
+          }
+          catch (IOException e) {
+            LOG.error("IOException when sending back ACK", e);
+            Exception ex = new NegotiateException(e);
+            done(Cause.ERROR, ex);
+            _call1.fail(ex);
+          }
           return;
         }
       }
@@ -78,7 +92,7 @@ public class Media2AOJoinDelegate extends JoinDelegate {
       final Map<String, String> headers) throws Exception {
     try {
       if (SIPHelper.isSuccessResponse(res)) {
-        res.createAck().send();
+        _response = res;
         processedAnswer = true;
         _call1.processSDPAnswer(res);
       }

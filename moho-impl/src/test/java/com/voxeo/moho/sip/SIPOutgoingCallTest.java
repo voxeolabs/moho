@@ -358,6 +358,10 @@ public class SIPOutgoingCallTest extends TestCase {
     // mock jsr309 object
     final SdpPortManagerEvent sdpPortManagerEvent = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
         + "sdpPortManagerEvent");
+    // mock jsr309 object
+    final SdpPortManagerEvent sdpPortManagerEvent2 = mockery.mock(SdpPortManagerEvent.class, mockObjectNamePrefix
+        + "2sdpPortManagerEvent");
+    
 
     // invoke join()
     try {
@@ -402,14 +406,20 @@ public class SIPOutgoingCallTest extends TestCase {
     try {
       mockery.checking(new Expectations() {
         {
-          oneOf(sdpPortManagerEvent).isSuccessful();
+          allowing(sdpPortManagerEvent).isSuccessful();
           will(returnValue(true));
 
-          oneOf(sdpPortManagerEvent).getEventType();
+          allowing(sdpPortManagerEvent).getEventType();
           will(returnValue(SdpPortManagerEvent.OFFER_GENERATED));
 
-          oneOf(sdpPortManagerEvent).getMediaServerSdp();
+          allowing(sdpPortManagerEvent).getMediaServerSdp();
           will(returnValue(msReqSDP));
+          
+          allowing(sdpPortManagerEvent2).isSuccessful();
+          will(returnValue(true));
+
+          allowing(sdpPortManagerEvent2).getEventType();
+          will(returnValue(SdpPortManagerEvent.ANSWER_PROCESSED));
 
           oneOf(initInviteReq).setContent(msReqSDP, "application/sdp");
 
@@ -444,8 +454,20 @@ public class SIPOutgoingCallTest extends TestCase {
     catch (Exception ex) {
       ex.printStackTrace();
     }
-
+    
     // process response
+    try {
+      mockery.checking(new Expectations() {
+        {
+          oneOf(sdpManager).processSdpAnswer(with(any(byte[].class)));
+          will(new MockMediaServerSdpPortManagerEventAction(sipcall, sdpPortManagerEvent2));}
+      });
+    }
+    catch (Exception ex) {
+      ex.printStackTrace();
+    }
+
+    // process sdp answer processed
     try {
       mockery.checking(new Expectations() {
         {
@@ -757,10 +779,6 @@ public class SIPOutgoingCallTest extends TestCase {
           oneOf(sdpManager).processSdpAnswer(respSDP);
           will(throwException(new SdpPortManagerException("processSdpAnswer Exception")));
 
-          oneOf(sipInviteResp).createAck();
-          will(returnValue(sipInviteAck));
-
-          oneOf(sipInviteAck).send();
         }
       });
     }

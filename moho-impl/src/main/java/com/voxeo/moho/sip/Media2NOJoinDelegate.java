@@ -11,6 +11,7 @@
 
 package com.voxeo.moho.sip;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
@@ -30,6 +31,8 @@ public class Media2NOJoinDelegate extends JoinDelegate {
 
   protected boolean processedAnswer = false;
 
+  protected SipServletResponse _response;
+
   protected Media2NOJoinDelegate(final SIPOutgoingCall call) {
     _call1 = call;
   }
@@ -37,7 +40,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
-    _call1.processSDPOffer((SipServletMessage)null);
+    _call1.processSDPOffer((SipServletMessage) null);
   }
 
   @Override
@@ -63,10 +66,17 @@ public class Media2NOJoinDelegate extends JoinDelegate {
     }
     else if (event.getEventType().equals(SdpPortManagerEvent.ANSWER_PROCESSED)) {
       if (event.isSuccessful()) {
-        if (processedAnswer) {
-        	if(_call1.getSIPCallState() == SIPCall.State.ANSWERED){
-                done(JoinCompleteEvent.Cause.JOINED, null);
-        	}
+        if (processedAnswer && _call1.getSIPCallState() == SIPCall.State.ANSWERED) {
+          try {
+            _response.createAck().send();
+            done(JoinCompleteEvent.Cause.JOINED, null);
+          }
+          catch (IOException e) {
+            LOG.error("IOException when sending back ACK", e);
+            Exception ex = new NegotiateException(e);
+            done(Cause.ERROR, ex);
+            _call1.fail(ex);
+          }
           return;
         }
       }
@@ -89,10 +99,10 @@ public class Media2NOJoinDelegate extends JoinDelegate {
 
         if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
           if (SIPHelper.getRawContentWOException(res) != null) {
-        	  if (!processedAnswer) {
-            processedAnswer = true;
-            _call1.processSDPAnswer(res);
-        	  }
+            if (!processedAnswer) {
+              processedAnswer = true;
+              _call1.processSDPAnswer(res);
+            }
           }
 
           try {
@@ -108,13 +118,15 @@ public class Media2NOJoinDelegate extends JoinDelegate {
       }
       else if (SIPHelper.isSuccessResponse(res)) {
         _call1.setSIPCallState(SIPCall.State.ANSWERED);
-        res.createAck().send();
+        _response = res;
+
         if (!processedAnswer) {
           processedAnswer = true;
           _call1.processSDPAnswer(res);
         }
-        else{
-        	done(JoinCompleteEvent.Cause.JOINED, null);
+        else {
+          res.createAck().send();
+          done(JoinCompleteEvent.Cause.JOINED, null);
         }
       }
       else if (SIPHelper.isErrorResponse(res)) {
