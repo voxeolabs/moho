@@ -47,52 +47,52 @@ import com.voxeo.moho.remote.impl.media.PromptImpl;
 import com.voxeo.moho.remote.impl.media.RecordingImpl;
 
 public abstract class MediaServiceSupport<T extends EventSource> extends ParticipantImpl implements MediaService<T> {
-  
+
   protected static final Logger LOG = Logger.getLogger(MediaServiceSupport.class);
 
   protected MohoRemoteImpl _mohoRemote;
-  
+
   protected Map<String, JointImpl> _joints = new ConcurrentHashMap<String, JointImpl>();
 
   protected Map<String, UnJointImpl> _unjoints = new ConcurrentHashMap<String, UnJointImpl>();
-  
+
   protected Map<String, RayoListener> _componentListeners = new ConcurrentHashMap<String, RayoListener>();
-  
-     protected Lock _componentstLock = new ReentrantLock();
+
+  protected Lock _componentstLock = new ReentrantLock();
 
   public MediaServiceSupport(MohoRemoteImpl mohoRemote) {
     _mohoRemote = mohoRemote;
     _dispatcher.setExecutor(_mohoRemote.getExecutor(), true);
   }
-  
+
   public MohoRemoteImpl getMohoRemote() {
     return _mohoRemote;
   }
-  
+
   public void removeComponentListener(String id) {
-	  getComponentstLock().lock();
-	    try {
-	       _componentListeners.remove(id);
-	    }
-	    finally {
-	    	getComponentstLock().unlock();
-	    }
+    getComponentstLock().lock();
+    try {
+      _componentListeners.remove(id);
+    }
+    finally {
+      getComponentstLock().unlock();
+    }
   }
-  
+
   public RayoListener getComponentListener(final String id) {
-	  getComponentstLock().lock();
-	    try {
-	      return _componentListeners.get(id);
-	    }
-	    finally {
-	    	getComponentstLock().unlock();
-	    }
-	  }
+    getComponentstLock().lock();
+    try {
+      return _componentListeners.get(id);
+    }
+    finally {
+      getComponentstLock().unlock();
+    }
+  }
 
   public void addComponentListener(String id, RayoListener listener) {
     _componentListeners.put(id, listener);
   }
-  
+
   @Override
   public Output<T> output(String text) throws MediaException {
     OutputImpl<T> output = null;
@@ -106,8 +106,8 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
-    finally{
-    	getComponentstLock().unlock();
+    finally {
+      getComponentstLock().unlock();
     }
     return output;
   }
@@ -125,15 +125,15 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
-    finally{
-    	getComponentstLock().unlock();
+    finally {
+      getComponentstLock().unlock();
     }
     return output;
   }
 
   @Override
   public Output<T> output(OutputCommand output) throws MediaException {
-	    return internalOutput(output, 0);
+    return internalOutput(output, 0);
   }
 
   @Override
@@ -152,78 +152,78 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
 
   @Override
   public Prompt<T> prompt(OutputCommand output, InputCommand input, int repeat) throws MediaException {
-	  PromptImpl<T> prompt = new PromptImpl<T>(_mohoRemote.getExecutor());
-	    if (output != null) {
-	      prompt.setOutput(internalOutput(output, repeat));
-	    }
-	    if (input != null) {
-	      prompt.setInput(input(input));
-	    }
+    PromptImpl<T> prompt = new PromptImpl<T>(_mohoRemote.getExecutor());
+    if (output != null) {
+      prompt.setOutput(internalOutput(output, repeat));
+    }
+    if (input != null) {
+      prompt.setInput(input(input));
+    }
 
-	    return prompt;
+    return prompt;
   }
-  
+
   private Output<T> internalOutput(OutputCommand output, int repeat) throws MediaException {
-	    OutputImpl<T> outputFuture = null;
-	    getComponentstLock().lock();
-	    try {
-	      com.rayo.core.verb.Output rayoOutput = new com.rayo.core.verb.Output();
-	      if (output.getStartingOffset() > 0) {
-	        rayoOutput.setStartOffset(Duration.standardSeconds(output.getStartingOffset() / 1000));
-	      }
-	      if (output.isStartInPausedMode()) {
-	        rayoOutput.setStartPaused(true);
-	      }
-	      if (output.getRepeatInterval() > 0) {
-	        rayoOutput.setRepeatInterval(Duration.standardSeconds(output.getRepeatInterval() / 1000));
-	      }
-	      if (output.getRepeatTimes() > 0) {
-	        rayoOutput.setRepeatTimes(output.getRepeatTimes());
-	      }
+    OutputImpl<T> outputFuture = null;
+    getComponentstLock().lock();
+    try {
+      com.rayo.core.verb.Output rayoOutput = new com.rayo.core.verb.Output();
+      if (output.getStartingOffset() > 0) {
+        rayoOutput.setStartOffset(Duration.standardSeconds(output.getStartingOffset() / 1000));
+      }
+      if (output.isStartInPausedMode()) {
+        rayoOutput.setStartPaused(true);
+      }
+      if (output.getRepeatInterval() > 0) {
+        rayoOutput.setRepeatInterval(Duration.standardSeconds(output.getRepeatInterval() / 1000));
+      }
+      if (output.getRepeatTimes() > 0) {
+        rayoOutput.setRepeatTimes(output.getRepeatTimes());
+      }
 
-	      if (repeat > 0) {
-	        rayoOutput.setRepeatTimes(repeat);
-	      }
+      if (repeat > 0) {
+        rayoOutput.setRepeatTimes(repeat);
+      }
 
-	      if (output.getMaxtime() > 0) {
-	        rayoOutput.setMaxTime(Duration.standardSeconds(output.getMaxtime() / 1000));
-	      }
-	      if (output.getVoiceName() != null) {
-	        rayoOutput.setVoice(output.getVoiceName());
-	      }
-	      VerbRef verbRef = null;
-	      OutputCommand next = null;
-	      if (output.getAudibleResources() != null && output.getAudibleResources().length > 0) {
-	        AudibleResource ar = output.getAudibleResources()[0];
-	        if (ar instanceof TextToSpeechResource) {
-	          rayoOutput.setPrompt(new Ssml(((TextToSpeechResource) ar).getText()));
-	        }
-	        else {
-	          rayoOutput.setPrompt(getSsmlFromURI(ar.toURI()));
-	        }
+      if (output.getMaxtime() > 0) {
+        rayoOutput.setMaxTime(Duration.standardSeconds(output.getMaxtime() / 1000));
+      }
+      if (output.getVoiceName() != null) {
+        rayoOutput.setVoice(output.getVoiceName());
+      }
+      VerbRef verbRef = null;
+      OutputCommand next = null;
+      if (output.getAudibleResources() != null && output.getAudibleResources().length > 0) {
+        AudibleResource ar = output.getAudibleResources()[0];
+        if (ar instanceof TextToSpeechResource) {
+          rayoOutput.setPrompt(new Ssml(((TextToSpeechResource) ar).getText()));
+        }
+        else {
+          rayoOutput.setPrompt(getSsmlFromURI(ar.toURI()));
+        }
 
-	        if (output.getAudibleResources().length > 1) {
-	          next = (OutputCommand) output.clone();
-	          next.setAudibleResource(Arrays.copyOfRange(output.getAudibleResources(), 1,
-	              output.getAudibleResources().length));
-	        }
-	      }
-	      else {
-	        throw new IllegalArgumentException("no AudibleResources.");
-	      }
-	      verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
+        if (output.getAudibleResources().length > 1) {
+          next = (OutputCommand) output.clone();
+          next.setAudibleResource(Arrays.copyOfRange(output.getAudibleResources(), 1,
+              output.getAudibleResources().length));
+        }
+      }
+      else {
+        throw new IllegalArgumentException("no AudibleResources.");
+      }
+      verbRef = _mohoRemote.getRayoClient().output(rayoOutput, this.getId());
 
-	      outputFuture = new OutputImpl<T>(verbRef, next, this, (T) this);
-	    }
-	    catch (XmppException e) {
-	      LOG.error("", e);
-	      throw new MediaException(e);
-	    }
-	    finally{
-	      getComponentstLock().unlock();
-	    }
-	    return outputFuture;
-	  }
+      outputFuture = new OutputImpl<T>(verbRef, next, this, (T) this);
+    }
+    catch (XmppException e) {
+      LOG.error("", e);
+      throw new MediaException(e);
+    }
+    finally {
+      getComponentstLock().unlock();
+    }
+    return outputFuture;
+  }
 
   @Override
   public Input<T> input(String grammar) throws MediaException {
@@ -247,8 +247,8 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
-    finally{
-    	getComponentstLock().unlock();
+    finally {
+      getComponentstLock().unlock();
     }
     return input;
   }
@@ -290,6 +290,15 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       if (inputCommand.getRecognizer() != null) {
         command.setRecognizer(inputCommand.getRecognizer());
       }
+
+      if (inputCommand.getSpeechCompleteTimeout() > 0) {
+        // TODO
+      }
+
+      if (inputCommand.getSpeechIncompleteTimeout() > 0) {
+        command.setMaxSilence(Duration.standardSeconds(inputCommand.getSpeechIncompleteTimeout()));
+      }
+
       if (inputCommand.getInputMode() != null) {
         if (inputCommand.getInputMode() == com.voxeo.moho.media.InputMode.DTMF) {
           command.setMode(com.rayo.core.verb.InputMode.DTMF);
@@ -312,8 +321,8 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
-    finally{
-    	getComponentstLock().unlock();
+    finally {
+      getComponentstLock().unlock();
     }
     return input;
   }
@@ -334,8 +343,8 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
-    finally{
-    	getComponentstLock().unlock();
+    finally {
+      getComponentstLock().unlock();
     }
     return recording;
   }
@@ -375,23 +384,23 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       LOG.error("", e);
       throw new MediaException(e);
     }
-    finally{
-    	getComponentstLock().unlock();
+    finally {
+      getComponentstLock().unlock();
     }
     return recording;
   }
-  
+
   @Override
   public void onRayoEvent(JID from, Presence presence) {
     RayoListener listener = getComponentListener(from.getResource());
     if (listener != null) {
       listener.onRayoEvent(from, presence);
     }
-    else{
-  	  LOG.error("Can't find corresponding component, Can't process presence:"+ presence);
+    else {
+      LOG.error("Can't find corresponding component, Can't process presence:" + presence);
     }
   }
-  
+
   @Override
   public void onRayoCommandResult(JID from, IQ iq) {
     if (from.getResource() != null) {
@@ -399,12 +408,12 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
       if (listener != null) {
         listener.onRayoCommandResult(from, iq);
       }
-      else{
-    	  LOG.warn("Unprocessed IQ:"+iq);
+      else {
+        LOG.warn("Unprocessed IQ:" + iq);
       }
     }
     else {
-LOG.warn("Unprocessed IQ:"+iq);
+      LOG.warn("Unprocessed IQ:" + iq);
     }
   }
 
@@ -444,7 +453,7 @@ LOG.warn("Unprocessed IQ:"+iq);
     return ssml;
   }
 
-public Lock getComponentstLock() {
-	return _componentstLock;
-}
+  public Lock getComponentstLock() {
+    return _componentstLock;
+  }
 }
