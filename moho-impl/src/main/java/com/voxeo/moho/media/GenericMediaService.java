@@ -569,6 +569,15 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     if (cmd.isSupervised()) {
       params.put(SignalDetector.ENABLED_EVENTS, new EventType[] {SignalDetectorEvent.SIGNAL_DETECTED});
     }
+
+    if (cmd.getSpeechCompleteTimeout() > 0) {
+      _dialect.setSpeechCompleteTimeout(params, cmd.getSpeechCompleteTimeout());
+    }
+
+    if (cmd.getSpeechIncompleteTimeout() > 0) {
+      _dialect.setSpeechIncompleteTimeout(params, cmd.getSpeechIncompleteTimeout());
+    }
+
     _dialect.setSpeechLanguage(params, cmd.getRecognizer());
     _dialect.setSpeechTermChar(params, cmd.getTerminator());
     _dialect.setSpeechInputMode(params, cmd.getInputMode());

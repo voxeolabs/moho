@@ -32,7 +32,6 @@ import com.voxeo.moho.media.InputMode;
  * Media command to recognize the input based on a set of grammars.
  * 
  * @author wchen
- *
  */
 public class InputCommand implements Parameters {
 
@@ -40,8 +39,8 @@ public class InputCommand implements Parameters {
 
   protected Grammar[] _grammars = new Grammar[0];
 
-   protected float _minConfidence = 0.3f;
-  
+  protected float _minConfidence = 0.3f;
+
   protected float _sensitivity = 0.5f;
 
   protected long _initialTimeout = Resource.FOREVER;
@@ -63,28 +62,42 @@ public class InputCommand implements Parameters {
   protected Map<Parameter, Object> _parametersExt = new HashMap<Parameter, Object>();
 
   protected Set<RTC> _rtcsExt = new HashSet<RTC>();
-  
+
   protected String _recognizer;
-  
+
   protected Character _terminator;
-  
+
   protected InputMode _inputMode;
-  
+
   protected boolean _dtmfHotword = false;
 
   protected boolean _dtmfTypeahead = false;
-  
+
   /**
    * if true, every DTMF (or word?) received generates an event
    */
   protected boolean _supervised = true;
 
-  
+  /**
+   * Defines the required length of silence following user speech after which a
+   * recognizer finalizes a result. The incomplete timeout applies when the
+   * speech prior to the silence is an incomplete match of all active grammars.
+   */
+  protected long _speechIncompleteTimeout;
+
+  /**
+   * Defines the length of silence required following user speech before the
+   * speech recognizer finalizes a result (either accepting it or generating a
+   * nomatch event).
+   */
+  protected long _speechCompleteTimeout;
+
   /**
    * @param grammers
    *          can be simple string or string that starts with "#JSGF". if the
    *          string starts with "#JSGF", a JSGF grammar will be created.
-   * @deprecated Grammar type 'guessing' has been deprecated. Supply a Grammar instance instead.
+   * @deprecated Grammar type 'guessing' has been deprecated. Supply a Grammar
+   *             instance instead.
    */
   public InputCommand(String grammer) {
     if (grammer == null || grammer.length() == 0) {
@@ -114,7 +127,8 @@ public class InputCommand implements Parameters {
   /**
    * Set the inter digits timeout for DTMF.
    * 
-   * @param time the timeout value in millisecond.
+   * @param time
+   *          the timeout value in millisecond.
    */
   public void setInterDigitsTimeout(final long time) {
     _interSigTimeout = time;
@@ -129,17 +143,21 @@ public class InputCommand implements Parameters {
   }
 
   /**
-   * @return the number of DMTF digits this command expects. 
-   * Once reached, this command is considered as complete and 
-   * {@link com.voxeo.moho.event.InputCompleteEvent InputCompleteEvent} will fire.
+   * @return the number of DMTF digits this command expects. Once reached, this
+   *         command is considered as complete and
+   *         {@link com.voxeo.moho.event.InputCompleteEvent InputCompleteEvent}
+   *         will fire.
    */
   public int getNumberOfDigits() {
     return _signalNumber;
   }
 
   /**
-   * Set the number of DTMF digits this command expects. By default, the value is -1 which means unlimited.
-   * @param num a negative number means unlimited.
+   * Set the number of DTMF digits this command expects. By default, the value
+   * is -1 which means unlimited.
+   * 
+   * @param num
+   *          a negative number means unlimited.
    */
   public void setNumberOfDigits(final int num) {
     if (num < 0) {
@@ -158,7 +176,8 @@ public class InputCommand implements Parameters {
   }
 
   /**
-   * @return the minimum confidence required for the recognizer to recognize the speech based on the grammar.
+   * @return the minimum confidence required for the recognizer to recognize the
+   *         speech based on the grammar.
    */
   public float getMinConfidence() {
     return _minConfidence;
@@ -189,8 +208,11 @@ public class InputCommand implements Parameters {
   }
 
   /**
-   * Set the minimum confidence required for the recognizer to recognize the speech based on the grammar.
-   * @param confidence a float between 0 and 1.
+   * Set the minimum confidence required for the recognizer to recognize the
+   * speech based on the grammar.
+   * 
+   * @param confidence
+   *          a float between 0 and 1.
    */
   public void setMinConfidence(final float confidence) {
     if (confidence < 0) {
@@ -211,7 +233,9 @@ public class InputCommand implements Parameters {
 
   /**
    * Set the timeout value to determine no digits will be entered.
-   * @param time the timeout value in milliseconds.
+   * 
+   * @param time
+   *          the timeout value in milliseconds.
    */
   public void setInitialTimeout(final long time) {
     _initialTimeout = time;
@@ -226,7 +250,9 @@ public class InputCommand implements Parameters {
 
   /**
    * Set the max time to wait for the completion of the input
-   * @param time the time in milliseconds.
+   * 
+   * @param time
+   *          the time in milliseconds.
    */
   public void setMaxTimeout(final long time) {
     _maxTimeout = time;
@@ -241,8 +267,8 @@ public class InputCommand implements Parameters {
   }
 
   /**
-   * @return the name of the speech recognizer will be used. 
-   * The interpretation is JSR 309 driver specific.
+   * @return the name of the speech recognizer will be used. The interpretation
+   *         is JSR 309 driver specific.
    */
   public String getRecognizer() {
     return _recognizer;
@@ -267,7 +293,8 @@ public class InputCommand implements Parameters {
   /**
    * Set the terminating character of the input.
    * 
-   * @param termChar one of the valid DTMF input on the phone pad.
+   * @param termChar
+   *          one of the valid DTMF input on the phone pad.
    */
   public void setTerminator(Character termChar) {
     this._terminator = termChar;
@@ -281,9 +308,9 @@ public class InputCommand implements Parameters {
   }
 
   /**
-   * Set Input Mode of this input. 
+   * Set Input Mode of this input.
    * 
-   * @param inputMode 
+   * @param inputMode
    */
   public void setInputMode(InputMode inputMode) {
     this._inputMode = inputMode;
@@ -406,5 +433,20 @@ public class InputCommand implements Parameters {
   public void setDtmfTypeahead(boolean dtmfTypeahead) {
     _dtmfTypeahead = dtmfTypeahead;
   }
-  
+
+  public long getSpeechIncompleteTimeout() {
+    return _speechIncompleteTimeout;
+  }
+
+  public void setSpeechIncompleteTimeout(long speechIncompleteTimeout) {
+    this._speechIncompleteTimeout = speechIncompleteTimeout;
+  }
+
+  public long getSpeechCompleteTimeout() {
+    return _speechCompleteTimeout;
+  }
+
+  public void setSpeechCompleteTimeout(long speechCompleteTimeout) {
+    this._speechCompleteTimeout = speechCompleteTimeout;
+  }
 }

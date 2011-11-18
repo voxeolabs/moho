@@ -45,4 +45,12 @@ public class GenericDialect implements MediaDialect {
   @Override
   public void setTextToSpeechLanguage(Parameters parameters, String value) {
   }
+
+  @Override
+  public void setSpeechIncompleteTimeout(Parameters parameters, long peechIncompleteTimeout) {
+  }
+
+  @Override
+  public void setSpeechCompleteTimeout(Parameters parameters, long peechCompleteTimeout) {
+  }
 }
