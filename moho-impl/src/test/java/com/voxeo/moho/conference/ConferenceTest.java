@@ -155,10 +155,9 @@ public class ConferenceTest extends TestCase {
     SimpleConferenceController controller = new SimpleConferenceController(promptCommand, passCommand, 3, exitCommand,
         exitAnnouncement);
     ConferenceManager manager = new ConferenceMangerImpl(appContext);
-    mohoConference = (ConferenceImpl) manager.createConference(address, null, "test", 10, controller, null);
+    mohoConference = (ConferenceImpl) manager.createConference(address, null, null, 10, controller, null);
 
     // verify the creation result.
-    assertTrue(mohoConference.getId().equals("test"));
     assertTrue(mohoConference.getMaxSeats() == 10);
     assertTrue(mohoConference.getOccupiedSeats() == 0);
 
@@ -299,10 +298,9 @@ public class ConferenceTest extends TestCase {
     SimpleConferenceController controller = new SimpleConferenceController(promptCommand, passCommand, 3, exitCommand,
         exitAnnouncement);
     ConferenceManager manager = new ConferenceMangerImpl(appContext);
-    mohoConference = (ConferenceImpl) manager.createConference(address, null, "test", 10, controller, null);
+    mohoConference = (ConferenceImpl) manager.createConference(address, null, null, 10, controller, null);
 
     // verify the creation result.
-    assertTrue(mohoConference.getId().equals("test"));
     assertTrue(mohoConference.getMaxSeats() == 10);
     assertTrue(mohoConference.getOccupiedSeats() == 0);
 

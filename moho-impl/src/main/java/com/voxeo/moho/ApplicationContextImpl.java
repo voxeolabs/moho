@@ -49,6 +49,7 @@ import com.voxeo.moho.common.util.NetworkUtils;
 import com.voxeo.moho.common.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.conference.ConferenceDriverImpl;
 import com.voxeo.moho.conference.ConferenceManager;
+import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.remote.network.RemoteCommunication;
 import com.voxeo.moho.remote.network.RemoteCommunicationImpl;
 import com.voxeo.moho.services.Service;
@@ -118,6 +119,10 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   protected String _schema = "moho";
 
+  protected Map<String, Mixer> _mixerNameMap = new ConcurrentHashMap<String, Mixer>();
+
+  private MediaDialect _dialect;
+
   @SuppressWarnings("unchecked")
   public ApplicationContextImpl(final Application app, final MsControlFactory mc, final SipServlet servlet) {
     super();
@@ -180,6 +185,19 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       addObserver(app);
     }
 
+    Class<? extends MediaDialect> mediaDialectClass = com.voxeo.moho.media.dialect.GenericDialect.class;
+    final String mediaDialectClassName = getParameters().get("mediaDialectClass");
+    try {
+      if (mediaDialectClassName != null) {
+        mediaDialectClass = (Class<? extends MediaDialect>) Class.forName(mediaDialectClassName);
+      }
+      _dialect = mediaDialectClass.newInstance();
+      LOG.info("Moho is creating media service with dialect (" + _dialect + ").");
+    }
+    catch (Exception ex) {
+      LOG.error("Moho is unable to create media dialect (" + mediaDialectClassName + ")", ex);
+    }
+
     int eventDispatcherThreadPoolSize = 50;
     final String eventDipatcherThreadPoolSizePara = getParameter("eventDispatcherThreadPoolSize");
     if (eventDipatcherThreadPoolSizePara != null) {
@@ -221,7 +239,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       // TODO configure address
       _remoteCommunicationPort = 4231;
       _remoteCommunicationAddress = NetworkUtils.getLocalAddress().toString();
-      if(_remoteCommunicationAddress.startsWith("/")){
+      if (_remoteCommunicationAddress.startsWith("/")) {
         _remoteCommunicationAddress = _remoteCommunicationAddress.substring(1);
       }
       _remoteObject = "RemoteCommunication";
@@ -506,20 +524,38 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   @Override
   public Participant getParticipant(String id) {
     String ip = ParticipantIDParser.getIpAddress(id);
-    if(ip.equalsIgnoreCase(_remoteCommunicationAddress)){
+    if (ip.equalsIgnoreCase(_remoteCommunicationAddress)) {
       return _participants.get(id);
     }
-    else{
+    else {
       return new RemoteParticipantImpl(this, id);
     }
   }
 
   public void addParticipant(Participant participant) {
     _participants.put(participant.getId(), participant);
+
+    if (participant instanceof Mixer) {
+      String name = ((Mixer) participant).getName();
+      if (name != null) {
+        _mixerNameMap.put(name, ((Mixer) participant));
+      }
+    }
   }
 
   public void removeParticipant(String id) {
-    _participants.remove(id);
+    Participant participant = _participants.remove(id);
+
+    if (participant instanceof Mixer) {
+      String name = ((Mixer) participant).getName();
+      if (name != null) {
+        _mixerNameMap.remove(name);
+      }
+    }
+  }
+
+  public Mixer getMixerByName(String name) {
+    return _mixerNameMap.get(name);
   }
 
   public String generateID(String type, String id) {
@@ -543,5 +579,9 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   public String getRemoteCommunicationAddress() {
     return _remoteCommunicationAddress;
+  }
+
+  public MediaDialect getDialect() {
+    return _dialect;
   }
 }

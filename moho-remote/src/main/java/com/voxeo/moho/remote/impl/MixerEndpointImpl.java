@@ -9,34 +9,33 @@ import com.voxeo.moho.Mixer;
 import com.voxeo.moho.MixerEndpoint;
 
 public class MixerEndpointImpl implements MixerEndpoint {
-  
-  private URI _uri;
-  
+
   private MohoRemoteImpl _mohoRemoteImpl;
 
   private Properties _props = new Properties();
-  
-  private String _mixerName;
-  
-  public MixerEndpointImpl(MohoRemoteImpl mohoRemoteImpl, String mixerName) {
+
+  public MixerEndpointImpl(MohoRemoteImpl mohoRemoteImpl) {
     _mohoRemoteImpl = mohoRemoteImpl;
-    _mixerName = mixerName;
-    _uri = URI.create("mscontrol://" + _mixerName);
   }
-  
+
   @Override
   public String getName() {
-    return _uri.toString();
+    return null;
   }
 
   @Override
   public URI getURI() {
-    return _uri;
+    return null;
+  }
+
+  @Override
+  public Mixer create(String name, Map<Object, Object> params) throws MediaException {
+    return new MixerImpl(this, name, params);
   }
 
   @Override
   public Mixer create(Map<Object, Object> params) throws MediaException {
-    return new MixerImpl(this, params);
+    return this.create(null, params);
   }
 
   @Override
@@ -54,12 +53,7 @@ public class MixerEndpointImpl implements MixerEndpoint {
     _props.setProperty(key, value);
   }
 
-  public String getConferenceName() {
-    return _mixerName;
-  }
-
   public MohoRemoteImpl getMohoRemote() {
     return _mohoRemoteImpl;
   }
-  
 }

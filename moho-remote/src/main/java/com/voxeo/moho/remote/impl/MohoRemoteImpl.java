@@ -22,6 +22,7 @@ import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.OfferEvent;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.common.util.Utils.DaemonThreadFactory;
@@ -205,19 +206,7 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   @Override
   public Endpoint createEndpoint(URI uri) {
-    String uriString = uri.toString().trim();
-    if (uriString.startsWith("mscontrol://")) {
-      String mixerName = uriString.substring(12);
-      if (mixerName.length() > 0) {
-        return new MixerEndpointImpl(this, mixerName);
-      }
-      else {
-        throw new IllegalArgumentException("Illegal mixer name:" + uri);
-      }
-    }
-    else {
-      return new CallableEndpointImpl(this, uri);
-    }
+    return new CallableEndpointImpl(this, uri);
   }
 
   public Executor getExecutor() {
@@ -226,5 +215,10 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   public RayoClient getRayoClient() {
     return _client;
+  }
+
+  @Override
+  public MixerEndpoint createMixerEndpoint() {
+    return new MixerEndpointImpl(this);
   }
 }

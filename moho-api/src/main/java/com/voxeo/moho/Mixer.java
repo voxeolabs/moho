@@ -25,6 +25,13 @@ import javax.media.mscontrol.join.Joinable.Direction;
 public interface Mixer extends MultiStreamParticipant, MediaService<Mixer> {
 
   /**
+   * the name specified by app when creating mixer
+   * 
+   * @return the name specified by app when creating mixer
+   */
+  public String getName();
+
+  /**
    * Get the media service attached to the Mixer.
    * 
    * @return media service attached to the Mixer

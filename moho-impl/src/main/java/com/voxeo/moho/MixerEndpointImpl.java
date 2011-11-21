@@ -76,8 +76,21 @@ public class MixerEndpointImpl implements MixerEndpoint {
   }
 
   @Override
+  public Mixer create(String name, final Map<Object, Object> params) throws MediaException {
+    Mixer mixer = null;
+    if (name != null) {
+      mixer = ((ApplicationContextImpl) _context).getMixerByName(name);
+      if (mixer != null) {
+        return mixer;
+      }
+    }
+
+    return new MixerImpl(_context, this, name, params, null);
+  }
+
+  @Override
   public Mixer create(final Map<Object, Object> params) throws MediaException {
-    return new MixerImpl(_context, this, params, null);
+    return this.create(null, params);
   }
 
   @Override

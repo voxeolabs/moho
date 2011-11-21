@@ -50,6 +50,7 @@ import javax.media.mscontrol.resource.ResourceEvent;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.common.event.MohoInputCompleteEvent;
@@ -112,11 +113,11 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
   protected PlayerListener _playerListener = new PlayerListener();
 
-  protected GenericMediaService(final T parent, final MediaGroup group, final MediaDialect dialect) {
+  protected GenericMediaService(final T parent, final MediaGroup group) {
     _parent = parent;
     _group = group;
-    _dialect = dialect;
     _context = (ExecutionContext) ((EventSource) _parent).getApplicationContext();
+    _dialect = ((ApplicationContextImpl) _context).getDialect();
   }
 
   protected synchronized Player getPlayer() {

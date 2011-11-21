@@ -29,4 +29,6 @@ public interface MediaDialect {
   void setSpeechIncompleteTimeout(Parameters parameters, long peechIncompleteTimeout);
 
   void setSpeechCompleteTimeout(Parameters parameters, long peechCompleteTimeout);
+
+  void setMixerName(Parameters params, String name);
 }

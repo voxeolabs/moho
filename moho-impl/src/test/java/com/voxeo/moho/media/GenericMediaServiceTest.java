@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 import javax.media.mscontrol.Configuration;
 import javax.media.mscontrol.MediaErr;
 import javax.media.mscontrol.MediaEventListener;
+import javax.media.mscontrol.MsControlFactory;
 import javax.media.mscontrol.Parameter;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.mediagroup.Player;
@@ -33,6 +34,7 @@ import javax.media.mscontrol.mediagroup.signals.SignalGenerator;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.resource.RTC;
 import javax.media.mscontrol.resource.ResourceEvent;
+import javax.servlet.sip.SipServlet;
 
 import junit.framework.TestCase;
 
@@ -44,15 +46,20 @@ import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
 
+import com.voxeo.moho.Application;
+import com.voxeo.moho.ApplicationContext;
+import com.voxeo.moho.ApplicationContextImpl;
+import com.voxeo.moho.State;
+import com.voxeo.moho.event.HangupEvent;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.OutputCompleteEvent;
+import com.voxeo.moho.event.OutputCompleteEvent.Cause;
 import com.voxeo.moho.event.OutputPausedEvent;
 import com.voxeo.moho.event.OutputResumedEvent;
 import com.voxeo.moho.event.RecordCompleteEvent;
 import com.voxeo.moho.event.RecordPausedEvent;
 import com.voxeo.moho.event.RecordResumedEvent;
 import com.voxeo.moho.event.RecordStartedEvent;
-import com.voxeo.moho.event.OutputCompleteEvent.Cause;
 import com.voxeo.moho.event.fake.MockEventSource;
 import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.media.fake.MockMediaGroup;
@@ -61,6 +68,7 @@ import com.voxeo.moho.media.fake.MockParameters;
 import com.voxeo.moho.media.fake.MockPlayer;
 import com.voxeo.moho.media.fake.MockRecorder;
 import com.voxeo.moho.media.fake.MockSignalDetector;
+import com.voxeo.moho.sip.fake.MockSipServlet;
 
 public class GenericMediaServiceTest extends TestCase {
   Mockery mockery;
@@ -86,7 +94,16 @@ public class GenericMediaServiceTest extends TestCase {
   // testing object.
   GenericMediaService service;
 
-  MediaDialect dialect;
+  ApplicationContext appContext;
+
+  // Moho
+  TestApp app;
+
+  // JSR309 mock
+  MsControlFactory msFactory;
+
+  // JSR289 mock
+  SipServlet servlet;
 
   @Override
   protected void setUp() throws Exception {
@@ -116,9 +133,19 @@ public class GenericMediaServiceTest extends TestCase {
     // mock moho object.
     parent = mockery.mock(MockEventSource.class);
 
+    msFactory = mockery.mock(MsControlFactory.class);
+
+    servlet = new MockSipServlet(mockery);
+    app = new TestApp();
+    
+    appContext = new ApplicationContextImpl(app, msFactory, servlet);
+
     // creating GenericMediaService expectations.
     mockery.checking(new Expectations() {
       {
+        allowing(parent).getApplicationContext();
+        will(returnValue(appContext));
+
         oneOf(session).createMediaGroup(with(any(Configuration.class)));
         will(new Action() {
           @Override
@@ -145,13 +172,11 @@ public class GenericMediaServiceTest extends TestCase {
 
         allowing(group).getSignalDetector();
         will(returnValue(signalDetector));
+
       }
     });
-
-    dialect = mockery.mock(MediaDialect.class);
-
     // create mediaservice
-    service = (GenericMediaService) new GenericMediaServiceFactory(dialect).create(parent, session, null);
+    service = (GenericMediaService) new GenericMediaServiceFactory().create(parent, session, null);
   }
 
   /**
@@ -508,8 +533,6 @@ public class GenericMediaServiceTest extends TestCase {
           oneOf(group).createParameters();
           will(returnValue(parameters));
 
-          oneOf(dialect).setTextToSpeechVoice(parameters, null);
-          oneOf(dialect).setTextToSpeechLanguage(parameters, null);
 
           // invoke player.play
           allowing(player).play(with(any(URI[].class)), with(new TypeSafeMatcher<RTC[]>() {
@@ -634,8 +657,6 @@ public class GenericMediaServiceTest extends TestCase {
           oneOf(group).createParameters();
           will(returnValue(parameters));
 
-          oneOf(dialect).setTextToSpeechVoice(parameters, null);
-          oneOf(dialect).setTextToSpeechLanguage(parameters, null);
           // invoke play.
           allowing(player).play(with(any(URI[].class)), with(new TypeSafeMatcher<RTC[]>() {
             @Override
@@ -804,13 +825,6 @@ public class GenericMediaServiceTest extends TestCase {
           allowing(group).createParameters();
           will(returnValue(parameters));
 
-          oneOf(dialect).setSpeechLanguage(parameters, null);
-          oneOf(dialect).setSpeechTermChar(parameters, null);
-          oneOf(dialect).setSpeechInputMode(parameters, null);
-          oneOf(dialect).setDtmfHotwordEnabled(parameters, false);
-          oneOf(dialect).setDtmfTypeaheadEnabled(parameters, false);
-          oneOf(dialect).setConfidence(parameters, 0.3f);
-
           oneOf(signalDetector).receiveSignals(with(equal(-1)), with(any(Parameter[].class)),
               with(new TypeSafeMatcher<RTC[]>() {
                 @Override
@@ -869,5 +883,21 @@ public class GenericMediaServiceTest extends TestCase {
     assertTrue(event.getCause() == InputCompleteEvent.Cause.MATCH);
     assertTrue(group.settedParameters.get(SignalDetector.PATTERN[0]) instanceof URI);
     mockery.assertIsSatisfied();
+  }
+
+  class TestApp implements Application {
+    @State
+    public void handleDisconnect(final HangupEvent event) {
+    }
+
+    @Override
+    public final void destroy() {
+
+    }
+
+    @Override
+    public void init(final ApplicationContext ctx) {
+
+    }
   }
 }

@@ -26,6 +26,19 @@ public interface MixerEndpoint extends Endpoint {
   /**
    * Create a mixer based on this endpoint.
    * 
+   * @param name
+   *          app can specify a name of mixer. this is optional. if you use the
+   *          same name, moho will return the same Mixer Obj.
+   * @param params
+   *          used to create mixer.
+   * @return
+   * @throws MediaException
+   */
+  Mixer create(String name, Map<Object, Object> params) throws MediaException;
+
+  /**
+   * Create a mixer based on this endpoint.
+   * 
    * @param params
    *          used to create mixer.
    * @return

@@ -58,6 +58,7 @@ import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Output;
 import com.voxeo.moho.media.Prompt;
 import com.voxeo.moho.media.Recording;
+import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.record.RecordCommand;
@@ -84,10 +85,16 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   protected Map<Object, Participant> activeInputParticipant = new HashMap<Object, Participant>();
 
-  protected MixerImpl(final ExecutionContext context, final MixerEndpoint address, final Map<Object, Object> params,
-      Parameters parameters) {
+  protected String _name;
+
+  protected MediaDialect _mediaDialect;
+
+  protected MixerImpl(final ExecutionContext context, final MixerEndpoint address, String name,
+      final Map<Object, Object> params, Parameters parameters) {
     super(context);
+    _name = name;
     _id = IDGenerator.generateId(_context, RemoteParticipant.RemoteParticipant_TYPE_CONFERENCE);
+    _mediaDialect = ((ApplicationContextImpl) _context).getDialect();
 
     try {
       MsControlFactory mf = null;
@@ -109,6 +116,13 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         mf = driver.getFactory(props);
       }
       _media = mf.createMediaSession();
+
+      if (name != null) {
+        if (parameters == null) {
+          parameters = mf.createParameters();
+        }
+        _mediaDialect.setMixerName(parameters, name);
+      }
 
       if (parameters != null && parameters.get(MediaMixer.ENABLED_EVENTS) != null) {
         _mixer = _media.createMediaMixer(MediaMixer.AUDIO_EVENTS, parameters);
@@ -888,6 +902,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     public Unjoint unjoin(Participant other, boolean callPeerUnjoin) throws Exception {
       return MixerImpl.this.unjoin(other, callPeerUnjoin);
     }
+
+    @Override
+    public String getName() {
+      return MixerImpl.this.getName();
+    }
   }
 
   // listener for Active speaker event.
@@ -1011,5 +1030,10 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   @Override
   public JoinType getJoinType(Participant participant) {
     return _joinees.getJoinType(participant);
+  }
+
+  @Override
+  public String getName() {
+    return _name;
   }
 }

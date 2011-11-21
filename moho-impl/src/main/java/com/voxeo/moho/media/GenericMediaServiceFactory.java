@@ -21,28 +21,15 @@ import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 
-import org.apache.log4j.Logger;
-
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
 import com.voxeo.moho.MediaServiceFactory;
 import com.voxeo.moho.event.EventSource;
-import com.voxeo.moho.media.dialect.GenericDialect;
-import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.spi.ExecutionContext;
 
 public class GenericMediaServiceFactory implements MediaServiceFactory {
 
-  private static final Logger LOG = Logger.getLogger(GenericMediaServiceFactory.class);
-
-  private MediaDialect _dialect;
-
   public GenericMediaServiceFactory() {
-    _dialect = new GenericDialect();
-  }
-
-  public GenericMediaServiceFactory(MediaDialect dialect) {
-    _dialect = dialect;
   }
 
   @Override
@@ -64,23 +51,12 @@ public class GenericMediaServiceFactory implements MediaServiceFactory {
         }
       }
     }
-    return new GenericMediaService<T>(parent, group, _dialect);
+    return new GenericMediaService<T>(parent, group);
   }
 
   @Override
   public void init(ExecutionContext context, Map<String, String> properties) {
-    Class<? extends MediaDialect> mediaDialectClass = com.voxeo.moho.media.dialect.GenericDialect.class;
-    final String mediaDialectClassName = properties.get("mediaDialectClass");
-    try {
-      if (mediaDialectClassName != null) {
-        mediaDialectClass = (Class<? extends MediaDialect>) Class.forName(mediaDialectClassName);
-      }
-      _dialect = mediaDialectClass.newInstance();
-      LOG.info("Moho is creating media service with dialect (" + _dialect + ").");
-    }
-    catch (Exception ex) {
-      LOG.error("Moho is unable to create media dialect (" + mediaDialectClassName + ")", ex);
-    }
+
   }
 
   @Override

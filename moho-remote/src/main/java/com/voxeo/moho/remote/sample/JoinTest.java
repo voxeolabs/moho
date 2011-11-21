@@ -17,6 +17,10 @@ import com.voxeo.moho.remote.impl.MohoRemoteImpl;
 
 public class JoinTest implements Observer {
   static MohoRemote mohoRemote;
+  
+  Call mycall1;
+  
+  Call mycall2;
 
   /**
    * @param args
@@ -36,22 +40,29 @@ public class JoinTest implements Observer {
 
   @State
   public void handleInvite(final IncomingCall call) throws Exception {
+    mycall1 = call;
     call.answer();
     call.output("hello incoming");
     call.addObserver(this);
 
+    Thread.sleep(2000);
     call.setApplicationState("personal-call");
     CallableEndpoint endpoint2 = (CallableEndpoint) mohoRemote.createEndpoint(URI
-        .create("sip:mperez@localhost:3060"));
+        .create("sip:mperez@localhost:40000"));
     Call call2 = endpoint2.createCall("sip:martin@example.com");
+    mycall2 = call2;
     call2.addObserver(this);
 
-    call2.join(call, JoinType.BRIDGE, Direction.DUPLEX);
+    call.join(call2, JoinType.BRIDGE, Direction.DUPLEX);
   }
 
   @State
   public void handleInvite(final JoinCompleteEvent event) throws Exception {
     System.out.println(event.getCause() + ".." + event.getParticipant());
+    
+    if(event.getSource() == mycall1){
+      mycall1.output("hello again.");
+    }
   }
 
   @State

@@ -39,8 +39,7 @@ public class MockEventSource implements EventSource {
   }
 
   @Override
-  final public ApplicationContext getApplicationContext() {
-
+  public ApplicationContext getApplicationContext() {
     return null;
   }
 

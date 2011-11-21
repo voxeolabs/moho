@@ -31,12 +31,15 @@ public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
 
   protected Map<Object, Object> _params;
 
-  public MixerImpl(MixerEndpointImpl mixerEndpoint, Map<Object, Object> params) {
+  protected String _name;
+
+  public MixerImpl(MixerEndpointImpl mixerEndpoint, String name, Map<Object, Object> params) {
     super(mixerEndpoint.getMohoRemote());
     _mixerEndpoint = mixerEndpoint;
     _params = params;
-    _id = _mixerEndpoint.getConferenceName();
+    _id = name;
     _mohoRemote.addParticipant(this);
+    _name = name;
   }
 
   @Override
@@ -71,7 +74,7 @@ public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
     }
     return joint;
   }
-  
+
   private Direction reserve(Direction direction) {
     if (direction == Direction.RECV) {
       return Direction.SEND;
@@ -179,7 +182,11 @@ public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
 
   @Override
   public String startJoin() throws MohoRemoteException {
-    // TODO Auto-generated method stub
     return _id;
+  }
+
+  @Override
+  public String getName() {
+    return _name;
   }
 }

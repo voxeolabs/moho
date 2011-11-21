@@ -23,7 +23,6 @@ import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
 
-import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.JoinWorker;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.JointImpl;
@@ -36,9 +35,7 @@ import com.voxeo.moho.UnjointImpl;
 import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
-import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
-import com.voxeo.moho.util.IDGenerator;
 
 public class ConferenceImpl extends MixerImpl implements Conference, ParticipantContainer {
 
@@ -55,17 +52,11 @@ public class ConferenceImpl extends MixerImpl implements Conference, Participant
   protected Object _lock = new Object();
 
   protected ConferenceImpl(final ExecutionContext context, final MixerEndpoint address,
-      final Map<Object, Object> params, final String id, final int seats, final ConferenceController controller,
+      final Map<Object, Object> params, final String name, final int seats, final ConferenceController controller,
       Parameters parameters) {
-    super(context, address, params, parameters);
-    //TODO 
-    _id = id;
+    super(context, address, name, params, parameters);
     _maxSeats = seats;
     _controller = controller;
-    
-    if (_context != null && getId() != null) {
-      ((ApplicationContextImpl) _context).addParticipant(this);
-    }
   }
 
   @Override

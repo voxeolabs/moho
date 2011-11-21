@@ -52,13 +52,13 @@ public class ConferenceMangerImpl implements ConferenceManager {
   }
 
   @Override
-  public Conference createConference(final MixerEndpoint mxier, final Map<Object, Object> mixerParams, final String id,
+  public Conference createConference(final MixerEndpoint mxier, final Map<Object, Object> mixerParams, final String name,
       final int seats, final ConferenceController controller, Parameters parameters) {
     synchronized (_conferences) {
-      Conference retval = getConference(id);
+      Conference retval = getConference(name);
       if (retval == null) {
-        retval = new ConferenceImpl(_context, mxier, mixerParams, id, seats, controller, parameters);
-        _conferences.put(id, retval);
+        retval = new ConferenceImpl(_context, mxier, mixerParams, name, seats, controller, parameters);
+        _conferences.put(name, retval);
       }
       return retval;
     }

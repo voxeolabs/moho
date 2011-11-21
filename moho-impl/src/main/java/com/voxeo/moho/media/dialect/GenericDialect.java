@@ -53,4 +53,8 @@ public class GenericDialect implements MediaDialect {
   @Override
   public void setSpeechCompleteTimeout(Parameters parameters, long peechCompleteTimeout) {
   }
+
+  @Override
+  public void setMixerName(Parameters params, String name) {
+  }
 }
