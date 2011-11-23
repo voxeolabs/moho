@@ -231,7 +231,8 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   }
 
   protected synchronized boolean isProcessed() {
-    return isAccepted() || isAcceptedWithEarlyMedia() || isRejected() || isRedirected() || isProxied();
+    return !(getSIPCallState() == SIPCall.State.RINGING || getSIPCallState() == SIPCall.State.INITIALIZED
+        || getSIPCallState() == SIPCall.State.PROGRESSED || getSIPCallState() == SIPCall.State.PROGRESSING || getSIPCallState() == SIPCall.State.INVITING);
   }
 
   @Override
