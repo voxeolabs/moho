@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.Mixer;
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
@@ -45,7 +46,9 @@ public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventL
   @Override
   public void doJoin() throws Exception {
     _remoteParticipant.startJoin(_localParticipant, this);
-    ((ParticipantContainer) _localParticipant).startJoin(_remoteParticipant, this);
+    if(_localParticipant instanceof Mixer){
+      ((ParticipantContainer) _localParticipant).startJoin(_remoteParticipant, this);
+    }
 
     if (_localParticipant.getMediaObject() == null && _localParticipant instanceof Call) {
       ((Call) _localParticipant).join(Direction.DUPLEX);
