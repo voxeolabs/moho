@@ -351,7 +351,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     return task;
   }
-  
+
   public Unjoint unjoin(final Participant other, final boolean isInitiator) {
     Unjoint task = new UnjointImpl(_context.getExecutor(), new Callable<UnjoinCompleteEvent>() {
       @Override
@@ -480,7 +480,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     else {
       _callDelegate = new SIPCallMediaDelegate();
     }
-
     if (_oldJoinDelegate != null) {
       JoinCompleteEvent.Cause cause = _joinDelegate.getCause();
       Exception exception = _joinDelegate.getException();
@@ -489,6 +488,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       if (cause == JoinCompleteEvent.Cause.JOINED) {
         try {
           _operationInProcess = true;
+          LOG.debug("starting the old join delegte.");
           _joinDelegate.doJoin();
         }
         catch (Exception e) {
@@ -1511,6 +1511,5 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   public MediaMixer getMultipleJoiningMixer() {
     return _multiplejoiningMixer;
   }
-  
-  
+
 }

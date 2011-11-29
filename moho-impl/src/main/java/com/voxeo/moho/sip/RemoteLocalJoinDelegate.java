@@ -34,6 +34,8 @@ public class RemoteLocalJoinDelegate extends JoinDelegate implements MediaEventL
 
   protected boolean notifyRemote;
 
+  protected boolean started;
+
   public RemoteLocalJoinDelegate(final RemoteParticipantImpl remoteParticipant, final Participant localParticipant,
       final Direction direction, byte[] offer) {
     _localParticipant = localParticipant;
@@ -47,8 +49,12 @@ public class RemoteLocalJoinDelegate extends JoinDelegate implements MediaEventL
   @Override
   public void doJoin() throws Exception {
     try {
-      _remoteParticipant.startJoin(_localParticipant, this);
-      ((ParticipantContainer) _localParticipant).startJoin(_remoteParticipant, this);
+      LOG.debug("RemoteLocalJoinDelegate  is starting");
+      if (!started) {
+        _remoteParticipant.startJoin(_localParticipant, this);
+        ((ParticipantContainer) _localParticipant).startJoin(_remoteParticipant, this);
+      }
+      started = true;
 
       if (_localParticipant.getMediaObject() == null && _localParticipant instanceof Call) {
         notifyRemote = true;
