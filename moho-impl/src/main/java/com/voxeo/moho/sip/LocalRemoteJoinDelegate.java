@@ -69,6 +69,7 @@ public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventL
 
   @Override
   public void onEvent(SdpPortManagerEvent event) {
+    LOG.debug("LocalRemoteJoinDelegate  received SdpPortManagerEvent");
     if (event.getEventType().equals(SdpPortManagerEvent.OFFER_GENERATED)) {
       if (event.isSuccessful()) {
         waitAnswerProcessed = true;

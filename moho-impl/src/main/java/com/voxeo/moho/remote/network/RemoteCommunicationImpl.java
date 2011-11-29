@@ -30,18 +30,22 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
 
   public void join(String joinerRemoteAddress, String joineeRemoteAddress, JoinType joinType, byte[] sdp)
       throws Exception {
+    LOG.debug("Starting remote join, joiner:" + joinerRemoteAddress + ", joinee:" + joineeRemoteAddress);
     String rmiAddress = getRmiAddress(joineeRemoteAddress);
     RemoteCommunication ske = (RemoteCommunication) Naming.lookup(rmiAddress);
     ske.remoteJoin(joinerRemoteAddress, joineeRemoteAddress, joinType, sdp);
   }
 
   public void joinAnswer(String joinerRemoteAddress, String joineeRemoteAddress, byte[] sdp) throws Exception {
+    LOG.debug("Starting remote joinAnswer, joiner:" + joinerRemoteAddress + ", joinee:" + joineeRemoteAddress);
     String rmiAddress = getRmiAddress(joinerRemoteAddress);
     RemoteCommunication ske = (RemoteCommunication) Naming.lookup(rmiAddress);
     ske.remoteJoinAnswer(joinerRemoteAddress, joineeRemoteAddress, sdp);
   }
 
   public void joinDone(String invokerRemoteAddress, String remoteAddress, Cause cause, Exception exception) {
+    LOG.debug("Starting remote joinDone, invoker:" + invokerRemoteAddress + ", remote:" + remoteAddress);
+
     String rmiAddress = getRmiAddress(remoteAddress);
     try {
       RemoteCommunication ske = null;
@@ -54,6 +58,8 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
   }
 
   public void unjoin(String invokerRemoteAddress, String remoteAddress) {
+    LOG.debug("Starting remote unjoin, invoker:" + invokerRemoteAddress + ", remote:" + remoteAddress);
+
     String rmiAddress = getRmiAddress(remoteAddress);
     try {
       RemoteCommunication ske = null;
@@ -68,6 +74,8 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
   @Override
   public void remoteJoin(String joinerRemoteAddress, String joineeRemoteAddress, JoinType joinType, byte[] sdp)
       throws Exception {
+    LOG.debug("received remote join, joiner:" + joinerRemoteAddress + ", joinee:" + joineeRemoteAddress);
+
     Participant localParticipant = _context.getParticipant(joineeRemoteAddress);
     RemoteParticipantImpl remoteParticipant = (RemoteParticipantImpl) _context.getParticipant(joinerRemoteAddress);
 
@@ -85,6 +93,8 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
 
   @Override
   public void remoteJoinAnswer(String joinerRemoteAddress, String joineeRemoteAddress, byte[] sdp) throws Exception {
+    LOG.debug("received remote joinAnswer, joiner:" + joinerRemoteAddress + ", joinee:" + joineeRemoteAddress);
+
     Participant localParticipant = _context.getParticipant(joinerRemoteAddress);
     if (localParticipant instanceof ParticipantContainer) {
       JoinDelegate joinDelegate = ((ParticipantContainer) localParticipant).getJoinDelegate(joineeRemoteAddress);
@@ -98,6 +108,8 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
 
   @Override
   public void remoteJoinDone(String invokerRemoteAddress, String remoteAddress, Cause cause, Exception exception) {
+    LOG.debug("received remote joinDone, invoker:" + invokerRemoteAddress + ", remote:" + remoteAddress);
+
     Participant localParticipant = _context.getParticipant(remoteAddress);
     if (localParticipant instanceof ParticipantContainer) {
       JoinDelegate joinDelegate = ((ParticipantContainer) localParticipant).getJoinDelegate(invokerRemoteAddress);
@@ -111,6 +123,8 @@ public class RemoteCommunicationImpl implements RemoteCommunication {
 
   @Override
   public void remoteUnjoin(String initiatorRemoteAddress, String remoteAddress) throws Exception {
+    LOG.debug("received remote unjoin, invoker:" + initiatorRemoteAddress + ", remote:" + remoteAddress);
+
     Participant localParticipant = _context.getParticipant(remoteAddress);
 
     if (localParticipant instanceof ParticipantContainer) {
