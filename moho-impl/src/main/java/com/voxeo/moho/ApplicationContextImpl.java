@@ -111,9 +111,9 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   protected String _remoteCommunicationRMIAddress;
 
-  protected int _remoteCommunicationPort;
+  protected int _remoteCommunicationPort = 4231;
 
-  protected String _remoteCommunicationAddress;
+  protected String _remoteCommunicationAddress = NetworkUtils.getLocalAddress().toString();
 
   protected String _remoteObject;
 
@@ -236,9 +236,24 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     _confMgr = this.getService(ConferenceManager.class);
 
     try {
-      // TODO configure address
-      _remoteCommunicationPort = 4231;
-      _remoteCommunicationAddress = NetworkUtils.getLocalAddress().toString();
+      if (getParameter("remoteCommunicationPort") != null) {
+        try {
+          _remoteCommunicationPort = Integer.valueOf(getParameter("remoteCommunicationPort"));
+        }
+        catch (NumberFormatException ex) {
+          LOG.warn("Wrong remoteCommunicationPort configuration:" + getParameter("remoteCommunicationPort")
+              + ", using the default:" + _remoteCommunicationPort);
+        }
+      }
+
+      if (getParameter("remoteCommunicationAddress") != null) {
+        _remoteCommunicationAddress = getParameter("remoteCommunicationAddress");
+        LOG.debug("Using remoteCommunicationAddress configuration:" + getParameter("remoteCommunicationAddress"));
+      }
+      else {
+        LOG.debug("No remoteCommunicationAddress configuration, using the default:" + _remoteCommunicationAddress);
+      }
+
       if (_remoteCommunicationAddress.startsWith("/")) {
         _remoteCommunicationAddress = _remoteCommunicationAddress.substring(1);
       }
