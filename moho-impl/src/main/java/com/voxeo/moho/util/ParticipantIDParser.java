@@ -168,6 +168,18 @@ public class ParticipantIDParser {
 		return total;
 	}
 	
+	public static boolean isCall(RemoteParticipant participant) {
+		
+		long type = getNumericType(participant.getId());
+		return (type == TYPE_CALL);
+	}
+	
+	public static boolean isMixer(RemoteParticipant participant) {
+		
+		long type = getNumericType(participant.getId());
+		return (type == TYPE_CONFERENCE);
+	}
+	
 	public static void main(String[] args) {
 		
 		System.out.println(ipToNormalizedLongString("127.0.0.1"));
