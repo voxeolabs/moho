@@ -170,13 +170,13 @@ public class ParticipantIDParser {
 	
 	public static boolean isCall(RemoteParticipant participant) {
 		
-		long type = getNumericType(participant.getId());
+		long type = getNumericType(decode(participant.getId()));
 		return (type == TYPE_CALL);
 	}
 	
 	public static boolean isMixer(RemoteParticipant participant) {
 		
-		long type = getNumericType(participant.getId());
+		long type = getNumericType(decode(participant.getId()));
 		return (type == TYPE_CONFERENCE);
 	}
 	
