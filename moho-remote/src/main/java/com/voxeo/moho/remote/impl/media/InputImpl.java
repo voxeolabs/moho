@@ -20,9 +20,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.log4j.Logger;
 
-import com.rayo.client.XmppException;
-import com.rayo.client.xmpp.stanza.IQ;
-import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.verb.InputMode;
 import com.rayo.core.verb.VerbCompleteReason;
 import com.rayo.core.verb.VerbRef;
@@ -35,6 +32,9 @@ import com.voxeo.moho.media.Input;
 import com.voxeo.moho.remote.impl.JID;
 import com.voxeo.moho.remote.impl.MediaServiceSupport;
 import com.voxeo.moho.remote.impl.RayoListener;
+import com.voxeo.rayo.client.XmppException;
+import com.voxeo.rayo.client.xmpp.stanza.IQ;
+import com.voxeo.rayo.client.xmpp.stanza.Presence;
 
 //TODO exception and IQ error handling
 public class InputImpl<T extends EventSource> implements Input<T>, RayoListener {
@@ -71,7 +71,7 @@ public class InputImpl<T extends EventSource> implements Input<T>, RayoListener 
       try {
         IQ iq = _call.getMohoRemote().getRayoClient().stop(_verbRef);
         if (iq.isError()) {
-          com.rayo.client.xmpp.stanza.Error error = iq.getError();
+          com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
           throw new MediaException(error.getCondition() + error.getText());
         }
       }

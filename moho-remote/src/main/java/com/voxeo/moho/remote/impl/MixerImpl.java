@@ -8,7 +8,6 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.join.JoinableStream;
 import javax.media.mscontrol.join.JoinableStream.StreamType;
 
-import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.JoinDestinationType;
 import com.rayo.core.JoinedEvent;
 import com.rayo.core.UnjoinedEvent;
@@ -24,6 +23,7 @@ import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.remote.MohoRemoteException;
+import com.voxeo.rayo.client.xmpp.stanza.Presence;
 
 public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
 

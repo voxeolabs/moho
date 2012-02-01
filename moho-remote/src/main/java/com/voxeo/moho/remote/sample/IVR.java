@@ -6,11 +6,6 @@ import com.voxeo.moho.State;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.Output;
-import com.voxeo.moho.media.Prompt;
-import com.voxeo.moho.media.input.InputCommand;
-import com.voxeo.moho.media.input.SimpleGrammar;
-import com.voxeo.moho.media.output.OutputCommand;
-import com.voxeo.moho.media.output.OutputCommand.BargeinType;
 import com.voxeo.moho.remote.MohoRemote;
 import com.voxeo.moho.remote.impl.MohoRemoteImpl;
 
@@ -32,32 +27,22 @@ public class IVR implements Observer {
   public void handleInvite(final IncomingCall call) throws Exception {
     call.addObserver(this);
     call.answer();
-
     call.setApplicationState("menu-level-1");
-
-    OutputCommand output = new OutputCommand("1 for sales, 2 for support, this is the prompt that should be interruptable."
-    // "ftp://public:public@172.21.0.83/jsr309test/audio/jsr309-TCK-media/Numbers_1-5_40s.au"
-    );
-    output.setBargeinType(BargeinType.ANY);
-
-    InputCommand input = new InputCommand(new SimpleGrammar("1,2"));
-    input.setTerminator('#');
-    call.prompt(output, input, 1);
+    call.prompt("1 for sales, 2 for support", "1,2", 0);
   }
 
   @State("menu-level-1")
   public void menu1(final InputCompleteEvent<Call> evt) {
-    System.out.println(evt.getCause());
     switch (evt.getCause()) {
       case MATCH:
         final Call call = evt.getSource();
-        if (evt.getConcept().equals("1")) {
+        if (evt.getInterpretation().equals("1")) {
           call.setApplicationState("menu-level-2-1");
-          call.prompt("1 for sipmethod, 2 for prophecy", "1,2", 0);
+          call.prompt("1 for prism, 2 for prophecy", "1,2", 0);
         }
         else {
           call.setApplicationState("menu-level-2-2");
-          call.prompt("1 for sipmethod, 2 for prophecy", "1,2", 0);
+          call.prompt("1 for prism, 2 for prophecy", "1,2", 0);
         }
         break;
     }
@@ -68,13 +53,11 @@ public class IVR implements Observer {
     switch (evt.getCause()) {
       case MATCH:
         final Call call = evt.getSource();
-        if (evt.getConcept().equals("1")) {
-          call.setApplicationState("menu-simpmethod-sales");
-          hangupAfterPrompt(call, "thank you for calling sipmethod sales");
+        if (evt.getInterpretation().equals("1")) {
+          hangupAfterOutput(call, "thank you for calling prism sales");
         }
         else {
-          call.setApplicationState("menu-prophecy-sales");
-          hangupAfterPrompt(call, "thank you for calling prophecy sales");
+          hangupAfterOutput(call, "thank you for calling prophecy sales");
         }
         break;
     }
@@ -86,26 +69,12 @@ public class IVR implements Observer {
       case MATCH:
         final Call call = evt.getSource();
         if (evt.getConcept().equals("1")) {
-          call.setApplicationState("menu-simpmethod-support");
-          hangupAfterOutput(call, "thank you for calling sipmethod support");
+          hangupAfterOutput(call, "thank you for calling prism support");
         }
         else {
-          call.setApplicationState("menu-prophecy-support");
           hangupAfterOutput(call, "thank you for calling prophecy support");
         }
         break;
-    }
-  }
-
-  private void hangupAfterPrompt(Call call, String text) {
-    Prompt<Call> prompt = call.prompt(text, null, 0);
-    try {
-      if (prompt.getOutput().get() != null) {
-        call.hangup();
-      }
-    }
-    catch (Exception e) {
-      e.printStackTrace();
     }
   }
 

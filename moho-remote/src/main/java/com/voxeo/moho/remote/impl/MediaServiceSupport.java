@@ -19,9 +19,6 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.joda.time.Duration;
 
-import com.rayo.client.XmppException;
-import com.rayo.client.xmpp.stanza.IQ;
-import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.verb.Choices;
 import com.rayo.core.verb.Record;
 import com.rayo.core.verb.Ssml;
@@ -45,6 +42,9 @@ import com.voxeo.moho.remote.impl.media.InputImpl;
 import com.voxeo.moho.remote.impl.media.OutputImpl;
 import com.voxeo.moho.remote.impl.media.PromptImpl;
 import com.voxeo.moho.remote.impl.media.RecordingImpl;
+import com.voxeo.rayo.client.XmppException;
+import com.voxeo.rayo.client.xmpp.stanza.IQ;
+import com.voxeo.rayo.client.xmpp.stanza.Presence;
 
 public abstract class MediaServiceSupport<T extends EventSource> extends ParticipantImpl implements MediaService<T> {
 

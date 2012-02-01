@@ -30,7 +30,20 @@ public class MixerEndpointImpl implements MixerEndpoint {
 
   @Override
   public Mixer create(String name, Map<Object, Object> params) throws MediaException {
-    return new MixerImpl(this, name, params);
+    _mohoRemoteImpl.getParticipantsLock().lock();
+    try {
+      if (name != null) {
+        Mixer mixer = _mohoRemoteImpl.getMixerByName(name);
+        if (mixer != null) {
+          return mixer;
+        }
+      }
+
+      return new MixerImpl(this, name, params);
+    }
+    finally {
+      _mohoRemoteImpl.getParticipantsLock().unlock();
+    }
   }
 
   @Override

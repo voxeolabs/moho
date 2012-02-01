@@ -5,76 +5,123 @@
   <name>Moho API Rayo Implements</name>
   <artifactId>moho-remote</artifactId>
 
-	<parent>
-		<groupId>com.voxeo.moho</groupId>
-		<artifactId>moho-parent</artifactId>
-		<version>0.8-SNAPSHOT</version>
-	</parent>
+  <parent>
+    <groupId>com.voxeo.moho</groupId>
+    <artifactId>moho-parent</artifactId>
+    <version>0.8-SNAPSHOT</version>
+  </parent>
+
+  <properties>
+    <spring.version>3.0.5.RELEASE</spring.version>
+  </properties>
 
   <scm>
     <connection>${svnUrlBase}/moho-rayo-impl</connection>
     <url>${svnUrlBase}/moho-rayo-impl</url>
   </scm>
 
-	<dependencies>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.15</version>
-			<scope>provided</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>javax.mail</groupId>
-					<artifactId>mail</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>javax.jms</groupId>
-					<artifactId>jms</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jdmk</groupId>
-					<artifactId>jmxtools</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.sun.jmx</groupId>
-					<artifactId>jmxri</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.4</version>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.voxeo.moho</groupId>
-			<artifactId>moho-api</artifactId>
-			<version>0.8-SNAPSHOT</version>
-		</dependency>
+  <dependencies>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.15</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.mail</groupId>
+          <artifactId>mail</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.jms</groupId>
+          <artifactId>jms</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jdmk</groupId>
+          <artifactId>jmxtools</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jmx</groupId>
+          <artifactId>jmxri</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.voxeo.moho</groupId>
+      <artifactId>moho-api</artifactId>
+      <version>0.8-SNAPSHOT</version>
+    </dependency>
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-common</artifactId>
       <version>0.8-SNAPSHOT</version>
     </dependency>
-		<dependency>
-			<groupId>com.rayo</groupId>
-			<artifactId>rayo-java-client</artifactId>
-			<version>2.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.rayo</groupId>
-			<artifactId>rayo-core</artifactId>
-			<version>2.0-SNAPSHOT</version>
-		</dependency>
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>mscontrol-api</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
-	</dependencies>
+
+    <!-- Rayo client -->
+    <dependency>
+      <groupId>com.rayo</groupId>
+      <artifactId>rayo-core</artifactId>
+      <version>2.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-beans</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.netty</groupId>
+      <artifactId>netty</artifactId>
+      <version>3.2.4.Final</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
+      <artifactId>concurrentlinkedhashmap-lru</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>xpp3</groupId>
+      <artifactId>xpp3</artifactId>
+      <version>1.1.4c</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.6.1</version>
+    </dependency>
+
+    <!-- Jolokia -->
+    <dependency>
+      <groupId>org.jolokia</groupId>
+      <artifactId>jolokia-core</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jolokia</groupId>
+      <artifactId>jolokia-client-java</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+  </dependencies>
 
   <reporting>
     <plugins>
@@ -88,22 +135,6 @@
           </formats>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>com.voxeo.moho.remote.test.RayoTest</mainClass>
-              <addClasspath>true</addClasspath>              
-            </manifest>
-	        <manifestEntries>
-	            <Class-Path>../../../../lib/jars/log4j-1.2.15.jar ../../../../lib/jars/dom4j-1.6.1.jar ../../../../common/lib/mscontrol.jar</Class-Path>
-	        </manifestEntries>            
-          </archive>
-        </configuration>
-      </plugin>      
     </plugins>
   </reporting>
 </project>

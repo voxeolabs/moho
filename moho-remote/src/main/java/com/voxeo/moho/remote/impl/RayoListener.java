@@ -1,7 +1,7 @@
 package com.voxeo.moho.remote.impl;
 
-import com.rayo.client.xmpp.stanza.IQ;
-import com.rayo.client.xmpp.stanza.Presence;
+import com.voxeo.rayo.client.xmpp.stanza.IQ;
+import com.voxeo.rayo.client.xmpp.stanza.Presence;
 
 public interface RayoListener {
 

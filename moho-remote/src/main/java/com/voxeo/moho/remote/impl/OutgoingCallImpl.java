@@ -1,13 +1,12 @@
 package com.voxeo.moho.remote.impl;
 
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
 
-import com.rayo.client.XmppException;
-import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.AnsweredEvent;
 import com.rayo.core.DialCommand;
 import com.rayo.core.EndEvent;
@@ -18,6 +17,7 @@ import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.OutgoingCall;
+import com.voxeo.moho.SignalException;
 import com.voxeo.moho.common.event.MohoCallCompleteEvent;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
@@ -25,6 +25,8 @@ import com.voxeo.moho.remote.MohoRemoteException;
 import com.voxeo.moho.remote.impl.event.MohoAnsweredEventImpl;
 import com.voxeo.moho.remote.impl.event.MohoHangupEventImpl;
 import com.voxeo.moho.remote.impl.event.MohoRingEventImpl;
+import com.voxeo.rayo.client.XmppException;
+import com.voxeo.rayo.client.xmpp.stanza.Presence;
 
 public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
   private static final Logger LOG = Logger.getLogger(OutgoingCallImpl.class);
@@ -36,7 +38,7 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
     super(mohoRemote, callID, caller, callee, headers);
   }
 
-  protected boolean internalCall(Direction direction) throws MohoRemoteException {
+  protected boolean internalCall(Direction direction, boolean dispatchJoinToMediaEvent) throws MohoRemoteException {
     _mohoRemote.getParticipantsLock().lock();
     try {
       if (_id == null) {
@@ -44,8 +46,8 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
         command.setFrom(_caller.getURI());
         command.setTo(_callee.getURI());
         command.setHeaders(_headers);
-        waitAnswerJoint = new JointImpl(this, direction);
-        
+        waitAnswerJoint = new JointImpl(this, null, direction, dispatchJoinToMediaEvent);
+
         VerbRef verbRef = _mohoRemote.getRayoClient().dial(command);
         setID(verbRef.getVerbId());
         return true;
@@ -66,7 +68,7 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
 
   @Override
   public Joint join(Direction direction) {
-    internalCall(direction);
+    internalCall(direction, true);
 
     return waitAnswerJoint;
   }
@@ -89,7 +91,9 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
       this.dispatch(mohoEvent);
 
       MohoJoinCompleteEvent joinComplete = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.JOINED, true);
-      this.dispatch(joinComplete);
+      if (waitAnswerJoint.isDispatchJoinToMediaEvent()) {
+        this.dispatch(joinComplete);
+      }
       waitAnswerJoint.done(joinComplete);
     }
     else if (object instanceof RingingEvent) {
@@ -125,7 +129,8 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
 
   @Override
   public String startJoin() throws MohoRemoteException {
-    internalCall(Direction.DUPLEX);
+    internalCall(Direction.DUPLEX, false);
+
     return _id;
   }
 

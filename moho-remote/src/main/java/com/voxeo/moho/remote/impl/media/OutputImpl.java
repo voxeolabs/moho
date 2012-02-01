@@ -22,9 +22,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 
-import com.rayo.client.XmppException;
-import com.rayo.client.xmpp.stanza.IQ;
-import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.verb.SeekCommand;
 import com.rayo.core.verb.SeekCommand.Direction;
 import com.rayo.core.verb.VerbCompleteReason;
@@ -39,6 +36,9 @@ import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.remote.impl.JID;
 import com.voxeo.moho.remote.impl.MediaServiceSupport;
 import com.voxeo.moho.remote.impl.RayoListener;
+import com.voxeo.rayo.client.XmppException;
+import com.voxeo.rayo.client.xmpp.stanza.IQ;
+import com.voxeo.rayo.client.xmpp.stanza.Presence;
 
 //TODO exception and IQ error handling
 public class OutputImpl<T extends EventSource> implements Output<T>, RayoListener {
@@ -101,7 +101,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
       try {
         IQ iq = _call.getMohoRemote().getRayoClient().pause(_verbRef);
         if (iq.isError()) {
-          com.rayo.client.xmpp.stanza.Error error = iq.getError();
+          com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
           throw new MediaException(error.getCondition() + error.getText());
         }
         else {
@@ -121,7 +121,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
       try {
         IQ iq = _call.getMohoRemote().getRayoClient().resume(_verbRef);
         if (iq.isError()) {
-          com.rayo.client.xmpp.stanza.Error error = iq.getError();
+          com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
           throw new MediaException(error.getCondition() + error.getText());
         }
         else {
@@ -141,7 +141,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
       try {
         IQ iq = _call.getMohoRemote().getRayoClient().stop(_verbRef);
         if (iq.isError()) {
-          com.rayo.client.xmpp.stanza.Error error = iq.getError();
+          com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
           throw new MediaException(error.getCondition() + error.getText());
         }
       }
@@ -192,7 +192,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
           iq = _call.getMohoRemote().getRayoClient().speedDown(_verbRef);
         }
         if (iq.isError()) {
-          com.rayo.client.xmpp.stanza.Error error = iq.getError();
+          com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
           LOG.error(error.getCondition() + error.getText());
         }
       }
@@ -215,7 +215,7 @@ public class OutputImpl<T extends EventSource> implements Output<T>, RayoListene
           iq = _call.getMohoRemote().getRayoClient().volumeDown(_verbRef);
         }
         if (iq.isError()) {
-          com.rayo.client.xmpp.stanza.Error error = iq.getError();
+          com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
           throw new MediaException(error.getCondition() + error.getText());
         }
       }

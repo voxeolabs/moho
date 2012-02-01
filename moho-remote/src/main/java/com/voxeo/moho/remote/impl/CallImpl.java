@@ -31,9 +31,6 @@ import javax.media.mscontrol.join.JoinableStream.StreamType;
 
 import org.apache.commons.collections.CollectionUtils;
 
-import com.rayo.client.XmppException;
-import com.rayo.client.xmpp.stanza.IQ;
-import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.CallRejectReason;
 import com.rayo.core.DtmfEvent;
 import com.rayo.core.EndEvent;
@@ -69,6 +66,9 @@ import com.voxeo.moho.event.ResponseEvent;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.remote.MohoRemoteException;
 import com.voxeo.moho.remote.impl.event.MohoHangupEventImpl;
+import com.voxeo.rayo.client.XmppException;
+import com.voxeo.rayo.client.xmpp.stanza.IQ;
+import com.voxeo.rayo.client.xmpp.stanza.Presence;
 
 // TODO if we join two call in DIRECT mode, then one side hangup, we want join
 // another side to media again, for example say something. how to do that with  Rayo protocol?
@@ -187,7 +187,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
       if (iq.isError()) {
         _unjoints.remove(other.getId());
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
     }
@@ -218,7 +218,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     try {
       IQ iq = _mohoRemote.getRayoClient().mute(this.getId());
       if (iq.isError()) {
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
@@ -240,7 +240,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     try {
       IQ iq = _mohoRemote.getRayoClient().unmute(this.getId());
       if (iq.isError()) {
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
@@ -262,7 +262,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     try {
       IQ iq = _mohoRemote.getRayoClient().hold(this.getId());
       if (iq.isError()) {
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
@@ -284,7 +284,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
     try {
       IQ iq = _mohoRemote.getRayoClient().unhold(this.getId());
       if (iq.isError()) {
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
@@ -324,7 +324,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
         if (iq.isError()) {
           cleanUp();
-          com.rayo.client.xmpp.stanza.Error error = iq.getError();
+          com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
           throw new SignalException(error.getCondition() + error.getText());
         }
       }
@@ -519,7 +519,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
   public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
     JointImpl joint = null;
     try {
-      joint = new JointImpl(this, type, direction);
+      joint = new JointImpl(this, type, direction, false);
       String thisID = startJoin();
       String otherID = ((ParticipantImpl) other).startJoin();
 
@@ -545,7 +545,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
       if (iq.isError()) {
         _joints.remove(other.getId());
         ((MediaServiceSupport<?>) other)._joints.remove(this.getId());
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
     }

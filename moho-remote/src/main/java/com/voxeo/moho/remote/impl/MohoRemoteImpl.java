@@ -13,15 +13,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 
-import com.rayo.client.RayoClient;
-import com.rayo.client.XmppException;
-import com.rayo.client.listener.StanzaListener;
-import com.rayo.client.xmpp.stanza.IQ;
-import com.rayo.client.xmpp.stanza.Message;
-import com.rayo.client.xmpp.stanza.Presence;
 import com.rayo.core.OfferEvent;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
+import com.voxeo.moho.Mixer;
 import com.voxeo.moho.MixerEndpoint;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.common.event.DispatchableEventSource;
@@ -29,6 +24,12 @@ import com.voxeo.moho.common.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.remote.AuthenticationCallback;
 import com.voxeo.moho.remote.MohoRemote;
 import com.voxeo.moho.remote.MohoRemoteException;
+import com.voxeo.rayo.client.RayoClient;
+import com.voxeo.rayo.client.XmppException;
+import com.voxeo.rayo.client.listener.StanzaListener;
+import com.voxeo.rayo.client.xmpp.stanza.IQ;
+import com.voxeo.rayo.client.xmpp.stanza.Message;
+import com.voxeo.rayo.client.xmpp.stanza.Presence;
 
 @SuppressWarnings("deprecation")
 public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemote {
@@ -42,6 +43,8 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
   protected Map<String, ParticipantImpl> _participants = new ConcurrentHashMap<String, ParticipantImpl>();
 
   protected Lock _participanstLock = new ReentrantLock();
+
+  protected Map<String, Mixer> _mixerNameMap = new ConcurrentHashMap<String, Mixer>();
 
   public MohoRemoteImpl() {
     super();
@@ -142,15 +145,15 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
     }
 
     @Override
-    public void onError(com.rayo.client.xmpp.stanza.Error error) {
+    public void onError(com.voxeo.rayo.client.xmpp.stanza.Error error) {
       LOG.error("Got error" + error);
     }
   }
 
-  public ParticipantImpl getParticipant(final String cid) {
+  public ParticipantImpl getParticipant(final String id) {
     getParticipantsLock().lock();
     try {
-      return _participants.get(cid);
+      return _participants.get(id);
     }
     finally {
       getParticipantsLock().unlock();
@@ -159,12 +162,26 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
 
   protected void addParticipant(final ParticipantImpl participant) {
     _participants.put(participant.getId(), participant);
+
+    if (participant instanceof Mixer) {
+      String name = ((Mixer) participant).getName();
+      if (name != null) {
+        _mixerNameMap.put(name, ((Mixer) participant));
+      }
+    }
   }
 
   protected void removeParticipant(final String id) {
     getParticipantsLock().lock();
     try {
-      _participants.remove(id);
+      ParticipantImpl participant = _participants.remove(id);
+
+      if (participant instanceof Mixer) {
+        String name = ((Mixer) participant).getName();
+        if (name != null) {
+          _mixerNameMap.remove(name);
+        }
+      }
     }
     finally {
       getParticipantsLock().unlock();
@@ -220,5 +237,10 @@ public class MohoRemoteImpl extends DispatchableEventSource implements MohoRemot
   @Override
   public MixerEndpoint createMixerEndpoint() {
     return new MixerEndpointImpl(this);
+  }
+  
+
+  public Mixer getMixerByName(String name) {
+    return _mixerNameMap.get(name);
   }
 }

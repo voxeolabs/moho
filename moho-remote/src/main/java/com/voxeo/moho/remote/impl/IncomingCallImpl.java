@@ -7,8 +7,6 @@ import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
 
-import com.rayo.client.XmppException;
-import com.rayo.client.xmpp.stanza.IQ;
 import com.rayo.core.AcceptCommand;
 import com.rayo.core.AnswerCommand;
 import com.rayo.core.RedirectCommand;
@@ -24,6 +22,8 @@ import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.remote.MohoRemoteException;
+import com.voxeo.rayo.client.XmppException;
+import com.voxeo.rayo.client.xmpp.stanza.IQ;
 
 public class IncomingCallImpl extends CallImpl implements IncomingCall {
   private static final Logger LOG = Logger.getLogger(IncomingCallImpl.class);
@@ -67,7 +67,7 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
       IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
       if (iq.isError()) {
         this.setCallState(Call.State.FAILED);
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
@@ -103,7 +103,7 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
 
       if (iq.isError()) {
         this.setCallState(Call.State.FAILED);
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
@@ -154,7 +154,7 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
       IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
       if (iq.isError()) {
         this.setCallState(Call.State.FAILED);
-        com.rayo.client.xmpp.stanza.Error error = iq.getError();
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
       }
       else {
@@ -187,7 +187,7 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
 
   @Override
   public void answer(Map<String, String> headers) throws SignalException, MediaException {
-    final Joint joint = this.internalAnswer(null, headers);
+    final Joint joint = this.internalAnswer(null, headers, false);
     while (!joint.isDone()) {
       try {
         joint.get();
@@ -237,7 +237,7 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
   // should make _mohoRemote.getRayoClient().answer() asynchronous, and make
   // this method just send out command, the joint and event stuff should be
   // processed in the join() method, wait for the result or error IQ.
-  private Joint internalAnswer(Direction direction, Map<String, String> headers) {
+  private Joint internalAnswer(Direction direction, Map<String, String> headers, boolean dispatchJoinToMediaEvent) {
     if (waitAnswerJoint == null) {
       waitAnswerJoint = new JointImpl(this, direction);
       MohoJoinCompleteEvent joinCompleteEvent = null;
@@ -249,17 +249,21 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
 
         if (iq.isError()) {
           this.setCallState(Call.State.FAILED);
-          com.rayo.client.xmpp.stanza.Error error = iq.getError();
+          com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
           SignalException exception = new SignalException(error.getCondition() + error.getText());
           joinCompleteEvent = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.ERROR, exception, true);
-          dispatch(joinCompleteEvent);
+          if (dispatchJoinToMediaEvent) {
+            dispatch(joinCompleteEvent);
+          }
           waitAnswerJoint.done(exception);
         }
         else {
           isAccepted = true;
           this.setCallState(Call.State.CONNECTED);
           joinCompleteEvent = new MohoJoinCompleteEvent(this, null, JoinCompleteEvent.Cause.JOINED, true);
-          dispatch(joinCompleteEvent);
+          if (dispatchJoinToMediaEvent) {
+            dispatch(joinCompleteEvent);
+          }
           waitAnswerJoint.done(joinCompleteEvent);
         }
       }
@@ -274,7 +278,7 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
 
   @Override
   public Joint join(Direction direction) {
-    return internalAnswer(direction, null);
+    return internalAnswer(direction, null, true);
   }
 
   @Override

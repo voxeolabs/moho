@@ -35,10 +35,13 @@ public class JointImpl implements Joint {
 
   protected Direction _direction;
 
-  public JointImpl(final CallImpl call, JoinType type, Direction direction) {
+  protected boolean _dispatchJoinToMediaEvent;
+
+  public JointImpl(final CallImpl call, JoinType type, Direction direction, boolean dispatchJoinToMediaEvent) {
     _call = call;
     _type = type;
     _direction = direction;
+    _dispatchJoinToMediaEvent = dispatchJoinToMediaEvent;
   }
 
   public JointImpl(final CallImpl call, Direction direction) {
@@ -88,4 +91,7 @@ public class JointImpl implements Joint {
     return _direction;
   }
 
+  public boolean isDispatchJoinToMediaEvent() {
+    return _dispatchJoinToMediaEvent;
+  }
 }
