@@ -113,9 +113,9 @@ public class OutputImpl<T extends EventSource> implements Output<T> {
           _group.triggerAction(Player.SPEED_DOWN);
         }
 
-        while (!speedResult) {
+        while (!speedResult && !_future.isDone()) {
           try {
-            speedActionResult.await();
+            speedActionResult.await(5, TimeUnit.SECONDS);
           }
           catch (InterruptedException e) {
             // ignore
@@ -156,9 +156,9 @@ public class OutputImpl<T extends EventSource> implements Output<T> {
           _group.triggerAction(Player.VOLUME_DOWN);
         }
 
-        while (!volumeResult) {
+        while (!volumeResult && !_future.isDone()) {
           try {
-            volumeActionResult.await();
+            volumeActionResult.await(5, TimeUnit.SECONDS);
           }
           catch (InterruptedException e) {
             // ignore
@@ -194,9 +194,9 @@ public class OutputImpl<T extends EventSource> implements Output<T> {
       if (!_future.isDone() && !paused) {
         _group.triggerAction(Player.PAUSE);
 
-        while (!pauseResult) {
+        while (!pauseResult && !_future.isDone()) {
           try {
-            pauseActionResult.await();
+            pauseActionResult.await(5, TimeUnit.SECONDS);
           }
           catch (InterruptedException e) {
             // ignore
@@ -230,9 +230,9 @@ public class OutputImpl<T extends EventSource> implements Output<T> {
       if (!_future.isDone() && paused) {
         _group.triggerAction(Player.RESUME);
 
-        while (!resumeResult) {
+        while (!resumeResult && !_future.isDone()) {
           try {
-            resumeActionResult.await();
+            resumeActionResult.await(5, TimeUnit.SECONDS);
           }
           catch (InterruptedException e) {
             // ignore

@@ -66,9 +66,9 @@ public class RecordingImpl<T extends EventSource> implements Recording<T> {
       if (!_future.isDone() && !paused) {
         _group.triggerAction(Recorder.PAUSE);
 
-        while (!pauseResult) {
+        while (!pauseResult && !_future.isDone()) {
           try {
-            pauseActionResult.await();
+            pauseActionResult.await(5, TimeUnit.SECONDS);
           }
           catch (InterruptedException e) {
             // ignore
@@ -102,9 +102,9 @@ public class RecordingImpl<T extends EventSource> implements Recording<T> {
       if (!_future.isDone() && paused) {
         _group.triggerAction(Recorder.RESUME);
 
-        while (!resumeResult) {
+        while (!resumeResult&& !_future.isDone()) {
           try {
-            resumeActionResult.await();
+            resumeActionResult.await(5, TimeUnit.SECONDS);
           }
           catch (InterruptedException e) {
             // ignore

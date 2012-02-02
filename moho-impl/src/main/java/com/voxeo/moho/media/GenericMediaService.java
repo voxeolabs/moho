@@ -927,8 +927,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         _futures.remove(_recording);
       }
       else if (t == RecorderEvent.PAUSED) {
-        _recording.pauseActionDone();
         _parent.dispatch(new MohoRecordPausedEvent<T>(_parent));
+        _recording.pauseActionDone();
       }
       else if (t == RecorderEvent.RESUMED) {
         if (e.getError() == MediaErr.UNKNOWN_ERROR) {
@@ -939,8 +939,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           _futures.remove(_recording);
         }
         else {
-          _recording.resumeActionDone();
           _parent.dispatch(new MohoRecordResumedEvent<T>(_parent));
+          _recording.resumeActionDone();
         }
       }
       else if (t == RecorderEvent.STARTED) {
