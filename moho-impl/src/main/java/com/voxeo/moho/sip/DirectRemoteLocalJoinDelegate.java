@@ -65,7 +65,7 @@ public class DirectRemoteLocalJoinDelegate extends JoinDelegate {
   }
 
   @Override
-  protected void doInviteResponse(SipServletResponse res, SIPCallImpl call, Map<String, String> headers)
+  protected void doInviteResponse(final SipServletResponse res, SIPCallImpl call, Map<String, String> headers)
       throws Exception {
     if (SIPHelper.isErrorResponse(res)) {
       notifyRemote = true;
@@ -73,15 +73,21 @@ public class DirectRemoteLocalJoinDelegate extends JoinDelegate {
     }
     else {
       if (SIPHelper.isSuccessResponse(res)) {
-        try {
-          ((ApplicationContextImpl) _remoteParticipant.getApplicationContext()).getRemoteCommunication().joinAnswer(
-              _remoteParticipant.getId(), _localParticipant.getId(), SIPHelper.getRawContentWOException(res));
-        }
-        catch (final Exception e) {
-          LOG.error("", e);
-          notifyRemote = true;
-          done(Cause.ERROR, e);
-        }
+        ((ApplicationContextImpl) _localParticipant.getApplicationContext()).getExecutor().execute(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              ((ApplicationContextImpl) _remoteParticipant.getApplicationContext()).getRemoteCommunication()
+                  .joinAnswer(_remoteParticipant.getId(), _localParticipant.getId(),
+                      SIPHelper.getRawContentWOException(res));
+            }
+            catch (final Exception e) {
+              LOG.error("", e);
+              notifyRemote = true;
+              done(Cause.ERROR, e);
+            }
+          }
+        });
       }
     }
   }
