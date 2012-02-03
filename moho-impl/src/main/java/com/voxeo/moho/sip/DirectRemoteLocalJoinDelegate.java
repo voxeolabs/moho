@@ -75,7 +75,7 @@ public class DirectRemoteLocalJoinDelegate extends JoinDelegate {
       if (SIPHelper.isSuccessResponse(res)) {
         try {
           ((ApplicationContextImpl) _remoteParticipant.getApplicationContext()).getRemoteCommunication().joinAnswer(
-              _localParticipant.getId(), _remoteParticipant.getId(), SIPHelper.getRawContentWOException(res));
+              _remoteParticipant.getId(), _localParticipant.getId(), SIPHelper.getRawContentWOException(res));
         }
         catch (final Exception e) {
           LOG.error("", e);
