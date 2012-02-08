@@ -77,8 +77,8 @@ public class Media2NOJoinDelegate extends JoinDelegate {
             done(Cause.ERROR, ex);
             _call1.fail(ex);
           }
-          return;
         }
+        return;
       }
       Exception ex = new NegotiateException(event);
       done(Cause.ERROR, ex);
