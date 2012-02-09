@@ -55,6 +55,10 @@ public class RemoteLocalJoinDelegate extends JoinDelegate implements MediaEventL
         ((ParticipantContainer) _localParticipant).startJoin(_remoteParticipant, this);
       }
       started = true;
+      
+      if(_localParticipant instanceof Call){
+        doDisengage((SIPCallImpl)_localParticipant, JoinType.BRIDGE);
+      }
 
       if (_localParticipant.getMediaObject() == null && _localParticipant instanceof Call) {
         notifyRemote = true;

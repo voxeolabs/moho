@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
@@ -52,7 +53,11 @@ public class LocalRemoteJoinDelegate extends JoinDelegate implements MediaEventL
       ((ParticipantContainer) _localParticipant).startJoin(_remoteParticipant, this);
     }
     started = true;
-
+    
+    if(_localParticipant instanceof Call){
+      doDisengage((SIPCallImpl)_localParticipant, JoinType.BRIDGE);
+    }
+    
     if (_localParticipant.getMediaObject() == null && _localParticipant instanceof Call) {
       ((Call) _localParticipant).join(Direction.DUPLEX);
       return;

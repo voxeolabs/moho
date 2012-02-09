@@ -39,6 +39,7 @@ public class DirectLocalRemoteJoinDelegate extends JoinDelegate {
   public void doJoin() throws Exception {
     _remoteParticipant.startJoin(_localParticipant, this);
     ((ParticipantContainer) _localParticipant).startJoin(_remoteParticipant, this);
+    doDisengage(_localParticipant, JoinType.DIRECT);
     
     byte[] sdp = _localParticipant.getJoinSDP();
 
