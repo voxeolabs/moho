@@ -78,6 +78,7 @@ public class DirectRemoteLocalJoinDelegate extends JoinDelegate {
           @Override
           public void run() {
             try {
+              res.createAck().send();
               ((ApplicationContextImpl) _remoteParticipant.getApplicationContext()).getRemoteCommunication()
                   .joinAnswer(_remoteParticipant.getId(), _localParticipant.getId(),
                       SIPHelper.getRawContentWOException(res));
