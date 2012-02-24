@@ -42,6 +42,7 @@ import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
+import com.voxeo.moho.remotejoin.RemoteParticipant;
 
 public abstract class JoinDelegate {
 
@@ -82,13 +83,26 @@ public abstract class JoinDelegate {
     _exception = exception;
 
     _call1.joinDone(_call2, this);
-    JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(_call1, _call2, cause, exception,
+
+    //for remote join
+    Participant p1 = _call1;
+    if (_call1 instanceof RemoteParticipant) {
+      p1 = _call1.getApplicationContext().getParticipant(((RemoteParticipant) _call1).getRemoteParticipantID());
+    }
+    //for remote join
+    Participant p2 = _call2;
+    if (_call2 != null && _call2 instanceof RemoteParticipant) {
+      p2 = _call2.getApplicationContext().getParticipant(((RemoteParticipant) _call2).getRemoteParticipantID());
+    }
+
+    JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(p1, p2, cause, exception,
         _call2 == null ? true : _peer.equals(_call2));
     _call1.dispatch(joinCompleteEvent);
 
     if (_call2 != null) {
       _call2.joinDone(_call1, this);
-      JoinCompleteEvent peerJoinCompleteEvent = new MohoJoinCompleteEvent(_call2, _call1, cause, exception, !_peer.equals(_call2));
+      JoinCompleteEvent peerJoinCompleteEvent = new MohoJoinCompleteEvent(p2, p1, cause, exception,
+          !_peer.equals(_call2));
       _call2.dispatch(peerJoinCompleteEvent);
     }
 

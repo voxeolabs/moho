@@ -34,11 +34,16 @@ import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.IncomingCall;
+import com.voxeo.moho.Participant;
+import com.voxeo.moho.State;
 import com.voxeo.moho.Subscription;
 import com.voxeo.moho.common.event.MohoInputDetectedEvent;
 import com.voxeo.moho.event.CallEvent;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.NotifyEvent;
+import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.event.PublishEvent;
 import com.voxeo.moho.event.RegisterEvent;
 import com.voxeo.moho.event.RequestEvent;
@@ -46,6 +51,8 @@ import com.voxeo.moho.event.SubscribeEvent;
 import com.voxeo.moho.event.TextEvent;
 import com.voxeo.moho.event.UnknownRequestEvent;
 import com.voxeo.moho.reg.Registration;
+import com.voxeo.moho.remote.sipbased.Constants;
+import com.voxeo.moho.remote.sipbased.RemoteJoinIncomingCall;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.spi.SIPDriver;
 import com.voxeo.moho.spi.SpiFramework;
@@ -78,7 +85,7 @@ public class SIPDriverImpl implements SIPDriver {
 
   @Override
   public void destroy() {
-    
+
   }
 
   @Override
@@ -133,10 +140,40 @@ public class SIPDriverImpl implements SIPDriver {
 
   protected void doInvite(final SipServletRequest req) throws ServletException, IOException {
     if (req.isInitial()) {
-      final IncomingCall ev = _app.getApplicationContext().getService(IncomingCallFactory.class)
-          .createIncomingCall(req);
+      // process remote join
+      if (req.getHeader(Constants.x_Join_Direction) != null && req.getHeader(Constants.x_Join_Direction).trim() != "") {
+        RemoteJoinIncomingCall joinCall = new RemoteJoinIncomingCall((ExecutionContext) this.getFramework()
+            .getApplicationContext(), req);
+        SipURI joineeURI = joinCall.getJoinee();
+        Participant participant = this.getFramework().getApplicationContext().getParticipant(joineeURI.getUser());
+        
+        joinCall.addObserver(new Observer() {
+          @State
+          public void handleJoinComplete(JoinCompleteEvent event) {
+            if (event.getCause() == Cause.BUSY) {
+              LOG.warn("Join Policy violated when processing incoming remotejoin.");
+              try {
+                req.createResponse(SipServletResponse.SC_BUSY_HERE,
+                    event.getException() != null ? event.getException().getMessage() : "").send();
+              }
+              catch (Exception ex) {
+                LOG.warn("Exception when sending back remotejoin response.", ex);
+              }
+            }
+          }
+        });
+        
+        LOG.debug("Received remotejoin, joining. joiner:" + joinCall.getJoiner().getUser() + ". joinee:"
+            + joinCall.getJoinee().getUser() + ". created RemoteJoinIncomingCall:" + joinCall);
+        joinCall.join(participant, joinCall.getX_Join_Type(), joinCall.getX_Join_Force(),
+            joinCall.getX_Join_Direction());
+      }
+      else {
+        final IncomingCall ev = _app.getApplicationContext().getService(IncomingCallFactory.class)
+            .createIncomingCall(req);
 
-      _app.dispatch(ev);
+        _app.dispatch(ev);
+      }
     }
     else {
       final EventSource source = SessionUtils.getEventSource(req);

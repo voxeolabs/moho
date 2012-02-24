@@ -10,4 +10,6 @@ public interface RemoteParticipant extends Participant {
 
   public final String RemoteParticipant_TYPE_DIALOG = "dialog";
 
+  public String getRemoteParticipantID();
+
 }

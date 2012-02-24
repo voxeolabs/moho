@@ -28,6 +28,8 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.remote.RemoteEndpointImpl;
+import com.voxeo.moho.remote.sipbased.RemoteJoinIncomingCall;
+import com.voxeo.moho.remote.sipbased.RemoteJoinOutgoingCall;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 
 public class RemoteParticipantImpl implements RemoteParticipant, ParticipantContainer {
@@ -363,15 +365,45 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
       return true;
     if (obj == null)
       return false;
-    if (getClass() != obj.getClass())
+    if (getClass() != obj.getClass() && !(obj instanceof RemoteParticipant))
       return false;
-    RemoteParticipantImpl other = (RemoteParticipantImpl) obj;
-    if (_id == null) {
-      if (other._id != null)
+    if (obj instanceof RemoteJoinOutgoingCall) {
+      RemoteJoinOutgoingCall other = (RemoteJoinOutgoingCall) obj;
+      if (other.getJoinee().getUser().equalsIgnoreCase(_id)) {
+        return true;
+      }
+      else {
         return false;
+      }
     }
-    else if (!_id.equals(other._id))
-      return false;
-    return true;
+    else if (obj instanceof RemoteJoinIncomingCall) {
+      RemoteJoinIncomingCall other = (RemoteJoinIncomingCall) obj;
+      if (other.getJoiner().getUser().equalsIgnoreCase(_id)) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+    else {
+      RemoteParticipantImpl other = (RemoteParticipantImpl) obj;
+      if (_id == null) {
+        if (other._id != null)
+          return false;
+      }
+      else if (!_id.equals(other._id))
+        return false;
+      return true;
+    }
+  }
+
+  @Override
+  public String getRemoteParticipantID() {
+    return _id;
+  }
+
+  @Override
+  public String toString() {
+    return "RemoteParticipantImpl [_id=" + _id + "]";
   }
 }

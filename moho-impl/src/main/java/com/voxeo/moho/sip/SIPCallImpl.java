@@ -71,8 +71,10 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.media.GenericMediaService;
+import com.voxeo.moho.remote.sipbased.RemoteJoinOutgoingCall;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.util.ParticipantIDParser;
 import com.voxeo.moho.util.SessionUtils;
 
 public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEventListener<SdpPortManagerEvent>,
@@ -187,7 +189,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   @Override
   public String toString() {
-    return new StringBuilder().append(SIPCallImpl.class.getSimpleName()).append("[").append(_signal).append(",")
+    return new StringBuilder().append(this.getClass().getSimpleName()).append("[").append(_signal).append(", ").append(_id).append(", ")
         .append(_cstate).append("]").toString();
   }
 
@@ -376,43 +378,56 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       SIPCallImpl.this.dispatch(event);
       return event;
     }
+    Participant participant = p;
+    Participant local = this;
+    
     try {
       JoinData joinData = _joinees.remove(p);
-      if (p instanceof Call) {
+      
+      Participant other = joinData.getParticipant();
+      
+      if (other instanceof Call) {
         synchronized (_peers) {
-          _peers.remove(p);
+          _peers.remove(other);
         }
       }
-      if (p.getMediaObject() instanceof Joinable) {
+      if (other.getMediaObject() instanceof Joinable) {
         if (initiator) {
           if (joinData.getRealJoined() == null) {
-            JoinDelegate.bridgeUnjoin(this, p);
+            JoinDelegate.bridgeUnjoin(this, other);
           }
           else {
-            JoinDelegate.bridgeUnjoin(joinData.getRealJoined(), p);
+            JoinDelegate.bridgeUnjoin(joinData.getRealJoined(), other);
           }
         }
       }
 
       if (initiator) {
-        ((ParticipantContainer) p).unjoin(SIPCallImpl.this, false);
+        ((ParticipantContainer) other).unjoin(SIPCallImpl.this, false);
+      }
+      
+      //for remote unjoin
+      if( p instanceof RemoteParticipant){
+        participant = this.getApplicationContext().getParticipant(((RemoteParticipant) p).getRemoteParticipantID());
+      }
+      if(this instanceof RemoteParticipant){
+        local = this.getApplicationContext().getParticipant(((RemoteParticipant) this).getRemoteParticipantID());
       }
 
-      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, initiator);
+      event = new MohoUnjoinCompleteEvent(local, participant, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, initiator);
     }
     catch (final Exception e) {
       LOG.error("", e);
-      event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, e, true);
+      event = new MohoUnjoinCompleteEvent(local, participant, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, e, true);
       throw e;
     }
     finally {
       if (event == null) {
-        event = new MohoUnjoinCompleteEvent(SIPCallImpl.this, p, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, initiator);
+        event = new MohoUnjoinCompleteEvent(local, participant, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, initiator);
       }
       SIPCallImpl.this.dispatch(event);
     }
     return event;
-
   }
 
   @Override
@@ -586,7 +601,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         return doJoin((SIPCallImpl) other, type, force, direction);
       }
       else if (other instanceof RemoteParticipant) {
-        return doJoin((RemoteParticipant) other, type, direction);
+        return doJoin((RemoteParticipant) other, type, force, direction);
       }
       else {
         return doJoin(other, type, false, direction);
@@ -1100,22 +1115,47 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     return joint;
   }
 
-  protected Joint doJoin(final RemoteParticipant other, final JoinType type, final Direction direction)
+  //RMI based.
+  // protected Joint doJoin(final RemoteParticipant other, final JoinType type,
+  // final Direction direction)
+  // throws Exception {
+  // JoinDelegate joinDelegate = null;
+  // if (type != JoinType.DIRECT) {
+  // joinDelegate = new LocalRemoteJoinDelegate(this, other, direction);
+  // }
+  // else {
+  // joinDelegate = new DirectLocalRemoteJoinDelegate(this, other, direction);
+  // }
+  //
+  // SettableJointImpl joint = new SettableJointImpl();
+  // joinDelegate.setSettableJoint(joint);
+  //
+  // joinDelegate.doJoin();
+  //
+  // return joint;
+  // }
+
+  protected Joint doJoin(final RemoteParticipant other, final JoinType type, boolean force, final Direction direction)
       throws Exception {
-    JoinDelegate joinDelegate = null;
-    if (type != JoinType.DIRECT) {
-      joinDelegate = new LocalRemoteJoinDelegate(this, other, direction);
-    }
-    else {
-      joinDelegate = new DirectLocalRemoteJoinDelegate(this, other, direction);
-    }
+    // 1 create outgoing call.
+    // 2 join the outgoing call and return joint.
+    String[] parsedJoinerID = ParticipantIDParser.parseEncodedId(this.getId());
+    String[] parsedJoineeID = ParticipantIDParser.parseEncodedId(other.getId());
 
-    SettableJointImpl joint = new SettableJointImpl();
-    joinDelegate.setSettableJoint(joint);
+    SIPEndpoint joinerEndpoint = (SIPEndpoint) this.getApplicationContext().createEndpoint(
+        "sip:" + this.getId() + "@" + parsedJoinerID[0]);
+    SIPEndpoint joineeEndpoint = (SIPEndpoint) this.getApplicationContext().createEndpoint(
+        "sip:" + other.getId() + "@" + parsedJoineeID[0]);
 
-    joinDelegate.doJoin();
-
-    return joint;
+    
+    RemoteJoinOutgoingCall outgoingCall = new RemoteJoinOutgoingCall((ExecutionContext) this.getApplicationContext(),
+        joinerEndpoint, joineeEndpoint, null);
+    outgoingCall.setX_Join_Direction(direction);
+    outgoingCall.setX_Join_Force(force);
+    outgoingCall.setX_Join_Type(type);
+    LOG.debug("Starting remotejoin. joiner:"+this+". joinee:"+other.getId()+". created RemoteJoinOutgoingCall:"+outgoingCall);
+    _operationInProcess = false;
+    return this.join(outgoingCall, type, force, direction);
   }
 
   protected Joint doJoin(final Participant other, final JoinType type, final boolean force, final Direction direction)
