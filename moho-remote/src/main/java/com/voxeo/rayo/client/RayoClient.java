@@ -91,6 +91,8 @@ public class RayoClient {
 	
 	private ReentrantReadWriteLock connectionLock = new ReentrantReadWriteLock();
 	
+	private Timer pingTimer = null;
+	
 	/**
 	 * Creates a new client object. This object will be used to interact with an Rayo server.
 	 * 
@@ -222,7 +224,8 @@ public class RayoClient {
 						ping();
 					}
 				};
-				new Timer().schedule(pingTask, 5000, 30000);
+				pingTimer = new Timer();
+				pingTimer.schedule(pingTask, 5000, 30000);
 				
 				connection.addStanzaListener(new RayoMessageListener("ping") {
 					
@@ -406,6 +409,8 @@ public class RayoClient {
 		} finally {
 			logger.info("Rayo Client XMPP Connection has been disconnected");
 			lock.unlock();
+			pingTimer.cancel();
+			pingTimer = null;
 		}
 	}
 	

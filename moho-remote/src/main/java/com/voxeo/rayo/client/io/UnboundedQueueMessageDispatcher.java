@@ -37,6 +37,8 @@ public class UnboundedQueueMessageDispatcher implements MessageDispatcher {
 	private LinkedBlockingQueue<XmppObject> messagesQueue = new LinkedBlockingQueue<XmppObject>();
 	private LinkedBlockingQueue<XmppObject> filtersQueue = new LinkedBlockingQueue<XmppObject>();
 	
+	private boolean running = true;
+	
 	/**
 	 * Initiates the message dispatcher. When created, the instance will start a 
 	 * new thread that will be ready to process incoming messages.
@@ -47,10 +49,10 @@ public class UnboundedQueueMessageDispatcher implements MessageDispatcher {
 			
 			@Override
 			public void run() {
-				while(true) {
+				while(running) {
 					XmppObject object = null;
 					try {
-						object = messagesQueue.poll(1000, TimeUnit.SECONDS);
+						object = messagesQueue.poll(30, TimeUnit.SECONDS);
 					} catch (InterruptedException e) {}
 					
 					if (object != null) {
@@ -65,10 +67,10 @@ public class UnboundedQueueMessageDispatcher implements MessageDispatcher {
 			
 			@Override
 			public void run() {
-				while(true) {
+				while(running) {
 					XmppObject object = null;
 					try {
-						object = filtersQueue.poll(1000, TimeUnit.SECONDS);
+						object = filtersQueue.poll(30, TimeUnit.SECONDS);
 					} catch (InterruptedException e) {}
 					
 					if (object != null) {
@@ -155,5 +157,9 @@ public class UnboundedQueueMessageDispatcher implements MessageDispatcher {
 			}
 			log.trace(String.format("Listener [%s] has finished its work", listener));
 		}		
+	}
+	
+	public void shutdown(){
+	  running = false;
 	}
 }

@@ -335,6 +335,7 @@ public class XmppReaderWorker implements Runnable, StanzaListenerSupport, XmppOb
 		parser = null;
 		connectionId = null;
 		cleanListeners();
+		messageDispatcher.shutdown();
 	}
 	
 	private void cleanListeners() {

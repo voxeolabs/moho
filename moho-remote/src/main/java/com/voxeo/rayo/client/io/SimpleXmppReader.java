@@ -102,11 +102,11 @@ public class SimpleXmppReader implements XmppReader {
 			if (reader != null) {
 				reader.close();
 			}
-			
-			readingTask.shutdown();
-			
 		} catch (IOException ioe) {
 			throw new XmppException("IO Error", Error.Condition.remote_server_error, ioe);
+		}
+		finally{
+		  readingTask.shutdown();
 		}
 	}
 }

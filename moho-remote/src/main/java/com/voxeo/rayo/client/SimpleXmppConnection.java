@@ -171,9 +171,23 @@ public class SimpleXmppConnection implements XmppConnection {
 		
 		connected = false;
 				
-		if (writer != null) { writer.close(); }
-		if (reader != null) { reader.close(); }
-		
+		if (writer != null) { 
+		  
+		  try{
+		    writer.close();
+		    }
+		  catch(Exception ex){
+		    log.warn("Exception when Closing XMPP connection", ex);
+		  }
+		  }
+		if (reader != null) { 
+		  try{
+		    reader.close();
+		  }
+		catch(Exception ex){
+      log.warn("Exception when Closing XMPP connection", ex);
+    }
+		 }
 		// We close the socket first as otherwise closing the reader may enter a deadlock with the
 		// threads that are listening for socket data, specially if there is no incoming activity 
 		// from the socket

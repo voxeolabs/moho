@@ -28,4 +28,6 @@ public interface MessageDispatcher extends StanzaListenerSupport, XmppObjectFilt
 	 * all the queues, listeners, etc. that might have implemented.
 	 */
 	void reset();
+	
+	void shutdown();
 }
