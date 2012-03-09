@@ -189,8 +189,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   @Override
   public String toString() {
-    return new StringBuilder().append(this.getClass().getSimpleName()).append("[").append(_signal).append(", ").append(_id).append(", ")
-        .append(_cstate).append("]").toString();
+    return new StringBuilder().append(this.getClass().getSimpleName()).append("[").append(_signal).append(", ")
+        .append(_id).append(", ").append(_cstate).append("]").toString();
   }
 
   public String useReplacesHeader() {
@@ -380,12 +380,12 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     Participant participant = p;
     Participant local = this;
-    
+
     try {
       JoinData joinData = _joinees.remove(p);
-      
+
       Participant other = joinData.getParticipant();
-      
+
       if (other instanceof Call) {
         synchronized (_peers) {
           _peers.remove(other);
@@ -405,12 +405,12 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       if (initiator) {
         ((ParticipantContainer) other).unjoin(SIPCallImpl.this, false);
       }
-      
-      //for remote unjoin
-      if( p instanceof RemoteParticipant){
+
+      // for remote unjoin
+      if (p instanceof RemoteParticipant) {
         participant = this.getApplicationContext().getParticipant(((RemoteParticipant) p).getRemoteParticipantID());
       }
-      if(this instanceof RemoteParticipant){
+      if (this instanceof RemoteParticipant) {
         local = this.getApplicationContext().getParticipant(((RemoteParticipant) this).getRemoteParticipantID());
       }
 
@@ -642,9 +642,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       return;
     }
     else {
-      if (_joinDelegate != null) {
-        _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, new HangupException());
-      }
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
       terminate(CallCompleteEvent.Cause.DISCONNECT, null, headers);
     }
@@ -864,16 +861,23 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     // TODO
     if (_joinDelegate != null) {
-      if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) {
-        _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
-      }
-      else {
-        _joinDelegate.done(JoinCompleteEvent.Cause.ERROR, exception);
-      }
+      this.getThreadPool().execute(new Runnable() {
+        @Override
+        public void run() {
+          if (_joinDelegate != null) {
+            if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT || cause == CallCompleteEvent.Cause.DISCONNECT) {
+              _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
+            }
+            else {
+              _joinDelegate.done(JoinCompleteEvent.Cause.ERROR, exception);
+            }
+            _joinDelegate = null;
+          }
+        }
+      });
     }
 
     this.dispatch(new MohoCallCompleteEvent(this, cause, exception, headers));
-
     _callDelegate = null;
   }
 
@@ -1115,7 +1119,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     return joint;
   }
 
-  //RMI based.
+  // RMI based.
   // protected Joint doJoin(final RemoteParticipant other, final JoinType type,
   // final Direction direction)
   // throws Exception {
@@ -1147,13 +1151,13 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     SIPEndpoint joineeEndpoint = (SIPEndpoint) this.getApplicationContext().createEndpoint(
         "sip:" + other.getId() + "@" + parsedJoineeID[0]);
 
-    
     RemoteJoinOutgoingCall outgoingCall = new RemoteJoinOutgoingCall((ExecutionContext) this.getApplicationContext(),
         joinerEndpoint, joineeEndpoint, null);
     outgoingCall.setX_Join_Direction(direction);
     outgoingCall.setX_Join_Force(force);
     outgoingCall.setX_Join_Type(type);
-    LOG.debug("Starting remotejoin. joiner:"+this+". joinee:"+other.getId()+". created RemoteJoinOutgoingCall:"+outgoingCall);
+    LOG.debug("Starting remotejoin. joiner:" + this + ". joinee:" + other.getId() + ". created RemoteJoinOutgoingCall:"
+        + outgoingCall);
     _operationInProcess = false;
     return this.join(outgoingCall, type, force, direction);
   }
