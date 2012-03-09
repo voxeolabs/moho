@@ -52,6 +52,20 @@ public class SIPHelper {
       final Address from, final Address to, final Map<String, String> headers, SipApplicationSession applicationSession) {
     final SipServletRequest req = factory.createRequest(
         applicationSession != null ? applicationSession : factory.createApplicationSession(), method, from, to);
+    if (headers != null) {
+      for (final Map.Entry<String, String> e : headers.entrySet()) {
+        if (e.getKey().equalsIgnoreCase("Route")) {
+          try {
+            req.pushRoute((SipURI)factory.createURI(e.getValue()));
+          }
+          catch (ServletParseException ex) {
+            LOG.error("Invalid Route Header: " + e.getValue());
+          }
+        }
+      }
+      headers.remove("Route");
+      headers.remove("route");    
+    }
     SIPHelper.addHeaders(req, headers);
     return req;
   }
