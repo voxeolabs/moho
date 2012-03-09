@@ -84,19 +84,19 @@ public abstract class JoinDelegate {
 
     _call1.joinDone(_call2, this);
 
-    //for remote join
+    // for remote join
     Participant p1 = _call1;
     if (_call1 instanceof RemoteParticipant) {
       p1 = _call1.getApplicationContext().getParticipant(((RemoteParticipant) _call1).getRemoteParticipantID());
     }
-    //for remote join
+    // for remote join
     Participant p2 = _call2;
     if (_call2 != null && _call2 instanceof RemoteParticipant) {
       p2 = _call2.getApplicationContext().getParticipant(((RemoteParticipant) _call2).getRemoteParticipantID());
     }
 
-    JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(p1, p2, cause, exception,
-        _call2 == null ? true : _peer.equals(_call2));
+    JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(p1, p2, cause, exception, _call2 == null ? true
+        : _peer.equals(_call2));
     _call1.dispatch(joinCompleteEvent);
 
     if (_call2 != null) {
@@ -305,9 +305,25 @@ public abstract class JoinDelegate {
     return null;
   }
 
+  protected static Direction getJoinDirection(final Participant part, final Participant other) {
+    if (part instanceof SIPCallImpl) {
+      return ((SIPCallImpl) part).getDirection(other);
+    }
+    if (part instanceof MixerImpl) {
+      return ((MixerImpl) part).getDirection(other);
+    }
+    return null;
+  }
+
   public static void bridgeJoin(final Participant part, final Participant other, final Direction direction)
       throws MsControlException {
     LOG.info(part + " joins to " + other + " in " + direction);
+
+    // check if part and other has been joined
+    final Direction oldDirection = getJoinDirection(part, other);
+    if (oldDirection != null) {
+      bridgeUnjoin(part, other);
+    }
 
     final Joinable joinable = getJoinable(part);
     final Joinable otherJoinable = getJoinable(other);
