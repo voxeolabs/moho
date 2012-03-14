@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import javax.media.mscontrol.EventType;
 import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MediaObject;
 import javax.media.mscontrol.MediaSession;
@@ -124,7 +125,15 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         _mediaDialect.setMixerName(parameters, name);
       }
 
-      if (parameters != null && parameters.get(MediaMixer.ENABLED_EVENTS) != null) {
+      if ((parameters != null && parameters.get(MediaMixer.ENABLED_EVENTS) != null)
+          || (params != null && params.get(MediaMixer.ENABLED_EVENTS) != null)) {
+        if (params != null && params.get(MediaMixer.ENABLED_EVENTS) != null
+            && params.get(MediaMixer.ENABLED_EVENTS) instanceof EventType[]) {
+          if (parameters == null) {
+            parameters = mf.createParameters();
+          }
+          parameters.put(MediaMixer.ENABLED_EVENTS, params.get(MediaMixer.ENABLED_EVENTS));
+        }
         _mixer = _media.createMediaMixer(MediaMixer.AUDIO_EVENTS, parameters);
       }
       else {
