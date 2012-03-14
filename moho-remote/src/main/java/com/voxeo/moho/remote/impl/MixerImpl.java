@@ -10,6 +10,7 @@ import javax.media.mscontrol.join.JoinableStream.StreamType;
 
 import com.rayo.core.JoinDestinationType;
 import com.rayo.core.JoinedEvent;
+import com.rayo.core.SpeakingEvent;
 import com.rayo.core.UnjoinedEvent;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
@@ -18,6 +19,7 @@ import com.voxeo.moho.MediaService;
 import com.voxeo.moho.Mixer;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Unjoint;
+import com.voxeo.moho.common.event.MohoActiveSpeakerEvent;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
@@ -176,6 +178,12 @@ public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
       else {
         // TODO mixer unjoin mixer
       }
+      this.dispatch(mohoEvent);
+    }
+    else if (object instanceof SpeakingEvent) {
+      SpeakingEvent event = (SpeakingEvent) object;
+      Call speaker = (Call) _mohoRemote.getParticipant(event.getSpeakerId());
+      MohoActiveSpeakerEvent mohoEvent = new MohoActiveSpeakerEvent(this, new Participant[] {speaker});
       this.dispatch(mohoEvent);
     }
   }
