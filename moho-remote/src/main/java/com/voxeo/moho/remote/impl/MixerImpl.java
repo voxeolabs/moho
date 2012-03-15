@@ -146,6 +146,7 @@ public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
 
   @Override
   public void onRayoEvent(JID from, Presence presence) {
+    LOG.debug("MixerImpl Recived presence, processing:" + presence);
     Object object = presence.getExtension().getObject();
     if (object instanceof JoinedEvent) {
       MohoJoinCompleteEvent mohoEvent = null;

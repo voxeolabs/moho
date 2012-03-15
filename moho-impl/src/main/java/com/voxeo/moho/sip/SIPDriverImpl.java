@@ -146,7 +146,7 @@ public class SIPDriverImpl implements SIPDriver {
             .getApplicationContext(), req);
         SipURI joineeURI = joinCall.getJoinee();
         Participant participant = this.getFramework().getApplicationContext().getParticipant(joineeURI.getUser());
-        
+
         joinCall.addObserver(new Observer() {
           @State
           public void handleJoinComplete(JoinCompleteEvent event) {
@@ -162,7 +162,7 @@ public class SIPDriverImpl implements SIPDriver {
             }
           }
         });
-        
+
         LOG.debug("Received remotejoin, joining. joiner:" + joinCall.getJoiner().getUser() + ". joinee:"
             + joinCall.getJoinee().getUser() + ". created RemoteJoinIncomingCall:" + joinCall);
         joinCall.join(participant, joinCall.getX_Join_Type(), joinCall.getX_Join_Force(),
@@ -217,21 +217,21 @@ public class SIPDriverImpl implements SIPDriver {
   }
 
   protected void doCancel(final SipServletRequest req) throws ServletException, IOException {
-    // final EventSource source = SessionUtils.getEventSource(req);
-    // if (source instanceof SIPIncomingCall) {
-    // final SIPIncomingCall call = (SIPIncomingCall) source;
-    // try {
-    // call.doCancel();
-    // }
-    // catch (final Exception e) {
-    // log.warn("", e);
-    // }
-    // }
-
     final EventSource source = SessionUtils.getEventSource(req);
-    if (source != null) {
-      source.dispatch(new SIPHangupEventImpl((SIPCall) source, req));
+    if (source instanceof SIPIncomingCall) {
+      final SIPIncomingCall call = (SIPIncomingCall) source;
+      try {
+        call.doCancel();
+      }
+      catch (final Exception e) {
+        LOG.warn("", e);
+      }
     }
+
+    // final EventSource source = SessionUtils.getEventSource(req);
+    // if (source != null) {
+    // source.dispatch(new SIPHangupEventImpl((SIPCall) source, req));
+    // }
   }
 
   protected void doRefer(final SipServletRequest req) throws ServletException, IOException {
