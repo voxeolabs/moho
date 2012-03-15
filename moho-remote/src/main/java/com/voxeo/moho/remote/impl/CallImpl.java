@@ -313,8 +313,8 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
   @Override
   public void hangup(Map<String, String> headers) {
-    if (_state == Call.State.INPROGRESS || _state == Call.State.INITIALIZED || _state == Call.State.ACCEPTED
-        || _state == Call.State.CONNECTED || _state == Call.State.INPROGRESS) {
+//    if (_state == Call.State.INPROGRESS || _state == Call.State.INITIALIZED || _state == Call.State.ACCEPTED
+//        || _state == Call.State.CONNECTED || _state == Call.State.INPROGRESS) {
       try {
         HangupCommand command = new HangupCommand();
         command.setCallId(this.getId());
@@ -333,7 +333,7 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
         LOG.error("", e);
         throw new MohoRemoteException(e);
       }
-    }
+//    }
   }
 
   @Override
@@ -420,7 +420,14 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
         }
         MohoCallCompleteEvent mohoEvent = new MohoCallCompleteEvent(this,
             getMohoReasonByRayoEndEventReason(event.getReason()), null, event.getHeaders());
-        this.setCallState(State.DISCONNECTED);
+        
+        if(getMohoReasonByRayoEndEventReason(event.getReason()) == CallCompleteEvent.Cause.DISCONNECT){
+          this.setCallState(State.DISCONNECTED);
+        }
+        else{
+          this.setCallState(State.FAILED);
+        }
+
         this.dispatch(mohoEvent);
         cleanUp();
       }

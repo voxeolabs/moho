@@ -18,8 +18,10 @@ import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.OutgoingCall;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.Call.State;
 import com.voxeo.moho.common.event.MohoCallCompleteEvent;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
+import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.remote.MohoRemoteException;
 import com.voxeo.moho.remote.impl.event.MohoAnsweredEventImpl;
@@ -110,16 +112,21 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
       }
 
       if (!compareAndsetState(State.CONNECTED, State.DISCONNECTED)) {
-        _state = State.FAILED;
         MohoJoinCompleteEvent joinComplete = new MohoJoinCompleteEvent(this, null,
             getMohoJoinCompleteReasonByRayoEndEventReason(rayoReason), true);
         waitAnswerJoint.done(joinComplete);
+      }
+      
+      if(getMohoReasonByRayoEndEventReason(event.getReason()) == CallCompleteEvent.Cause.DISCONNECT){
+        this.setCallState(State.DISCONNECTED);
+      }
+      else{
+        this.setCallState(State.FAILED);
       }
 
       MohoCallCompleteEvent mohoEvent = new MohoCallCompleteEvent(this,
           getMohoReasonByRayoEndEventReason(event.getReason()), null, event.getHeaders());
       this.dispatch(mohoEvent);
-
       cleanUp();
     }
     else {
