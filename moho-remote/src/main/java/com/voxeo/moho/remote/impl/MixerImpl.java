@@ -10,7 +10,7 @@ import javax.media.mscontrol.join.JoinableStream.StreamType;
 
 import com.rayo.core.JoinDestinationType;
 import com.rayo.core.JoinedEvent;
-import com.rayo.core.SpeakingEvent;
+import com.rayo.core.StartedSpeakingEvent;
 import com.rayo.core.UnjoinedEvent;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.Endpoint;
@@ -180,8 +180,8 @@ public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
       }
       this.dispatch(mohoEvent);
     }
-    else if (object instanceof SpeakingEvent) {
-      SpeakingEvent event = (SpeakingEvent) object;
+    else if (object instanceof StartedSpeakingEvent) {
+      StartedSpeakingEvent event = (StartedSpeakingEvent) object;
       Call speaker = (Call) _mohoRemote.getParticipant(event.getSpeakerId());
       MohoActiveSpeakerEvent mohoEvent = new MohoActiveSpeakerEvent(this, new Participant[] {speaker});
       this.dispatch(mohoEvent);
