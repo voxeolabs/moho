@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -483,7 +482,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  public synchronized void joinDone(final Participant participant, final JoinDelegate delegate) {
+  public void joinDone(final Participant participant, final JoinDelegate delegate) {
     if (_joinDelegate.getPeer() != null) {
       if (JoinType.isBridge(_joinDelegate.getJoinType())) {
         _callDelegate = new SIPCallBridgeDelegate();
@@ -860,32 +859,16 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
 
     // TODO
-    Future future = null;
     if (_joinDelegate != null) {
-      future = ((java.util.concurrent.ThreadPoolExecutor) this.getThreadPool()).submit(new Runnable() {
-        @Override
-        public void run() {
-          if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT || cause == CallCompleteEvent.Cause.DISCONNECT) {
-            _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
-          }
-          else {
-            _joinDelegate.done(JoinCompleteEvent.Cause.ERROR, exception);
-          }
-          _joinDelegate = null;
-        }
-      });
+      if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT || cause == CallCompleteEvent.Cause.DISCONNECT) {
+        _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
+      }
+      else {
+        _joinDelegate.done(JoinCompleteEvent.Cause.ERROR, exception);
+      }
+      _joinDelegate = null;
     }
-    if (future != null) {
-      try {
-        future.get();
-      }
-      catch (InterruptedException e) {
-        LOG.error("Exception when terminating call " + this, e);
-      }
-      catch (ExecutionException ex) {
-        LOG.error("Exception when terminating call " + this, ex.getCause());
-      }
-    }
+
     this.dispatch(new MohoCallCompleteEvent(this, cause, exception, headers));
     _callDelegate = null;
   }
