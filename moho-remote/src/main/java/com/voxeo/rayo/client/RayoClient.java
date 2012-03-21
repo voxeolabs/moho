@@ -409,8 +409,10 @@ public class RayoClient {
 		} finally {
 			logger.info("Rayo Client XMPP Connection has been disconnected");
 			lock.unlock();
-			pingTimer.cancel();
-			pingTimer = null;
+			if (pingTimer != null) {
+				pingTimer.cancel();
+				pingTimer = null;
+			}
 		}
 	}
 	
