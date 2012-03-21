@@ -142,9 +142,6 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
         LOG.debug("Receiving Cancel, not answered. terminating, callID"
             + (getSipSession() != null ? getSipSession().getCallId() : ""));
       }
-      if (_joinDelegate != null) {
-        _joinDelegate.done(JoinCompleteEvent.Cause.CANCELED, new CanceledException());
-      }
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
       terminate(CallCompleteEvent.Cause.CANCEL, null, null);
     }

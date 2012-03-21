@@ -818,9 +818,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     _context.removeCall(getId());
 
     if (_service != null) {
-      ((GenericMediaService) _service)
-          .release((cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) ? true
-              : false);
+      ((GenericMediaService) _service).release((cause == CallCompleteEvent.Cause.DISCONNECT
+          || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT || cause == CallCompleteEvent.Cause.CANCEL) ? true
+          : false);
       _service = null;
     }
 
@@ -861,6 +861,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     // TODO
     if (_joinDelegate != null) {
       if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT || cause == CallCompleteEvent.Cause.DISCONNECT) {
+        _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
+      }
+      else if (cause == CallCompleteEvent.Cause.CANCEL) {
         _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
       }
       else {
