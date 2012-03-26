@@ -311,6 +311,27 @@ public class RayoClient {
 		connection.send(presence);
 	}
 
+	public void unavailable(String mixerName) throws XmppException {
+		
+		Presence presence = new Presence()
+			.setId(UUID.randomUUID().toString())
+			.setFrom(connection.getUsername() + "@" + connection.getServiceName() + "/" + connection.getResource())
+			.setTo(mixerName + "@" +rayoServer)
+			.setType(Type.unavailable);
+		connection.send(presence);
+	}
+	
+	public void available(String mixerName) throws XmppException {
+		
+		Presence presence = new Presence()
+			.setId(UUID.randomUUID().toString())
+			.setFrom(connection.getUsername() + "@" + connection.getServiceName() + "/" + connection.getResource())
+			.setTo(mixerName + "@" + rayoServer)
+			.setShow(Show.chat);
+		connection.send(presence);
+
+	}
+	
 	/**
 	 * Adds a callback class to listen for events on all the incoming stanzas.
 	 * 
