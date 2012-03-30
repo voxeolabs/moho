@@ -1305,8 +1305,16 @@ public class RayoClient {
 		
 		JoinCommand join = new JoinCommand();
 		join.setTo(to);
-		join.setDirection(Joinable.Direction.DUPLEX);
-		join.setMedia(JoinType.BRIDGE);
+		if (direction != null) {
+			join.setDirection(Joinable.Direction.valueOf(direction.toUpperCase()));
+		} else {
+			join.setDirection(null);
+		}
+		if (media !=  null) {
+			join.setMedia(JoinType.valueOf(media.toUpperCase()));
+		} else {
+			join.setMedia(null);
+		}
 		join.setType(type);
 		
 		return command(join,callId);
