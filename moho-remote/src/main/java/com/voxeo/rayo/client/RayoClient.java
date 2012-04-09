@@ -32,7 +32,6 @@ import com.rayo.core.RejectCommand;
 import com.rayo.core.UnjoinCommand;
 import com.rayo.core.verb.Ask;
 import com.rayo.core.verb.Choices;
-import com.rayo.core.verb.Conference;
 import com.rayo.core.verb.HoldCommand;
 import com.rayo.core.verb.Input;
 import com.rayo.core.verb.InputMode;
@@ -68,9 +67,9 @@ import com.voxeo.rayo.client.xmpp.extensions.Extension;
 import com.voxeo.rayo.client.xmpp.stanza.IQ;
 import com.voxeo.rayo.client.xmpp.stanza.Ping;
 import com.voxeo.rayo.client.xmpp.stanza.Presence;
-import com.voxeo.rayo.client.xmpp.stanza.Stanza;
 import com.voxeo.rayo.client.xmpp.stanza.Presence.Show;
 import com.voxeo.rayo.client.xmpp.stanza.Presence.Type;
+import com.voxeo.rayo.client.xmpp.stanza.Stanza;
 
 /**
  * This class servers as a client to the Rayo XMPP platform.
@@ -1020,44 +1019,6 @@ public class RayoClient {
 			.setFrom(buildFrom())
 			.setTo(buildTo(callId))
 			.setChild(Extension.create(input));
-		
-		return sendAndGetRef(callId, iq);
-	}
-	
-	/**
-	 * Creates a conference and joins the last active call 
-	 * 
-	 * @param roomName Id of the conference
-	 * @param callId Id of the call that will be starting the conference
-	 * 
-	 * @return VerbRef A reference to the conference object that has been created
-	 * 
-	 * @throws XmppException If there is any problem while creating the conference
-	 */
-	public VerbRef conference(String roomName, String callId) throws XmppException {
-		
-		Conference conference = new Conference();
-		conference.setRoomName(roomName);
-		conference.setTerminator('#');
-		return conference(conference,callId);
-	}
-	
-	/**
-	 * Creates a conference and joins the last active call 
-	 * 
-	 * @param conference Conference object
-	 * @param callId Id of the call that will be starting the conference
-	 * 
-	 * @return VerbRef A reference to the conference object that has been created
-	 * 
-	 * @throws XmppException If there is any problem while creating the conference
-	 */
-	public VerbRef conference(Conference conference, String callId) throws XmppException {
-		
-		IQ iq = new IQ(IQ.Type.set)
-			.setFrom(buildFrom())
-			.setTo(buildTo(callId))
-			.setChild(Extension.create(conference));
 		
 		return sendAndGetRef(callId, iq);
 	}
