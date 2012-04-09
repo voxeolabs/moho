@@ -311,6 +311,27 @@ public class RayoClient {
 		connection.send(presence);
 	}
 
+	public void unavailable(String mixerName) throws XmppException {
+		
+		Presence presence = new Presence()
+			.setId(UUID.randomUUID().toString())
+			.setFrom(connection.getUsername() + "@" + connection.getServiceName() + "/" + connection.getResource())
+			.setTo(mixerName + "@" +rayoServer)
+			.setType(Type.unavailable);
+		connection.send(presence);
+	}
+	
+	public void available(String mixerName) throws XmppException {
+		
+		Presence presence = new Presence()
+			.setId(UUID.randomUUID().toString())
+			.setFrom(connection.getUsername() + "@" + connection.getServiceName() + "/" + connection.getResource())
+			.setTo(mixerName + "@" + rayoServer)
+			.setShow(Show.chat);
+		connection.send(presence);
+
+	}
+	
 	/**
 	 * Adds a callback class to listen for events on all the incoming stanzas.
 	 * 
@@ -409,8 +430,10 @@ public class RayoClient {
 		} finally {
 			logger.info("Rayo Client XMPP Connection has been disconnected");
 			lock.unlock();
-			pingTimer.cancel();
-			pingTimer = null;
+			if (pingTimer != null) {
+				pingTimer.cancel();
+				pingTimer = null;
+			}
 		}
 	}
 	
@@ -1282,8 +1305,16 @@ public class RayoClient {
 		
 		JoinCommand join = new JoinCommand();
 		join.setTo(to);
-		join.setDirection(Joinable.Direction.DUPLEX);
-		join.setMedia(JoinType.BRIDGE);
+		if (direction != null) {
+			join.setDirection(Joinable.Direction.valueOf(direction.toUpperCase()));
+		} else {
+			join.setDirection(null);
+		}
+		if (media !=  null) {
+			join.setMedia(JoinType.valueOf(media.toUpperCase()));
+		} else {
+			join.setMedia(null);
+		}
 		join.setType(type);
 		
 		return command(join,callId);
