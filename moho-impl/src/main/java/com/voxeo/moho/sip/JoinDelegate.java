@@ -322,7 +322,13 @@ public abstract class JoinDelegate {
     // check if part and other has been joined
     final Direction oldDirection = getJoinDirection(part, other);
     if (oldDirection != null) {
-      bridgeUnjoin(part, other);
+      if(oldDirection != direction){
+        bridgeUnjoin(part, other);
+      }
+      else{
+        LOG.debug(part + "already joined to " + other + " in " + direction +",ignore the operation");
+        return;
+      }
     }
 
     final Joinable joinable = getJoinable(part);
