@@ -38,7 +38,10 @@ public class JmxClient {
 
 		J4pReadRequest req = new J4pReadRequest(url, attribute);
 		J4pReadResponse resp = client.execute(req);
-		return resp.getValue();
+		Object response = resp.getValue();
+		
+		log.debug(String.format("Received response [%s]", response));
+		return response;
 	}
 
 	public Object jmxExec(String mbean, String operation, Object... args)
@@ -50,6 +53,9 @@ public class JmxClient {
 
 		J4pExecRequest req = new J4pExecRequest(mbean, operation, args);
 		J4pExecResponse resp = client.execute(req);
-		return resp.getValue();
+		Object response = resp.getValue();
+		
+		log.debug(String.format("Received response [%s]", response));
+		return response;
 	}
 }
