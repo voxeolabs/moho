@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.regex.PatternSyntaxException;
 
 import javax.media.mscontrol.MediaErr;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
@@ -56,10 +58,20 @@ public class SIPHelper {
       for (final Map.Entry<String, String> e : headers.entrySet()) {
         if (e.getKey().equalsIgnoreCase("Route")) {
           try {
-            req.pushRoute((SipURI)factory.createURI(e.getValue()));
+          String[] values = e.getValue().split("\\|\\|\\|");
+          int length = values.length;
+          for (int i = length-1; i >= 0; i--) {
+            LOG.debug("route["+i+"]: "+values[i]);
+            try {
+              req.pushRoute(factory.createAddress(values[i]));
+            }
+            catch (ServletParseException ex) {
+              LOG.error("Invalid Route Header: " + values[i]);
+            }              
           }
-          catch (ServletParseException ex) {
-            LOG.error("Invalid Route Header: " + e.getValue());
+          }
+          catch(PatternSyntaxException ex) {
+            LOG.error(ex);
           }
         }
       }
