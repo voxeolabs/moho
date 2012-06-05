@@ -54,6 +54,14 @@ public class SIPHelper {
       final Address from, final Address to, final Map<String, String> headers, SipApplicationSession applicationSession) {
     final SipServletRequest req = factory.createRequest(
         applicationSession != null ? applicationSession : factory.createApplicationSession(), method, from, to);
+    URI ruri = req.getRequestURI();
+    if (ruri instanceof SipURI) {
+      SipURI sruri = (SipURI)ruri;
+      if (sruri.getUserParam() == null) {
+        sruri.setUserParam("phone");
+        req.setRequestURI(sruri);
+      }
+    }
     if (headers != null) {
       for (final Map.Entry<String, String> e : headers.entrySet()) {
         if (e.getKey().equalsIgnoreCase("Route")) {
