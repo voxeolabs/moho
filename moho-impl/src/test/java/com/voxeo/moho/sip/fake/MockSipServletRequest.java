@@ -139,7 +139,7 @@ public class MockSipServletRequest extends MockSipServletMessage implements SipS
   }
 
   @Override
-  public URI getRequestURI() {
+  final public URI getRequestURI() {
 
     return null;
   }
