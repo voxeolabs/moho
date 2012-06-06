@@ -594,10 +594,10 @@ public class SIPDriverImpl implements SIPDriver {
   @Override
   public Endpoint createEndpoint(String addr) {
     try {
-      if (addr.startsWith("sip:") || addr.startsWith("sips:") || addr.startsWith("<sip:") || addr.startsWith("<sips:")) {
-        return new SIPEndpointImpl((ExecutionContext) _app, _sipFacory.createAddress(addr));
+      if (addr.startsWith("sip:") || addr.startsWith("sips:") || addr.startsWith("tel:") || addr.startsWith("fax:")) {
+        return new SIPEndpointImpl((ExecutionContext) _app, _sipFacory.createAddress(_sipFacory.createURI(addr)));
       }
-      else if (addr.startsWith("tel:") || addr.startsWith("fax:") || addr.startsWith("<tel:")
+      else if (addr.startsWith("<sip:") || addr.startsWith("<sips:") || addr.startsWith("<tel:")
           || addr.startsWith("<fax:")) {
         return new SIPEndpointImpl((ExecutionContext) _app, _sipFacory.createAddress(addr));
       }
