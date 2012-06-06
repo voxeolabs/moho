@@ -597,8 +597,7 @@ public class SIPDriverImpl implements SIPDriver {
       if (addr.startsWith("sip:") || addr.startsWith("sips:") || addr.startsWith("tel:") || addr.startsWith("fax:")) {
         return new SIPEndpointImpl((ExecutionContext) _app, _sipFacory.createAddress(_sipFacory.createURI(addr)));
       }
-      else if (addr.startsWith("<sip:") || addr.startsWith("<sips:") || addr.startsWith("<tel:")
-          || addr.startsWith("<fax:")) {
+      else {
         return new SIPEndpointImpl((ExecutionContext) _app, _sipFacory.createAddress(addr));
       }
     }
@@ -606,6 +605,5 @@ public class SIPDriverImpl implements SIPDriver {
       LOG.error("", e);
       throw new IllegalArgumentException("not a legal sip address:" + addr, e);
     }
-    return null;
   }
 }
