@@ -1026,6 +1026,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
       _media = null;
     }
+    if(_service != null){
+      try{
+        ((GenericMediaService)_service).release(true);
+      }
+      catch(final Throwable t){
+        LOG.warn("Exception when releasing media service", t);
+      }
+      _service = null;
+    }
   }
 
   protected synchronized void processSDPOffer(final SipServletMessage msg) throws MediaException {
