@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
 import javax.media.mscontrol.EventType;
 import javax.media.mscontrol.MediaErr;
@@ -106,12 +105,6 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   protected MediaDialect _dialect;
 
   protected List<MediaOperation<?, ? extends MediaCompleteEvent<?>>> _futures = new LinkedList<MediaOperation<?, ? extends MediaCompleteEvent<?>>>();
-
-  protected OutputCommandInputCommandPair _currentOutput;
-
-  protected Queue<OutputCommandInputCommandPair> _outputQueue = new LinkedList<OutputCommandInputCommandPair>();
-
-  protected PlayerListener _playerListener = new PlayerListener();
 
   protected GenericMediaService(final T parent, final MediaGroup group) {
     _parent = parent;
@@ -254,6 +247,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   private boolean haveOutput(OutputCommand output) {
     return output != null && output.getAudibleResources() != null && output.getAudibleResources().length > 0;
   }
+  
+  private boolean haveInput(InputCommand input) {
+    return input != null && input.getGrammars() != null && input.getGrammars().length > 0;
+  }
 
   private Prompt<T> internaOutput(OutputCommandInputCommandPair outinputPair) {
     OutputCommand output = outinputPair.getOutputCommand();
@@ -261,9 +258,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
     Prompt<T> retval = outinputPair.getPrompt();
 
-    if (haveOutput(output)) {
-      _currentOutput = outinputPair;
-
+    if (haveOutput(outinputPair.getOutputCommand())) {
+      //_currentOutput = outinputPair;
+      
       final Parameters params = _group.createParameters();
       final List<RTC> rtcs = new ArrayList<RTC>();
 
@@ -344,19 +341,24 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       for (final MediaResource r : reses) {
         uris.add(r.toURI());
       }
-
-      try {
-        getPlayer().addListener(_playerListener);
-        getPlayer().play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
-        _futures.add(_currentOutput.getOutput());
+      
+      if(haveInput(outinputPair.getInputCommand())){
+        params.put(SignalDetector.PROMPT, uris.toArray(new URI[] {}));
+        detectSignal(outinputPair.getInputCommand(), (InputImpl<T>) retval.getInput(), params, rtcs);
       }
-      catch (final MsControlException e) {
-        afterPlay(false);
-        throw new MediaException(e);
+      else{
+        try {
+          getPlayer().addListener(new PlayerListener(outinputPair.getOutput()));
+          getPlayer().play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
+          _futures.add(outinputPair.getOutput());
+        }
+        catch (final MsControlException e) {
+          throw new MediaException(e);
+        }
       }
     }
     else {
-      detectSignal(outinputPair.getInputCommand(), (InputImpl<T>) retval.getInput());
+      detectSignal(outinputPair.getInputCommand(), (InputImpl<T>) retval.getInput(), null, null);
     }
     return retval;
   }
@@ -368,31 +370,16 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     final PromptImpl<T> retval = new PromptImpl<T>();
     OutputImpl<T> outFuture = null;
     InputImpl<T> inFuture = null;
-    if (output != null) {
-      outFuture = new OutputImpl<T>(_group);
-      retval.setOutput(outFuture);
-    }
-    if (input != null) {
+    if(haveInput(input)){
       inFuture = new InputImpl<T>(_group);
       retval.setInput(inFuture);
     }
+    else if (output != null) {
+      outFuture = new OutputImpl<T>(_group);
+      retval.setOutput(outFuture);
+    }
     OutputCommandInputCommandPair outinputPair = new OutputCommandInputCommandPair(output, input, inFuture, outFuture,
         repeat, retval);
-    if (haveOutput(output) && _currentOutput != null) {
-      if (output.getBehavior() == OutputCommand.BehaviorIfBusy.ERROR) {
-        throw new MediaException("WrongState, Other output is in progress.");
-      }
-      else if (output.getBehavior() == OutputCommand.BehaviorIfBusy.STOP) {
-        _outputQueue.clear();
-        _outputQueue.add(outinputPair);
-        _group.triggerAction(Player.STOP);
-        return retval;
-      }
-      else {
-        _outputQueue.add(outinputPair);
-        return retval;
-      }
-    }
 
     return internaOutput(outinputPair);
   }
@@ -530,7 +517,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   }
 
   @SuppressWarnings("deprecation")
-  protected Input<T> detectSignal(final InputCommand cmd, final InputImpl<T> input) throws MediaException {
+  protected Input<T> detectSignal(final InputCommand cmd, final InputImpl<T> input, Parameters internalParams, List<RTC> internalRtcs) throws MediaException {
 
     if (cmd.isRecord()) {
       try {
@@ -545,12 +532,20 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     if (cmd.getParameters() != null) {
       params.putAll(cmd.getParameters());
     }
+    
+    if(internalParams != null){
+      params.putAll(internalParams);
+    }
 
     final List<RTC> rtcs = new ArrayList<RTC>();
     if (cmd.getRtcs() != null) {
       for (final RTC rtc : cmd.getRtcs()) {
         rtcs.add(rtc);
       }
+    }
+    
+    if(internalRtcs != null){
+      rtcs.addAll(internalRtcs);
     }
 
     if (cmd.size() > 0) {
@@ -649,17 +644,20 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       _futures.add(input);
     }
     catch (final MsControlException e) {
-      if (params.get(SignalDetector.PROMPT) != null) {
-        _currentOutput = null;
-      }
+//      if (params.get(SignalDetector.PROMPT) != null) {
+//        _currentOutput = null;
+//      }
       throw new MediaException(e);
     }
     return input;
   }
 
+  @SuppressWarnings("rawtypes")
   protected class PlayerListener implements MediaEventListener<PlayerEvent> {
+    OutputImpl _output;
 
-    public PlayerListener() {
+    public PlayerListener(OutputImpl output) {
+      _output = output;
     }
 
     @Override
@@ -690,7 +688,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
                 }
               }
               else if (q == ResourceEvent.STOPPED) {
-                if (_currentOutput.getOutput().isNormalDisconnect()) {
+                if (_output.isNormalDisconnect()) {
                   cause = Cause.DISCONNECT;
                 }
                 else {
@@ -705,28 +703,28 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
                 errorText = e.getError() + ": " + e.getErrorText();
               }
               final OutputCompleteEvent<T> outputCompleteEvent = new MohoOutputCompleteEvent<T>(_parent, cause,
-                  errorText, _currentOutput.getOutput());
+                  errorText, _output);
 
+              _output.done(outputCompleteEvent);
               _parent.dispatch(outputCompleteEvent);
-              _currentOutput.getOutput().done(outputCompleteEvent);
-              _futures.remove(_currentOutput.getOutput());
+              
+              _futures.remove(_output);
 
-              afterPlay(true);
             }
 
             else if (t == PlayerEvent.PAUSED) {
-              _currentOutput.getOutput().pauseActionDone();
+              _output.pauseActionDone();
               _parent.dispatch(new MohoOutputPausedEvent<T>(_parent));
             }
             else if (t == PlayerEvent.RESUMED) {
-              _currentOutput.getOutput().resumeActionDone();
+              _output.resumeActionDone();
               _parent.dispatch(new MohoOutputResumedEvent<T>(_parent));
             }
             else if (t == PlayerEvent.SPEED_CHANGED) {
-              _currentOutput.getOutput().speedActionDone();
+              _output.speedActionDone();
             }
             else if (t == PlayerEvent.VOLUME_CHANGED) {
-              _currentOutput.getOutput().volumeActionDone();
+              _output.volumeActionDone();
             }
           }
         }
@@ -1032,31 +1030,4 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     }
   }
 
-  private void afterPlay(boolean complete) {
-    if (complete && _currentOutput.getInputCommand() != null) {
-      detectSignal(_currentOutput.getInputCommand(), _currentOutput.getInput());
-    }
-
-    _currentOutput = null;
-
-    OutputCommandInputCommandPair queuedOutputCommand = _outputQueue.poll();
-    if (queuedOutputCommand != null) {
-      try {
-        this.internaOutput(queuedOutputCommand);
-      }
-      catch (MediaException ex) {
-        LOG.error("Exception when executing queued output", ex);
-        final OutputCompleteEvent<T> outputEvent = new MohoOutputCompleteEvent<T>(_parent, Cause.ERROR,
-            ex.getMessage(), queuedOutputCommand.getOutput());
-        _parent.dispatch(outputEvent);
-        queuedOutputCommand.getOutput().done(outputEvent);
-        if (queuedOutputCommand.getInput() != null) {
-          final InputCompleteEvent<T> inputEvent = new MohoInputCompleteEvent<T>(_parent,
-              InputCompleteEvent.Cause.ERROR, ex.getMessage(), queuedOutputCommand.getInput());
-          _parent.dispatch(inputEvent);
-          queuedOutputCommand.getInput().done(inputEvent);
-        }
-      }
-    }
-  }
 }
