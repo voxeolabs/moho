@@ -41,8 +41,6 @@ public class ConferenceImpl extends MixerImpl implements Conference, Participant
 
   private static final Logger LOG = Logger.getLogger(ConferenceImpl.class);
 
-  protected String _id;
-
   protected int _maxSeats;
 
   protected int _occupiedSeats;

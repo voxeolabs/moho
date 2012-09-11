@@ -252,16 +252,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
       try {
         if (_service == null) {
-          Parameters params = null;
-          if (getSipSession() != null) {
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Set mg id with call id :" + getSipSession().getCallId());
-            }
-
-            params = _media.createParameters();
-            params.put(MediaObject.MEDIAOBJECT_ID, "MG-" + getSipSession().getCallId());
-            _media.setParameters(params);
-          }
+          Parameters params = _media.createParameters();
 
           _service = _context.getMediaServiceFactory().create((Call) this, _media, params);
           JoinDelegate.bridgeJoin(this, _service.getMediaGroup());
@@ -978,18 +969,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
     }
     if (_network == null) {
-      Parameters params = null;
-      if (getSipSession() != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Set nc id with call id :" + getSipSession().getCallId());
-        }
+      Parameters params = _media.createParameters();
 
-        params = _media.createParameters();
-
-        params.put(MediaObject.MEDIAOBJECT_ID, "MS-" + getSipSession().getCallId());
-        params.put(MediaObject.MEDIAOBJECT_ID, "NC-" + getSipSession().getCallId());
-        _media.setParameters(params);
-      }
       _network = _media.createNetworkConnection(NetworkConnection.BASIC, params);
       _network.getSdpPortManager().addListener(this);
     }
@@ -1026,11 +1007,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
       _media = null;
     }
-    if(_service != null){
-      try{
-        ((GenericMediaService)_service).release(true);
+    if (_service != null) {
+      try {
+        ((GenericMediaService) _service).release(true);
       }
-      catch(final Throwable t){
+      catch (final Throwable t) {
         LOG.warn("Exception when releasing media service", t);
       }
       _service = null;
