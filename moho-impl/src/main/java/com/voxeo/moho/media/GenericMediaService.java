@@ -1,14 +1,11 @@
 /**
- * Copyright 2010 Voxeo Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License.
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
+ * Copyright 2010 Voxeo Corporation Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 package com.voxeo.moho.media;
@@ -23,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import javax.media.mscontrol.EventType;
 import javax.media.mscontrol.MediaErr;
@@ -67,6 +65,7 @@ import com.voxeo.moho.event.MediaCompleteEvent;
 import com.voxeo.moho.event.OutputCompleteEvent;
 import com.voxeo.moho.event.OutputCompleteEvent.Cause;
 import com.voxeo.moho.event.RecordCompleteEvent;
+import com.voxeo.moho.media.dialect.CallRecordListener;
 import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.media.input.Grammar;
 import com.voxeo.moho.media.input.InputCommand;
@@ -77,6 +76,7 @@ import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.OutputCommand.BargeinType;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
+import com.voxeo.moho.sip.SIPCallImpl;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.NLSMLParser;
 
@@ -89,8 +89,6 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   protected MediaSession _session;
 
   protected MediaGroup _group;
-
-  protected NetworkConnection _call;
 
   protected Player _player = null;
 
@@ -247,7 +245,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   private boolean haveOutput(OutputCommand output) {
     return output != null && output.getAudibleResources() != null && output.getAudibleResources().length > 0;
   }
-  
+
   private boolean haveInput(InputCommand input) {
     return input != null && input.getGrammars() != null && input.getGrammars().length > 0;
   }
@@ -259,8 +257,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     Prompt<T> retval = outinputPair.getPrompt();
 
     if (haveOutput(outinputPair.getOutputCommand())) {
-      //_currentOutput = outinputPair;
-      
+      // _currentOutput = outinputPair;
+
       final Parameters params = _group.createParameters();
       final List<RTC> rtcs = new ArrayList<RTC>();
 
@@ -341,12 +339,12 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       for (final MediaResource r : reses) {
         uris.add(r.toURI());
       }
-      
-      if(haveInput(outinputPair.getInputCommand())){
+
+      if (haveInput(outinputPair.getInputCommand())) {
         params.put(SignalDetector.PROMPT, uris.toArray(new URI[] {}));
         detectSignal(outinputPair.getInputCommand(), (InputImpl<T>) retval.getInput(), params, rtcs);
       }
-      else{
+      else {
         try {
           getPlayer().addListener(new PlayerListener(outinputPair.getOutput()));
           getPlayer().play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
@@ -370,7 +368,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     final PromptImpl<T> retval = new PromptImpl<T>();
     OutputImpl<T> outFuture = null;
     InputImpl<T> inFuture = null;
-    if(haveInput(input)){
+    if (haveInput(input)) {
       inFuture = new InputImpl<T>(_group);
       retval.setInput(inFuture);
     }
@@ -400,6 +398,30 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
   @Override
   public Recording<T> record(final RecordCommand command) throws MediaException {
+    if (command.isDuplex()) {
+      if (!(_parent instanceof SIPCallImpl)) {
+        throw new UnsupportedOperationException("Can only do duplex record on SIP call");
+      }
+      NetworkConnection nc = (NetworkConnection) ((SIPCallImpl) _parent).getMediaObject();
+      final CallRecordingImpl<T> retValue = new CallRecordingImpl<T>(nc, _dialect);
+      try {
+        final Parameters params = _group.createParameters();
+        if (command.getAudioCODEC() != null) {
+          _dialect.setCallRecordAudioCodec(params, command.getAudioCODEC());
+        }
+        if (command.getFileFormat() != null) {
+          _dialect.setCallRecordFileFormat(params, command.getFileFormat());
+        }
+        _dialect.startCallRecord(nc, command.getRecordURI(), RTC.NO_RTC, params, new CallRecordListenerImpl(retValue));
+        _futures.add(retValue);
+      }
+      catch (Exception ex) {
+        throw new MediaException(ex);
+      }
+
+      return retValue;
+    }
+
     final RecordingImpl<T> retval = new RecordingImpl<T>(_group);
     try {
       final List<RTC> rtcs = new ArrayList<RTC>();
@@ -517,7 +539,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   }
 
   @SuppressWarnings("deprecation")
-  protected Input<T> detectSignal(final InputCommand cmd, final InputImpl<T> input, Parameters internalParams, List<RTC> internalRtcs) throws MediaException {
+  protected Input<T> detectSignal(final InputCommand cmd, final InputImpl<T> input, Parameters internalParams,
+      List<RTC> internalRtcs) throws MediaException {
 
     if (cmd.isRecord()) {
       try {
@@ -532,8 +555,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     if (cmd.getParameters() != null) {
       params.putAll(cmd.getParameters());
     }
-    
-    if(internalParams != null){
+
+    if (internalParams != null) {
       params.putAll(internalParams);
     }
 
@@ -543,8 +566,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         rtcs.add(rtc);
       }
     }
-    
-    if(internalRtcs != null){
+
+    if (internalRtcs != null) {
       rtcs.addAll(internalRtcs);
     }
 
@@ -644,12 +667,55 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       _futures.add(input);
     }
     catch (final MsControlException e) {
-//      if (params.get(SignalDetector.PROMPT) != null) {
-//        _currentOutput = null;
-//      }
+      // if (params.get(SignalDetector.PROMPT) != null) {
+      // _currentOutput = null;
+      // }
       throw new MediaException(e);
     }
     return input;
+  }
+
+  protected class CallRecordListenerImpl implements CallRecordListener {
+    private CallRecordingImpl<T> callRecording;
+
+    public CallRecordListenerImpl(CallRecordingImpl<T> callRecording) {
+      super();
+      this.callRecording = callRecording;
+    }
+
+    @Override
+    public void callRecordComplete(ResourceEvent event) {
+      Qualifier q = event.getQualifier();
+      RecordCompleteEvent.Cause cause = RecordCompleteEvent.Cause.UNKNOWN;
+      String errorText = null;
+      if (q == SpeechDetectorConstants.INITIAL_TIMEOUT_EXPIRED) {
+        cause = RecordCompleteEvent.Cause.INI_TIMEOUT;
+      }
+      else if (q == ResourceEvent.STOPPED) {
+        if (callRecording.isNormalDisconnect()) {
+          cause = RecordCompleteEvent.Cause.DISCONNECT;
+        }
+        else {
+          cause = RecordCompleteEvent.Cause.CANCEL;
+        }
+      }
+      else if (q == ResourceEvent.RTC_TRIGGERED) {
+        cause = RecordCompleteEvent.Cause.CANCEL;
+      }
+      else if (q == ResourceEvent.NO_QUALIFIER) {
+        if (event.getError() != ResourceEvent.NO_ERROR) {
+          cause = RecordCompleteEvent.Cause.ERROR;
+        }
+
+        errorText = event.getError() + ": " + event.getErrorText();
+      }
+      // TODO record duration
+      final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause, 0, errorText,
+          callRecording);
+      _parent.dispatch(recordCompleteEvent);
+      callRecording.done(recordCompleteEvent);
+      _futures.remove(callRecording);
+    }
   }
 
   @SuppressWarnings("rawtypes")
@@ -707,7 +773,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
               _output.done(outputCompleteEvent);
               _parent.dispatch(outputCompleteEvent);
-              
+
               _futures.remove(_output);
 
             }
@@ -966,6 +1032,19 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         InputImpl<T> input = (InputImpl<T>) future;
         if (input.isPending()) {
           input.normalDisconnect(isNormalDisconnect);
+        }
+      }
+      else if(future instanceof CallRecordingImpl){
+        CallRecordingImpl<T> recording = (CallRecordingImpl<T>) future;
+        if (!recording.isDone()) {
+          recording.normalDisconnect(isNormalDisconnect);
+          recording.stop();
+          try {
+            recording.get(30, TimeUnit.SECONDS);
+          }
+          catch (Exception e) {
+            LOG.warn("Exception when waiting call complete event.", e);
+          }
         }
       }
       else {

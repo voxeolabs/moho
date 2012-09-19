@@ -1,6 +1,12 @@
 package com.voxeo.moho.media.dialect;
 
+import java.net.URI;
+
+import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.Parameters;
+import javax.media.mscontrol.Value;
+import javax.media.mscontrol.networkconnection.NetworkConnection;
+import javax.media.mscontrol.resource.RTC;
 
 import com.voxeo.moho.media.InputMode;
 
@@ -31,4 +37,12 @@ public interface MediaDialect {
   void setSpeechCompleteTimeout(Parameters parameters, long peechCompleteTimeout);
 
   void setMixerName(Parameters params, String name);
+  
+  void setCallRecordFileFormat(Parameters params, Value value);
+  
+  void setCallRecordAudioCodec(Parameters params, Value value);
+  
+  void startCallRecord(NetworkConnection nc, URI recordURI, RTC[] rtc, Parameters optargs, CallRecordListener listener) throws MsControlException;
+  
+  void stopCallRecord(NetworkConnection nc);
 }

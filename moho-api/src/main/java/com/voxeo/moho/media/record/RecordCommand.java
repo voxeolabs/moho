@@ -156,6 +156,8 @@ public class RecordCommand {
   protected long _finalTimeout;
 
   protected String _finishOnKey;
+  
+  protected boolean duplex;
 
   public long getInitialTimeout() {
     return _initialTimeout;
@@ -342,4 +344,12 @@ public class RecordCommand {
     _finishOnKey = finishOnKey;
   }
 
+  public boolean isDuplex() {
+    return duplex;
+  }
+
+  public void setDuplex(boolean duplex) {
+    this.duplex = duplex;
+  }
+  
 }
