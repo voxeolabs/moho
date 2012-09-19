@@ -1,4 +1,4 @@
-h1. Voxeo Labs Moho
+h1. Voxeo Labs Moho !http://ci.voxeolabs.net/jenkins/job/Moho/badge/icon!:http://ci.voxeolabs.net/jenkins/job/Moho
 
 !http://dl.dropbox.com/u/25511/Voxeo/images/moho_vert_FULL%20COLOR.jpg!
 
