@@ -9,9 +9,13 @@
   <packaging>pom</packaging>
 
   <repositories>
-    <repository>
+    <!--repository>
       <id>maven.voxeo.net</id>
       <url>http://maven.voxeo.net/nexus/content/groups/public/</url>
+    </repository-->
+    <repository>
+      <id>maven.voxeolabs.net</id>
+      <url>http://maven.voxeolabs.net:8081/nexus/content/groups/public/</url>
     </repository>
     <repository>
       <id>sun-public</id>
