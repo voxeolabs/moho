@@ -5,6 +5,8 @@ import java.net.URI;
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.Value;
+import javax.media.mscontrol.mediagroup.RecorderEvent;
+import javax.media.mscontrol.mediagroup.signals.SignalDetectorEvent;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.resource.RTC;
 
@@ -82,6 +84,26 @@ public class GenericDialect implements MediaDialect {
 
   @Override
   public void stopCallRecord(NetworkConnection nc) {
+
+  }
+
+  @Override
+  public boolean isPromptCompleteEvent(RecorderEvent event) {
+    return false;
+  }
+
+  @Override
+  public boolean isPromptCompleteEvent(SignalDetectorEvent event) {
+    return false;
+  }
+
+  @Override
+  public void enableRecorderPromptCompleteEvent(Parameters params, boolean enable) {
+
+  }
+
+  @Override
+  public void enableDetectorPromptCompleteEvent(Parameters params, boolean enable) {
 
   }
 }

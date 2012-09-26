@@ -5,6 +5,8 @@ import java.net.URI;
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.Value;
+import javax.media.mscontrol.mediagroup.RecorderEvent;
+import javax.media.mscontrol.mediagroup.signals.SignalDetectorEvent;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.resource.RTC;
 
@@ -38,6 +40,7 @@ public interface MediaDialect {
 
   void setMixerName(Parameters params, String name);
   
+  //call record related
   void setCallRecordFileFormat(Parameters params, Value value);
   
   void setCallRecordAudioCodec(Parameters params, Value value);
@@ -45,4 +48,14 @@ public interface MediaDialect {
   void startCallRecord(NetworkConnection nc, URI recordURI, RTC[] rtc, Parameters optargs, CallRecordListener listener) throws MsControlException;
   
   void stopCallRecord(NetworkConnection nc);
+  //call record related over
+  
+  void enableRecorderPromptCompleteEvent(Parameters params, boolean enable);
+  
+  void enableDetectorPromptCompleteEvent(Parameters params, boolean enable);
+
+  boolean isPromptCompleteEvent(RecorderEvent event);
+  
+  boolean isPromptCompleteEvent(SignalDetectorEvent event);
+
 }

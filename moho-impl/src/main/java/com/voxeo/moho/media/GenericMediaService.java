@@ -16,6 +16,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -528,6 +529,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         rtcs.add(new RTC(SignalDetector.PATTERN_MATCH[0], Recorder.STOP));
       }
 
+      _dialect.enableRecorderPromptCompleteEvent(params, true);
+
       getRecorder().addListener(new RecorderListener(retval));
       getRecorder().record(command.getRecordURI(), rtcs.toArray(new RTC[] {}), params);
       _futures.add(retval);
@@ -586,7 +589,17 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getSensitivity());
 
     if (cmd.isSupervised()) {
-      params.put(SignalDetector.ENABLED_EVENTS, new EventType[] {SignalDetectorEvent.SIGNAL_DETECTED});
+      _dialect.enableDetectorPromptCompleteEvent(params, true);
+
+      EventType[] enabledEvent = (EventType[]) params.get(SignalDetector.ENABLED_EVENTS);
+      if (enabledEvent != null && enabledEvent.length > 0) {
+        EventType[] newEabledEvents = Arrays.copyOf(enabledEvent, enabledEvent.length + 1);
+        newEabledEvents[newEabledEvents.length - 1] = SignalDetectorEvent.SIGNAL_DETECTED;
+        params.put(SignalDetector.ENABLED_EVENTS, newEabledEvents);
+      }
+      else {
+        params.put(SignalDetector.ENABLED_EVENTS, new EventType[] {SignalDetectorEvent.SIGNAL_DETECTED});
+      }
     }
 
     if (cmd.getSpeechCompleteTimeout() > 0) {
@@ -928,6 +941,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           _parent.dispatch(new MohoInputDetectedEvent<T>(_parent, e.getSignalString()));
         }
       }
+      else if (_dialect.isPromptCompleteEvent(e)) {
+        _parent.dispatch(new MohoOutputCompleteEvent<T>(_parent, OutputCompleteEvent.Cause.END, _input));
+      }
     }
   }
 
@@ -1010,6 +1026,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       else if (t == RecorderEvent.STARTED) {
         _parent.dispatch(new MohoRecordStartedEvent<T>(_parent));
       }
+      else if (_dialect.isPromptCompleteEvent(e)) {
+        _parent.dispatch(new MohoOutputCompleteEvent<T>(_parent, OutputCompleteEvent.Cause.END, _recording));
+      }
     }
   }
 
@@ -1034,7 +1053,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           input.normalDisconnect(isNormalDisconnect);
         }
       }
-      else if(future instanceof CallRecordingImpl){
+      else if (future instanceof CallRecordingImpl) {
         CallRecordingImpl<T> recording = (CallRecordingImpl<T>) future;
         if (!recording.isDone()) {
           recording.normalDisconnect(isNormalDisconnect);
