@@ -126,16 +126,30 @@
 
   <distributionManagement>
     <repository>
-      <id>maven.voxeo.net</id>
+      <id>maven.voxeolabs.net</id>
       <name>Nexus Public Mirror</name>
-      <url>http://maven.voxeo.net/nexus/content/repositories/releases/</url>
+      <url>http://maven.voxeolabs.net:8081/nexus/content/repositories/releases/</url>
     </repository>
     <!-- use the following if you ARE using a snapshot version. -->
     <snapshotRepository>
-      <id>maven.voxeo.net</id>
+      <id>maven.voxeolabs.net</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://maven.voxeolabs.net:8081/nexus/content/repositories/snapshots/</url>
+      <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
+  
+    <!-- distributionManagement>
+    <repository>
+      <id>maven.voxeolabs.net</id>
+      <name>Nexus Public Mirror</name>
+      <url>http://maven.voxeo.net/nexus/content/repositories/releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>maven.voxeolabs.net</id>
       <name>Nexus Public Mirror</name>
       <url>http://maven.voxeo.net/nexus/content/repositories/snapshots/</url>
       <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
-  </distributionManagement>
+  </distributionManagement-->
 </project>
