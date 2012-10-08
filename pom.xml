@@ -140,12 +140,12 @@
   
     <distributionManagement>
     <repository>
-      <id>maven.voxeolabs.net</id>
+      <id>maven.voxeo.net</id>
       <name>Nexus Public Mirror</name>
       <url>http://maven.voxeo.net/nexus/content/repositories/releases/</url>
     </repository>
     <snapshotRepository>
-      <id>maven.voxeolabs.net</id>
+      <id>maven.voxeo.net</id>
       <name>Nexus Public Mirror</name>
       <url>http://maven.voxeo.net/nexus/content/repositories/snapshots/</url>
       <uniqueVersion>false</uniqueVersion>
