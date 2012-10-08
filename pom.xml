@@ -32,6 +32,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
@@ -124,7 +125,7 @@
     <module>moho-artifacts</module>
   </modules>
 
-  <!-- distributionManagement>
+  <distributionManagement>
     <repository>
       <id>maven.voxeolabs.net</id>
       <name>Nexus Public Mirror</name>
@@ -136,9 +137,9 @@
       <url>http://maven.voxeolabs.net:8081/nexus/content/repositories/snapshots/</url>
       <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
-  </distributionManagement> -->
+  </distributionManagement>
   
-    <distributionManagement>
+    <!-- distributionManagement>
     <repository>
       <id>maven.voxeo.net</id>
       <name>Nexus Public Mirror</name>
@@ -150,5 +151,5 @@
       <url>http://maven.voxeo.net/nexus/content/repositories/snapshots/</url>
       <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
-  </distributionManagement>
+  </distributionManagement> -->
 </project>
