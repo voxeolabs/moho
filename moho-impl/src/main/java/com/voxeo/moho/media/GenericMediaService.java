@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 import javax.media.mscontrol.EventType;
@@ -104,6 +105,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   protected MediaDialect _dialect;
 
   protected List<MediaOperation<?, ? extends MediaCompleteEvent<?>>> _futures = new LinkedList<MediaOperation<?, ? extends MediaCompleteEvent<?>>>();
+  
+  protected PlayerListener playerListener = new PlayerListener();
 
   protected GenericMediaService(final T parent, final MediaGroup group) {
     _parent = parent;
@@ -116,6 +119,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     if (_player == null) {
       try {
         _player = _group.getPlayer();
+        _player.addListener(playerListener);
       }
       catch (UnsupportedException ex) {
         LOG.debug("", ex);
@@ -347,7 +351,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       }
       else {
         try {
-          getPlayer().addListener(new PlayerListener(outinputPair.getOutput()));
+          playerListener.addOutput(outinputPair.getOutput());
           getPlayer().play(uris.toArray(new URI[] {}), rtcs.toArray(new RTC[] {}), params);
           _futures.add(outinputPair.getOutput());
         }
@@ -733,10 +737,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
   @SuppressWarnings("rawtypes")
   protected class PlayerListener implements MediaEventListener<PlayerEvent> {
-    OutputImpl _output;
-
-    public PlayerListener(OutputImpl output) {
-      _output = output;
+    Queue<OutputImpl> _outputQueue = new LinkedList<OutputImpl>();
+    
+    public void addOutput(OutputImpl outputImpl){
+      _outputQueue.offer(outputImpl);
     }
 
     @Override
@@ -746,8 +750,13 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         public void run() {
           final EventType t = e.getEventType();
           synchronized (GenericMediaService.this) {
+            OutputImpl _output = _outputQueue.peek();
+            if(_output == null){
+              LOG.error("Received PlayerEvent, but didn't find corresponding output future. " + e);
+              throw new RuntimeException("Received PlayerEvent, but didn't find corresponding output future.");
+            }
             if (t == PlayerEvent.PLAY_COMPLETED) {
-              getPlayer().removeListener(PlayerListener.this);
+              _outputQueue.remove(_output);
               OutputCompleteEvent.Cause cause = Cause.UNKNOWN;
               String errorText = null;
               final Qualifier q = e.getQualifier();
@@ -788,9 +797,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
               _parent.dispatch(outputCompleteEvent);
 
               _futures.remove(_output);
-
             }
-
             else if (t == PlayerEvent.PAUSED) {
               _output.pauseActionDone();
               _parent.dispatch(new MohoOutputPausedEvent<T>(_parent));
