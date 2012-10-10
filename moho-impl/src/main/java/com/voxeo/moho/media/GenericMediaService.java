@@ -356,6 +356,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           _futures.add(outinputPair.getOutput());
         }
         catch (final MsControlException e) {
+          playerListener.removeOutput(outinputPair.getOutput());
           throw new MediaException(e);
         }
       }
@@ -741,6 +742,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     
     public void addOutput(OutputImpl outputImpl){
       _outputQueue.offer(outputImpl);
+    }
+    
+    public void removeOutput(OutputImpl outputImpl){
+      _outputQueue.remove(outputImpl);
     }
 
     @Override
