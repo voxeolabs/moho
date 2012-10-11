@@ -787,7 +787,7 @@ public class GenericMediaServiceTest extends TestCase {
     assertTrue(parent.getReceivedEvents().get(1) instanceof OutputResumedEvent);
     assertTrue(parent.getReceivedEvents().get(2) instanceof OutputCompleteEvent);
     assertTrue(((OutputCompleteEvent) parent.getReceivedEvents().get(2)).getCause() == OutputCompleteEvent.Cause.CANCEL);
-    assertTrue(player.listeners.size() == 0);
+    assertTrue(player.listeners.size() == 1);
     mockery.assertIsSatisfied();
   }
 
