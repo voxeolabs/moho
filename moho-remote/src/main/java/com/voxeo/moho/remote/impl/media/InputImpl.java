@@ -152,7 +152,7 @@ public class InputImpl<T extends EventSource> implements Input<T>, RayoListener 
     InputCompleteEvent.Cause cause = InputCompleteEvent.Cause.ERROR;
 
     if (reason instanceof com.rayo.core.verb.InputCompleteEvent.Reason) {
-      if (reason == com.rayo.core.verb.InputCompleteEvent.Reason.SUCCESS) {
+      if (reason == com.rayo.core.verb.InputCompleteEvent.Reason.MATCH) {
         cause = InputCompleteEvent.Cause.MATCH;
       }
       else if (reason == com.rayo.core.verb.InputCompleteEvent.Reason.NOINPUT) {
