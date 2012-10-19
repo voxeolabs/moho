@@ -14,22 +14,31 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
+import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.common.event.MohoRedirectEvent;
 import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public class SIPRedirectEventImpl<T extends EventSource> extends MohoRedirectEvent<T> implements SIPRedirectEvent<T> {
 
   protected SipServletResponse _res;
+  
+  protected ExecutionContext _ctx;
 
   protected SIPRedirectEventImpl(final T source, final SipServletResponse res) {
     super(source);
     _res = res;
+    _ctx = (ExecutionContext) source.getApplicationContext();
   }
 
   @Override
@@ -62,14 +71,35 @@ public class SIPRedirectEventImpl<T extends EventSource> extends MohoRedirectEve
 
   @Override
   public Endpoint getEndpoint() {
-    // TODO Auto-generated method stub
+    try {
+      final ListIterator<Address> headers = _res.getAddressHeaders("Contact");
+      if (headers.hasNext()) {// find and return the first contact header
+        Address addr = headers.next();
+        SIPEndpoint ep = new SIPEndpointImpl(_ctx, addr);
+        return ep;
+      }
+    }
+    catch (final ServletParseException e) {
+      throw new IllegalArgumentException(e);
+    }
     return null;
   }
 
   @Override
   public Endpoint[] getEndpoints() {
-    // TODO Auto-generated method stub
-    return null;
+    final List<Endpoint> retval = new ArrayList<Endpoint>();
+    try {
+      final ListIterator<Address> headers = _res.getAddressHeaders("Contact");
+      while (headers.hasNext()) {
+        Address addr = headers.next();
+        SIPEndpoint ep = new SIPEndpointImpl(_ctx, addr);
+        retval.add(ep);
+      }
+    }
+    catch (final ServletParseException e) {
+      throw new IllegalArgumentException(e);
+    }
+    return retval.toArray(new Endpoint[retval.size()]);
   }
 
   @Override
