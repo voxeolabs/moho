@@ -135,7 +135,6 @@
       <id>maven.voxeolabs.net</id>
       <name>Nexus Public Mirror</name>
       <url>http://maven.voxeolabs.net:8081/nexus/content/repositories/snapshots/</url>
-      <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
   </distributionManagement>
   

@@ -16,8 +16,13 @@ package com.voxeo.moho.common.util;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.log4j.MDC;
 
 import com.voxeo.moho.event.Event;
 import com.voxeo.moho.utils.EventListener;
@@ -68,6 +73,32 @@ public class Utils {
     while (clazz != null);
     return null;
   }
+  
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public static Map<String, String> getCurrentLogContexts() {
+    Map<String, String> current = null;
+    Hashtable context = MDC.getContext();
+    if (context != null) {
+      current = new HashMap<String, String>();
+      current.putAll(context);
+    }
+    return current;
+  }
+  
+  public static void inheritLogContexts(Map<String, String> contexts) {
+    if (contexts != null) {
+      for (String key : contexts.keySet()) {
+        MDC.put(key, contexts.get(key));
+      }
+    }
+  }
+  
+  public static void clearContexts() {
+    if (MDC.getContext() == null) {
+      return;
+    }
+    MDC.getContext().clear();
+  }
 
   public static class DaemonThreadFactory implements ThreadFactory {
     private ThreadGroup group;
@@ -80,11 +111,23 @@ public class Utils {
 
     @Override
     public Thread newThread(final Runnable r) {
-      final Thread t = new Thread(group, r, "MOHO-" + id.getAndIncrement());
+      final Map<String, String> logContexts = Utils.getCurrentLogContexts();
+      
+      final Thread t = new Thread(group, r, "MOHO-" + id.getAndIncrement()){
+        @Override
+        public void run() {
+          try{
+            Utils.inheritLogContexts(logContexts);
+            super.run();
+          }
+          finally{
+            Utils.clearContexts();
+          }
+        }
+      };
       t.setDaemon(true);
       return t;
     }
-
   }
 
 }
