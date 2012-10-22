@@ -1,14 +1,11 @@
 /**
- * Copyright 2010-2011 Voxeo Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License.
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
+ * Copyright 2010-2011 Voxeo Corporation Licensed under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -71,7 +68,8 @@ import com.voxeo.rayo.client.xmpp.stanza.IQ;
 import com.voxeo.rayo.client.xmpp.stanza.Presence;
 
 // TODO if we join two call in DIRECT mode, then one side hangup, we want join
-// another side to media again, for example say something. how to do that with  Rayo protocol?
+// another side to media again, for example say something. how to do that with
+// Rayo protocol?
 public abstract class CallImpl extends MediaServiceSupport<Call> implements Call, RayoListener {
 
   protected CallableEndpoint _caller;
@@ -313,27 +311,28 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
   @Override
   public void hangup(Map<String, String> headers) {
-//    if (_state == Call.State.INPROGRESS || _state == Call.State.INITIALIZED || _state == Call.State.ACCEPTED
-//        || _state == Call.State.CONNECTED || _state == Call.State.INPROGRESS) {
-      try {
-        HangupCommand command = new HangupCommand();
-        command.setCallId(this.getId());
-        command.setHeaders(headers);
+    // if (_state == Call.State.INPROGRESS || _state == Call.State.INITIALIZED
+    // || _state == Call.State.ACCEPTED
+    // || _state == Call.State.CONNECTED || _state == Call.State.INPROGRESS) {
+    try {
+      HangupCommand command = new HangupCommand();
+      command.setCallId(this.getId());
+      command.setHeaders(headers);
 
-        IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
+      IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
 
-        if (iq.isError()) {
-          cleanUp();
-          com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
-          throw new SignalException(error.getCondition() + error.getText());
-        }
-      }
-      catch (XmppException e) {
+      if (iq.isError()) {
         cleanUp();
-        LOG.error("", e);
-        throw new MohoRemoteException(e);
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
+        throw new SignalException(error.getCondition() + error.getText());
       }
-//    }
+    }
+    catch (XmppException e) {
+      cleanUp();
+      LOG.error("", e);
+      throw new MohoRemoteException(e);
+    }
+    // }
   }
 
   @Override
@@ -420,11 +419,11 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
         }
         MohoCallCompleteEvent mohoEvent = new MohoCallCompleteEvent(this,
             getMohoReasonByRayoEndEventReason(event.getReason()), null, event.getHeaders());
-        
-        if(getMohoReasonByRayoEndEventReason(event.getReason()) == CallCompleteEvent.Cause.DISCONNECT){
+
+        if (getMohoReasonByRayoEndEventReason(event.getReason()) == CallCompleteEvent.Cause.DISCONNECT) {
           this.setCallState(State.DISCONNECTED);
         }
-        else{
+        else {
           this.setCallState(State.FAILED);
         }
 
@@ -524,6 +523,12 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
   @Override
   public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
+    return this.join(other, type, force, direction, true);
+  }
+
+  // TOD rayo support dtmfpassThrough?
+  @Override
+  public Joint join(Participant other, JoinType type, boolean force, Direction direction, boolean dtmfPassThrough) {
     JointImpl joint = null;
     try {
       joint = new JointImpl(this, type, direction, false);

@@ -58,4 +58,5 @@ public interface MediaDialect {
   
   boolean isPromptCompleteEvent(SignalDetectorEvent event);
 
+  void setDtmfPassThrough(NetworkConnection nc, boolean passThrough);
 }

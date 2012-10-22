@@ -517,6 +517,12 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   @Override
   public Joint join(final Participant other, final JoinType type, final boolean force, final Direction direction,
       final Properties props) {
+    return join(other, type, false, direction, !isClampDtmf(props));
+  }
+
+  @Override
+  public Joint join(final Participant other, final JoinType type, final boolean force, final Direction direction,
+      final boolean dtmfPassThough) {
     synchronized (this) {
       checkState();
       if (_joinees.contains(other)) {
@@ -543,7 +549,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
     if (other instanceof CallImpl) {
       Joint joint = null;
-      if (isClampDtmf(props)) {
+      if (!dtmfPassThough) {
         try {
           joint = other.join(new ClampDtmfMixerAdapter(), type, direction);
         }
@@ -571,7 +577,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
           JoinCompleteEvent event = null;
           try {
             synchronized (MixerImpl.this) {
-              if (MixerImpl.this.isClampDtmf(props)) {
+              if (!dtmfPassThough) {
                 try {
                   ClampDtmfMixerAdapter clampMixerAdapter = new ClampDtmfMixerAdapter();
                   JoinDelegate.bridgeJoin(clampMixerAdapter, other, direction);
@@ -635,6 +641,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     @Override
     public Joint join(Participant other, JoinType type, boolean force, Direction direction, Properties props) {
       return MixerImpl.this.join(other, type, force, direction, props);
+    }
+
+    @Override
+    public Joint join(Participant other, JoinType type, boolean force, Direction direction, boolean dtmfPassThough) {
+      return MixerImpl.this.join(other, type, force, direction, dtmfPassThough);
     }
 
     @Override
@@ -916,6 +927,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     public String getName() {
       return MixerImpl.this.getName();
     }
+
   }
 
   // listener for Active speaker event.
@@ -1045,4 +1057,5 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   public String getName() {
     return _name;
   }
+
 }

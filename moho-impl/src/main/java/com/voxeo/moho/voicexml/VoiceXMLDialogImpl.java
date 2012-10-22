@@ -213,6 +213,12 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
       throws IllegalStateException {
     return this.join(other, type, false, direction);
   }
+  
+  @Override
+  public Joint join(Participant other, JoinType type, boolean force, Direction direction, boolean dtmfPassThough) {
+    //TODO can specify the dtmfPassThough for VxmlDialog?
+    return this.join(other, type, force, direction);
+  }
 
   @Override
   public Joint join(final Participant other, final JoinType type, final boolean force, final Direction direction)
@@ -499,4 +505,5 @@ public class VoiceXMLDialogImpl extends DispatchableEventSource implements Dialo
 
     return task;
   }
+
 }

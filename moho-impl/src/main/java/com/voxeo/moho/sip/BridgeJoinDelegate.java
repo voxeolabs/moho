@@ -12,11 +12,14 @@
 package com.voxeo.moho.sip;
 
 import javax.media.mscontrol.join.Joinable.Direction;
+import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
+import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
+import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.sip.SIPCall.State;
 
 public class BridgeJoinDelegate extends JoinDelegate {
@@ -60,6 +63,10 @@ public class BridgeJoinDelegate extends JoinDelegate {
       res.send();
     }
     else {
+      MediaDialect dialect = ((ApplicationContextImpl)_call1.getApplicationContext()).getDialect();
+      dialect.setDtmfPassThrough((NetworkConnection)_call1.getMediaObject(), dtmfPassThrough);
+      dialect.setDtmfPassThrough((NetworkConnection)_call2.getMediaObject(), dtmfPassThrough);
+      
       _call1.linkCall(_call2, _joinType, _direction);
 
       _call1.setBridgeJoiningPeer(null);

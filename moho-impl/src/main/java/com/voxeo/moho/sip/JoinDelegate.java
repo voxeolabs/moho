@@ -65,9 +65,15 @@ public abstract class JoinDelegate {
   protected Exception _exception;
 
   protected SIPCallImpl _peer;
+  
+  protected boolean dtmfPassThrough;
 
   public void setSettableJoint(SettableJointImpl settableJoint) {
     _settableJoint = settableJoint;
+  }
+  
+  public void setDtmfPassThrough(boolean dtmfPassThrough) {
+    this.dtmfPassThrough = dtmfPassThrough;
   }
 
   public SettableJointImpl getSettableJoint() {

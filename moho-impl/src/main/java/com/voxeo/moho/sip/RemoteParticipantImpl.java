@@ -141,6 +141,11 @@ public class RemoteParticipantImpl implements RemoteParticipant, ParticipantCont
 
   @Override
   public Joint join(Participant other, JoinType type, boolean force, Direction direction) {
+    return this.join(other, type, force, direction, true);
+  }
+
+  @Override
+  public Joint join(Participant other, JoinType type, boolean force, Direction direction, boolean dtmfPassThough) {
     JoinDelegate joinDelegate = null;
     if (type != JoinType.DIRECT) {
       joinDelegate = new LocalRemoteJoinDelegate(other, this, direction);

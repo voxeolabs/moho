@@ -136,6 +136,13 @@ public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
 
   @Override
   public Joint join(Participant other, JoinType type, boolean force, Direction direction, Properties props) {
+    //TODO rayo support dtmfpassthrough?
+    return join(other, type, direction);
+  }
+  
+  @Override
+  public Joint join(Participant other, JoinType type, boolean force, Direction direction, boolean dtmfPassThough) {
+    //TODO rayo support dtmfpassthrough?
     return join(other, type, direction);
   }
 
@@ -198,4 +205,5 @@ public class MixerImpl extends MediaServiceSupport<Mixer> implements Mixer {
   public String getName() {
     return _name;
   }
+
 }

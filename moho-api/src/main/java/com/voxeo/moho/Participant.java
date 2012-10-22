@@ -97,6 +97,31 @@ public interface Participant extends EventSource {
    *           if the participant has been released.
    */
   Joint join(Participant other, JoinType type, boolean force, Direction direction);
+  
+  /**
+   * Connect this participant with the specified participant.
+   * 
+   * @param other
+   *          the other participant to be connected with.
+   * @param type
+   *          whether the media is bridged or direct between the two
+   *          participants
+   * @param force
+   *          'false' means the join operation results in an
+   *          AlreadyJoinedException, otherwise the requested participant is
+   *          joined
+   * @param direction
+   *          whether the media is full duplex or half-duplex between the two
+   *          participants
+   * @param dtmfPassThough
+   *          Identifies whether or not participant can hear the tone generated
+   *          when a key on the phone of the other side is pressed. Default is
+   *          true. Note that, setting it to 'false' only works when the
+   *          JoinType is not JoinType.DIRECT.
+   * @throws IllegalStateException
+   *           if the participant has been released.
+   */
+  Joint join(Participant other, JoinType type, boolean force, Direction direction, boolean dtmfPassThough);
 
   /**
    * Disconnect from the specified participant. If the specific participant is

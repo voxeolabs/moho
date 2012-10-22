@@ -106,4 +106,9 @@ public class GenericDialect implements MediaDialect {
   public void enableDetectorPromptCompleteEvent(Parameters params, boolean enable) {
 
   }
+
+  @Override
+  public void setDtmfPassThrough(NetworkConnection nc, boolean passThrough) {
+    
+  }
 }
