@@ -82,6 +82,10 @@ public class BridgeJoinDelegate extends JoinDelegate {
       call.setSIPCallState(SIPCall.State.ANSWERED);
       call.processSDPAnswer(req);
 
+      MediaDialect dialect = ((ApplicationContextImpl)_call1.getApplicationContext()).getDialect();
+      dialect.setDtmfPassThrough((NetworkConnection)_call1.getMediaObject(), dtmfPassThrough);
+      dialect.setDtmfPassThrough((NetworkConnection)_call2.getMediaObject(), dtmfPassThrough);
+      
       _call1.linkCall(_call2, _joinType, _direction);
 
       _call1.setBridgeJoiningPeer(null);
