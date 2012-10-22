@@ -70,6 +70,7 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.media.GenericMediaService;
+import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.remote.sipbased.RemoteJoinOutgoingCall;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
@@ -986,6 +987,16 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (LOG.isDebugEnabled()) {
       LOG.debug("destroyNetworkConnection");
     }
+    if (_network != null) {
+      try{
+        MediaDialect dialect = ((ApplicationContextImpl)this.getApplicationContext()).getDialect();
+        dialect.stopCallRecord(_network);
+      }
+      catch (final Throwable t) {
+        LOG.warn("Exception when stopping call record", t);
+      }
+    }
+    
     if (_network != null) {
       try {
         _network.release();
