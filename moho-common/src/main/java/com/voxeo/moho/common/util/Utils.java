@@ -125,6 +125,7 @@ public class Utils {
           }
         }
       };
+      t.setContextClassLoader(this.getClass().getClassLoader());
       t.setDaemon(true);
       return t;
     }
