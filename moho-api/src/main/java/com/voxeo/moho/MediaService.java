@@ -171,8 +171,17 @@ public interface MediaService<T extends EventSource> {
 
   /**
    * return the underlying {@link javax.media.mscontrol.mediagroup.MediaGroup
-   * MediaGroup}
+   * MediaGroup}, create mediaGroup if it is not initialized yet.
    */
   MediaGroup getMediaGroup();
+  
+  /**
+   * return the underlying {@link javax.media.mscontrol.mediagroup.MediaGroup
+   * MediaGroup}
+   * @param create
+   *        if this is true, create mediaGroup if it is not initialized yet.
+   * @return
+   */
+  MediaGroup getMediaGroup(boolean create);
 
 }

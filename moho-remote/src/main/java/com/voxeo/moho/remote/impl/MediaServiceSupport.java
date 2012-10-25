@@ -422,6 +422,11 @@ public abstract class MediaServiceSupport<T extends EventSource> extends Partici
     throw new UnsupportedOperationException(Constants.unsupported_operation);
   }
 
+  @Override
+  public MediaGroup getMediaGroup(boolean create) {
+    throw new UnsupportedOperationException(Constants.unsupported_operation);
+  }
+
   private Ssml getSsmlFromURI(URI uri) {
     Ssml ssml = null;
     String uriString = uri.toString();

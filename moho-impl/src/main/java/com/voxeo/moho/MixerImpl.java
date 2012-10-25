@@ -180,10 +180,9 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
         .toString();
   }
 
-  @Override
-  public synchronized MediaService<Mixer> getMediaService() throws MediaException, IllegalStateException {
+  public synchronized MediaService<Mixer> getMediaService(boolean create) throws MediaException, IllegalStateException {
     checkState();
-    if (_service == null) {
+    if (_service == null && create) {
       try {
         _service = (MediaService<Mixer>) _context.getMediaServiceFactory().create((Mixer) this, _media, null);
         JoinDelegate.bridgeJoin(this, _service.getMediaGroup());
@@ -194,6 +193,11 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
     }
     return _service;
+  }
+
+  @Override
+  public synchronized MediaService<Mixer> getMediaService() throws MediaException, IllegalStateException {
+    return this.getMediaService(true);
   }
 
   @Override
@@ -632,6 +636,10 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     public MediaService<Mixer> getMediaService() {
       return MixerImpl.this.getMediaService();
     }
+    
+    public MediaService<Mixer> getMediaService(boolean create) {
+      return MixerImpl.this.getMediaService(create);
+    }
 
     @Override
     public Joint join(Participant other, JoinType type, Direction direction, Properties props) {
@@ -860,8 +868,16 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     }
 
     @Override
+    public MediaGroup getMediaGroup(boolean create) {
+      if (this.getMediaService(create) != null) {
+        return getMediaService(false).getMediaGroup();
+      }
+      return null;
+    }
+
+    @Override
     public MediaGroup getMediaGroup() {
-      return getMediaService().getMediaGroup();
+      return getMediaGroup(true);
     }
 
     @Override
@@ -1003,8 +1019,18 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   }
 
   @Override
+  public MediaGroup getMediaGroup(boolean create) {
+    MediaService<Mixer> service = this.getMediaService(create);
+
+    if (service != null) {
+      return service.getMediaGroup(false);
+    }
+    return null;
+  }
+
+  @Override
   public MediaGroup getMediaGroup() {
-    return getMediaService().getMediaGroup();
+    return this.getMediaGroup(true);
   }
 
   @Override

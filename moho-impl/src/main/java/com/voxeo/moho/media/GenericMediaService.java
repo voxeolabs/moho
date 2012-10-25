@@ -204,6 +204,12 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     return _generator;
   }
 
+  @Override
+  public MediaGroup getMediaGroup(boolean create) {
+    return _group;
+  }
+
+  @Override
   public MediaGroup getMediaGroup() {
     return _group;
   }
