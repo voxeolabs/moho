@@ -40,11 +40,17 @@ public class BridgeJoinDelegate extends JoinDelegate {
     _call2.setBridgeJoiningPeer(_call1);
 
     if (_call1.getMediaObject() == null) {
+      if(_call1 instanceof SIPOutgoingCall){
+        ((SIPOutgoingCall)_call1).setContinueRouting(_call2);
+      }
       _call1.join(Direction.DUPLEX);
       return;
 
     }
     if (_call2.getMediaObject() == null) {
+      if(_call2 instanceof SIPOutgoingCall){
+        ((SIPOutgoingCall)_call2).setContinueRouting(_call1);
+      }
       _call2.join(Direction.DUPLEX);
       return;
     }

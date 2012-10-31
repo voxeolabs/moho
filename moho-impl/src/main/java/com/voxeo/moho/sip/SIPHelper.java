@@ -19,7 +19,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.regex.PatternSyntaxException;
 
 import javax.media.mscontrol.MediaErr;
@@ -51,9 +50,42 @@ public class SIPHelper {
   private static final String LINKED_MESSAGE = "linked.message";
 
   public static SipServletRequest createSipInitnalRequest(final SipFactory factory, final String method,
-      final Address from, final Address to, final Map<String, String> headers, SipApplicationSession applicationSession) {
-    final SipServletRequest req = factory.createRequest(
-        applicationSession != null ? applicationSession : factory.createApplicationSession(), method, from, to);
+      final Address from, final Address to, final Map<String, String> headers, SipApplicationSession applicationSession, SipServletRequest origRequest) {
+    SipServletRequest req = null;
+    if (origRequest != null) {
+      LOG.debug("Continue routing from orig req:" + origRequest);
+      req = origRequest.getB2buaHelper().createRequest(origRequest);
+      Address reqFrom = req.getFrom();
+      if(from.getDisplayName() != null){
+        reqFrom.setDisplayName(from.getDisplayName());
+      }
+      reqFrom.setURI(from.getURI());
+      for (final Iterator<String> names = from.getParameterNames(); names.hasNext(); ) {
+        String name =  names.next();
+        if(name.equalsIgnoreCase("tag")){
+          continue;
+        }
+        reqFrom.setParameter(name, from.getParameter(name));
+      }
+      
+      Address reqTo = req.getTo();
+      if(to.getDisplayName() != null){
+        reqTo.setDisplayName(to.getDisplayName());
+      }
+      reqTo.setURI(to.getURI());
+      for (final Iterator<String> names = to.getParameterNames(); names.hasNext(); ) {
+        String name =  names.next();
+        if(name.equalsIgnoreCase("tag")){
+          continue;
+        }
+        reqTo.setParameter(name, to.getParameter(name));
+      }
+    }
+    else {
+      req = factory.createRequest(applicationSession != null ? applicationSession : factory.createApplicationSession(),
+          method, from, to);
+    }
+    
     URI ruri = req.getRequestURI();
     if (ruri instanceof SipURI) {
       SipURI sruri = (SipURI)ruri;

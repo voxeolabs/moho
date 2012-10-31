@@ -35,6 +35,7 @@ import javax.servlet.sip.SipServlet;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
+import javax.servlet.sip.ar.SipApplicationRoutingDirective;
 
 import junit.framework.TestCase;
 
@@ -152,6 +153,8 @@ public class SIPOutgoingCallTest extends TestCase {
 
         allowing(session).getCallId();
         will(returnValue("test"));
+        
+        allowing(initInviteReq).setRoutingDirective(with(any(SipApplicationRoutingDirective.class)), with(any(SipServletRequest.class)));
       }
     });
 
@@ -1254,6 +1257,11 @@ public class SIPOutgoingCallTest extends TestCase {
           allowing(outgoingCall).continueQueuedJoin();
           allowing(outgoingCall).queuedJoinSize();
           will(returnValue(0));
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+
+          allowing(outgoingCall).getSipRequest();
+          will(returnValue(null));
         }
       });
     }
@@ -1391,6 +1399,10 @@ public class SIPOutgoingCallTest extends TestCase {
           
           allowing(outgoingCall).getParticipants();
           will(returnValue(new Participant[]{}));
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).getSipRequest();
+          will(returnValue(null));
         }
       });
     }
@@ -1490,6 +1502,10 @@ public class SIPOutgoingCallTest extends TestCase {
           
           allowing(outgoingCall).getParticipants();
           will(returnValue(new Participant[]{}));
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).getSipRequest();
+          will(returnValue(null));
         }
       });
     }
@@ -1658,7 +1674,10 @@ public class SIPOutgoingCallTest extends TestCase {
           
           allowing(outgoingCall).getParticipants();
           will(returnValue(new Participant[]{}));
-
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).getSipRequest();
+          will(returnValue(null));
           try {
             mockery.checking(new Expectations() {
               {
@@ -1878,7 +1897,10 @@ public class SIPOutgoingCallTest extends TestCase {
           
           allowing(outgoingCall).getParticipants();
           will(returnValue(new Participant[]{}));
-
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).getSipRequest();
+          will(returnValue(null));
           try {
             mockery.checking(new Expectations() {
               {
@@ -2105,7 +2127,10 @@ public class SIPOutgoingCallTest extends TestCase {
           
           allowing(outgoingCall).getParticipants();
           will(returnValue(new Participant[]{}));
-
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).getSipRequest();
+          will(returnValue(null));
           oneOf(outgoingCall).call(null);
           will(new Action() {
             @Override
@@ -2318,7 +2343,10 @@ public class SIPOutgoingCallTest extends TestCase {
           
           allowing(outgoingCall).getParticipants();
           will(returnValue(new Participant[]{}));
-
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).getSipRequest();
+          will(returnValue(null));
           try {
             mockery.checking(new Expectations() {
               {

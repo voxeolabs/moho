@@ -460,4 +460,10 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
       return null;
     }
   }
+
+  @Override
+  public void setContinueRouting(SIPCall origCall) {
+    throw new UnsupportedOperationException("incoming call doesn't support this method.");
+    
+  }
 }

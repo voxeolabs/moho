@@ -51,4 +51,6 @@ public interface SIPCall extends Call {
    * @return the initial SIP INVITE of this call.
    */
   SipServletRequest getSipRequest();
+  
+  void setContinueRouting(final SIPCall origCall);
 }

@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.media.mscontrol.MediaObject;
-import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
@@ -37,6 +35,8 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
   protected SipApplicationSession _appSession;
 
   protected Map<String, String> _headers;
+
+  protected SIPCall _continueRoutingOrigCall;
 
   protected SIPOutgoingCall(final ExecutionContext context, final SIPEndpoint from, final SIPEndpoint to,
       final Map<String, String> headers) {
@@ -175,23 +175,12 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
 
   private void createRequest() {
     _invite = SIPHelper.createSipInitnalRequest(_context.getSipFactory(), "INVITE", _from.getSipAddress(),
-        _address.getSipAddress(), _headers, _appSession);
+        _address.getSipAddress(), _headers, _appSession, _continueRoutingOrigCall!= null ? _continueRoutingOrigCall.getSipRequest() : null);
 
     _signal = _invite.getSession();
 
     if (_appSession == null) {
       _appSession = _signal.getApplicationSession();
-    }
-
-    if (_media != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Set nc id with call id :" + getSipSession().getCallId());
-      }
-
-      Parameters params = _media.createParameters();
-      params.put(MediaObject.MEDIAOBJECT_ID, "MS-" + getSipSession().getCallId());
-      params.put(MediaObject.MEDIAOBJECT_ID, "NC-" + getSipSession().getCallId());
-      _media.setParameters(params);
     }
 
     SessionUtils.setEventSource(_signal, this);
@@ -205,26 +194,30 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
   }
 
   @Override
-  public byte[] getJoinSDP() throws IOException{
+  public byte[] getJoinSDP() throws IOException {
     this.call(null);
     return null;
   }
 
   @Override
-  public void processSDPAnswer(byte[] sdp) throws IOException{
-    if(_inviteResponse != null){
+  public void processSDPAnswer(byte[] sdp) throws IOException {
+    if (_inviteResponse != null) {
       SipServletRequest ack = _inviteResponse.createAck();
       ack.setContent(sdp, "application/sdp");
       ack.send();
     }
-    else{
+    else {
       throw new IllegalStateException("");
     }
   }
 
   @Override
-  public byte[] processSDPOffer(byte[] sdp) throws IOException{
+  public byte[] processSDPOffer(byte[] sdp) throws IOException {
     this.call(sdp);
     return null;
+  }
+
+  public void setContinueRouting(final SIPCall origCall) {
+    _continueRoutingOrigCall = origCall;
   }
 }

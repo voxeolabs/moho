@@ -786,6 +786,8 @@ public class SIPIncomingCallTest extends TestCase {
           when(outgoingCallStates.is("resped"));
 
           allowing(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
 
           oneOf(outgoingCall).join(Direction.DUPLEX);
           will(new Action() {
@@ -949,6 +951,9 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(outgoingCall).unlinkDirectlyPeer();
 
           oneOf(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+
 
           oneOf(outgoingCall).join(Direction.DUPLEX);
           will(new Action() {
@@ -1447,6 +1452,9 @@ public class SIPIncomingCallTest extends TestCase {
           will(returnValue(new Participant[]{}));
 
           allowing(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+
 
           oneOf(outgoingCall).call(null, appSession, null);
           will(new Action() {
@@ -1660,6 +1668,7 @@ public class SIPIncomingCallTest extends TestCase {
           oneOf(outgoingCall).destroyNetworkConnection();
 
           oneOf(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
 
           oneOf(outgoingCall).call(null);
           will(new Action() {
@@ -1843,6 +1852,8 @@ public class SIPIncomingCallTest extends TestCase {
           will(returnValue(new Participant[]{}));
 
           oneOf(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
+
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
 
           oneOf(outgoingCall).call(null, appSession);
           will(new Action() {
@@ -2070,6 +2081,8 @@ public class SIPIncomingCallTest extends TestCase {
           oneOf(outgoingCall).unlinkDirectlyPeer();
 
           oneOf(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
+
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
 
           oneOf(outgoingCall).call(null);
           will(new Action() {
@@ -3370,6 +3383,9 @@ public class SIPIncomingCallTest extends TestCase {
           will(returnValue(new Participant[]{}));
 
           oneOf(outgoingCall).join(Direction.DUPLEX);
+          
+          allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+
           will(new Action() {
             @Override
             public void describeTo(final Description description) {

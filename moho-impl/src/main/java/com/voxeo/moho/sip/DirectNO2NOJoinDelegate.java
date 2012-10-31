@@ -60,6 +60,7 @@ public class DirectNO2NOJoinDelegate extends JoinDelegate {
 
           if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
             if (SIPHelper.getRawContentWOException(res) != null) {
+              ((SIPOutgoingCall) _call1).setContinueRouting(_call2);
               ((SIPOutgoingCall) _call1).call(res.getRawContent(), _call2.getSipSession().getApplicationSession());
               _invitedCall1 = true;
             }
@@ -77,6 +78,7 @@ public class DirectNO2NOJoinDelegate extends JoinDelegate {
         else if (SIPHelper.isSuccessResponse(res)) {
           _response = res;
           if (!_invitedCall1) {
+            ((SIPOutgoingCall) _call1).setContinueRouting(_call2);
             ((SIPOutgoingCall) _call1).call(res.getRawContent(), _call2.getSipSession().getApplicationSession());
           }
         }
