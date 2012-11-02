@@ -81,7 +81,7 @@ public abstract class JoinDelegate {
   }
 
   public synchronized void done(final Cause cause, Exception exception) {
-    if(exception == null){
+    if(exception != null){
       LOG.error("Join complete in error cause:"+ cause + " for joinDelegate" + this, exception);
     }
     else{
