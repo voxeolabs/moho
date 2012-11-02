@@ -408,7 +408,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       event = new MohoUnjoinCompleteEvent(local, participant, UnjoinCompleteEvent.Cause.SUCCESS_UNJOIN, initiator);
     }
     catch (final Exception e) {
-      LOG.error("", e);
+      LOG.error("Exception when doing unjoin.", e);
       event = new MohoUnjoinCompleteEvent(local, participant, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, e, true);
       throw e;
     }
@@ -611,6 +611,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   public synchronized void onEvent(final SdpPortManagerEvent event) {
+    LOG.debug("Receive SdpPortManagerEvent:" + event);
     if (isTerminated()) {
       LOG.debug(this + " is already terminated.");
       return;
@@ -628,7 +629,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
       }
       catch (final Exception e) {
-        LOG.warn("", e);
+        LOG.warn("Exception when processing SdpPortManagerEvent:" + event, e);
       }
     }
   }
@@ -647,7 +648,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       req.createResponse(SipServletResponse.SC_OK).send();
     }
     catch (final Exception e) {
-      LOG.warn("", e);
+      LOG.warn("Excetion sending back SIP response", e);
     }
   }
 
@@ -704,7 +705,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       return;
     }
     if (LOG.isDebugEnabled()) {
-      LOG.debug(res);
+      LOG.debug(this +"Processing response:"+ res);
     }
     if (SIPHelper.isInvite(res)) {
       _inviteResponse = res;
@@ -838,7 +839,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           ((ParticipantContainer) participant).doUnjoin(this, false);
         }
         catch (Exception e) {
-          LOG.error("", e);
+          LOG.error("Exception when unjoining participant"+ participant, e);
         }
       }
     }
@@ -850,7 +851,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           peer.disconnect();
         }
         catch (final Throwable t) {
-          LOG.warn("", t);
+          LOG.warn("Exception when disconnecting peer:" + peer, t);
         }
       }
       _peers.clear();
