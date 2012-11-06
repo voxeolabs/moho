@@ -37,6 +37,7 @@ import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.sdp.SdpException;
+import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -541,7 +542,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   public synchronized Joint join(final Participant other, final JoinType type, final Direction direction) {
     return this.join(other, type, false, direction);
   }
-  
+
   @Override
   public synchronized Joint join(final Participant other, final JoinType type, final boolean force,
       final Direction direction) {
@@ -635,6 +636,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   protected synchronized void doBye(final SipServletRequest req, final Map<String, String> headers) {
+    LOG.debug("Processing BYE request. "+ this);
+    
+    try {
+      req.createResponse(SipServletResponse.SC_OK).send();
+    }
+    catch (final Exception e) {
+      LOG.warn("Excetion sending back SIP response", e);
+    }
+    
     if (isTerminated()) {
       LOG.debug(this + " is already terminated.");
       return;
@@ -642,13 +652,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     else {
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
       terminate(CallCompleteEvent.Cause.DISCONNECT, null, headers);
-    }
-
-    try {
-      req.createResponse(SipServletResponse.SC_OK).send();
-    }
-    catch (final Exception e) {
-      LOG.warn("Excetion sending back SIP response", e);
     }
   }
 
@@ -705,7 +708,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       return;
     }
     if (LOG.isDebugEnabled()) {
-      LOG.debug(this +"Processing response:"+ res);
+      LOG.debug(this + "Processing response:" + res);
     }
     if (SIPHelper.isInvite(res)) {
       _inviteResponse = res;
@@ -783,31 +786,65 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
     }
     terminate(cause, exception, null);
-    if (isNoAnswered(old)) {
-      try {
-        if (this instanceof SIPOutgoingCall && !failed) {
-          if (_invite != null) {
-            SipServletRequest cancelRequest = _invite.createCancel();
-            SIPHelper.addHeaders(cancelRequest, headers);
-            cancelRequest.send();
+
+    try {
+      if (isNoAnswered(old)) {
+        try {
+          if (this instanceof SIPOutgoingCall) {
+            if (_invite != null) {
+              SipServletRequest cancelRequest = _invite.createCancel();
+              SIPHelper.addHeaders(cancelRequest, headers);
+              cancelRequest.send();
+            }
+          }
+          else if (this instanceof SIPIncomingCall) {
+            SipServletResponse declineResponse = _invite.createResponse(SipServletResponse.SC_DECLINE);
+            SIPHelper.addHeaders(declineResponse, headers);
+            declineResponse.send();
           }
         }
-        else if (this instanceof SIPIncomingCall) {
-          SipServletResponse declineResponse = _invite.createResponse(SipServletResponse.SC_DECLINE);
-          SIPHelper.addHeaders(declineResponse, headers);
-          declineResponse.send();
+        catch (final Exception t) {
+          LOG.warn("Exception when disconnecting call", t);
         }
       }
-      catch (final Exception t) {
-        LOG.warn("Exception when disconnecting call", t);
+      else if (isAnswered(old)) {
+        try {
+          _signal.createRequest("BYE").send();
+        }
+        catch (final Exception t) {
+          LOG.warn("Exception when disconnecting call", t);
+        }
       }
     }
-    else if (isAnswered(old) && !failed) {
-      try {
-        _signal.createRequest("BYE").send();
-      }
-      catch (final Exception t) {
-        LOG.warn("Exception when disconnecting call", t);
+    finally {
+      if (_invite != null) {
+        SipApplicationSession appSession = _invite.getApplicationSession();
+
+        try {
+          if (appSession.isReadyToInvalidate()) {
+            appSession.invalidate();
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(appSession.getId() + " invalidated");
+            }
+          }
+          else {
+            appSession.setInvalidateWhenReady(true);
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(appSession.getId() + " will invalidate when ready");
+            }
+          }
+        }
+        catch (IllegalStateException doofus) {
+          try {
+            appSession.invalidate();
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(appSession.getId() + " invalidated anyway");
+            }
+          }
+          catch (Exception ex) {
+            LOG.warn("Exception caught while invalidating SipApplicationSession " + appSession.getId(), ex);
+          }
+        }
       }
     }
   }
@@ -839,7 +876,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           ((ParticipantContainer) participant).doUnjoin(this, false);
         }
         catch (Exception e) {
-          LOG.error("Exception when unjoining participant"+ participant, e);
+          LOG.error("Exception when unjoining participant" + participant, e);
         }
       }
     }
@@ -965,16 +1002,17 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       final MsControlFactory mf = _context.getMSFactory();
 
       _media = mf.createMediaSession();
-//      if (getSipSession() != null) {
-//        if (LOG.isDebugEnabled()) {
-//          LOG.debug("Set ms id with call id :" + getSipSession().getCallId());
-//        }
-//
-//        final Parameters params = _media.createParameters();
-//
-//        params.put(MediaObject.MEDIAOBJECT_ID, "MS-" + getSipSession().getCallId());
-//        _media.setParameters(params);
-//      }
+      // if (getSipSession() != null) {
+      // if (LOG.isDebugEnabled()) {
+      // LOG.debug("Set ms id with call id :" + getSipSession().getCallId());
+      // }
+      //
+      // final Parameters params = _media.createParameters();
+      //
+      // params.put(MediaObject.MEDIAOBJECT_ID, "MS-" +
+      // getSipSession().getCallId());
+      // _media.setParameters(params);
+      // }
     }
     if (_network == null) {
       Parameters params = _media.createParameters();
@@ -989,15 +1027,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug("destroyNetworkConnection");
     }
     if (_network != null) {
-      try{
-        MediaDialect dialect = ((ApplicationContextImpl)this.getApplicationContext()).getDialect();
+      try {
+        MediaDialect dialect = ((ApplicationContextImpl) this.getApplicationContext()).getDialect();
         dialect.stopCallRecord(_network);
       }
       catch (final Throwable t) {
         LOG.warn("Exception when stopping call record", t);
       }
     }
-    
+
     if (_network != null) {
       try {
         _network.release();
@@ -1100,8 +1138,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     _callDelegate = delegate;
   }
 
-  protected Joint doJoin(final SIPCallImpl other, final JoinType type, final boolean force, final Direction direction, boolean dtmfPassThrough)
-      throws Exception {
+  protected Joint doJoin(final SIPCallImpl other, final JoinType type, final boolean force, final Direction direction,
+      boolean dtmfPassThrough) throws Exception {
     SettableJointImpl joint = new SettableJointImpl();
 
     // join strategy check on either side
@@ -1143,8 +1181,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   // return joint;
   // }
 
-  protected Joint doJoin(final RemoteParticipant other, final JoinType type, boolean force, final Direction direction, boolean dtmfPassThrough)
-      throws Exception {
+  protected Joint doJoin(final RemoteParticipant other, final JoinType type, boolean force, final Direction direction,
+      boolean dtmfPassThrough) throws Exception {
     // 1 create outgoing call.
     // 2 join the outgoing call and return joint.
     String[] parsedJoinerID = ParticipantIDParser.parseEncodedId(this.getId());
@@ -1166,8 +1204,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     return this.join(outgoingCall, type, force, direction, dtmfPassThrough);
   }
 
-  protected Joint doJoin(final Participant other, final JoinType type, final boolean force, final Direction direction, boolean dtmfPassThrough)
-      throws Exception {
+  protected Joint doJoin(final Participant other, final JoinType type, final boolean force, final Direction direction,
+      boolean dtmfPassThrough) throws Exception {
     if (!(other.getMediaObject() instanceof Joinable)) {
       throw new IllegalArgumentException("MediaObject is't joinable.");
     }
