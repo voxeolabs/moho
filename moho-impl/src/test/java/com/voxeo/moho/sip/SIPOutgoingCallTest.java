@@ -155,6 +155,11 @@ public class SIPOutgoingCallTest extends TestCase {
         will(returnValue("test"));
         
         allowing(initInviteReq).setRoutingDirective(with(any(SipApplicationRoutingDirective.class)), with(any(SipServletRequest.class)));
+        
+        allowing(toAddr).getURI();
+        will(returnValue(null));
+        
+        allowing(initInviteReq).setRequestURI(null);
       }
     });
 

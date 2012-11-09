@@ -86,6 +86,7 @@ public class SIPHelper {
           method, from, to);
     }
     
+    req.setRequestURI(to.getURI());
     URI ruri = req.getRequestURI();
     if (ruri instanceof SipURI) {
       SipURI sruri = (SipURI)ruri;
