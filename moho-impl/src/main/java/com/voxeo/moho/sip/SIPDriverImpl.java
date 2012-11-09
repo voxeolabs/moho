@@ -467,8 +467,12 @@ public class SIPDriverImpl implements SIPDriver {
         source.dispatch(new SIPAnsweredEventImpl<Subscription>((Subscription) source, res));
         return;
       }
+      else{
+        LOG.trace(res + " is received for a unknow source, dispatching: " + source);
+        source.dispatch(new SIPAnsweredEventImpl<Subscription>((Subscription) source, res));
+      }
     }
-    LOG.warn(res + " is received for a unknow source: " + source);
+    LOG.warn(res + " can't find event source: " + source);
   }
 
   protected void doRedirectResponse(final SipServletResponse res) throws ServletException, IOException {
@@ -496,25 +500,29 @@ public class SIPDriverImpl implements SIPDriver {
 
   protected void doErrorResponse(final SipServletResponse res) throws ServletException, IOException {
     final EventSource source = SessionUtils.getEventSource(res);
-    if (source instanceof SIPCallImpl) {
-      final SIPCallImpl call = (SIPCallImpl) source;
-      try {
-        call.doResponse(res, null);
+    if(source != null){
+      if (source instanceof SIPCallImpl) {
+        final SIPCallImpl call = (SIPCallImpl) source;
+        try {
+          call.doResponse(res, null);
+        }
+        catch (final Exception e) {
+          LOG.warn("", e);
+        }
+        source.dispatch(new SIPDeniedEventImpl<Call>((SIPCall) source, res));
       }
-      catch (final Exception e) {
-        LOG.warn("", e);
+      else if (source instanceof Registration) {
+        source.dispatch(new SIPDeniedEventImpl<Registration>((Registration) source, res));
       }
-      source.dispatch(new SIPDeniedEventImpl<Call>((SIPCall) source, res));
+      else if (source instanceof Subscription) {
+        source.dispatch(new SIPDeniedEventImpl<Subscription>((Subscription) source, res));
+      }
+      else {
+        LOG.trace(res + " is received for a unknow source, dispatching: " + source);
+        source.dispatch(new SIPDeniedEventImpl( source, res));
+      }
     }
-    else if (source instanceof Registration) {
-      source.dispatch(new SIPDeniedEventImpl<Registration>((Registration) source, res));
-    }
-    else if (source instanceof Subscription) {
-      source.dispatch(new SIPDeniedEventImpl<Subscription>((Subscription) source, res));
-    }
-    else {
-      LOG.info("Cannot found EventSource to handle error response: " + source);
-    }
+    LOG.warn(res + " can't find event source: " + source);
   }
 
   private class NoHandleHandler<T extends EventSource> implements Runnable {
