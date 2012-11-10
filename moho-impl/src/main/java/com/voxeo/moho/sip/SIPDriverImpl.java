@@ -469,7 +469,7 @@ public class SIPDriverImpl implements SIPDriver {
       }
       else{
         LOG.trace(res + " is received for a unknow source, dispatching: " + source);
-        source.dispatch(new SIPAnsweredEventImpl<Subscription>((Subscription) source, res));
+        source.dispatch(new SIPAnsweredEventImpl(source, res));
       }
     }
     LOG.warn(res + " can't find event source: " + source);
