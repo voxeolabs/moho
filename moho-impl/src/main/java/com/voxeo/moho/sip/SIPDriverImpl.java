@@ -405,6 +405,9 @@ public class SIPDriverImpl implements SIPDriver {
         SIPHelper.copyContent(res, newRes);
         newRes.send();
       }
+      else{
+        LOG.warn(res + " can't find event source, and no linked sip message, discarding it.");
+      }
     }
   }
 
@@ -436,6 +439,9 @@ public class SIPDriverImpl implements SIPDriver {
       else {
         LOG.warn(res + " is received for a non SIP Call source.");
       }
+    }
+    else{
+      LOG.warn(res + " can't find event source: " + source);
     }
   }
 
@@ -472,7 +478,9 @@ public class SIPDriverImpl implements SIPDriver {
         source.dispatch(new SIPAnsweredEventImpl(source, res));
       }
     }
-    LOG.warn(res + " can't find event source: " + source);
+    else{
+      LOG.warn(res + " can't find event source: " + source);
+    }
   }
 
   protected void doRedirectResponse(final SipServletResponse res) throws ServletException, IOException {
@@ -494,8 +502,14 @@ public class SIPDriverImpl implements SIPDriver {
         source.dispatch(new SIPRedirectEventImpl<Subscription>((Subscription) source, res));
         return;
       }
+      else {
+        LOG.trace(res + " is received for a unknow source, dispatching: " + source);
+        source.dispatch(new SIPRedirectEventImpl( source, res));
+      }
     }
-    LOG.warn(res + " is received for a unknow source: " + source);
+    else{
+      LOG.warn(res + " can't find event source: " + source);
+    }
   }
 
   protected void doErrorResponse(final SipServletResponse res) throws ServletException, IOException {
@@ -522,7 +536,9 @@ public class SIPDriverImpl implements SIPDriver {
         source.dispatch(new SIPDeniedEventImpl( source, res));
       }
     }
-    LOG.warn(res + " can't find event source: " + source);
+    else{
+      LOG.warn(res + " can't find event source: " + source);
+    }
   }
 
   private class NoHandleHandler<T extends EventSource> implements Runnable {
