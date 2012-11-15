@@ -235,39 +235,39 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
     _msFactory = this.getService(MediaServiceFactory.class);
     _confMgr = this.getService(ConferenceManager.class);
 
-    try {
-      if (getParameter("remoteCommunicationPort") != null) {
-        try {
-          _remoteCommunicationPort = Integer.valueOf(getParameter("remoteCommunicationPort"));
-        }
-        catch (NumberFormatException ex) {
-          LOG.warn("Wrong remoteCommunicationPort configuration:" + getParameter("remoteCommunicationPort")
-              + ", using the default:" + _remoteCommunicationPort);
-        }
-      }
-
-      if (getParameter("remoteCommunicationAddress") != null) {
-        _remoteCommunicationAddress = getParameter("remoteCommunicationAddress");
-        LOG.debug("Using remoteCommunicationAddress configuration:" + getParameter("remoteCommunicationAddress"));
-      }
-      else {
-        LOG.debug("No remoteCommunicationAddress configuration, using the default:" + _remoteCommunicationAddress);
-      }
-
-      if (_remoteCommunicationAddress.startsWith("/")) {
-        _remoteCommunicationAddress = _remoteCommunicationAddress.substring(1);
-      }
-      _remoteObject = "RemoteCommunication";
-      _remoteCommunication = new RemoteCommunicationImpl(this);
-      _registry = LocateRegistry.createRegistry(4231);
-      RemoteCommunication stub = (RemoteCommunication) UnicastRemoteObject.exportObject(_remoteCommunication, 0);
-      _registry.rebind(_remoteObject, stub);
-      _remoteCommunicationRMIAddress = "rmi://" + _remoteCommunicationAddress + ":" + _remoteCommunicationPort + "/"
-          + _remoteObject;
-    }
-    catch (RemoteException ex) {
-      LOG.error("Error when initialize remote communication", ex);
-    }
+//    try {
+//      if (getParameter("remoteCommunicationPort") != null) {
+//        try {
+//          _remoteCommunicationPort = Integer.valueOf(getParameter("remoteCommunicationPort"));
+//        }
+//        catch (NumberFormatException ex) {
+//          LOG.warn("Wrong remoteCommunicationPort configuration:" + getParameter("remoteCommunicationPort")
+//              + ", using the default:" + _remoteCommunicationPort);
+//        }
+//      }
+//
+//      if (getParameter("remoteCommunicationAddress") != null) {
+//        _remoteCommunicationAddress = getParameter("remoteCommunicationAddress");
+//        LOG.debug("Using remoteCommunicationAddress configuration:" + getParameter("remoteCommunicationAddress"));
+//      }
+//      else {
+//        LOG.debug("No remoteCommunicationAddress configuration, using the default:" + _remoteCommunicationAddress);
+//      }
+//
+//      if (_remoteCommunicationAddress.startsWith("/")) {
+//        _remoteCommunicationAddress = _remoteCommunicationAddress.substring(1);
+//      }
+//      _remoteObject = "RemoteCommunication";
+//      _remoteCommunication = new RemoteCommunicationImpl(this);
+//      _registry = LocateRegistry.createRegistry(4231);
+//      RemoteCommunication stub = (RemoteCommunication) UnicastRemoteObject.exportObject(_remoteCommunication, 0);
+//      _registry.rebind(_remoteObject, stub);
+//      _remoteCommunicationRMIAddress = "rmi://" + _remoteCommunicationAddress + ":" + _remoteCommunicationPort + "/"
+//          + _remoteObject;
+//    }
+//    catch (RemoteException ex) {
+//      LOG.error("Error when initialize remote communication", ex);
+//    }
   }
 
   @Override
