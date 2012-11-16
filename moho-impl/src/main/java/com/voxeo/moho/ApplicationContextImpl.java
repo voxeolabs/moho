@@ -387,13 +387,13 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       service.destroy();
     }
 
-    try {
-      UnicastRemoteObject.unexportObject(_remoteCommunication, true);
-      UnicastRemoteObject.unexportObject(_registry, true);
-    }
-    catch (NoSuchObjectException e) {
-      LOG.warn("", e);
-    }
+//    try {
+//      UnicastRemoteObject.unexportObject(_remoteCommunication, true);
+//      UnicastRemoteObject.unexportObject(_registry, true);
+//    }
+//    catch (NoSuchObjectException e) {
+//      LOG.warn("", e);
+//    }
   }
 
   @Override
@@ -575,7 +575,14 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   public String generateID(String type, String id) {
     // TODO ADDRESS
-    String remoteAddress = _schema + "://" + _remoteCommunicationAddress + ":" + _remoteCommunicationPort + "/" + type
+    String compsitePart = null;
+    if(_remoteCommunicationAddress.startsWith("/")){
+      compsitePart = ":/" + _remoteCommunicationAddress;
+    }
+    else{
+      compsitePart = "://" + _remoteCommunicationAddress;
+    }
+    String remoteAddress = _schema + compsitePart + ":" + _remoteCommunicationPort + "/" + type
         + "/" + id;
     return remoteAddress;
   }

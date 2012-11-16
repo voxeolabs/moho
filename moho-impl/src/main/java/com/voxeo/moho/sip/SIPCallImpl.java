@@ -700,6 +700,25 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug("The SIP message will be discarded.");
     }
   }
+  
+  protected synchronized void doUpdate(final SipServletRequest req, final Map<String, String> headers)
+      throws Exception {
+    if (isTerminated()) {
+      LOG.debug(this + " is already terminated.");
+      return;
+    }
+    
+    final byte[] content = SIPHelper.getRawContentWOException(req);
+    if (content != null) {
+      setRemoteSDP(content);
+    }
+    if (_callDelegate != null) {
+      _callDelegate.handleUpdate(this, req, headers);
+    }
+    else {
+      LOG.debug("CallDelegate is null, the SIP message will be discarded."+ req);
+    }
+  }
 
   protected synchronized void doResponse(final SipServletResponse res, final Map<String, String> headers)
       throws Exception {
@@ -727,6 +746,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     else if (SIPHelper.isCancel(res) || SIPHelper.isBye(res)) {
       ;
+    }
+    else if(SIPHelper.isUpdate(res)){
+      if (_callDelegate != null) {
+        _callDelegate.handleUpdateResponse(this, res, headers);
+      }
+      else{
+        LOG.warn("Call delegate is null, discarding UPDATE response:" + res);
+      }
     }
     else {
       final SipServletRequest req = (SipServletRequest) SIPHelper.getLinkSIPMessage(res.getRequest());

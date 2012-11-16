@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.voxeo.moho.common.util.NetworkUtils;
 import com.voxeo.moho.common.util.StringUtils;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 
@@ -181,7 +182,7 @@ public class ParticipantIDParser {
 	}
 	
 	public static void main(String[] args) {
-		
+	  System.out.println(NetworkUtils.getLocalAddress().toString());
 		System.out.println(ipToNormalizedLongString("127.0.0.1"));
 		System.out.println(ipToNormalizedLongString("12.0.20.1"));
 		System.out.println(ipToNormalizedLongString("1.0.0.1"));

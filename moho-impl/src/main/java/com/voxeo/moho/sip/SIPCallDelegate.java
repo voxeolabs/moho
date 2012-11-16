@@ -45,8 +45,16 @@ public abstract class SIPCallDelegate {
 
   protected abstract void handleReinvite(SIPCallImpl call, SipServletRequest req, final Map<String, String> headers)
       throws Exception;
+  
+  protected abstract void handleUpdate(SIPCallImpl call, SipServletRequest req, final Map<String, String> headers)
+      throws Exception;
 
   protected void handleReinviteResponse(final SIPCallImpl call, final SipServletResponse res,
+      final Map<String, String> headers) throws Exception {
+    throw new UnsupportedOperationException();
+  }
+  
+  protected void handleUpdateResponse(final SIPCallImpl call, final SipServletResponse res,
       final Map<String, String> headers) throws Exception {
     throw new UnsupportedOperationException();
   }

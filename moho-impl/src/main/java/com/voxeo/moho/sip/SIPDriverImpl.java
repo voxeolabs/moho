@@ -314,7 +314,13 @@ public class SIPDriverImpl implements SIPDriver {
   }
 
   protected void doUpdate(final SipServletRequest req) throws ServletException, IOException {
-    doOthers(req);
+    final EventSource source = SessionUtils.getEventSource(req);
+    if (source != null) {
+      source.dispatch(new SIPUpdateEventImpl((Call) source, req));
+    }
+    else{
+      LOG.warn("Can't find call for UPDATE message, discarding:" +req);
+    }
   }
 
   protected void doOptions(final SipServletRequest req) throws ServletException, IOException {

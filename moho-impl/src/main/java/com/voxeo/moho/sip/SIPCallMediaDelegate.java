@@ -39,6 +39,8 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   protected SipServletResponse _res;
 
   protected boolean _isWaiting;
+  
+  protected boolean _isUpdateWaiting;
 
   protected SIPCallMediaDelegate() {
     super();
@@ -124,11 +126,65 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
       call.processSDPOffer(res);
     }
   }
+  
+  @Override
+  protected void handleUpdate(final SIPCallImpl call, final SipServletRequest req, final Map<String, String> headers)
+      throws Exception {
+    _isUpdateWaiting = true;
+    _req = req;
+    call.processSDPOffer(req);
+
+    while (call.isAnswered() & _isUpdateWaiting) {
+      try {
+        call.wait();
+      }
+      catch (final InterruptedException e) {
+        // ignore
+      }
+    }
+    if (call.getSIPCallState() != State.ANSWERED) {
+      throw new SignalException("Call state error: " + call);
+    }
+  }
+
+  @Override
+  protected void handleUpdateResponse(SIPCallImpl call, SipServletResponse res, Map<String, String> headers)
+      throws Exception {
+     call.processSDPOffer(res);
+  }
 
   @Override
   protected void handleSdpEvent(final SIPCallImpl call, final SdpPortManagerEvent event) {
     if (event.getEventType().equals(SdpPortManagerEvent.OFFER_GENERATED)
         || event.getEventType().equals(SdpPortManagerEvent.ANSWER_GENERATED)) {
+      if(_isUpdateWaiting){
+        if(event.isSuccessful()){
+          byte[] sdp = event.getMediaServerSdp();
+          call.setLocalSDP(sdp);
+          try {
+            final SipServletResponse res = _req.createResponse(SipServletResponse.SC_OK);
+            res.setContent(sdp, "application/sdp");
+            res.send();
+          }
+          catch (final Exception e) {
+            LOG.error("Exception when sending back response for UPDATE", e);
+            call.fail(e);
+          }
+        }
+        else{
+          LOG.warn("Failed to process UPDATE request, got failure SdpPortManagerEvent:"+event);
+          try {
+            _req.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR, event.getErrorText()).send();
+          }
+          catch (IOException e) {
+            LOG.error("Exception when sending back error response for UPDATE", e);
+            call.fail(e);
+          }
+        }
+        _isUpdateWaiting = false;
+        return;
+      }
+      
       if (call.isHoldingProcess()) {
         call.holdResp();
       }
@@ -159,7 +215,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
             res.send();
           }
           catch (final Exception e) {
-            LOG.error("", e);
+            LOG.error("Exception when sending back response", e);
             call.fail(e);
           }
         }

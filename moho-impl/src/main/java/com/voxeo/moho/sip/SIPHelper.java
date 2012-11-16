@@ -214,6 +214,10 @@ public class SIPHelper {
   public static boolean isRegister(final SipServletMessage msg) {
     return msg.getMethod().equalsIgnoreCase("REGISTER");
   }
+  
+  public static boolean isUpdate(final SipServletMessage msg) {
+    return msg.getMethod().equalsIgnoreCase("UPDATE");
+  }
 
   public static void forwardRequestByB2buaHelper(final SipServletRequest req, final Map<String, String> headers)
       throws IOException {

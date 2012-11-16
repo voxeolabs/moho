@@ -54,6 +54,41 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
     SIPHelper.linkSIPMessage(req, newReq);
     newReq.send();
   }
+  
+  @Override
+  protected void handleUpdate(final SIPCallImpl call, final SipServletRequest req, final Map<String, String> headers)
+      throws Exception {
+    final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
+    final SipServletRequest newReq = peer.getSipSession().createRequest(req.getMethod());
+    SIPHelper.addHeaders(newReq, headers);
+    SIPHelper.copyContent(req, newReq);
+    SIPHelper.linkSIPMessage(req, newReq);
+    newReq.send();
+  }
+  
+  @Override
+  protected void handleUpdateResponse(final SIPCallImpl call, final SipServletResponse res,
+      final Map<String, String> headers)
+      throws Exception {
+    try {
+      final SipServletRequest req = res.getRequest();
+      final SipServletRequest newReq = (SipServletRequest) SIPHelper.getLinkSIPMessage(req);
+      if (newReq != null) {
+        SIPHelper.unlinkSIPMessage(req);
+        final SipServletResponse newRes = newReq.createResponse(res.getStatus(), res.getReasonPhrase());
+        SIPHelper.addHeaders(newRes, headers);
+        SIPHelper.copyContent(res, newRes);
+        newRes.send();
+      }
+      else{
+        LOG.warn("Can't find linked request, discarding this response:"+ res);
+      }
+    }
+    catch (final Exception e) {
+      LOG.warn("", e);
+      return;
+    }
+  }
 
   @Override
   protected void handleReinviteResponse(final SIPCallImpl call, final SipServletResponse res,
