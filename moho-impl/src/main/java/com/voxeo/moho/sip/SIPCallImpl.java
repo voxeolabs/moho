@@ -767,6 +767,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   protected synchronized void setSIPCallState(final SIPCall.State state) {
+    LOG.debug(this + " state changed from "+ _cstate + " to "+ state);
     _cstate = state;
   }
 

@@ -130,20 +130,22 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   @Override
   protected void handleUpdate(final SIPCallImpl call, final SipServletRequest req, final Map<String, String> headers)
       throws Exception {
-    _isUpdateWaiting = true;
-    _req = req;
-    call.processSDPOffer(req);
+    if(req.getRawContent() != null){
+      _isUpdateWaiting = true;
+      _req = req;
+      call.processSDPOffer(req);
 
-    while (call.isAnswered() & _isUpdateWaiting) {
-      try {
-        call.wait();
-      }
-      catch (final InterruptedException e) {
-        // ignore
+      while (call.isAnswered() & _isUpdateWaiting) {
+        try {
+          call.wait();
+        }
+        catch (final InterruptedException e) {
+          // ignore
+        }
       }
     }
-    if (call.getSIPCallState() != State.ANSWERED) {
-      throw new SignalException("Call state error: " + call);
+    else{
+      req.createResponse(SipServletResponse.SC_OK).send();
     }
   }
 
