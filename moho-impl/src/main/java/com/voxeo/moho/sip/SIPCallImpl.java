@@ -635,7 +635,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  protected synchronized void doBye(final SipServletRequest req, final Map<String, String> headers) {
+  protected void doBye(final SipServletRequest req, final Map<String, String> headers) {
     LOG.debug("Processing BYE request. "+ this);
     
     try {
@@ -645,14 +645,17 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.warn("Excetion sending back SIP response", e);
     }
     
-    if (isTerminated()) {
-      LOG.debug(this + " is already terminated.");
-      return;
+    synchronized(this){
+      if (isTerminated()) {
+        LOG.debug(this + " is already terminated.");
+        return;
+      }
+      else {
+        this.setSIPCallState(SIPCall.State.DISCONNECTED);
+      }
     }
-    else {
-      this.setSIPCallState(SIPCall.State.DISCONNECTED);
-      terminate(CallCompleteEvent.Cause.DISCONNECT, null, headers);
-    }
+    
+    terminate(CallCompleteEvent.Cause.DISCONNECT, null, headers);
   }
 
   protected synchronized void doAck(final SipServletRequest req) throws Exception {
@@ -796,23 +799,13 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected void fail(Exception ex) {
     disconnect(true, CallCompleteEvent.Cause.ERROR, ex, null);
   }
-
-  protected synchronized void disconnect(final boolean failed, final CallCompleteEvent.Cause cause,
-      final Exception exception, Map<String, String> headers) {
-    if (isTerminated()) {
-      if (LOG.isTraceEnabled()) {
-        LOG.trace(this + " is already terminated.");
-      }
-      return;
+  
+  protected void doDisconnect(final boolean failed, final CallCompleteEvent.Cause cause,
+      final Exception exception, Map<String, String> headers, SIPCall.State old){
+    if(LOG.isDebugEnabled()){
+      LOG.debug(this + " is disconnecting.");
     }
-
-    final SIPCall.State old = getSIPCallState();
-    if (failed) {
-      this.setSIPCallState(SIPCall.State.FAILED);
-    }
-    else {
-      this.setSIPCallState(SIPCall.State.DISCONNECTED);
-    }
+    
     terminate(cause, exception, null);
 
     try {
@@ -877,8 +870,35 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  protected synchronized void terminate(final CallCompleteEvent.Cause cause, final Exception exception,
-      final Map<String, String> headers) {
+  protected  void disconnect(final boolean failed, final CallCompleteEvent.Cause cause,
+      final Exception exception, final Map<String, String> headers) {
+    final SIPCall.State old = getSIPCallState();
+    
+    synchronized(this){
+      if (isTerminated()) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(this + " is already terminated.");
+        }
+        return;
+      }
+
+      if (failed) {
+        this.setSIPCallState(SIPCall.State.FAILED);
+      }
+      else {
+        this.setSIPCallState(SIPCall.State.DISCONNECTED);
+      }
+    }
+
+    doDisconnect(failed, cause, exception, headers, old);
+  }
+  
+  protected void terminate(final CallCompleteEvent.Cause cause, final Exception exception,
+      final Map<String, String> headers){
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(this + " is terminating.");
+    }
+    
     _context.removeCall(getId());
 
     if (_service != null) {
@@ -1052,7 +1072,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected synchronized void destroyNetworkConnection() {
     if (LOG.isDebugEnabled()) {
-      LOG.debug("destroyNetworkConnection");
+      LOG.debug(this + "destroying NetworkConnection");
     }
     if (_network != null) {
       try {
