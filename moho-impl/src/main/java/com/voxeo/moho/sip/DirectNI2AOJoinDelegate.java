@@ -55,6 +55,7 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
           SIPHelper.copyContent(res, newRes);
           newRes.send();
           _response = res;
+          doDisengage(_call1, JoinType.DIRECT);
         }
         catch (final Exception e) {
           done(JoinCompleteEvent.Cause.ERROR, e);

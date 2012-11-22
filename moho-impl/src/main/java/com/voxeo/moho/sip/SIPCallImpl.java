@@ -124,7 +124,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected Lock mediaServiceLock = new ReentrantLock();
 
-  protected Queue<JoinDelegate> _joinQueue = new LinkedList<JoinDelegate>();
+  protected Queue<JoinRequest> _joinQueue = new LinkedList<JoinRequest>();
 
   protected SipServletResponse _inviteResponse;
 
@@ -438,6 +438,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   @Override
   public synchronized Joint join(final Direction direction) {
+    return this.join(direction, null);
+  }
+  
+  public synchronized Joint join(final Direction direction, SettableJointImpl joint) {
     if (isTerminated()) {
       throw new IllegalStateException("already terminated.");
     }
@@ -446,10 +450,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           && !(_joinDelegate instanceof BridgeJoinDelegate || _joinDelegate instanceof OtherParticipantJoinDelegate
               || _joinDelegate instanceof LocalRemoteJoinDelegate || _joinDelegate instanceof RemoteLocalJoinDelegate)) {
 
-        JoinDelegate joinDelegate = createJoinDelegate(direction);
-        SettableJointImpl joint = new SettableJointImpl();
-        joinDelegate.setSettableJoint(joint);
-        _joinQueue.add(joinDelegate);
+          if(joint == null){
+            joint = new SettableJointImpl();
+          }
+        JoinRequest joinReq = new JoinRequest(direction, joint);
+        _joinQueue.add(joinReq);
         return joint;
       }
     }
@@ -463,7 +468,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
       _joinDelegate = createJoinDelegate(direction);
 
-      SettableJointImpl joint = new SettableJointImpl();
+      if(joint == null){
+        joint = new SettableJointImpl();
+      }
+      
       _joinDelegate.setSettableJoint(joint);
       _joinDelegate.doJoin();
 
@@ -516,20 +524,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   public synchronized void continueQueuedJoin() {
-    JoinDelegate queuedJoinDelegate = _joinQueue.poll();
+    JoinRequest queuedJoin = _joinQueue.poll();
 
-    if (queuedJoinDelegate != null) {
-      try {
-        _joinDelegate = queuedJoinDelegate;
-        _operationInProcess = true;
-        if (_joinDelegate.getPeer() != null) {
-          _joinDelegate.getPeer().startJoin(this, _joinDelegate);
-        }
-        queuedJoinDelegate.doJoin();
+    if (queuedJoin != null) {
+      if (queuedJoin.getPeer() != null) {
+        this.join(queuedJoin.getPeer(), queuedJoin.getType(), queuedJoin.isForce(), queuedJoin.getDirection(),
+            queuedJoin.isDtmfPassThrough(), queuedJoin.getJoint());
       }
-      catch (Exception e) {
-        queuedJoinDelegate.done(Cause.ERROR, e);
-        LOG.error("Exception when execute queued join", e);
+      else {
+        this.join(queuedJoin.getDirection(), queuedJoin.getJoint());
       }
     }
   }
@@ -548,10 +551,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       final Direction direction) {
     return this.join(other, type, force, direction, true);
   }
-
+  
   @Override
   public synchronized Joint join(final Participant other, final JoinType type, final boolean force,
       final Direction direction, boolean dtmfPassThrough) {
+   return join(other, type, force, direction, dtmfPassThrough, null) ;
+  }
+
+  public synchronized Joint join(final Participant other, final JoinType type, final boolean force,
+      final Direction direction, boolean dtmfPassThrough, SettableJointImpl joint) {
     if (isTerminated()) {
       throw new IllegalStateException("This call is already terminated.");
     }
@@ -560,35 +568,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
 
     if (_operationInProcess) {
-      SettableJointImpl joint = new SettableJointImpl();
-      if (other instanceof SIPCallImpl) {
-        SIPCallImpl call = (SIPCallImpl) other;
-        JoinDelegate joinDelegate = createJoinDelegate(call, type, direction);
-        joinDelegate.setSettableJoint(joint);
-        joinDelegate.setDtmfPassThrough(dtmfPassThrough);
-        _joinQueue.add(joinDelegate);
+      if(joint == null){
+        joint = new SettableJointImpl();
       }
-
-      else if (other instanceof RemoteParticipant) {
-        RemoteParticipant remote = (RemoteParticipant) other;
-        JoinDelegate joinDelegate = null;
-        if (type != JoinType.DIRECT) {
-          joinDelegate = new LocalRemoteJoinDelegate(this, remote, direction);
-        }
-        else {
-          joinDelegate = new DirectLocalRemoteJoinDelegate(this, remote, direction);
-        }
-
-        joinDelegate.setSettableJoint(joint);
-        joinDelegate.setDtmfPassThrough(dtmfPassThrough);
-        _joinQueue.add(joinDelegate);
-      }
-      else {
-        JoinDelegate joinDelegate = new OtherParticipantJoinDelegate(this, other, type, direction);
-        joinDelegate.setSettableJoint(joint);
-        joinDelegate.setDtmfPassThrough(dtmfPassThrough);
-        _joinQueue.add(joinDelegate);
-      }
+      JoinRequest joinReq = new JoinRequest(other, type, direction, force, dtmfPassThrough, joint);
+      _joinQueue.add(joinReq);
       return joint;
     }
 
@@ -596,13 +580,13 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     try {
       if (other instanceof SIPCallImpl) {
-        return doJoin((SIPCallImpl) other, type, force, direction, dtmfPassThrough);
+        return doJoin((SIPCallImpl) other, type, force, direction, dtmfPassThrough, joint);
       }
       else if (other instanceof RemoteParticipant) {
-        return doJoin((RemoteParticipant) other, type, force, direction, dtmfPassThrough);
+        return doJoin((RemoteParticipant) other, type, force, direction, dtmfPassThrough, joint);
       }
       else {
-        return doJoin(other, type, false, direction, dtmfPassThrough);
+        return doJoin(other, type, false, direction, dtmfPassThrough, joint);
       }
     }
     catch (Exception ex) {
@@ -1188,8 +1172,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   protected Joint doJoin(final SIPCallImpl other, final JoinType type, final boolean force, final Direction direction,
-      boolean dtmfPassThrough) throws Exception {
-    SettableJointImpl joint = new SettableJointImpl();
+      boolean dtmfPassThrough, SettableJointImpl joint) throws Exception {
+    
+    if(joint == null){
+      joint = new SettableJointImpl();
+    }
 
     // join strategy check on either side
     final ExecutionException e = JoinDelegate.checkJoinStrategy(this, other, type, force);
@@ -1231,7 +1218,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   // }
 
   protected Joint doJoin(final RemoteParticipant other, final JoinType type, boolean force, final Direction direction,
-      boolean dtmfPassThrough) throws Exception {
+      boolean dtmfPassThrough, SettableJointImpl joint) throws Exception {
     // 1 create outgoing call.
     // 2 join the outgoing call and return joint.
     String[] parsedJoinerID = ParticipantIDParser.parseEncodedId(this.getId());
@@ -1250,16 +1237,18 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     LOG.debug("Starting remotejoin. joiner:" + this + ". joinee:" + other.getId() + ". created RemoteJoinOutgoingCall:"
         + outgoingCall);
     _operationInProcess = false;
-    return this.join(outgoingCall, type, force, direction, dtmfPassThrough);
+    return this.join(outgoingCall, type, force, direction, dtmfPassThrough, joint);
   }
 
   protected Joint doJoin(final Participant other, final JoinType type, final boolean force, final Direction direction,
-      boolean dtmfPassThrough) throws Exception {
+      boolean dtmfPassThrough, SettableJointImpl joint) throws Exception {
     if (!(other.getMediaObject() instanceof Joinable)) {
       throw new IllegalArgumentException("MediaObject is't joinable.");
     }
 
-    SettableJointImpl joint = new SettableJointImpl();
+    if(joint == null){
+      joint = new SettableJointImpl();
+    }
 
     // join strategy check on either side
     final ExecutionException e = JoinDelegate.checkJoinStrategy(this, other, type, force);
@@ -1648,4 +1637,49 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     return _multiplejoiningMixer;
   }
 
+  class JoinRequest{
+    private Participant peer;
+    private JoinType type;
+    private Direction direction;
+    private boolean force;
+    private boolean dtmfPassThrough;
+    private SettableJointImpl joint;
+    
+    public JoinRequest(Participant peer, JoinType type, Direction direction,  boolean force, boolean dtmfPassThrough, SettableJointImpl joint) {
+      super();
+      this.peer = peer;
+      this.direction = direction;
+      this.type = type;
+      this.dtmfPassThrough = dtmfPassThrough;
+      this.joint = joint;
+      this.force = force;
+    }
+    
+    public JoinRequest(Direction direction, SettableJointImpl joint) {
+      super();
+      this.direction = direction;
+      this.joint = joint;
+    }
+
+    public SettableJointImpl getJoint() {
+      return joint;
+    }
+
+    public Participant getPeer() {
+      return peer;
+    }
+    public Direction getDirection() {
+      return direction;
+    }
+    public JoinType getType() {
+      return type;
+    }
+    public boolean isDtmfPassThrough() {
+      return dtmfPassThrough;
+    }
+
+    public boolean isForce() {
+      return force;
+    }
+  }
 }
