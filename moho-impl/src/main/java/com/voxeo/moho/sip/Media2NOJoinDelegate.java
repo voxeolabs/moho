@@ -114,6 +114,8 @@ public class Media2NOJoinDelegate extends JoinDelegate {
           catch (IllegalStateException ex) {
             LOG.warn(ex.getMessage());
           }
+          
+          _call1.setSIPCallState(SIPCall.State.PROGRESSED);
         }
       }
       else if (SIPHelper.isSuccessResponse(res)) {
