@@ -826,7 +826,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           }
         }
         catch (final Exception t) {
-          LOG.warn("Exception when disconnecting call", t);
+          LOG.warn("Exception when disconnecting call:"+ t.getMessage());
         }
       }
       else if (isAnswered(old)) {
@@ -834,7 +834,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           _signal.createRequest("BYE").send();
         }
         catch (final Exception t) {
-          LOG.warn("Exception when disconnecting call", t);
+          LOG.warn("Exception when disconnecting call:" + t.getMessage());
         }
       }
     }
