@@ -797,6 +797,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   protected void fail(Exception ex) {
+    LOG.error(this +" failed.", ex);
     disconnect(true, CallCompleteEvent.Cause.ERROR, ex, null);
   }
   
