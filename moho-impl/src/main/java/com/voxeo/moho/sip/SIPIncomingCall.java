@@ -23,14 +23,12 @@ import javax.servlet.sip.SipServletResponse;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Call;
-import com.voxeo.moho.CanceledException;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.CallCompleteEvent;
-import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.spi.ExecutionContext;
 
@@ -127,7 +125,9 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
         LOG.warn("", e);
       }
     }
-    super.onEvent(event);
+    else{
+      super.onEvent(event);
+    }
   }
 
   protected synchronized void doCancel() {
@@ -165,7 +165,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   }
 
   protected synchronized void doInviteWithEarlyMedia(final Map<String, String> headers) throws MediaException {
-    if (_cstate == SIPCall.State.INVITING) {
+    if (_cstate == SIPCall.State.INVITING || _cstate == SIPCall.State.RINGING) {
       setSIPCallState(SIPCall.State.PROGRESSING);
       processSDPOffer(getSipInitnalRequest());
       while (!this.isTerminated() && _cstate == SIPCall.State.PROGRESSING) {
@@ -177,15 +177,16 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
         }
       }
       if (_cstate != SIPCall.State.PROGRESSED) {
-        throw new IllegalStateException("" + this);
+        throw new IllegalStateException("Can't negotiate early media." + this);
       }
     }
   }
 
   protected synchronized void doPrack(final SipServletRequest req) throws IOException {
     if (_cstate == SIPCall.State.PROGRESSED) {
+      //TODO support SDP in Prack?
       final SipServletResponse res = req.createResponse(SipServletResponse.SC_OK);
-      if (getLocalSDP() != null) {
+      if (SIPHelper.getRawContentWOException(req) != null && getLocalSDP() != null) {
         res.setContent(getLocalSDP(), "application/sdp");
       }
       res.send();

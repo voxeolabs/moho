@@ -568,6 +568,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
 
     if (_operationInProcess) {
+      //this is used for the case that receive 183 from not-answered outgoing call
+      if(type == JoinType.DIRECT && other instanceof SIPCallImpl){
+         this.setDirectJoiningPeer((SIPCallImpl)other);
+      }
+      else if(other instanceof SIPCallImpl){
+        this.setBridgeJoiningPeer((SIPCallImpl)other);
+      }
+      
       if(joint == null){
         joint = new SettableJointImpl();
       }
@@ -731,8 +739,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         _callDelegate.handleReinviteResponse(this, res, headers);
       }
     }
-    else if (SIPHelper.isCancel(res) || SIPHelper.isBye(res)) {
-      ;
+    else if (SIPHelper.isCancel(res) || SIPHelper.isBye(res) || SIPHelper.isPrack(res)) {
+      // ignore the response
     }
     else if(SIPHelper.isUpdate(res)){
       if (_callDelegate != null) {
@@ -745,10 +753,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     else {
       final SipServletRequest req = (SipServletRequest) SIPHelper.getLinkSIPMessage(res.getRequest());
       if (req != null) {
+        LOG.debug("Found linked message, sending response to linked message:" + req);
         final SipServletResponse newRes = req.createResponse(res.getStatus(), res.getReasonPhrase());
         SIPHelper.addHeaders(newRes, headers);
         SIPHelper.copyContent(res, newRes);
         newRes.send();
+      }
+      else{
+        LOG.warn("Discarding this response:" + res);
       }
     }
   }
@@ -797,23 +809,25 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       if (isNoAnswered(old)) {
         try {
           if (this instanceof SIPOutgoingCall) {
-            if (_invite != null) {
+            if (_invite != null && (_invite.getSession().getState() == SipSession.State.EARLY || _invite.getSession().getState() == SipSession.State.INITIAL)) {
               SipServletRequest cancelRequest = _invite.createCancel();
               SIPHelper.addHeaders(cancelRequest, headers);
               cancelRequest.send();
             }
           }
           else if (this instanceof SIPIncomingCall) {
-            SipServletResponse declineResponse = _invite.createResponse(SipServletResponse.SC_DECLINE);
-            SIPHelper.addHeaders(declineResponse, headers);
-            declineResponse.send();
+            if (_invite != null && _invite.getSession().getState() == SipSession.State.EARLY) {
+              SipServletResponse declineResponse = _invite.createResponse(SipServletResponse.SC_DECLINE);
+              SIPHelper.addHeaders(declineResponse, headers);
+              declineResponse.send();
+            }
           }
         }
         catch (final Exception t) {
           LOG.warn("Exception when disconnecting call:"+ t.getMessage());
         }
       }
-      else if (isAnswered(old)) {
+      else if (isAnswered(old) && _invite.getSession().getState() != SipSession.State.TERMINATED) {
         try {
           _signal.createRequest("BYE").send();
         }
@@ -1594,6 +1608,16 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   public void setBridgeJoiningPeer(final SIPCallImpl bridgeJoiningPeer) {
     _bridgeJoiningPeer = bridgeJoiningPeer;
+  }
+  
+  private SIPCallImpl _directJoiningPeer;
+  
+  public SIPCallImpl getDirectJoiningPeer() {
+    return _directJoiningPeer;
+  }
+
+  public void setDirectJoiningPeer(final SIPCallImpl bridgeJoiningPeer) {
+    _directJoiningPeer = bridgeJoiningPeer;
   }
 
   @Override

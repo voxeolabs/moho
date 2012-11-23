@@ -211,6 +211,10 @@ public class SIPHelper {
     return msg.getMethod().equalsIgnoreCase("BYE");
   }
   
+  public static boolean isPrack(final SipServletMessage msg) {
+    return msg.getMethod().equalsIgnoreCase("PRACK");
+  }
+  
   public static boolean isRegister(final SipServletMessage msg) {
     return msg.getMethod().equalsIgnoreCase("REGISTER");
   }

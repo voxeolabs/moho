@@ -2,10 +2,9 @@ package com.voxeo.moho.sip;
 
 import java.util.Map;
 
-import javax.media.mscontrol.join.Joinable;
-import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipServletResponse;
 
+import com.voxeo.moho.Constants;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.common.event.MohoEarlyMediaEvent;
 
@@ -45,18 +44,16 @@ public class SIPEarlyMediaEventImpl extends MohoEarlyMediaEvent implements SIPEa
     // do the following in delegate
     // if join to media server, process as normal.
 
-    // if bridge, didn't join the two network at this point
+    // if bridge, don't join the two network at this point
 
-    // if direct, send the SDP this to the peer.
+    // if direct, don't send the SDP this to the peer.
   }
 
   @Override
   public void accept(final Map<String, String> headers) throws SignalException, IllegalStateException {
     this.checkState();
     _accepted = true;
-    // if join to media server, process as normal.
 
-    // if bridge, join networks of two call.
     if (source instanceof SIPCallImpl) {
       final SIPCallImpl call = (SIPCallImpl) source;
 
@@ -66,26 +63,13 @@ public class SIPEarlyMediaEventImpl extends MohoEarlyMediaEvent implements SIPEa
       catch (final Exception e) {
         throw new SignalException(e);
       }
+      _res.setAttribute(Constants.Attribute_AcceptEarlyMedia, "true");
+      // do the following in delegate
+      // if join to media server, process as normal.
 
-      final JoinDelegate delegate = call.getJoinDelegate();
-      if (delegate instanceof Media2NOJoinDelegate) {
-        try {
-          if (call.getBridgeJoiningPeer() != null && call.getBridgeJoiningPeer().getMediaObject() == null) {
-            call.getBridgeJoiningPeer().join().get();
-          }
-          if (call.getMediaObject() instanceof Joinable
-              && call.getBridgeJoiningPeer().getMediaObject() instanceof Joinable) {
-            ((Joinable) call.getMediaObject()).join(Direction.DUPLEX, (Joinable) call.getBridgeJoiningPeer()
-                .getMediaObject());
-          }
-
-        }
-        catch (final Exception e) {
-          throw new SignalException(e);
-        }
-      }
+      // if bridge, join networks of two call.
+      
+      // if direct, send the SDP this to the peer.
     }
-
-    // if direct, send the SDP this to the peer.
   }
 }
