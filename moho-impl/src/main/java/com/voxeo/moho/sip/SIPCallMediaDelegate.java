@@ -152,7 +152,9 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   @Override
   protected void handleUpdateResponse(SIPCallImpl call, SipServletResponse res, Map<String, String> headers)
       throws Exception {
-     call.processSDPOffer(res);
+     if(SIPHelper.isSuccessResponse(res) && SIPHelper.getRawContentWOException(res) != null){
+       call.processSDPOffer(res);
+     }
   }
 
   @Override
