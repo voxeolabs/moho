@@ -1018,7 +1018,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   protected boolean isBridgeJoined() {
-    return isAnswered() && _network != null;
+    return (isAnswered() || _cstate == SIPCall.State.PROGRESSED) && _network != null;
   }
 
   protected synchronized void linkCall(final SIPCallImpl call, final JoinType type, final Direction direction)

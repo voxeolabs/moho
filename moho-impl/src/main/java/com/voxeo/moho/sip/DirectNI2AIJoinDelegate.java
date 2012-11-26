@@ -92,6 +92,7 @@ public class DirectNI2AIJoinDelegate extends JoinDelegate {
         throw e;
       }
       doDisengage(_call2, JoinType.DIRECT);
+      doDisengage(_call1, JoinType.DIRECT);
       _call1.linkCall(_call2, JoinType.DIRECT, _direction);
       _response = null;
       done(JoinCompleteEvent.Cause.JOINED, null);

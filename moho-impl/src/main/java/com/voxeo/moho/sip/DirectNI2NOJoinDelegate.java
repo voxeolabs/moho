@@ -86,6 +86,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
         _call2.fail(e);
         throw e;
       }
+      doDisengage(_call1, JoinType.DIRECT);
       _call1.linkCall(_call2, JoinType.DIRECT, _direction);
       _response = null;
       done(JoinCompleteEvent.Cause.JOINED, null);

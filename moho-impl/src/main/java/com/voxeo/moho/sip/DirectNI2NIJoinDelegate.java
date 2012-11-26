@@ -53,6 +53,7 @@ public class DirectNI2NIJoinDelegate extends JoinDelegate {
   @Override
   protected void doAck(final SipServletRequest req, final SIPCallImpl call) throws MsControlException {
     call.setSIPCallState(State.ANSWERED);
+    doDisengage(call, JoinType.DIRECT);
     if (_call1.equals(call)) {
       _call1.linkCall(_call2, JoinType.DIRECT, _direction);
       done(JoinCompleteEvent.Cause.JOINED, null);

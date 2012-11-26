@@ -788,6 +788,12 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
           
           allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+          
+          allowing(outgoingCall).isDirectlyJoined();
+          will(returnValue(false));
+          
+          allowing(outgoingCall).isBridgeJoined();
+          will(returnValue(false));
 
           oneOf(outgoingCall).join(Direction.DUPLEX);
           will(new Action() {
@@ -1854,6 +1860,12 @@ public class SIPIncomingCallTest extends TestCase {
           oneOf(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
 
           allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+          
+          allowing(outgoingCall).isDirectlyJoined();
+          will(returnValue(false));
+          
+          allowing(outgoingCall).isBridgeJoined();
+          will(returnValue(false));
 
           oneOf(outgoingCall).call(null, appSession);
           will(new Action() {
@@ -2325,6 +2337,9 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(incomingCall).isNoAnswered();
           will(returnValue(false));
           when(incomingCallStates.is("resped"));
+          
+          allowing(incomingCall).isDirectlyJoined();
+          will(returnValue(false));
         }
       });
     }
@@ -2532,6 +2547,12 @@ public class SIPIncomingCallTest extends TestCase {
           allowing(incomingCall).isNoAnswered();
           will(returnValue(false));
           when(incomingCallStates.is("resped"));
+          
+          allowing(incomingCall).isDirectlyJoined();
+          will(returnValue(false));
+          
+          allowing(incomingCall).isBridgeJoined();
+          will(returnValue(false));
         }
       });
     }
@@ -3381,11 +3402,16 @@ public class SIPIncomingCallTest extends TestCase {
           
           allowing(outgoingCall).getParticipants();
           will(returnValue(new Participant[]{}));
-
-          oneOf(outgoingCall).join(Direction.DUPLEX);
           
           allowing(outgoingCall).setContinueRouting(with(any(SIPCallImpl.class)));
+          
+          allowing(outgoingCall).isDirectlyJoined();
+          will(returnValue(false));
+          
+          allowing(outgoingCall).isBridgeJoined();
+          will(returnValue(true));
 
+          oneOf(outgoingCall).join(Direction.DUPLEX);
           will(new Action() {
             @Override
             public void describeTo(final Description description) {
