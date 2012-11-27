@@ -28,13 +28,13 @@ public class JoinData {
 
   protected Participant _realJoined;
 
-  protected JoinData(final Participant p, final Direction direction, final JoinType type) {
+  public JoinData(final Participant p, final Direction direction, final JoinType type) {
     _participant = p;
     _direction = direction;
     _type = type;
   }
 
-  protected JoinData(final Participant p, final Direction direction, final JoinType type, Participant realJoined) {
+  public JoinData(final Participant p, final Direction direction, final JoinType type, Participant realJoined) {
     _participant = p;
     _direction = direction;
     _type = type;

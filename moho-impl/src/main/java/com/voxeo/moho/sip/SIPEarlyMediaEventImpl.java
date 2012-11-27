@@ -56,14 +56,24 @@ public class SIPEarlyMediaEventImpl extends MohoEarlyMediaEvent implements SIPEa
 
     if (source instanceof SIPCallImpl) {
       final SIPCallImpl call = (SIPCallImpl) source;
-
+      _res.setAttribute(Constants.Attribute_AcceptEarlyMedia, "true");
       try {
         call.doResponse(_res, headers);
       }
       catch (final Exception e) {
         throw new SignalException(e);
       }
-      _res.setAttribute(Constants.Attribute_AcceptEarlyMedia, "true");
+      
+      while (!call.isTerminated() && !(call.getSIPCallState() == SIPCall.State.PROGRESSED)) {
+        try {
+          synchronized (this) {
+            this.wait(5000);
+          }
+        }
+        catch (final InterruptedException e) {
+          // ignore
+        }
+      }
       // do the following in delegate
       // if join to media server, process as normal.
 

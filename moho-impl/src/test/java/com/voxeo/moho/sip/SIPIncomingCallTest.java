@@ -44,6 +44,7 @@ import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.JoinData;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.State;
@@ -749,7 +750,7 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
-          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).setJoiningPeer(with(any(JoinData.class)));
           allowing(outgoingCall).queuedJoinSize();
           will(returnValue(0));
           allowing(outgoingCall).continueQueuedJoin();
@@ -925,7 +926,7 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
-          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).setJoiningPeer(with(any(JoinData.class)));
           allowing(outgoingCall).queuedJoinSize();
           will(returnValue(0));
           allowing(outgoingCall).continueQueuedJoin();
@@ -1091,7 +1092,7 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(incomingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
-          allowing(incomingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+          allowing(incomingCall).setJoiningPeer(with(any(JoinData.class)));
           allowing(incomingCall).queuedJoinSize();
           will(returnValue(0));
           allowing(incomingCall).continueQueuedJoin();
@@ -1229,7 +1230,7 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(incomingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
-          allowing(incomingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+          allowing(incomingCall).setJoiningPeer(with(any(JoinData.class)));
           allowing(incomingCall).queuedJoinSize();
           will(returnValue(0));
           allowing(incomingCall).continueQueuedJoin();
@@ -3367,7 +3368,7 @@ public class SIPIncomingCallTest extends TestCase {
 
           allowing(outgoingCall).joinDone(with(any(SIPIncomingCall.class)), with(any(JoinDelegate.class)));
 
-          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).setJoiningPeer(with(any(JoinData.class)));
           allowing(outgoingCall).queuedJoinSize();
           will(returnValue(0));
           allowing(outgoingCall).continueQueuedJoin();

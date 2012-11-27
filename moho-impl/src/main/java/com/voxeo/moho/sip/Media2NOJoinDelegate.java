@@ -84,51 +84,41 @@ public class Media2NOJoinDelegate extends JoinDelegate {
             _call1.fail(ex);
           }
         }
-        else if (processedAnswer && _call1.getSIPCallState() == SIPCall.State.PROGRESSED) {
+        else if (processedAnswer && _call1.getSIPCallState() == SIPCall.State.PROGRESSING) {
           // accept early media
-          if (_earlyMediaResponse.getAttribute(Constants.Attribute_AcceptEarlyMedia) != null) {
+          if (_earlyMediaResponse.getAttribute(Constants.Attribute_AcceptEarlyMedia) != null
+              && _call1.getJoiningPeer() != null) {
             try {
               // bridge join peer is not null
-              if (_call1.getBridgeJoiningPeer() != null) {
-                if (_call1.getBridgeJoiningPeer().getMediaObject() == null) {
-                  if (_call1.getBridgeJoiningPeer() instanceof SIPIncomingCall
-                      && (_call1.getBridgeJoiningPeer().getSIPCallState() == SIPCall.State.INVITING || _call1
-                          .getBridgeJoiningPeer().getSIPCallState() == SIPCall.State.RINGING)) {
-                    ((SIPIncomingCall)_call1.getBridgeJoiningPeer()).acceptWithEarlyMedia();
-                  }
-                  else {
-                    _call1.getBridgeJoiningPeer().join().get();
+              if (_call1.getJoiningPeer().getParticipant().getMediaObject() == null) {
+                if (_call1.getJoiningPeer().getParticipant() instanceof SIPIncomingCall) {
+                  SIPIncomingCall incomingCall = (SIPIncomingCall) _call1.getJoiningPeer().getParticipant();
+                  if (incomingCall.getSIPCallState() == SIPCall.State.INVITING
+                      || incomingCall.getSIPCallState() == SIPCall.State.RINGING) {
+                    ((SIPIncomingCall) _call1.getJoiningPeer().getParticipant()).acceptWithEarlyMedia();
                   }
                 }
-                if (_call1.getMediaObject() instanceof Joinable
-                    && _call1.getBridgeJoiningPeer().getMediaObject() instanceof Joinable) {
-                  ((Joinable) _call1.getMediaObject()).join(Direction.DUPLEX, (Joinable) _call1.getBridgeJoiningPeer()
-                      .getMediaObject());
+                else {
+                  ((SIPOutgoingCall) _call1.getJoiningPeer().getParticipant()).join().get();
                 }
+              }
+
+              if (_call1.getMediaObject() instanceof Joinable
+                  && _call1.getJoiningPeer().getParticipant().getMediaObject() instanceof Joinable) {
+                JoinDelegate.bridgeJoin(_call1, _call1.getJoiningPeer().getParticipant(), Direction.DUPLEX);
               }
               // direct join peer is not null and peer is a not-answerd incoming
               // call, accept with early media. and join two networkconnection
-              else if (_call1.getDirectJoiningPeer() != null) {
-                if (_call1.getDirectJoiningPeer().getMediaObject() == null) {
-                  if (_call1.getDirectJoiningPeer() instanceof SIPIncomingCall
-                      && (_call1.getDirectJoiningPeer().getSIPCallState() == SIPCall.State.INVITING || _call1
-                          .getDirectJoiningPeer().getSIPCallState() == SIPCall.State.RINGING)) {
-                    ((SIPIncomingCall) _call1.getDirectJoiningPeer()).acceptWithEarlyMedia();
-                  }
-                  else {
-                    _call1.getDirectJoiningPeer().join().get();
-                  }
-                }
-                if (_call1.getMediaObject() instanceof Joinable
-                    && _call1.getDirectJoiningPeer().getMediaObject() instanceof Joinable) {
-                  ((Joinable) _call1.getMediaObject()).join(Direction.DUPLEX, (Joinable) _call1.getDirectJoiningPeer()
-                      .getMediaObject());
-                }
-              }
             }
             catch (final Exception e) {
               throw new SignalException(e);
             }
+          }
+          
+          _call1.setSIPCallState(SIPCall.State.PROGRESSED);
+          
+          synchronized (this) {
+            this.notify();
           }
         }
         return;
@@ -169,8 +159,6 @@ public class Media2NOJoinDelegate extends JoinDelegate {
           catch (IllegalStateException ex) {
             LOG.warn(ex.getMessage());
           }
-
-          _call1.setSIPCallState(SIPCall.State.PROGRESSED);
         }
       }
       else if (SIPHelper.isSuccessResponse(res)) {

@@ -12,6 +12,7 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -115,7 +116,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected Exception _exception;
 
-  protected SIPCallImpl _bridgeJoiningPeer;
+  protected JoinData _bridgeJoiningPeer;
 
   protected MediaMixer _multiplejoiningMixer;
 
@@ -291,11 +292,23 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   @Override
   public Participant[] getParticipants() {
+    if(this.getJoiningPeer() != null){
+      Participant[] participants = _joinees.getJoinees();
+      Participant[] allParticipants = Arrays.copyOf(participants, participants.length +1);
+      allParticipants[participants.length] = this.getJoiningPeer().getParticipant();
+      return allParticipants;
+    }
     return _joinees.getJoinees();
   }
 
   @Override
   public Participant[] getParticipants(final Direction direction) {
+    if(this.getJoiningPeer() != null){
+      Participant[] participants = _joinees.getJoinees(direction);
+      Participant[] allParticipants = Arrays.copyOf(participants, participants.length +1);
+      allParticipants[participants.length] = this.getJoiningPeer().getParticipant();
+      return allParticipants;
+    }
     return _joinees.getJoinees(direction);
   }
 
@@ -484,6 +497,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   public void joinDone(final Participant participant, final JoinDelegate delegate) {
+    setJoiningPeer(null);
     if (_joinDelegate.getPeer() != null) {
       if (JoinType.isBridge(_joinDelegate.getJoinType())) {
         _callDelegate = new SIPCallBridgeDelegate();
@@ -569,11 +583,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     if (_operationInProcess) {
       //this is used for the case that receive 183 from not-answered outgoing call
-      if(type == JoinType.DIRECT && other instanceof SIPCallImpl){
-         this.setDirectJoiningPeer((SIPCallImpl)other);
-      }
-      else if(other instanceof SIPCallImpl){
-        this.setBridgeJoiningPeer((SIPCallImpl)other);
+      if(other instanceof SIPCallImpl){
+        this.setJoiningPeer(new JoinData(other, direction, type));
       }
       
       if(joint == null){
@@ -1602,24 +1613,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   // for dispatchable eventsource over=========
 
-  public SIPCallImpl getBridgeJoiningPeer() {
+  public JoinData getJoiningPeer() {
     return _bridgeJoiningPeer;
   }
 
-  public void setBridgeJoiningPeer(final SIPCallImpl bridgeJoiningPeer) {
+  public void setJoiningPeer(final JoinData bridgeJoiningPeer) {
     _bridgeJoiningPeer = bridgeJoiningPeer;
   }
   
-  private SIPCallImpl _directJoiningPeer;
-  
-  public SIPCallImpl getDirectJoiningPeer() {
-    return _directJoiningPeer;
-  }
-
-  public void setDirectJoiningPeer(final SIPCallImpl bridgeJoiningPeer) {
-    _directJoiningPeer = bridgeJoiningPeer;
-  }
-
   @Override
   public synchronized Endpoint getAddress() {
     return _address;
@@ -1704,6 +1705,35 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     public boolean isForce() {
       return force;
+    }
+  }
+
+  private boolean sendingUpdate;
+  
+  public boolean isSendingUpdate() {
+    return sendingUpdate;
+  }
+
+  public void setSendingUpdate(boolean sendingUpdate) {
+    this.sendingUpdate = sendingUpdate;
+  }
+
+  public void update() {
+    if(_cstate != SIPCall.State.PROGRESSED && _cstate != SIPCall.State.ANSWERED){
+      LOG.warn("Call media didn't negotiate, can't send UPDATE");
+      return;
+    }
+    try{
+      SipServletRequest updateReq = _invite.getSession().createRequest("UPDATE");
+      if(_localSDP != null){
+        updateReq.setContent(_localSDP, "application/sdp");
+      }
+      sendingUpdate = true;
+      updateReq.send();
+    }
+    catch(Exception ex){
+      sendingUpdate = false;
+      LOG.error("Can't send UPDATE reqeust.", ex);
     }
   }
 }

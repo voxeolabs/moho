@@ -15,11 +15,7 @@
 package com.voxeo.moho;
 
 import java.io.File;
-import java.rmi.NoSuchObjectException;
-import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,7 +46,6 @@ import com.voxeo.moho.common.util.Utils.DaemonThreadFactory;
 import com.voxeo.moho.conference.ConferenceDriverImpl;
 import com.voxeo.moho.conference.ConferenceManager;
 import com.voxeo.moho.media.dialect.MediaDialect;
-import com.voxeo.moho.remote.network.RemoteCommunication;
 import com.voxeo.moho.remote.network.RemoteCommunicationImpl;
 import com.voxeo.moho.services.Service;
 import com.voxeo.moho.sip.RemoteParticipantImpl;

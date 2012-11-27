@@ -51,6 +51,7 @@ import org.junit.Test;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.BusyException;
 import com.voxeo.moho.Call;
+import com.voxeo.moho.JoinData;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.common.event.MohoCallCompleteEvent;
@@ -1214,7 +1215,7 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
-          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).setJoiningPeer(with(any(JoinData.class)));
           allowing(outgoingCall).queuedJoinSize();
           will(returnValue(0));
           allowing(outgoingCall).continueQueuedJoin();
@@ -1366,7 +1367,7 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
-          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).setJoiningPeer(with(any(JoinData.class)));
           allowing(outgoingCall).continueQueuedJoin();
           allowing(outgoingCall).queuedJoinSize();
           will(returnValue(0));
@@ -1455,7 +1456,7 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
-          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).setJoiningPeer(with(any(JoinData.class)));
           allowing(outgoingCall).continueQueuedJoin();
           allowing(outgoingCall).queuedJoinSize();
           will(returnValue(0));
@@ -1870,7 +1871,7 @@ public class SIPOutgoingCallTest extends TestCase {
 
           allowing(outgoingCall).setCallDelegate(with(any(SIPCallDelegate.class)));
 
-          allowing(outgoingCall).setBridgeJoiningPeer(with(any(SIPCallImpl.class)));
+          allowing(outgoingCall).setJoiningPeer(with(any(JoinData.class)));
           allowing(outgoingCall).continueQueuedJoin();
           allowing(outgoingCall).queuedJoinSize();
           will(returnValue(0));

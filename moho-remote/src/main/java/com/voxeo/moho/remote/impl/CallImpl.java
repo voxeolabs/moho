@@ -625,4 +625,8 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
       throw new IllegalStateException("Isn't connected");
     }
   }
+  
+  public void update() {
+    
+  }
 }

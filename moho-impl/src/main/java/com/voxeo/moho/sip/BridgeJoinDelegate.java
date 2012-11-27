@@ -18,6 +18,7 @@ import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.IncomingCall;
+import com.voxeo.moho.JoinData;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.media.dialect.MediaDialect;
@@ -37,8 +38,8 @@ public class BridgeJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
-    _call1.setBridgeJoiningPeer(_call2);
-    _call2.setBridgeJoiningPeer(_call1);
+    _call1.setJoiningPeer(new JoinData(_call2, _direction, _joinType));
+    _call2.setJoiningPeer(new JoinData(_call2, _direction, _joinType));
 
     if (_call1.getMediaObject() == null) {
       if(_call1 instanceof SIPOutgoingCall){
@@ -76,8 +77,8 @@ public class BridgeJoinDelegate extends JoinDelegate {
       
       _call1.linkCall(_call2, _joinType, _direction);
 
-      _call1.setBridgeJoiningPeer(null);
-      _call2.setBridgeJoiningPeer(null);
+      _call1.setJoiningPeer(null);
+      _call2.setJoiningPeer(null);
 
       done(Cause.JOINED, null);
     }
@@ -95,8 +96,8 @@ public class BridgeJoinDelegate extends JoinDelegate {
       
       _call1.linkCall(_call2, _joinType, _direction);
 
-      _call1.setBridgeJoiningPeer(null);
-      _call2.setBridgeJoiningPeer(null);
+      _call1.setJoiningPeer(null);
+      _call2.setJoiningPeer(null);
       done(Cause.JOINED, null);
     }
     catch (final Exception e) {

@@ -188,6 +188,10 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
         _isUpdateWaiting = false;
         return;
       }
+      else if(call.isSendingUpdate()){
+        // do nothing
+        return;
+      }
       
       if (call.isHoldingProcess()) {
         call.holdResp();
