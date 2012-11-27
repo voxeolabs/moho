@@ -687,6 +687,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
     getSignalDetector().addListener(new DetectorListener(input, cmd));
     try {
+      if(cmd.isFlushBuffer()){
+        getSignalDetector().flushBuffer();
+      }
       getSignalDetector().receiveSignals(cmd.getNumberOfDigits(), patternKeys, rtcs.toArray(new RTC[] {}), params);
       _futures.add(input);
     }

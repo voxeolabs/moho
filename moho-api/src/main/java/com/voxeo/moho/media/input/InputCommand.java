@@ -91,6 +91,8 @@ public class InputCommand implements Parameters {
    * nomatch event).
    */
   protected long _speechCompleteTimeout;
+  
+  protected boolean _flushBuffer;
 
   /**
    * @param grammers
@@ -448,5 +450,12 @@ public class InputCommand implements Parameters {
 
   public void setSpeechCompleteTimeout(long speechCompleteTimeout) {
     this._speechCompleteTimeout = speechCompleteTimeout;
+  }
+
+  public boolean isFlushBuffer() {
+    return _flushBuffer;
+  }
+  public void setFlushBuffer(boolean flushBuffer) {
+    this._flushBuffer = flushBuffer;
   }
 }
