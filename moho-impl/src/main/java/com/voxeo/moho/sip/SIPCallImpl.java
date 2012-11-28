@@ -1093,6 +1093,16 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         LOG.warn("Exception when stopping call record", t);
       }
     }
+    
+    if (_service != null) {
+      try {
+        ((GenericMediaService) _service).release(true);
+      }
+      catch (final Throwable t) {
+        LOG.warn("Exception when releasing media service", t);
+      }
+      _service = null;
+    }
 
     if (_network != null) {
       try {
@@ -1120,15 +1130,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         LOG.warn("Exception when releasing media object", t);
       }
       _media = null;
-    }
-    if (_service != null) {
-      try {
-        ((GenericMediaService) _service).release(true);
-      }
-      catch (final Throwable t) {
-        LOG.warn("Exception when releasing media service", t);
-      }
-      _service = null;
     }
   }
 

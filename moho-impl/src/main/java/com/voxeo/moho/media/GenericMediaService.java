@@ -1062,40 +1062,84 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
       if (future instanceof RecordingImpl) {
         RecordingImpl<T> recording = (RecordingImpl<T>) future;
-        if (recording.isPending()) {
-          recording.normalDisconnect(isNormalDisconnect);
-        }
         recording.pauseActionDone();
         recording.resumeActionDone();
+        
+        if (recording.isPending()) {
+          recording.normalDisconnect(isNormalDisconnect);
+          try{
+            recording.stop();
+          }
+          catch (Exception e) {
+            LOG.warn("Exception when stopping record.", e);
+          }
+          try {
+            recording.get(10, TimeUnit.SECONDS);
+          }
+          catch (Exception e) {
+            LOG.warn("Exception when waiting record complete event.", e);
+          }
+        }
       }
       else if (future instanceof InputImpl) {
         InputImpl<T> input = (InputImpl<T>) future;
         if (input.isPending()) {
           input.normalDisconnect(isNormalDisconnect);
+          try{
+            input.stop();
+          }
+          catch (Exception e) {
+            LOG.warn("Exception when stopping input.", e);
+          }
+          try {
+            input.get(10, TimeUnit.SECONDS);
+          }
+          catch (Exception e) {
+            LOG.warn("Exception when waiting input complete event.", e);
+          }
         }
       }
       else if (future instanceof CallRecordingImpl) {
         CallRecordingImpl<T> recording = (CallRecordingImpl<T>) future;
         if (!recording.isDone()) {
           recording.normalDisconnect(isNormalDisconnect);
-          recording.stop();
-          try {
-            recording.get(30, TimeUnit.SECONDS);
+          try{
+            recording.stop();
           }
           catch (Exception e) {
-            LOG.warn("Exception when waiting call complete event.", e);
+            LOG.warn("Exception when stopping call record.", e);
+          }
+          try {
+            recording.get(10, TimeUnit.SECONDS);
+          }
+          catch (Exception e) {
+            LOG.warn("Exception when waiting call record complete event.", e);
           }
         }
       }
       else {
         OutputImpl<T> output = (OutputImpl<T>) future;
-        if (output.isPending()) {
-          output.normalDisconnect(isNormalDisconnect);
-        }
         output.pauseActionDone();
         output.resumeActionDone();
         output.speedActionDone();
         output.volumeActionDone();
+        
+        if (output.isPending()) {
+          output.normalDisconnect(isNormalDisconnect);
+          
+          try{
+            output.stop();
+          }
+          catch (Exception e) {
+            LOG.warn("Exception when stopping output.", e);
+          }
+          try {
+            output.get(10, TimeUnit.SECONDS);
+          }
+          catch (Exception e) {
+            LOG.warn("Exception when waiting output complete event.", e);
+          }
+        }
       }
     }
   }
