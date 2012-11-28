@@ -17,6 +17,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -1055,7 +1056,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
   @SuppressWarnings("unchecked")
   public void release(boolean isNormalDisconnect) {
-    Iterator<MediaOperation<? extends EventSource, ? extends MediaCompleteEvent<?>>> ite = _futures.iterator();
+    //avoid ConcurrentModificationException
+    List<MediaOperation<?, ? extends MediaCompleteEvent<?>>> copy = new LinkedList<MediaOperation<?, ? extends MediaCompleteEvent<?>>>();
+    copy.addAll(_futures);
+    Iterator<MediaOperation<? extends EventSource, ? extends MediaCompleteEvent<?>>> ite = copy.iterator();
 
     while (ite.hasNext()) {
       MediaOperation<? extends EventSource, ? extends MediaCompleteEvent<?>> future = ite.next();
