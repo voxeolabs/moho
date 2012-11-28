@@ -126,6 +126,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected Lock mediaServiceLock = new ReentrantLock();
 
   protected Queue<JoinRequest> _joinQueue = new LinkedList<JoinRequest>();
+  
+  protected Lock _joinQueueLock = new ReentrantLock();
 
   protected SipServletResponse _inviteResponse;
 
@@ -641,13 +643,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected void doBye(final SipServletRequest req, final Map<String, String> headers) {
     LOG.debug("Processing BYE request. "+ this);
     
-    try {
-      req.createResponse(SipServletResponse.SC_OK).send();
-    }
-    catch (final Exception e) {
-      LOG.warn("Excetion sending back SIP response", e);
-    }
-    
     synchronized(this){
       if (isTerminated()) {
         LOG.debug(this + " is already terminated.");
@@ -659,6 +654,13 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     
     terminate(CallCompleteEvent.Cause.DISCONNECT, null, headers);
+    
+    try {
+      req.createResponse(SipServletResponse.SC_OK).send();
+    }
+    catch (final Exception e) {
+      LOG.warn("Excetion sending back SIP response", e);
+    }
   }
 
   protected synchronized void doAck(final SipServletRequest req) throws Exception {
