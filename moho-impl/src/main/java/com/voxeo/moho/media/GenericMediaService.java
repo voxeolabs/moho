@@ -952,9 +952,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           inputCompleteEvent.setUtterance(signalString);
           inputCompleteEvent.setInputMode(InputMode.DTMF);
         }
-        if (_cmd.isSupervised()) {
-          _parent.dispatch(inputCompleteEvent);
-        }
+        _parent.dispatch(inputCompleteEvent);
+        
         _input.done(inputCompleteEvent);
         _futures.remove(_input);
       }
