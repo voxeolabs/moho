@@ -39,6 +39,7 @@ import com.voxeo.moho.SettableJointImpl;
 import com.voxeo.moho.TimeoutException;
 import com.voxeo.moho.Unjoint;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
+import com.voxeo.moho.common.util.InheritLogContextRunnable;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
@@ -122,7 +123,7 @@ public abstract class JoinDelegate {
     _settableJoint.done(joinCompleteEvent);
     done = true;
 
-      ((ApplicationContextImpl) _call1.getApplicationContext()).getExecutor().execute(new Runnable() {
+      ((ApplicationContextImpl) _call1.getApplicationContext()).getExecutor().execute(new InheritLogContextRunnable() {
         @Override
         public void run() {
           _call1.continueQueuedJoin();
@@ -130,7 +131,7 @@ public abstract class JoinDelegate {
       });
 
     if (_call2 != null) {
-      ((ApplicationContextImpl) _call1.getApplicationContext()).getExecutor().execute(new Runnable() {
+      ((ApplicationContextImpl) _call1.getApplicationContext()).getExecutor().execute(new InheritLogContextRunnable() {
         @Override
         public void run() {
           _call2.continueQueuedJoin();

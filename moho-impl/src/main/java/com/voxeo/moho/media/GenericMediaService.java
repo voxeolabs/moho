@@ -62,6 +62,7 @@ import com.voxeo.moho.common.event.MohoRecordCompleteEvent;
 import com.voxeo.moho.common.event.MohoRecordPausedEvent;
 import com.voxeo.moho.common.event.MohoRecordResumedEvent;
 import com.voxeo.moho.common.event.MohoRecordStartedEvent;
+import com.voxeo.moho.common.util.InheritLogContextRunnable;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.event.MediaCompleteEvent;
@@ -760,7 +761,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
     @Override
     public void onEvent(final PlayerEvent e) {
-      Runnable runable = new Runnable() {
+      Runnable runable = new InheritLogContextRunnable() {
         @Override
         public void run() {
           final EventType t = e.getEventType();

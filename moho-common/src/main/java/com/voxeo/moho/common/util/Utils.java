@@ -111,20 +111,7 @@ public class Utils {
 
     @Override
     public Thread newThread(final Runnable r) {
-      final Map<String, String> logContexts = Utils.getCurrentLogContexts();
-      
-      final Thread t = new Thread(group, r, "MOHO-" + id.getAndIncrement()){
-        @Override
-        public void run() {
-          try{
-            Utils.inheritLogContexts(logContexts);
-            super.run();
-          }
-          finally{
-            Utils.clearContexts();
-          }
-        }
-      };
+      final Thread t = new Thread(group, r, "MOHO-" + id.getAndIncrement());
       t.setContextClassLoader(this.getClass().getClassLoader());
       t.setDaemon(true);
       return t;

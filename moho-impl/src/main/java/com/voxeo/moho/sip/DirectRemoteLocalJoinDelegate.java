@@ -12,6 +12,7 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
+import com.voxeo.moho.common.util.InheritLogContextRunnable;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 
@@ -46,7 +47,7 @@ public class DirectRemoteLocalJoinDelegate extends JoinDelegate {
 
     if (answerSDP != null) {
       // avoid dead lock.
-      Runnable run = new Runnable() {
+      Runnable run = new InheritLogContextRunnable() {
         @Override
         public void run() {
           try {
@@ -74,7 +75,7 @@ public class DirectRemoteLocalJoinDelegate extends JoinDelegate {
     }
     else {
       if (SIPHelper.isSuccessResponse(res)) {
-        ((ApplicationContextImpl) _localParticipant.getApplicationContext()).getExecutor().execute(new Runnable() {
+        ((ApplicationContextImpl) _localParticipant.getApplicationContext()).getExecutor().execute(new InheritLogContextRunnable() {
           @Override
           public void run() {
             try {

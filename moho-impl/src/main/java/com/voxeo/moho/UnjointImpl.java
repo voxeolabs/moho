@@ -21,6 +21,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.voxeo.moho.common.util.InheritLogContextFutureTask;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
 
 public class UnjointImpl implements Unjoint {
@@ -31,7 +32,7 @@ public class UnjointImpl implements Unjoint {
 
   public UnjointImpl(final Executor executor, final Callable<UnjoinCompleteEvent> worker) {
     _worker = worker;
-    _future = new FutureTask<UnjoinCompleteEvent>(worker);
+    _future = new InheritLogContextFutureTask<UnjoinCompleteEvent>(worker);
     executor.execute(_future);
   }
 

@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
+import com.voxeo.moho.common.util.InheritLogContextFutureTask;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 
@@ -32,7 +33,7 @@ public class JointImpl implements Joint {
 
   public JointImpl(final Executor executor, final JoinWorker worker) {
     _worker = worker;
-    _future = new FutureTask<JoinCompleteEvent>(worker);
+    _future = new InheritLogContextFutureTask<JoinCompleteEvent>(worker);
     executor.execute(_future);
   }
 
