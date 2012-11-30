@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>com.voxeo.moho</groupId>
 		<artifactId>moho-parent</artifactId>
-		<version>0.8-SNAPSHOT</version>
+		<version> 1.0-SNAPSHOT   </version>
 	</parent>
 
   <scm>
@@ -116,7 +116,7 @@
 		<dependency>
 			<groupId>com.voxeo.moho</groupId>
 			<artifactId>moho-api</artifactId>
-			<version>0.8-SNAPSHOT</version>
+			<version> 1.0-SNAPSHOT   </version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -131,7 +131,7 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-reg</artifactId>
-      <version>0.8-SNAPSHOT</version>
+      <version> 1.0-SNAPSHOT   </version>
     </dependency>
 	</dependencies>
 
