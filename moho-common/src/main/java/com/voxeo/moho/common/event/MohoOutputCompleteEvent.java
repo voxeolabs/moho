@@ -45,4 +45,10 @@ public class MohoOutputCompleteEvent<T extends EventSource> extends MohoMediaCom
   public String getErrorText() {
     return _errorText;
   }
+  
+  @Override
+  public String toString() {
+    return String.format("[Event class=%s sourceClass=%s id=%s cause=%s ]", getClass().getName(), (source != null ? source
+        .getClass().getSimpleName() : null), hashCode(), _cause);
+  }
 }
