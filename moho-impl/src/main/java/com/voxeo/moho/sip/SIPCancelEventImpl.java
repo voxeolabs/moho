@@ -20,7 +20,7 @@ import javax.servlet.sip.SipServletRequest;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.common.event.MohoCancelEvent;
 
-public abstract class SIPCancelEventImpl extends MohoCancelEvent implements SIPCancelEvent {
+public class SIPCancelEventImpl extends MohoCancelEvent implements SIPCancelEvent {
   protected SipServletRequest _req;
 
   protected SIPCancelEventImpl(SIPCall source, final SipServletRequest req) {
@@ -39,7 +39,17 @@ public abstract class SIPCancelEventImpl extends MohoCancelEvent implements SIPC
     _accepted = true;
     if (this.source instanceof SIPIncomingCall) {
       final SIPIncomingCall retval = (SIPIncomingCall) this.source;
-      retval.doCancel();
+      retval.doCancel(_req);
+    }
+  }
+
+  @Override
+  public void reject(Reason reason, Map<String, String> headers) throws SignalException {
+    this.checkState();
+    _accepted = true;
+    if (this.source instanceof SIPIncomingCall) {
+      final SIPIncomingCall retval = (SIPIncomingCall) this.source;
+      retval.doCancel(_req);
     }
   }
 }

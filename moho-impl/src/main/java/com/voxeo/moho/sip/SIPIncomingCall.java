@@ -130,7 +130,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
     }
   }
 
-  protected synchronized void doCancel() {
+  protected synchronized void doCancel(SipServletRequest req) {
     if (isTerminated()) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Receiving Cancel, but is already terminated. callID:"
@@ -152,6 +152,13 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
       }
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
       terminate(CallCompleteEvent.Cause.CANCEL, null, null);
+    }
+    
+    try {
+      req.createResponse(200).send();
+    }
+    catch (IOException e) {
+      LOG.warn("Exception when sending back response for CANCEL." + req);
     }
   }
 

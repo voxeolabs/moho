@@ -860,12 +860,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
               LOG.debug(appSession.getId() + " invalidated");
             }
           }
-          else {
-            appSession.setInvalidateWhenReady(true);
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(appSession.getId() + " will invalidate when ready");
-            }
-          }
         }
         catch (IllegalStateException doofus) {
           try {
