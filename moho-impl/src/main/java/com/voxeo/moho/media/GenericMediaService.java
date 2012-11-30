@@ -875,7 +875,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         else if (q == SpeechRecognitionEvent.NO_GRAMMAR_MATCH) {
           cause = InputCompleteEvent.Cause.NO_MATCH;
         }
-        else if (q == ResourceEvent.STOPPED) {
+        else if (q == ResourceEvent.STOPPED || q == ResourceEvent.RTC_TRIGGERED) {
           if (_input.isNormalDisconnect()) {
             cause = InputCompleteEvent.Cause.DISCONNECT;
           }
@@ -885,9 +885,6 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         }
         else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED || patternMatched(e)) {
           cause = InputCompleteEvent.Cause.MATCH;
-        }
-        else if (e.getQualifier() == ResourceEvent.RTC_TRIGGERED) {
-          cause = InputCompleteEvent.Cause.CANCEL;
         }
         else if (q == ResourceEvent.NO_QUALIFIER) {
           if (e.getError() != ResourceEvent.NO_ERROR) {

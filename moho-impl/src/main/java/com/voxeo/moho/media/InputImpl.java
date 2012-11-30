@@ -89,7 +89,7 @@ public class InputImpl<T extends EventSource> implements Input<T> {
   }
 
   public void normalDisconnect(boolean normal) {
-    _normalDisconnected = true;
+    _normalDisconnected = normal;
   }
 
   public boolean isNormalDisconnect() {
