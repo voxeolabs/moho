@@ -48,7 +48,7 @@ public class MohoOutputCompleteEvent<T extends EventSource> extends MohoMediaCom
   
   @Override
   public String toString() {
-    return String.format("[Event class=%s sourceClass=%s id=%s cause=%s ]", (source != null ? source
+    return String.format("[Event class=%s sourceClass=%s id=%s cause=%s ]", getClass().getName(), (source != null ? source
         .getClass().getSimpleName() : null), hashCode(), _cause);
   }
 }
