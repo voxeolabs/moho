@@ -789,10 +789,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
                 // for _group.triggerAction(Player.STOP);
                 else if (e.getRTCTrigger() == ResourceEvent.MANUAL_TRIGGER) {
                   if(_output.isNormalDisconnect()){
-                    cause = Cause.CANCEL;
+                    cause = Cause.DISCONNECT;
                   }
                   else{
-                    cause = Cause.DISCONNECT;
+                    cause = Cause.CANCEL;
                   }
                 }
               }
