@@ -23,6 +23,12 @@
     </repository>
   </repositories>
 
+  <scm>
+    <connection>scm:git:git@github.com:voxeolabs/moho.git</connection>
+    <developerConnection>scm:git:git@github.com:voxeolabs/moho.git</developerConnection>
+    <url>scm:git:git@github.com:voxeolabs/moho.git</url>
+   </scm>
+ 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <svnUrlBase>scm:git@github.com:voxeo/moho.git/1.0</svnUrlBase>
@@ -52,21 +58,47 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.3</version>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <Module-Name>${project.artifactId}</Module-Name>
-              <Inner-Version>${project.version}</Inner-Version>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
-
+      
+   <plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>buildnumber-maven-plugin</artifactId>
+    <version>1.2-SNAPSHOT</version>
+    <executions>
+     <execution>
+      <phase>validate</phase>
+      <goals>
+       <goal>create</goal>
+      </goals>
+     </execution>
+    </executions>
+    <configuration>
+     <providerImplementations>
+      <svn>git</svn>
+     </providerImplementations>
+     <!--shortRevisionLength>7</shortRevisionLength -->
+     <timestampFormat>{0,date,yyyy-MM-dd HH:mm:ss}</timestampFormat>
+     <doCheck>false</doCheck>
+     <doUpdate>false</doUpdate>
+    </configuration>
+   </plugin>
+   
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-jar-plugin</artifactId>
+    <version>2.3</version>
+    <configuration>
+     <archive>
+      <manifestEntries>
+       <Build-By>Voxeo Corporation</Build-By>
+       <Version-No>${GIT_BRANCH} - ${buildNumber}</Version-No>
+       <Build-No>${GIT_BRANCH} - ${buildNumber}</Build-No>
+       <Build-Date>${timestamp}</Build-Date>
+       <Jenkins-Build-Number>${BUILD_NUMBER}</Jenkins-Build-Number>
+      </manifestEntries>
+     </archive>
+    </configuration>
+   </plugin>
+   
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-scm-plugin</artifactId>
