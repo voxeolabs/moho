@@ -15,6 +15,7 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -55,6 +56,13 @@ public class SIPHelper {
     if (origRequest != null) {
       LOG.debug("Continue routing from orig req:" + origRequest);
       req = origRequest.getB2buaHelper().createRequest(origRequest);
+      try {
+        req.setContent(null, null);
+      }
+      catch (UnsupportedEncodingException e) {
+        LOG.error("", e);
+      }
+      req.removeHeader("Content-Type");
       Address reqFrom = req.getFrom();
       if(from.getDisplayName() != null){
         reqFrom.setDisplayName(from.getDisplayName());
