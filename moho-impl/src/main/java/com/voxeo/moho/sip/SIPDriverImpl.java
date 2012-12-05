@@ -177,16 +177,22 @@ public class SIPDriverImpl implements SIPDriver {
     }
     else {
       final EventSource source = SessionUtils.getEventSource(req);
-      if (source != null) {
+      if (source != null && source instanceof Call) {
         source.dispatch(new SIPReInviteEventImpl((Call) source, req));
+      }
+      else{
+        LOG.warn("Can't recognize event source for re-INVITE request:" + source + " request:" + req);
       }
     }
   }
 
   protected void doBye(final SipServletRequest req) throws ServletException, IOException {
     final EventSource source = SessionUtils.getEventSource(req);
-    if (source != null) {
+    if (source != null && source instanceof SIPCall) {
       source.dispatch(new SIPHangupEventImpl((SIPCall) source, req));
+    }
+    else {
+      LOG.warn("Can't recognize event source for BYE request:" + source + " request:" + req);
     }
   }
 
@@ -200,6 +206,9 @@ public class SIPDriverImpl implements SIPDriver {
       catch (final Exception e) {
         LOG.warn("", e);
       }
+    }
+    else{
+      LOG.warn("Can't recognize event source for ACK request:" + source + " request:" + req);
     }
   }
 
@@ -495,7 +504,7 @@ public class SIPDriverImpl implements SIPDriver {
   protected void doRedirectResponse(final SipServletResponse res) throws ServletException, IOException {
     final EventSource source = SessionUtils.getEventSource(res);
     if (source != null) {
-      if (source instanceof Call) {
+      if (source instanceof SIPCall) {
         source.dispatch(new SIPRedirectEventImpl<Call>((SIPCall) source, res));
         return;
       }
