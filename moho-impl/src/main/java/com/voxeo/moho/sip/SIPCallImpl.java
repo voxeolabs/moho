@@ -611,7 +611,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
     }
     catch (Exception ex) {
-      // TODO
+      if(_joinDelegate != null){
+        _joinDelegate.done(Cause.ERROR, ex);
+      }
       throw new RuntimeException(ex);
     }
   }
