@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.common.util.InheritLogContextFutureTask;
 import com.voxeo.moho.common.util.InheritLogContextRunnable;
 import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.event.Event;
@@ -190,7 +191,7 @@ public class EventDispatcher {
   public <S extends EventSource, T extends Event<S>> Future<T> fire(final T event, final boolean narrowType,
       final Runnable afterExec) {
 
-    final FutureTask<T> task = new FutureTask<T>(new InheritLogContextRunnable() {
+    final FutureTask<T> task = new InheritLogContextFutureTask<T>(new InheritLogContextRunnable() {
       @SuppressWarnings({"unchecked"})
       public void run() {
         if (LOG.isTraceEnabled()) {
