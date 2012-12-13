@@ -90,6 +90,10 @@ public class SIPDriverImpl implements SIPDriver {
 
   @Override
   public void doRequest(final SipServletRequest req) throws ServletException, IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Received request:" + req.toString().replace("\\", "\\\\").replace("\r", "\\r").replace("\n", "\\n"));
+    }
+    
     final String s = req.getMethod();
     if ("INVITE".equals(s)) {
       doInvite(req);
@@ -397,6 +401,10 @@ public class SIPDriverImpl implements SIPDriver {
 
   @Override
   public void doResponse(final SipServletResponse res) throws ServletException, IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Received response:" + res.toString().replace("\\", "\\\\").replace("\r", "\\r").replace("\n", "\\n"));
+    }
+    
     final EventSource source = SessionUtils.getEventSource(res);
     if (source != null) {
       final int i = res.getStatus();

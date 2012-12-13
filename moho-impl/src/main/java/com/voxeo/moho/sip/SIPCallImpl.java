@@ -643,7 +643,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   protected void doBye(final SipServletRequest req, final Map<String, String> headers) {
-    LOG.debug("Processing BYE request. "+ this);
+    if(LOG.isDebugEnabled()){
+      LOG.debug(this + "Processing BYE request.");
+    }
     
     synchronized(this){
       if (isTerminated()) {
@@ -674,6 +676,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug("The SIP request isn't ACK.");
       return;
     }
+    
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(this + "Processing ACK.");
+    }
+    
     final byte[] content = SIPHelper.getRawContentWOException(req);
     if (content != null) {
       setRemoteSDP(content);
@@ -699,6 +706,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug("The SIP request isn't Re-INVITE.");
       return;
     }
+    
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(this + "Processing re-INVITE.");
+    }
+    
     final byte[] content = SIPHelper.getRawContentWOException(req);
     if (content != null) {
       setRemoteSDP(content);
@@ -716,6 +728,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (isTerminated()) {
       LOG.debug(this + " is already terminated.");
       return;
+    }
+    
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(this + "Processing UPDATE.");
     }
     
     final byte[] content = SIPHelper.getRawContentWOException(req);
@@ -737,7 +753,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       return;
     }
     if (LOG.isDebugEnabled()) {
-      LOG.debug(this + "Processing response:" + res);
+      LOG.debug(this + "Processing response.");
     }
     if (SIPHelper.isInvite(res)) {
       _inviteResponse = res;

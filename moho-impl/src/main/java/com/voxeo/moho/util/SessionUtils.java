@@ -18,6 +18,8 @@ import javax.servlet.ServletContext;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipSession;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.Application;
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.Participant;
@@ -25,6 +27,7 @@ import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.spi.ExecutionContext;
 
 public class SessionUtils {
+  private static final Logger LOG = Logger.getLogger(SessionUtils.class);
 
   private static final String SESSION_EVENTSOURCE = "session.event.source";
 
@@ -59,7 +62,13 @@ public class SessionUtils {
   }
 
   public static EventSource getEventSource(final SipSession session) {
-    return (EventSource) session.getAttribute(SESSION_EVENTSOURCE);
+    if(session.isValid()){
+      return (EventSource) session.getAttribute(SESSION_EVENTSOURCE);
+    }
+    else{
+      LOG.warn("Session already invalidated, can't get event source. " + session);
+      return null;
+    }
   }
 
   public static EventSource getEventSource(final SipServletMessage message) {
