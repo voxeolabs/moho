@@ -8,20 +8,44 @@
   <version> 1.0-SNAPSHOT   </version>
   <packaging>pom</packaging>
 
-  <repositories>
-    <!--repository>
-      <id>maven.voxeo.net</id>
-      <url>http://maven.voxeo.net/nexus/content/groups/public/</url>
-    </repository-->
-    <repository>
-      <id>maven.voxeolabs.net</id>
-      <url>http://maven.voxeolabs.net:8081/nexus/content/groups/public/</url>
-    </repository>
-    <repository>
-      <id>sun-public</id>
-      <url>http://download.java.net/maven/2/</url>
-    </repository>
-  </repositories>
+	<repositories>
+		<repository>
+			<id>maven.voxeolabs.net</id>
+			<name>Voxeo Labs</name>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</snapshots>
+			<url>http://maven.voxeolabs.net:8081/nexus/content/repositories/snapshots</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>public.maven.voxeolabs.net</id>
+			<name>Voxeo Labs</name>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</snapshots>
+			<url>http://maven.voxeolabs.net:8081/nexus/content/groups/public/</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>sun-public</id>
+			<url>http://download.java.net/maven/2/</url>
+		</repository>
+	</repositories>
 
   <scm>
     <connection>scm:git:git@github.com:voxeolabs/moho.git</connection>
@@ -157,6 +181,19 @@
     <module>moho-artifacts</module>
   </modules>
 
+	<pluginRepositories>
+		<!-- pluginRepository>
+			<id>codehouse-s-repo</id>
+			<name>CodeHouse Snapshot Repo</name>
+			<url>https://nexus.codehaus.org/content/groups/snapshots-group</url>
+		</pluginRepository> -->
+		<pluginRepository>
+			<id>public.maven.voxeolabs.net</id>
+			<name>Voxeo Labs</name>
+			<url>http://maven.voxeolabs.net:8081/nexus/content/groups/public/</url>
+		</pluginRepository>
+	</pluginRepositories>
+
   <distributionManagement>
     <repository>
       <id>maven.voxeolabs.net</id>
@@ -169,18 +206,4 @@
       <url>http://maven.voxeolabs.net:8081/nexus/content/repositories/snapshots/</url>
     </snapshotRepository>
   </distributionManagement>
-  
-    <!-- distributionManagement>
-    <repository>
-      <id>maven.voxeo.net</id>
-      <name>Nexus Public Mirror</name>
-      <url>http://maven.voxeo.net/nexus/content/repositories/releases/</url>
-    </repository>
-    <snapshotRepository>
-      <id>maven.voxeo.net</id>
-      <name>Nexus Public Mirror</name>
-      <url>http://maven.voxeo.net/nexus/content/repositories/snapshots/</url>
-      <uniqueVersion>false</uniqueVersion>
-    </snapshotRepository>
-  </distributionManagement> -->
 </project>
