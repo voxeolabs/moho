@@ -16,6 +16,7 @@ package com.voxeo.moho.sip;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -103,8 +104,11 @@ public class SIPHelper {
         req.setRequestURI(sruri);
       }
     }
+    Map<String, String> clones = null;
     if (headers != null) {
-      for (final Map.Entry<String, String> e : headers.entrySet()) {
+      clones = new HashMap<String, String>();
+      clones.putAll(headers);
+      for (final Map.Entry<String, String> e : clones.entrySet()) {
         if (e.getKey().equalsIgnoreCase("Route")) {
           try {
           String[] values = e.getValue().split("\\|\\|\\|");
@@ -124,10 +128,10 @@ public class SIPHelper {
           }
         }
       }
-      headers.remove("Route");
-      headers.remove("route");    
+      clones.remove("Route");
+      clones.remove("route");    
     }
-    SIPHelper.addHeaders(req, headers);
+    SIPHelper.addHeaders(req, clones);
     return req;
   }
 

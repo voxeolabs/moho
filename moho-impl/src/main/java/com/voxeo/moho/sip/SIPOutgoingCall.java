@@ -174,21 +174,30 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
   }
 
   private void createRequest() {
-    _invite = SIPHelper.createSipInitnalRequest(_context.getSipFactory(), "INVITE", _from.getSipAddress(),
-        _address.getSipAddress(), _headers, _appSession, _continueRoutingOrigCall!= null ? _continueRoutingOrigCall.getSipRequest() : null);
-
-    _signal = _invite.getSession();
-
-    if (_appSession == null) {
-      _appSession = _signal.getApplicationSession();
-    }
-
-    SessionUtils.setEventSource(_signal, this);
-
     try {
+      _invite = SIPHelper.createSipInitnalRequest(_context.getSipFactory(), "INVITE", _from.getSipAddress(),
+          _address.getSipAddress(), _headers, _appSession, _continueRoutingOrigCall!= null ? _continueRoutingOrigCall.getSipRequest() : null);
+  
+      _signal = _invite.getSession();
+  
+      if (_appSession == null) {
+        _appSession = _signal.getApplicationSession();
+      }
+  
+      SessionUtils.setEventSource(_signal, this);
+    
       _signal.setHandler(((ApplicationContextImpl) getApplicationContext()).getSIPController().getServletName());
     }
     catch (final Exception e) {
+      if(_invite != null && _invite.getSession() != null){
+        try{
+          _invite.getSession().invalidate();
+        }
+        catch(Exception ex){
+          LOG.error("Exception when invalidating session:"+ _invite);
+        }
+        _invite = null;
+      }
       throw new SignalException(e);
     }
   }
