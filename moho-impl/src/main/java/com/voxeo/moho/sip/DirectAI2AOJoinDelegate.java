@@ -44,6 +44,13 @@ public class DirectAI2AOJoinDelegate extends JoinDelegate {
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {
     if (SIPHelper.isErrorResponse(res)) {
+      if(_call1.equals(call)){
+        if(_response != null){
+          SipServletRequest ack = _response.createAck();
+          ack.setContent(_call2.getLocalSDP(), "application/sdp");
+          ack.send();
+        }
+      }
       done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
     }
     else if (SIPHelper.isSuccessResponse(res)) {
