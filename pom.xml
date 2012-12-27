@@ -114,7 +114,7 @@
      <archive>
       <manifestEntries>
        <Build-By>Voxeo Corporation</Build-By>
-       <Version-No>${GIT_BRANCH} - ${buildNumber}</Version-No>
+       <Version-No>${project.version}</Version-No>
        <Build-No>${GIT_BRANCH} - ${buildNumber}</Build-No>
        <Build-Date>${timestamp}</Build-Date>
        <Jenkins-Build-Number>${BUILD_NUMBER}</Jenkins-Build-Number>
