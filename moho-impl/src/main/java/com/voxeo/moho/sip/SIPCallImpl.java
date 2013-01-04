@@ -841,9 +841,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         try {
           if (this instanceof SIPOutgoingCall) {
             if (_invite != null && (_invite.getSession().getState() == SipSession.State.EARLY || _invite.getSession().getState() == SipSession.State.INITIAL)) {
-              SipServletRequest cancelRequest = _invite.createCancel();
-              SIPHelper.addHeaders(cancelRequest, headers);
-              cancelRequest.send();
+              try{
+                SipServletRequest cancelRequest = _invite.createCancel();
+                SIPHelper.addHeaders(cancelRequest, headers);
+                cancelRequest.send();
+              }
+              catch(Exception ex){
+                LOG.warn("Exception when disconnecting failed outbound call:"+ ex.getMessage());
+                _invite.getSession().invalidate();
+              }
             }
           }
           else if (this instanceof SIPIncomingCall) {
