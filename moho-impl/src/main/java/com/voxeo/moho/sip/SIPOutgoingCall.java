@@ -47,6 +47,8 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
     _address = to;
     _from = from;
     _headers = headers;
+    
+    createRequest();
   }
 
   @Override
