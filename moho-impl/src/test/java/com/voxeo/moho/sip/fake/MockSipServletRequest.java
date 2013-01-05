@@ -186,7 +186,7 @@ public class MockSipServletRequest extends MockSipServletMessage implements SipS
   }
 
   @Override
-  public void setRequestURI(URI uri) {
+  final public void setRequestURI(URI uri) {
 
   }
 

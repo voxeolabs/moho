@@ -137,9 +137,9 @@ public class SIPSubscriptionImplTest extends TestCase {
           oneOf(sipFactory).createURI("dummy:thing");
           will(returnValue(uri));
 
-          oneOf(subscribeReq).setRequestURI(uri);
+          //oneOf(subscribeReq).setRequestURI(uri);
 
-          oneOf(subscribeReq).send();
+          //oneOf(subscribeReq).send();
         }
       });
     }

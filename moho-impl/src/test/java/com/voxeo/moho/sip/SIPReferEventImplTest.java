@@ -17,6 +17,7 @@ package com.voxeo.moho.sip;
 import javax.media.mscontrol.MsControlFactory;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.sdp.SdpFactory;
+import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
 import javax.servlet.sip.SipServlet;
@@ -59,6 +60,8 @@ public class SIPReferEventImplTest extends TestCase {
   SipServlet servlet = new MockSipServlet(mockery);
 
   MockSipSession session = mockery.mock(MockSipSession.class);
+  
+  SipApplicationSession appSession = mockery.mock(SipApplicationSession.class);
 
   MockSipServletRequest referReq = mockery.mock(MockSipServletRequest.class);
 
@@ -85,6 +88,8 @@ public class SIPReferEventImplTest extends TestCase {
   MockAddress originAddr = mockery.mock(MockAddress.class, "originAddr");
 
   MockAddress peerAddr = mockery.mock(MockAddress.class, "peerAddr");
+  
+  MockSipServletRequest outgoingCallRequest = mockery.mock(MockSipServletRequest.class, "outgoingCallRequest");
 
   @Override
   protected void setUp() throws Exception {
@@ -127,6 +132,9 @@ public class SIPReferEventImplTest extends TestCase {
 
         allowing(referReq).getAddressHeader("Referred-By");
         will(returnValue(originAddr));
+        
+        allowing(sipFactory).createApplicationSession();
+        will(returnValue(appSession));
       }
     });
   }
@@ -149,7 +157,6 @@ public class SIPReferEventImplTest extends TestCase {
     referResp.setStatus(200);
 
     // new call
-    final SipApplicationSession appSession = mockery.mock(SipApplicationSession.class);
     final MockSipSession newSession = mockery.mock(MockSipSession.class, "newSession");
     final MockSipServletRequest newInviteReq = mockery.mock(MockSipServletRequest.class, "newInvite");
     newInviteReq.setSession(newSession);
@@ -179,6 +186,15 @@ public class SIPReferEventImplTest extends TestCase {
 
           allowing(peerSession).getApplicationSession();
           will(returnValue(appSession));
+          
+          allowing(newInviteReq).getSession();
+          will(returnValue(newSession));
+          
+          allowing(newSession).getApplicationSession();
+          will(returnValue(appSession));
+          
+          allowing(sipFactory).createRequest(with(any(SipApplicationSession.class)), with(any(String.class)), with(any(Address.class)), with(any(Address.class)));
+          will(returnValue(newInviteReq));
 
           // send response.
           oneOf(referReq).createResponse(SipServletResponse.SC_ACCEPTED);
@@ -210,7 +226,7 @@ public class SIPReferEventImplTest extends TestCase {
           oneOf(session).createRequest("NOTIFY");
           will(returnValue(notifyReq));
 
-          allowing(notifyReq).addHeader(with(any(String.class)), with(any(String.class)));
+          //allowing(notifyReq).addHeader(with(any(String.class)), with(any(String.class)));
 
           oneOf(notifyReq).setContent(with(any(String.class)), with(any(String.class)));
           oneOf(notifyReq).send();
@@ -218,7 +234,7 @@ public class SIPReferEventImplTest extends TestCase {
           oneOf(session).createRequest("NOTIFY");
           will(returnValue(notifyReq));
 
-          allowing(notifyReq).addHeader(with(any(String.class)), with(any(String.class)));
+          //allowing(notifyReq).addHeader(with(any(String.class)), with(any(String.class)));
 
           oneOf(notifyReq).setContent(with(any(String.class)), with(any(String.class)));
           oneOf(notifyReq).send();

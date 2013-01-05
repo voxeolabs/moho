@@ -54,7 +54,7 @@ public class MockSipServletMessage implements SipServletMessage {
   }
 
   @Override
-  public void addHeader(String s, String s1) {
+  final public void addHeader(String s, String s1) {
 
   }
 
