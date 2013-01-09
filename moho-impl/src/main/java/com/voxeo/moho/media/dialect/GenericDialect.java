@@ -1,6 +1,7 @@
 package com.voxeo.moho.media.dialect;
 
 import java.net.URI;
+import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.Parameters;
@@ -110,5 +111,10 @@ public class GenericDialect implements MediaDialect {
   @Override
   public void setDtmfPassThrough(NetworkConnection nc, boolean passThrough) {
     
+  }
+
+  @Override
+  public Map<String, String> getSISlots(SignalDetectorEvent event) {
+    return null;
   }
 }
