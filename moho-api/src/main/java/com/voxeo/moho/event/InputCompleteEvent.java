@@ -13,6 +13,8 @@
  */
 package com.voxeo.moho.event;
 
+import java.util.Map;
+
 import com.voxeo.moho.media.InputMode;
 
 /**
@@ -71,4 +73,10 @@ public interface InputCompleteEvent<T extends EventSource> extends MediaComplete
    * @return
    */
   String getErrorText();
+  
+  /**
+   * get the semantic interpretation result slots.
+   * @return semantic interpretation result slots
+   */
+  Map<String, String> getSISlots();
 }

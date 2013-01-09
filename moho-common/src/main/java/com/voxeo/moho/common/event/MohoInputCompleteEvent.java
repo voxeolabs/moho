@@ -13,6 +13,8 @@
  */
 package com.voxeo.moho.common.event;
 
+import java.util.Map;
+
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.media.Input;
@@ -40,6 +42,8 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
   protected InputMode _inputMode;
 
   protected String _errorText;
+
+  protected Map<String, String> _SISlots;
 
   public MohoInputCompleteEvent(final T source, final Cause cause, Input<T> mediaOperation) {
     super(source, mediaOperation);
@@ -143,10 +147,19 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
   public String getErrorText() {
     return _errorText;
   }
-  
+
+  @Override
+  public Map<String, String> getSISlots() {
+    return _SISlots;
+  }
+
+  public void setSISlots(Map<String, String> slots) {
+    _SISlots = slots;
+  }
+
   @Override
   public String toString() {
-    return String.format("[Event class=%s sourceClass=%s id=%s cause=%s ]", getClass().getName(), (source != null ? source
-        .getClass().getSimpleName() : null), hashCode(), _cause);
+    return String.format("[Event class=%s sourceClass=%s id=%s cause=%s ]", getClass().getName(),
+        (source != null ? source.getClass().getSimpleName() : null), hashCode(), _cause);
   }
 }

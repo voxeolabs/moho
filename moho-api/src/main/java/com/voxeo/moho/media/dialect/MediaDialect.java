@@ -1,6 +1,7 @@
 package com.voxeo.moho.media.dialect;
 
 import java.net.URI;
+import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.Parameters;
@@ -59,4 +60,6 @@ public interface MediaDialect {
   boolean isPromptCompleteEvent(SignalDetectorEvent event);
 
   void setDtmfPassThrough(NetworkConnection nc, boolean passThrough);
+  
+  Map<String, String> getSISlots(SignalDetectorEvent event);
 }
