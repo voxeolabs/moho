@@ -17,7 +17,6 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -955,6 +954,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           inputCompleteEvent.setUtterance(signalString);
           inputCompleteEvent.setInputMode(InputMode.DTMF);
         }
+        inputCompleteEvent.setSISlots(_dialect.getSISlots(e));
+
         _parent.dispatch(inputCompleteEvent);
         
         _input.done(inputCompleteEvent);
