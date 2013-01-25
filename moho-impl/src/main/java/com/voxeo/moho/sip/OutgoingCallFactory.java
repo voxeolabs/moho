@@ -9,4 +9,6 @@ public interface OutgoingCallFactory extends Service {
 
   OutgoingCall createOutgoingCall(SIPEndpoint from, SIPEndpoint to, Map<String, String> headers);
 
+  OutgoingCall createOutgoingCall(SIPEndpoint from, SIPEndpoint to, Map<String, String> headers, SIPCall originalCall);
+
 }

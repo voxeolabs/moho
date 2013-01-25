@@ -29,4 +29,10 @@ public class OutgoingCallFactoryImpl implements OutgoingCallFactory {
     return OutgoingCallFactory.class.getName();
   }
 
+  @Override
+  public OutgoingCall createOutgoingCall(SIPEndpoint from, SIPEndpoint to, Map<String, String> headers,
+      SIPCall originalCall) {
+    return new SIPOutgoingCall(_context, from, to, headers, originalCall);
+  }
+
 }
