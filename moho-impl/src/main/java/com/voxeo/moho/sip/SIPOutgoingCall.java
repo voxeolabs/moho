@@ -40,6 +40,11 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
 
   protected SIPOutgoingCall(final ExecutionContext context, final SIPEndpoint from, final SIPEndpoint to,
       final Map<String, String> headers) {
+    this(context, from, to, headers, null);
+  }
+  
+  protected SIPOutgoingCall(final ExecutionContext context, final SIPEndpoint from, final SIPEndpoint to,
+      final Map<String, String> headers, SIPCall originalCall) {
     super(context);
     if (from == null || to == null) {
       throw new IllegalArgumentException("to or from can't be null");
@@ -47,7 +52,9 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
     _address = to;
     _from = from;
     _headers = headers;
-    
+    if(originalCall != null){
+      setContinueRouting(originalCall);
+    }
     createRequest();
   }
 

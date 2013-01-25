@@ -110,6 +110,21 @@ public interface CallableEndpoint extends Endpoint {
    * @return the {@link Call} this address.
    */
   Call createCall(Endpoint caller, Map<String, String> headers);
+  
+  /**
+   * Create a {@link Call} to this address. The call has yet been made until
+   * {@link Call} is joined to the media server or another {@link Endpoint}.
+   * 
+   * @param caller
+   *          the address of the caller
+   * @param headers
+   *          the additional protocol headers to be sent to the caller when the
+   *          call is made.
+   * @param originalCall
+   *        specify the original call, based on that create current call. i.e. continue routing from the originalCall
+   * @return the {@link Call} this address.
+   */
+  Call createCall(Endpoint caller, Map<String, String> headers, Call originalCall);
 
   /**
    * Create a {@link Call} to this address. The call has yet been made until
@@ -133,5 +148,19 @@ public interface CallableEndpoint extends Endpoint {
    * @return the {@link Call} this address.
    */
   Call createCall(String caller, Map<String, String> headers);
-  
+ 
+  /**
+   * Create a {@link Call} to this address. The call has yet been made until
+   * {@link Call} is joined to the media server or another {@link Endpoint}.
+   * 
+   * @param caller
+   *          the address of the caller
+   * @param headers
+   *          the additional protocol headers to be sent to the caller when the
+   *          call is made.
+   * @param originalCall
+   *        specify the original call, based on that create current call. i.e. continue routing from the originalCall
+   * @return the {@link Call} this address.
+   */
+  Call createCall(String caller, Map<String, String> headers, Call originalCall);
 }

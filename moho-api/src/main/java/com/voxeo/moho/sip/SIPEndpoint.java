@@ -33,4 +33,5 @@ public interface SIPEndpoint extends CallableEndpoint, TextableEndpoint {
   Address getSipAddress();
   
   boolean isWildCard();
+  
 }

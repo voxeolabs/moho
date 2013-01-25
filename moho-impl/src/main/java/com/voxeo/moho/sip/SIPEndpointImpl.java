@@ -1,14 +1,11 @@
 /**
- * Copyright 2010-2011 Voxeo Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License.
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
+ * Copyright 2010-2011 Voxeo Corporation Licensed under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -94,10 +91,16 @@ public class SIPEndpointImpl implements SIPEndpoint {
 
   @Override
   public Call call(final Endpoint caller, final Map<String, String> headers) {
+    return createCall(caller, headers, null);
+  }
+
+  @Override
+  public Call createCall(Endpoint caller, Map<String, String> headers, Call originalCall) {
     if (isWildCard()) {
       throw new IllegalArgumentException(this + " is an unreachable wildcard address.");
     }
-    return _ctx.getService(OutgoingCallFactory.class).createOutgoingCall(((SIPEndpoint) caller), this, headers);
+    return _ctx.getService(OutgoingCallFactory.class).createOutgoingCall(((SIPEndpoint) caller), this, headers,
+        (SIPCall) originalCall);
   }
 
   // public Subscription subscribe(final Endpoint caller, final Type type, final
@@ -154,6 +157,12 @@ public class SIPEndpointImpl implements SIPEndpoint {
   public Call call(String caller, final Map<String, String> headers) {
     Endpoint endpoint = _ctx.createEndpoint(caller);
     return call(endpoint, headers);
+  }
+
+  @Override
+  public Call createCall(String caller, Map<String, String> headers, Call originalCall) {
+    Endpoint endpoint = _ctx.createEndpoint(caller);
+    return createCall(endpoint, headers, originalCall);
   }
 
   @Override
