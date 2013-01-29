@@ -68,6 +68,10 @@ public class SIPHelper {
       if(from.getDisplayName() != null){
         reqFrom.setDisplayName(from.getDisplayName());
       }
+      else{
+        reqFrom.setDisplayName(null);
+      }
+      
       reqFrom.setURI(from.getURI());
       for (final Iterator<String> names = from.getParameterNames(); names.hasNext(); ) {
         String name =  names.next();
@@ -80,6 +84,9 @@ public class SIPHelper {
       Address reqTo = req.getTo();
       if(to.getDisplayName() != null){
         reqTo.setDisplayName(to.getDisplayName());
+      }
+      else{
+        reqTo.setDisplayName(null);
       }
       reqTo.setURI(to.getURI());
       for (final Iterator<String> names = to.getParameterNames(); names.hasNext(); ) {
