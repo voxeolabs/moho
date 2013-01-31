@@ -93,6 +93,8 @@ public class InputCommand implements Parameters {
   protected long _speechCompleteTimeout;
   
   protected boolean _flushBuffer;
+  
+  protected long _maxSpeechDuration;
 
   /**
    * @param grammers
@@ -458,4 +460,13 @@ public class InputCommand implements Parameters {
   public void setFlushBuffer(boolean flushBuffer) {
     this._flushBuffer = flushBuffer;
   }
+  
+  public long getMaxSpeechDuration() {
+    return this._maxSpeechDuration;
+  }
+
+  public void setMaxSpeechDuration(long maxSpeechDuration) {
+    this._maxSpeechDuration = maxSpeechDuration;
+  }
+  
 }

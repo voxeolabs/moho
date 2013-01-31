@@ -39,6 +39,7 @@ import javax.media.mscontrol.mediagroup.PlayerEvent;
 import javax.media.mscontrol.mediagroup.Recorder;
 import javax.media.mscontrol.mediagroup.RecorderEvent;
 import javax.media.mscontrol.mediagroup.SpeechDetectorConstants;
+import javax.media.mscontrol.mediagroup.signals.SignalConstants;
 import javax.media.mscontrol.mediagroup.signals.SignalDetector;
 import javax.media.mscontrol.mediagroup.signals.SignalDetectorEvent;
 import javax.media.mscontrol.mediagroup.signals.SignalGenerator;
@@ -70,8 +71,11 @@ import com.voxeo.moho.event.OutputCompleteEvent.Cause;
 import com.voxeo.moho.event.RecordCompleteEvent;
 import com.voxeo.moho.media.dialect.CallRecordListener;
 import com.voxeo.moho.media.dialect.MediaDialect;
+import com.voxeo.moho.media.input.EnergyGrammar;
 import com.voxeo.moho.media.input.Grammar;
 import com.voxeo.moho.media.input.InputCommand;
+import com.voxeo.moho.media.input.SignalGrammar;
+import com.voxeo.moho.media.input.SignalGrammar.Signal;
 import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.AudioURIResource;
@@ -628,61 +632,111 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     _dialect.setDtmfHotwordEnabled(params, cmd.isDtmfHotword());
     _dialect.setDtmfTypeaheadEnabled(params, cmd.isDtmfTypeahead());
     _dialect.setConfidence(params, cmd.getMinConfidence());
+    _dialect.setMaxSpeechDuration(params, cmd.getMaxSpeechDuration());
 
     Parameter[] patternKeys = null;
+    EventType[] patternMatchedEvts = null;
 
     final Grammar[] grammars = cmd.getGrammars();
     if (grammars.length > 0) {
       final List<Object> patterns = new ArrayList<Object>(grammars.length);
+      final List<Object> matchedPatterns = new ArrayList<Object>(grammars.length);
       for (final Grammar grammar : grammars) {
         if (grammar == null) {
           continue;
         }
 
-        Object pattern = null;
-
-        URI uri = grammar.toURI();
-
-        if ("data".equals(uri.getScheme())) {
-          pattern = uri;
-        }
-        else if ("digits".equals(uri.getScheme())) {
-          try {
-            pattern = URLDecoder.decode(uri.getSchemeSpecificPart(), "UTF-8");
+        if (grammar instanceof SignalGrammar) {
+          final SignalGrammar sg=(SignalGrammar)grammar;
+          if (grammar.isTerminatingCondition()) {
+            _dialect.setSignalPattern(patterns, sg.getSignal());
           }
-          catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException(e);
+          else {
+            _dialect.setSignalPattern(matchedPatterns, sg.getSignal());
+          }
+          continue;
+        }
+        
+        Object pattern = null;
+        if (grammar instanceof EnergyGrammar) {
+          final EnergyGrammar eg = (EnergyGrammar) grammar;
+          if (eg.isStartOfSpeech()) {
+            pattern = SpeechRecognitionEvent.START_OF_SPEECH;
+          }
+          else if (eg.isEndOfSpeech()) {
+            pattern = SpeechRecognitionEvent.END_OF_SPEECH;
           }
         }
         else {
-          try {
-            pattern = uri.toURL();
+          final URI uri = grammar.toURI();
+
+          if ("data".equals(uri.getScheme())) {
+            pattern = uri;
           }
-          catch (MalformedURLException e) {
-            LOG.warn("Skipped Grammar! Only 'data' URIs and http/https/ftp/file URLs are permitted [uri="
-                + uri.toString() + "]");
+          else if ("digits".equals(uri.getScheme())) {
+            try {
+              pattern = URLDecoder.decode(uri.getSchemeSpecificPart(), "UTF-8");
+            }
+            catch (UnsupportedEncodingException e) {
+              throw new IllegalStateException(e);
+            }
+          }
+          else {
+            try {
+              pattern = uri.toURL();
+            }
+            catch (MalformedURLException e) {
+              LOG.warn("Skipped Grammar! Only 'data' URIs and http/https/ftp/file URLs are permitted [uri="
+                  + uri.toString() + "]");
+            }
           }
         }
 
-        patterns.add(pattern);
-
+        if (pattern==null){
+          continue;
+        }
+        if (grammar.isTerminatingCondition()) {
+          patterns.add(pattern);
+        }
+        else {
+          matchedPatterns.add(pattern);
+        }
       }
 
-      final Parameters patternParams = _group.createParameters();
+      // final Parameters patternParams = _group.createParameters();
       patternKeys = new Parameter[patterns.size()];
       int i = 0;
       for (; i < patterns.size(); i++) {
         final Object o = patterns.get(i);
         patternKeys[i] = SignalDetector.PATTERN[i];
-        patternParams.put(SignalDetector.PATTERN[i], o);
+        // patternParams.put(SignalDetector.PATTERN[i], o);
+        params.put(SignalDetector.PATTERN[i], o);
       }
 
-      if (patterns.size() > 0) {
-        _group.setParameters(patternParams);
+      if (matchedPatterns.size() > 0) {
+        patternMatchedEvts = new EventType[matchedPatterns.size()];
+        for (; i < patterns.size() + matchedPatterns.size(); i++) {
+          final Object o = matchedPatterns.get(i);
+          patternMatchedEvts[i - patterns.size()] = SignalDetectorEvent.PATTERN_MATCHED[i];
+          // patternParams.put(SignalDetector.PATTERN[i], o);
+          params.put(SignalDetector.PATTERN[i], o);
+        }
+
+        // _group.setParameters(patternParams);
+        
+        EventType[] enabledEvent = (EventType[]) params.get(SignalDetector.ENABLED_EVENTS);
+        if (enabledEvent != null && enabledEvent.length > 0) {
+          EventType[] newEabledEvents = Arrays.copyOf(enabledEvent, enabledEvent.length + patternMatchedEvts.length);
+          System.arraycopy(patternMatchedEvts, 0, newEabledEvents, enabledEvent.length, patternMatchedEvts.length);
+          params.put(SignalDetector.ENABLED_EVENTS, newEabledEvents);
+        }
+        else {
+          params.put(SignalDetector.ENABLED_EVENTS, patternMatchedEvts);
+        }
       }
     }
 
-    if (patternKeys == null && cmd.getNumberOfDigits() == -1) {
+    if (patternKeys == null && cmd.getNumberOfDigits() == -1 && patternMatchedEvts == null) {
       throw new MediaException("No pattern");
     }
 

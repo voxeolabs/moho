@@ -1,6 +1,7 @@
 package com.voxeo.moho.media.dialect;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
@@ -12,6 +13,7 @@ import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.resource.RTC;
 
 import com.voxeo.moho.media.InputMode;
+import com.voxeo.moho.media.input.SignalGrammar.Signal;
 
 public class GenericDialect implements MediaDialect {
 
@@ -116,5 +118,13 @@ public class GenericDialect implements MediaDialect {
   @Override
   public Map<String, String> getSISlots(SignalDetectorEvent event) {
     return null;
+  }
+
+  @Override
+  public void setMaxSpeechDuration(Parameters params, long duration) {
+  }
+
+  @Override
+  public void setSignalPattern(List<Object> patterns, Signal signal) {
   }
 }

@@ -31,6 +31,7 @@ public class Grammar implements MediaResource {
   protected URI _uri;
   protected String _text = null;
   protected String _contentType = null;
+  protected boolean _isTerminatingCondition = true;
 
   public Grammar() {}
 
@@ -102,6 +103,14 @@ public class Grammar implements MediaResource {
     else {
       return new SimpleGrammar(grammar);
     }
+  }
+
+  public boolean isTerminatingCondition() {
+    return _isTerminatingCondition;
+  }
+
+  public void setTerminatingConditiona(boolean isTerminatingCondition) {
+    this._isTerminatingCondition = isTerminatingCondition;
   }
   
 }
