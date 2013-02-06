@@ -14,6 +14,11 @@
 
 package com.voxeo.moho.event;
 
+import java.util.Map;
+
+import com.voxeo.moho.media.InputMode;
+import com.voxeo.moho.media.input.SignalGrammar.Signal;
+
 /**
  * If the {@link com.voxeo.moho.Call Call} is in the supervised mode,
  * this event is fired when some input -- DTMF or speech -- is detected
@@ -24,5 +29,31 @@ package com.voxeo.moho.event;
  */
 public interface InputDetectedEvent<T extends EventSource> extends MediaNotificationEvent<T> {
 
+  String getConcept();
+
+  String getInterpretation();
+
+  float getConfidence();
+
+  String getNlsml();
+
+  String getTag();
+
+  InputMode getInputMode();
+
+  /**
+   * get the semantic interpretation result slots.
+   * 
+   * @return semantic interpretation result slots
+   */
+  Map<String, String> getSISlots();
+
   String getInput();
+
+  boolean isStartOfSpeech();
+
+  boolean isEndOfSpeech();
+
+  Signal getSignal();
+
 }
