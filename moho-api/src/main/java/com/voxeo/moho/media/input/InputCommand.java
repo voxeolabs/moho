@@ -26,6 +26,8 @@ import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.resource.RTC;
 import javax.media.mscontrol.resource.Resource;
 
+import com.voxeo.moho.media.BeepParameters;
+import com.voxeo.moho.media.EnergyParameters;
 import com.voxeo.moho.media.InputMode;
 
 /**
@@ -93,8 +95,12 @@ public class InputCommand implements Parameters {
   protected long _speechCompleteTimeout;
   
   protected boolean _flushBuffer;
-  
-  protected long _maxSpeechDuration;
+
+  protected boolean _autoreset;
+
+  protected EnergyParameters _energyParams = new EnergyParameters();
+
+  protected BeepParameters _beepParams = new BeepParameters();
 
   /**
    * @param grammers
@@ -461,12 +467,73 @@ public class InputCommand implements Parameters {
     this._flushBuffer = flushBuffer;
   }
   
-  public long getMaxSpeechDuration() {
-    return this._maxSpeechDuration;
+  public boolean getAutoReset() {
+    return this._autoreset;
   }
 
-  public void setMaxSpeechDuration(long maxSpeechDuration) {
-    this._maxSpeechDuration = maxSpeechDuration;
+  public void setAutoRest(boolean autoreset) {
+    this._autoreset=autoreset;
   }
   
+  public void setEnergyParameters(Long finalSilence, Long maxSilence, Long maxSpeechDuration, Long minSpeechDuration,
+      Integer minVolume) {
+    if (finalSilence != null) {
+      _energyParams.setFinalSilence(finalSilence);
+    }
+    if (maxSilence != null) {
+      _energyParams.setMaxSilence(maxSilence);
+    }
+    if (maxSpeechDuration != null) {
+      _energyParams.setMaxSpeechDuration(maxSpeechDuration);
+    }
+    if (minSpeechDuration != null) {
+      _energyParams.setMinSpeechDuration(minSpeechDuration);
+    }
+    if (minVolume != null) {
+      _energyParams.setMinVolume(minVolume);
+    }
+  }
+  
+  public EnergyParameters getEnergyParameters() {
+    return _energyParams;
+  }
+  
+  public void setBeepParameters(Long onTime, Long offTime, Long minFrequency, Long maxFrequency,
+      Float frequencyTolerance, Float monotonicity, Float signalToNoise, Float highMonotonicity, Integer minPower,
+      Long maxNoiseTime, Long maxConsequitiveNoiseTime) {
+    if (onTime != null) {
+      _beepParams.setOnTime(onTime);
+    }
+    if (offTime != null) {
+      _beepParams.setOffTime(offTime);
+    }
+    if (minFrequency != null) {
+      _beepParams.setMinFrequency(minFrequency);
+    }
+    if (maxFrequency != null) {
+      _beepParams.setMaxFrequency(maxFrequency);
+    }
+    if (monotonicity != null) {
+      _beepParams.setMonotonicity(monotonicity);
+    }
+    if (signalToNoise != null) {
+      _beepParams.setSignalToNoise(signalToNoise);
+    }
+    if (highMonotonicity != null) {
+      _beepParams.setHighMonotonicity(highMonotonicity);
+    }
+    if (minPower != null) {
+      _beepParams.setMinPower(minPower);
+    }
+    if (maxNoiseTime != null) {
+      _beepParams.setMaxNoiseTime(maxNoiseTime);
+    }
+    if (maxConsequitiveNoiseTime != null) {
+      _beepParams.setMaxConsequitiveNoiseTime(maxConsequitiveNoiseTime);
+    }
+  }
+
+  public BeepParameters getBeepParameters() {
+    return _beepParams;
+  }
 }
