@@ -1,24 +1,21 @@
 package com.voxeo.moho.remote.impl;
 
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
 
 import com.rayo.core.AnsweredEvent;
+import com.rayo.core.CallRef;
 import com.rayo.core.DialCommand;
 import com.rayo.core.EndEvent;
 import com.rayo.core.RingingEvent;
-import com.rayo.core.verb.VerbRef;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallableEndpoint;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.OutgoingCall;
-import com.voxeo.moho.SignalException;
-import com.voxeo.moho.Call.State;
 import com.voxeo.moho.common.event.MohoCallCompleteEvent;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.event.CallCompleteEvent;
@@ -50,8 +47,8 @@ public class OutgoingCallImpl extends CallImpl implements OutgoingCall {
         command.setHeaders(_headers);
         waitAnswerJoint = new JointImpl(this, null, direction, dispatchJoinToMediaEvent);
 
-        VerbRef verbRef = _mohoRemote.getRayoClient().dial(command);
-        setID(verbRef.getVerbId());
+        CallRef dialRef = _mohoRemote.getRayoClient().dial(command);
+        setID(dialRef.getCallId());
         return true;
       }
       else {

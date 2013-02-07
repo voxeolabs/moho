@@ -3,13 +3,8 @@ package com.voxeo.rayo.client.samples;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.media.mscontrol.join.Joinable;
-
-import com.rayo.core.verb.VerbRef;
+import com.rayo.core.CallRef;
 import com.rayo.core.DialCommand;
-import com.rayo.core.JoinCommand;
-import com.rayo.core.JoinDestinationType;
-import com.voxeo.moho.Participant.JoinType;
 
 public class DialSample4b extends BaseSample {
 
@@ -24,7 +19,7 @@ public class DialSample4b extends BaseSample {
 			e.printStackTrace();
 		}
 		
-		VerbRef dialRef = client.dial(dial);
+		CallRef dialRef = client.dial(dial);
 		Thread.sleep(6000);
 		client.hangup(dialRef.getCallId());
 	}
