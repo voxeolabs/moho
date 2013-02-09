@@ -59,6 +59,9 @@ public class RemoteJoinOutgoingCall extends SIPOutgoingCall implements RemotePar
   public void setX_Join_Direction(Direction x_Join_Direction) {
     _x_Join_Direction = x_Join_Direction;
     _headers.put(Constants.x_Join_Direction, x_Join_Direction.name());
+    if(_invite != null){
+      _invite.addHeader(Constants.x_Join_Direction, x_Join_Direction.name());
+    }
   }
 
   public JoinType getX_Join_Type() {
@@ -68,6 +71,9 @@ public class RemoteJoinOutgoingCall extends SIPOutgoingCall implements RemotePar
   public void setX_Join_Type(JoinType x_Join_Type) {
     _x_Join_Type = x_Join_Type;
     _headers.put(Constants.x_Join_Type, x_Join_Type.name());
+    if(_invite != null){
+      _invite.addHeader(Constants.x_Join_Type, x_Join_Type.name());
+    }
   }
 
   public boolean getX_Join_Force() {
@@ -77,6 +83,9 @@ public class RemoteJoinOutgoingCall extends SIPOutgoingCall implements RemotePar
   public void setX_Join_Force(boolean x_Join_Force) {
     _x_Join_Force = x_Join_Force;
     _headers.put(Constants.x_Join_Force, String.valueOf(x_Join_Force));
+    if(_invite != null){
+      _invite.addHeader(Constants.x_Join_Force, String.valueOf(x_Join_Force));
+    }
   }
 
   public SipURI getJoiner() {
