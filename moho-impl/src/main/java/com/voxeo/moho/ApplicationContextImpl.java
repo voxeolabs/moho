@@ -229,6 +229,17 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
     _msFactory = this.getService(MediaServiceFactory.class);
     _confMgr = this.getService(ConferenceManager.class);
+    
+    if (getParameter("remoteCommunicationAddress") != null) {
+      _remoteCommunicationAddress = getParameter("remoteCommunicationAddress");
+      LOG.debug("Using remoteCommunicationAddress configuration:" + getParameter("remoteCommunicationAddress"));
+    }
+    else {
+      if (_remoteCommunicationAddress.startsWith("/")) {
+        _remoteCommunicationAddress = _remoteCommunicationAddress.substring(1);
+      }
+      LOG.debug("No remoteCommunicationAddress configuration, using the default:" + _remoteCommunicationAddress);
+    }
 
 //    try {
 //      if (getParameter("remoteCommunicationPort") != null) {
