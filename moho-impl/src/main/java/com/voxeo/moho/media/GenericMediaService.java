@@ -110,7 +110,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   protected MediaDialect _dialect;
 
   protected List<MediaOperation<?, ? extends MediaCompleteEvent<?>>> _futures = new LinkedList<MediaOperation<?, ? extends MediaCompleteEvent<?>>>();
-  
+
   protected PlayerListener playerListener = new PlayerListener();
 
   protected GenericMediaService(final T parent, final MediaGroup group) {
@@ -708,6 +708,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
       if (patterns.size() > 0) {
         for (InputPattern p : patterns) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(p);
+          }
           params.put(SignalDetector.PATTERN[p.getIndex()], p.getValue());
         }
       }
@@ -736,7 +739,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         getSignalDetector().flushBuffer();
       }
       getSignalDetector().receiveSignals(cmd.getNumberOfDigits(),
-          patternKeys.toArray(new Parameter[patternKeys.size()]), rtcs.toArray(new RTC[] {}), params);
+          patternKeys == null ? SignalDetector.NO_PATTERN : patternKeys.toArray(new Parameter[patternKeys.size()]),
+          rtcs.toArray(new RTC[] {}), params);
       _futures.add(input);
     }
     catch (final MsControlException e) {
@@ -906,6 +910,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
     @Override
     public void onEvent(final SignalDetectorEvent e) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("DetectorListener[" + _parent + "] received: " + e);
+      }
       final EventType t = e.getEventType();
       if (t == SignalDetectorEvent.RECEIVE_SIGNALS_COMPLETED) {
         getSignalDetector().removeListener(this);
@@ -1020,7 +1027,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       else if (_dialect.isPromptCompleteEvent(e)) {
         _parent.dispatch(new MohoOutputCompleteEvent<T>(_parent, OutputCompleteEvent.Cause.END, _input));
       }
-      else if (isPatternMatchedEvent(t) && e.isSuccessful()) {
+      else if (isPatternMatchedEvent(t)) {
         InputPattern pattern = null;
         if (_patterns != null && _patterns.size() > 0) {
           for (final InputPattern p : _patterns) {
@@ -1030,6 +1037,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           }
         }
         if (pattern == null) {
+          LOG.warn("Skipped " + e.getEventType() + " event! No InputPattern is found.");
           return;
         }
 
