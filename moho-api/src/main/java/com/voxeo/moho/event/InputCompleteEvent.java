@@ -41,7 +41,14 @@ public interface InputCompleteEvent<T extends EventSource> extends MediaComplete
     /** the input is completed with a match */
     MATCH,
     /** the input is terminated because the source is disconnected */
-    DISCONNECT, UNKNOWN
+    DISCONNECT,
+    /** No input has been detected before the MAX_SILENCE timeout popped. **/
+    MAX_SILENCE_TIMEOUT_EXPIRED,
+    /**
+     * The maximum amount of speech has been detected before the END_OF_SPEECH
+     * event popped.
+     **/
+    _MAX_SPEECH_DETECTED, UNKNOWN
   }
 
   String getConcept();
