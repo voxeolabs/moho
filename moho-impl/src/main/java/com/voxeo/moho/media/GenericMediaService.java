@@ -707,12 +707,14 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       }
 
       if (patterns.size() > 0) {
+        final Parameters patternParams = _group.createParameters();
         for (InputPattern p : patterns) {
           if (LOG.isDebugEnabled()) {
             LOG.debug(p);
           }
-          params.put(SignalDetector.PATTERN[p.getIndex()], p.getValue());
+          patternParams.put(SignalDetector.PATTERN[p.getIndex()], p.getValue());
         }
+        _group.setParameters(patternParams);
       }
 
       if (patternMatchedEvts.size() > 0) {
