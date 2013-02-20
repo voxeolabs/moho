@@ -529,7 +529,7 @@ public class InputCommand implements Parameters {
       _beepParams.setMaxNoiseTime(maxNoiseTime);
     }
     if (maxConsequitiveNoiseTime != null) {
-      _beepParams.setMaxConsequitiveNoiseTime(maxConsequitiveNoiseTime);
+      _beepParams.setMaxConsecutiveNoiseTime(maxConsequitiveNoiseTime);
     }
   }
 

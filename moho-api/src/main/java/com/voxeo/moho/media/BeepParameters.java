@@ -22,7 +22,7 @@ public class BeepParameters {
 
   protected long maxNoiseTime = 256;
 
-  protected long maxConsequitiveNoiseTime = 128;
+  protected long maxConsecutiveNoiseTime = 128;
 
   public BeepParameters() {
     super();
@@ -68,8 +68,8 @@ public class BeepParameters {
     this.maxNoiseTime = maxNoiseTime;
   }
 
-  public void setMaxConsequitiveNoiseTime(long maxConsequitiveNoiseTime) {
-    this.maxConsequitiveNoiseTime = maxConsequitiveNoiseTime;
+  public void setMaxConsecutiveNoiseTime(long maxConsecutiveNoiseTime) {
+    this.maxConsecutiveNoiseTime = maxConsecutiveNoiseTime;
   }
 
   public long getOnTime() {
@@ -112,8 +112,8 @@ public class BeepParameters {
     return maxNoiseTime;
   }
 
-  public long getMaxConsequitiveNoiseTime() {
-    return maxConsequitiveNoiseTime;
+  public long getMaxConsecutiveNoiseTime() {
+    return maxConsecutiveNoiseTime;
   }
 
 }
