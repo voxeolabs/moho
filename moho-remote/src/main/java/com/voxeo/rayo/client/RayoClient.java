@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import com.rayo.core.AcceptCommand;
 import com.rayo.core.AnswerCommand;
 import com.rayo.core.CallCommand;
+import com.rayo.core.CallRef;
 import com.rayo.core.CallRejectReason;
 import com.rayo.core.DialCommand;
 import com.rayo.core.DtmfCommand;
@@ -62,7 +63,6 @@ import com.voxeo.rayo.client.registry.Call;
 import com.voxeo.rayo.client.registry.CallsRegistry;
 import com.voxeo.rayo.client.verb.ClientPauseCommand;
 import com.voxeo.rayo.client.verb.ClientResumeCommand;
-import com.voxeo.rayo.client.verb.RefEvent;
 import com.voxeo.rayo.client.xmpp.extensions.Extension;
 import com.voxeo.rayo.client.xmpp.stanza.IQ;
 import com.voxeo.rayo.client.xmpp.stanza.Ping;
@@ -873,7 +873,7 @@ public class RayoClient {
 	 * 
 	 * @throws XmppException If there is any issue while dialing
 	 */
-	public VerbRef dial(URI to) throws XmppException {
+	public CallRef dial(URI to) throws XmppException {
 
 		return dial(null, null, to);
 	}
@@ -887,7 +887,7 @@ public class RayoClient {
 	 * 
 	 * @throws XmppException If there is any issue while transfering the call
 	 */
-	public VerbRef dial(String destination, URI to) throws XmppException {
+	public CallRef dial(String destination, URI to) throws XmppException {
 
 		return dial(destination, null, to);
 	}
@@ -902,7 +902,7 @@ public class RayoClient {
 	 * 
 	 * @throws XmppException If there is any issue while transfering the call
 	 */
-	public VerbRef dial(URI from, URI to) throws XmppException {
+	public CallRef dial(URI from, URI to) throws XmppException {
 
 		return dial(null, from, to);
 	}
@@ -917,7 +917,7 @@ public class RayoClient {
 	 * 
 	 * @throws XmppException If there is any issue while transfering the call
 	 */
-	public VerbRef dial(String destination, URI from, URI to) throws XmppException {
+	public CallRef dial(String destination, URI from, URI to) throws XmppException {
 
 		DialCommand dial = new DialCommand();
 		dial.setTo(to);
@@ -935,35 +935,43 @@ public class RayoClient {
 			.setTo(rayoServer)
 			.setChild(Extension.create(dial));
 		
-		VerbRef ref = sendAndGetRef(null, iq);
+		CallRef ref = getCallRef(sendAndGetRef(null, iq));
 		if (ref == null) {
 			throw new DialTimeoutException();
 		}
 		// dials return a call id on refs, so different than other components
-		ref.setCallId(ref.getVerbId());
+		//ref.setCallId(ref.getVerbId());
 		return ref;
 	}
 
-	private VerbRef sendAndGetRef(String callId, IQ iq) throws XmppException {
+	private IQ sendAndGetRef(String callId, IQ iq) throws XmppException {
 		
 		Lock lock = connectionLock.readLock();
 		lock.lock();
 		try {
-			VerbRef ref = null;
 			IQ result = ((IQ)connection.sendAndWait(iq));
 			if (result != null) {
 				if (result.hasChild("error")) {
 					throw new XmppException(result.getError());
 				}
-				RefEvent reference = (RefEvent)result.getExtension().getObject();
-				ref = new VerbRef(callId, reference.getJid());
-				return ref;
+				return result;
 			} else {
 				return null;
 			}
 		} finally {
 			lock.unlock();
 		}		
+	}
+	
+	private CallRef getCallRef(IQ iq) {
+		
+		return (CallRef)iq.getExtension().getObject(); 
+	}
+	
+	private VerbRef getVerbRef(IQ iq) {
+		
+		CallRef callRef = (CallRef)iq.getExtension().getObject();
+		return new VerbRef(iq.getFromJid().getNode(), callRef.getCallId());
 	}
 	
 	/**
@@ -1020,7 +1028,7 @@ public class RayoClient {
 			.setTo(buildTo(callId))
 			.setChild(Extension.create(input));
 		
-		return sendAndGetRef(callId, iq);
+		return getVerbRef(sendAndGetRef(callId, iq));
 	}
 	
 	private VerbRef internalSay(Ssml item, String callId) throws XmppException {
@@ -1033,7 +1041,7 @@ public class RayoClient {
 			.setTo(buildTo(callId))
 			.setChild(Extension.create(say));
 		
-		return sendAndGetRef(callId, iq);
+		return getVerbRef(sendAndGetRef(callId, iq));
 	}
 	
 	private VerbRef internalOutput(Ssml item, String callId) throws XmppException {
@@ -1051,7 +1059,7 @@ public class RayoClient {
 			.setTo(buildTo(callId))
 			.setChild(Extension.create(output));
 		
-		return sendAndGetRef(callId, iq);
+		return getVerbRef(sendAndGetRef(callId, iq));
 	}
 	
 	/**
@@ -1223,7 +1231,7 @@ public class RayoClient {
 			.setTo(buildTo(callId))
 			.setChild(Extension.create(record));
 		
-		return sendAndGetRef(callId, iq);
+		return getVerbRef(sendAndGetRef(callId, iq));
 	}
 	
 	/**
@@ -1300,19 +1308,19 @@ public class RayoClient {
         return sendIQ(iq);
 	}
 	
-	public VerbRef dial(DialCommand command) throws XmppException {
+	public CallRef dial(DialCommand command) throws XmppException {
         
 		IQ iq = new IQ(IQ.Type.set)
             .setFrom(buildFrom())
             .setTo(rayoServer) 
             .setChild(Extension.create(command));
-        VerbRef ref = sendAndGetRef(null, iq);
+        CallRef ref = getCallRef(sendAndGetRef(null, iq));
         
         if (ref == null) {
         	throw new DialTimeoutException();
         }
 		// dials return a call id on refs, so different than other components
-		ref.setCallId(ref.getVerbId());
+		//ref.setCallId(ref.getVerbId());
         return ref;
 	}
 	
