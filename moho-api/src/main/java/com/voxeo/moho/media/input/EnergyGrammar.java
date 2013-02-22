@@ -6,8 +6,8 @@ public class EnergyGrammar extends Grammar {
 
   protected final boolean _endOfSpeech;
 
-  public EnergyGrammar(boolean startOfSpeech, boolean endOfSpeech) {
-    super(null, null);
+  public EnergyGrammar(boolean startOfSpeech, boolean endOfSpeech, boolean terminating) {
+    super(null, null, terminating);
     this._startOfSpeech = startOfSpeech;
     this._endOfSpeech = endOfSpeech;
   }

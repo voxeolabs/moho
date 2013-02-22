@@ -27,7 +27,8 @@ public class SignalGrammar extends Grammar {
 
   protected final Signal _signal;
 
-  public SignalGrammar(final Signal signal) {
+  public SignalGrammar(final Signal signal, final boolean terminating) {
+    super(null, null, terminating);
     _signal = signal;
   }
 

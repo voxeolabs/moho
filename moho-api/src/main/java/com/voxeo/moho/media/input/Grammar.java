@@ -43,6 +43,16 @@ public class Grammar implements MediaResource {
   public Grammar(final URI uri) {
       _uri = uri;
   }
+  
+  public Grammar(final String contentType, final String contents, final boolean terminating) {
+    this(contents, contents);
+    _isTerminatingCondition = terminating;
+  }
+
+  public Grammar(final URI uri, final boolean terminating) {
+    this(uri);
+    _isTerminatingCondition = terminating;
+  }
 
   public String getText() {
     return _text;
@@ -109,8 +119,4 @@ public class Grammar implements MediaResource {
     return _isTerminatingCondition;
   }
 
-  public void setTerminatingConditiona(boolean isTerminatingCondition) {
-    this._isTerminatingCondition = isTerminatingCondition;
-  }
-  
 }
