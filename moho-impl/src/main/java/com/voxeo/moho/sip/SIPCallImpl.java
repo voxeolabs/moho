@@ -853,7 +853,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
             }
           }
           else if (this instanceof SIPIncomingCall) {
-            if (_invite != null && _invite.getSession().getState() == SipSession.State.EARLY) {
+            if (_invite != null && (_invite.getSession().getState() == SipSession.State.EARLY || _invite.getSession().getState() == SipSession.State.INITIAL)) {
               SipServletResponse declineResponse = _invite.createResponse(SipServletResponse.SC_DECLINE);
               SIPHelper.addHeaders(declineResponse, headers);
               declineResponse.send();
