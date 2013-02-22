@@ -5,7 +5,7 @@ import java.net.URISyntaxException;
 
 import javax.media.mscontrol.join.Joinable;
 
-import com.rayo.core.verb.VerbRef;
+import com.rayo.core.CallRef;
 import com.rayo.core.DialCommand;
 import com.rayo.core.JoinCommand;
 import com.rayo.core.JoinDestinationType;
@@ -19,17 +19,17 @@ public class DialSample3 extends BaseSample {
 		String callId = client.waitForOffer().getCallId();
 		client.answer(callId);
 		
-		VerbRef dial1Ref = dial(callId, "sip:mpermar@iptel.org", JoinType.BRIDGE, callId);
+		CallRef dial1Ref = dial(callId, "sip:mpermar@iptel.org", JoinType.BRIDGE, callId);
 		//VerbRef dial2Ref = dial(callId, "sip:mperez@127.0.0.1:3060", JoinType.DIRECT, dial1Ref.getVerbId());
 		
 		Thread.sleep(6000);
-		client.unjoin(dial1Ref.getVerbId(), JoinDestinationType.CALL, callId);
+		client.unjoin(dial1Ref.getCallId(), JoinDestinationType.CALL, callId);
 		//client.unjoin(dial2Ref.getVerbId(), JoinDestinationType.CALL);
 		Thread.sleep(6000);
 		client.hangup(callId);
 	}
 
-	private VerbRef dial(String callId, String endpoint, JoinType type, String id) throws URISyntaxException,XmppException {
+	private CallRef dial(String callId, String endpoint, JoinType type, String id) throws URISyntaxException,XmppException {
 		
 		DialCommand dial = new DialCommand();
 		dial.setTo(new URI(endpoint));
@@ -48,7 +48,7 @@ public class DialSample3 extends BaseSample {
 			e.printStackTrace();
 		}
 		
-		VerbRef dialRef = client.dial(dial);
+		CallRef dialRef = client.dial(dial);
 		client.waitFor("answered");
 		return dialRef;
 	}

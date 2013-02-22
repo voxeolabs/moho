@@ -3,7 +3,7 @@ package com.voxeo.rayo.client.samples;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import com.rayo.core.verb.VerbRef;
+import com.rayo.core.CallRef;
 import com.rayo.core.DialCommand;
 import com.voxeo.rayo.client.XmppException;
 
@@ -16,7 +16,7 @@ public class DialSample6 extends BaseSample {
 		Thread.sleep(50000);
 	}
 
-	private VerbRef dial(String endpoint) throws URISyntaxException,XmppException {
+	private CallRef dial(String endpoint) throws URISyntaxException,XmppException {
 		
 		DialCommand dial = new DialCommand();
 		dial.setTo(new URI(endpoint));
@@ -28,7 +28,7 @@ public class DialSample6 extends BaseSample {
 			e.printStackTrace();
 		}
 		
-		VerbRef dialRef = client.dial(dial);
+		CallRef dialRef = client.dial(dial);
 
 		return dialRef;
 	}

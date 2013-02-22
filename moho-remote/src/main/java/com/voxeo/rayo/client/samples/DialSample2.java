@@ -5,7 +5,7 @@ import java.net.URISyntaxException;
 
 import javax.media.mscontrol.join.Joinable;
 
-import com.rayo.core.verb.VerbRef;
+import com.rayo.core.CallRef;
 import com.rayo.core.DialCommand;
 import com.rayo.core.JoinCommand;
 import com.rayo.core.JoinDestinationType;
@@ -35,10 +35,10 @@ public class DialSample2 extends BaseSample {
 			e.printStackTrace();
 		}
 		
-		VerbRef dialRef = client.dial(dial);
+		CallRef dialRef = client.dial(dial);
 		client.waitFor("answered");
 		Thread.sleep(6000);
-		client.unjoin(dialRef.getVerbId(), JoinDestinationType.CALL, callId);
+		client.unjoin(dialRef.getCallId(), JoinDestinationType.CALL, callId);
 		Thread.sleep(6000);
 		client.hangup(callId);
 	}
