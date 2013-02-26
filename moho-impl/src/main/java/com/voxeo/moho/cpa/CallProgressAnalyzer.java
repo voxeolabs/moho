@@ -72,8 +72,7 @@ public class CallProgressAnalyzer implements Observer {
 
   private long _lastEndOfSpeech = 0;
 
-  public CallProgressAnalyzer(final Call call, long voxeo_cpa_max_time, long voxeo_cpa_final_silence,
-      long voxeo_cpa_min_speech_duration, int voxeo_cpa_min_volume) {
+  public CallProgressAnalyzer(final Call call) {
     _call = call;
     _call.addObserver(this);
   }
@@ -123,15 +122,20 @@ public class CallProgressAnalyzer implements Observer {
     cmd.setMaxTimeout(runtime);
     cmd.setInitialTimeout(timeout);
     cmd.setAutoRest(autoreset);
-    cmd.setEnergyParameters(voxeo_cpa_final_silence, voxeo_cpa_max_time, null, voxeo_cpa_min_speech_duration,
-        voxeo_cpa_min_volume);
+    cmd.setEnergyParameters(voxeo_cpa_final_silence, null, null, voxeo_cpa_min_speech_duration, voxeo_cpa_min_volume);
+    log.info(this + "[call:" + _call + ", max_time:" + voxeo_cpa_max_time + ", final_silence:"
+        + voxeo_cpa_final_silence + ", min_speech:" + voxeo_cpa_min_speech_duration + ", min_volume:"
+        + voxeo_cpa_min_volume + ", runtime:" + runtime + ", timeout:" + timeout + ", autoreset:" + autoreset
+        + ", signals=" + toString(signals) + "]");
     _input = _call.input(cmd);
     _initialTimeout = timeout;
   }
 
   public void stop() {
     if (_input != null) {
+      log.info("Stopping " + this);
       _input.stop();
+      _call.removeObserver(this);
     }
   }
 
@@ -171,5 +175,19 @@ public class CallProgressAnalyzer implements Observer {
   private void reset() {
     this._lastStartOfSpeech = 0;
     this._lastEndOfSpeech = 0;
+  }
+
+  private String toString(final Signal[] signals) {
+    if (signals == null || signals.length == 0) {
+      return null;
+    }
+    final StringBuilder sbuf = new StringBuilder();
+    sbuf.append("[");
+    for (final Signal s : signals) {
+      sbuf.append(s);
+      sbuf.append(",");
+    }
+    sbuf.replace(sbuf.length() - 1, sbuf.length(), "]");
+    return sbuf.toString();
   }
 }
