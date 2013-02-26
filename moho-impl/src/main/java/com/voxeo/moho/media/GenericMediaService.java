@@ -697,10 +697,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
         patterns.add(new InputPattern(i, pattern, grammar.isTerminatingCondition()));
         if (grammar.isTerminatingCondition()) {
-          patternMatchedEvts.add(SignalDetectorEvent.PATTERN_MATCHED[i]);
+          patternKeys.add(SignalDetector.PATTERN[i]);
         }
         else {
-          patternKeys.add(SignalDetector.PATTERN[i]);
+          patternMatchedEvts.add(SignalDetectorEvent.PATTERN_MATCHED[i]);
         }
 
         i++;
@@ -740,9 +740,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       if (cmd.isFlushBuffer()) {
         getSignalDetector().flushBuffer();
       }
-      getSignalDetector().receiveSignals(cmd.getNumberOfDigits(),
-          patternKeys == null ? SignalDetector.NO_PATTERN : patternKeys.toArray(new Parameter[patternKeys.size()]),
-          rtcs.toArray(new RTC[] {}), params);
+      getSignalDetector().receiveSignals(
+          cmd.getNumberOfDigits(),
+          (patternKeys == null || patternKeys.size() == 0) ? SignalDetector.NO_PATTERN : patternKeys
+              .toArray(new Parameter[patternKeys.size()]), rtcs.toArray(new RTC[] {}), params);
       _futures.add(input);
     }
     catch (final MsControlException e) {
