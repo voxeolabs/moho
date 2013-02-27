@@ -1,10 +1,14 @@
 package com.voxeo.moho.cpa;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Call;
 import com.voxeo.moho.State;
-import com.voxeo.moho.event.InputCompleteEvent;
+import com.voxeo.moho.common.event.MohoCPAEvent;
+import com.voxeo.moho.event.CPAEvent.Type;
 import com.voxeo.moho.event.InputDetectedEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.Input;
@@ -60,21 +64,10 @@ public class CallProgressAnalyzer implements Observer {
    */
   protected int voxeo_cpa_min_volume = -24;
 
-  protected long _initialTimeout = -1;
+  protected Map<Call, ProgressStatus> _status = new ConcurrentHashMap<Call, ProgressStatus>();
 
-  protected int _retries = 0;
+  public CallProgressAnalyzer() {
 
-  protected final Call _call;
-
-  protected Input<Call> _input = null;
-
-  private long _lastStartOfSpeech = 0;
-
-  private long _lastEndOfSpeech = 0;
-
-  public CallProgressAnalyzer(final Call call) {
-    _call = call;
-    _call.addObserver(this);
   }
 
   public void setMaxTime(final long voxeo_cpa_max_time) {
@@ -109,7 +102,23 @@ public class CallProgressAnalyzer implements Observer {
     return this.voxeo_cpa_min_volume;
   }
 
-  public void start(final long runtime, final long timeout, final boolean autoreset, Signal... signals) {
+  public void start(final Call call, Signal... signals) {
+    start(call, -1, -1, false, signals);
+  }
+
+  /**
+   * @param call
+   * @param runtime
+   *          Maximum time duration for detection.
+   * @param timeout
+   *          Maximum time limit for first media.
+   * @param autoreset
+   *          Indicating whether detection will contine on receiving
+   *          end-of-speech event
+   * @param signals
+   */
+  public void start(final Call call, final long runtime, final long timeout, final boolean autoreset, Signal... signals) {
+    call.addObserver(this);
     final Grammar[] grammars = new Grammar[(signals == null || signals.length == 0) ? 2 : signals.length + 2];
     grammars[0] = new EnergyGrammar(true, false, false);
     grammars[1] = new EnergyGrammar(false, true, false);
@@ -119,62 +128,59 @@ public class CallProgressAnalyzer implements Observer {
       }
     }
     final InputCommand cmd = new InputCommand(grammars);
-    cmd.setMaxTimeout(runtime);
-    cmd.setInitialTimeout(timeout);
+    if (runtime > 0) {
+      cmd.setMaxTimeout(runtime);
+    }
+    if (timeout > 0) {
+      cmd.setInitialTimeout(timeout);
+    }
     cmd.setAutoRest(autoreset);
     cmd.setEnergyParameters(voxeo_cpa_final_silence, null, null, voxeo_cpa_min_speech_duration, voxeo_cpa_min_volume);
-    log.info(this + "[call:" + _call + ", max_time:" + voxeo_cpa_max_time + ", final_silence:"
-        + voxeo_cpa_final_silence + ", min_speech:" + voxeo_cpa_min_speech_duration + ", min_volume:"
-        + voxeo_cpa_min_volume + ", runtime:" + runtime + ", timeout:" + timeout + ", autoreset:" + autoreset
-        + ", signals=" + toString(signals) + "]");
-    _input = _call.input(cmd);
-    _initialTimeout = timeout;
+    log.info("Starting " + this + "[max_time:" + voxeo_cpa_max_time + ", final_silence:" + voxeo_cpa_final_silence
+        + ", min_speech:" + voxeo_cpa_min_speech_duration + ", min_volume:" + voxeo_cpa_min_volume + ", runtime:"
+        + runtime + ", timeout:" + timeout + ", autoreset:" + autoreset + ", signals=" + toString(signals) + "] on "
+        + call);
+    final Input<Call> input = call.input(cmd);
+    _status.put(call, new ProgressStatus(call, input));
   }
 
-  public void stop() {
-    if (_input != null) {
-      log.info("Stopping " + this);
-      _input.stop();
-      _call.removeObserver(this);
+  public void stop(final Call call) {
+    ProgressStatus status = _status.remove(call);
+    if (status != null) {
+      log.info("Stopping " + this + " on " + call);
+      status._input.stop();
+      call.removeObserver(this);
     }
   }
 
   @State
   public void onInputDetected(final InputDetectedEvent<Call> event) {
+    final Call call = event.getSource();
+    final ProgressStatus status = _status.get(call);
+    if (status == null) {
+      return;
+    }
+
     log.info(event);
     if (event.isStartOfSpeech()) {
-      _lastStartOfSpeech = System.currentTimeMillis();
+      status._lastStartOfSpeech = System.currentTimeMillis();
     }
     else if (event.isEndOfSpeech()) {
-      _lastEndOfSpeech = System.currentTimeMillis();
+      status._lastEndOfSpeech = System.currentTimeMillis();
 
-      ++_retries;
-      long duration = _lastEndOfSpeech - _lastStartOfSpeech;
+      ++status._retries;
+      long duration = status._lastEndOfSpeech - status._lastStartOfSpeech;
       if (duration < voxeo_cpa_max_time) {
-        event.getSource().dispatch(new HumanDetectedEvent<Call>(event.getSource(), duration, _retries));
+        call.dispatch(new MohoCPAEvent<Call>(event.getSource(), Type.HUMAN_DETECTED, duration, status._retries));
       }
       else {
-        event.getSource().dispatch(new MachineDetectedEvent<Call>(event.getSource(), duration, _retries));
+        call.dispatch(new MohoCPAEvent<Call>(event.getSource(), Type.MACHINE_DETECTED, duration, status._retries));
       }
-      reset();
+      status.reset();
     }
     else if (event.getSignal() != null) {
-      event.getSource().dispatch(new MachineDetectedEvent<Call>(event.getSource(), event.getSignal()));
+      call.dispatch(new MohoCPAEvent<Call>(event.getSource(), Type.MACHINE_DETECTED, event.getSignal()));
     }
-  }
-
-  @State
-  public void onInputComplete(final InputCompleteEvent<Call> event) {
-    switch (event.getCause()) {
-      case INI_TIMEOUT:
-        event.getSource().dispatch(new SilenceDetectedEvent<Call>(event.getSource(), _initialTimeout));
-        break;
-    }
-  }
-
-  private void reset() {
-    this._lastStartOfSpeech = 0;
-    this._lastEndOfSpeech = 0;
   }
 
   private String toString(final Signal[] signals) {
@@ -190,4 +196,28 @@ public class CallProgressAnalyzer implements Observer {
     sbuf.replace(sbuf.length() - 1, sbuf.length(), "]");
     return sbuf.toString();
   }
+
+  protected class ProgressStatus {
+
+    protected int _retries = 0;
+
+    protected long _lastStartOfSpeech = 0;
+
+    protected long _lastEndOfSpeech = 0;
+
+    protected final Input<Call> _input;
+
+    protected final Call _call;
+
+    public ProgressStatus(final Call call, final Input<Call> input) {
+      _input = input;
+      _call = call;
+    }
+
+    public void reset() {
+      this._lastStartOfSpeech = 0;
+      this._lastEndOfSpeech = 0;
+    }
+  }
+
 }
