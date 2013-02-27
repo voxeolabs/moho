@@ -21,6 +21,12 @@ public class SignalGrammar extends Grammar {
       if ("fax-cng".equalsIgnoreCase(value)) {
         return FAX_CNG;
       }
+      if ("ring".equalsIgnoreCase(value)) {
+        return RING;
+      }
+      if ("offhook".equalsIgnoreCase(value)) {
+        return OFFHOOK;
+      }
       return null;
     }
   }
