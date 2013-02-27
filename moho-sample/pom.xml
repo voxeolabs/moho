@@ -13,6 +13,7 @@
   </parent>
 
   <modules>
+    <module>CPA</module>
     <module>AutomaticRedial</module>
     <module>BlackList</module>
     <module>CallForward</module>
