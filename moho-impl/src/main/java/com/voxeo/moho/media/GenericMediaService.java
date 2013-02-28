@@ -495,6 +495,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
         if (command.getPrompt().getBargeinType() != BargeinType.NONE) {
           params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
+          params.put(Recorder.SPEECH_DETECTION_MODE, Recorder.DETECT_FIRST_OCCURRENCE);
         }
         
         if(command.getPrompt().getVoiceName() != null){
