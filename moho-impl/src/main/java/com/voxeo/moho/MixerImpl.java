@@ -99,7 +99,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
     try {
       MsControlFactory mf = null;
-      if (params == null || params.size() == 0) {
+      if (params == null || params.size() == 0 || (params.get(MsControlFactory.MEDIA_SERVER_URI) == null && (address == null
+          || address.getName().equalsIgnoreCase(MixerEndpoint.DEFAULT_MIXER_ENDPOINT)))) {
         mf = context.getMSFactory();
       }
       else {
