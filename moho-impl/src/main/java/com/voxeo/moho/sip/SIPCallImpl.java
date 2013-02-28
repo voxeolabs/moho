@@ -650,6 +650,12 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     synchronized(this){
       if (isTerminated()) {
         LOG.debug(this + " is already terminated.");
+        try {
+          req.createResponse(SipServletResponse.SC_OK).send();
+        }
+        catch (final Exception e) {
+          LOG.warn("Excetion sending back SIP response", e);
+        }
         return;
       }
       else {
