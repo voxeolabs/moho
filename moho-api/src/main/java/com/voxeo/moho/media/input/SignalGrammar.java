@@ -29,6 +29,17 @@ public class SignalGrammar extends Grammar {
       }
       return null;
     }
+
+    @Override
+    public String toString() {
+      if (this == FAX_CED) {
+        return "fax";
+      }
+      if (this == FAX_CNG) {
+        return "fax-cng";
+      }
+      return super.toString();
+    }
   }
 
   protected final Signal _signal;
