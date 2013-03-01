@@ -3,7 +3,7 @@ package com.voxeo.moho.media.input;
 public class SignalGrammar extends Grammar {
 
   public enum Signal {
-    FAX_CED, FAX_CNG, BEEP, RING, SIT, MODEM, OFFHOOK;
+    FAX, FAX_CNG, BEEP, RING, SIT, MODEM, OFFHOOK;
 
     public static Signal parse(String value) {
       if ("beep".equalsIgnoreCase(value)) {
@@ -16,7 +16,7 @@ public class SignalGrammar extends Grammar {
         return SIT;
       }
       if ("fax".equalsIgnoreCase(value)) {
-        return FAX_CED;
+        return FAX;
       }
       if ("fax-cng".equalsIgnoreCase(value)) {
         return FAX_CNG;
