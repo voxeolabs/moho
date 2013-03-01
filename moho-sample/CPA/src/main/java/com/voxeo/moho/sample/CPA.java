@@ -99,7 +99,7 @@ public class CPA implements Application {
   }
 
   private void startDetection() {
-    _analyzer.start(_call, 60000, 10000, true, new Signal[] {Signal.BEEP, Signal.FAX, Signal.FAX_CNG});
+    _analyzer.start(_call, 60000, 10000, true, new Signal[] {Signal.BEEP, Signal.FAX_CED, Signal.FAX_CNG});
   }
 
 }
