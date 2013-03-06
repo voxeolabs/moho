@@ -39,7 +39,6 @@ import javax.media.mscontrol.mediagroup.PlayerEvent;
 import javax.media.mscontrol.mediagroup.Recorder;
 import javax.media.mscontrol.mediagroup.RecorderEvent;
 import javax.media.mscontrol.mediagroup.SpeechDetectorConstants;
-import javax.media.mscontrol.mediagroup.signals.SignalConstants;
 import javax.media.mscontrol.mediagroup.signals.SignalDetector;
 import javax.media.mscontrol.mediagroup.signals.SignalDetectorEvent;
 import javax.media.mscontrol.mediagroup.signals.SignalGenerator;
@@ -604,11 +603,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     params.put(SignalDetector.INTER_SIG_TIMEOUT, cmd.getInterDigitsTimeout());
     params.put(SpeechDetectorConstants.SENSITIVITY, cmd.getSensitivity());
 
-    EventType[] enabledEvent = null;
     if (cmd.isSupervised()) {
       _dialect.enableDetectorPromptCompleteEvent(params, true);
 
-      enabledEvent = (EventType[]) params.get(SignalDetector.ENABLED_EVENTS);
+      final EventType[] enabledEvent = (EventType[]) params.get(SignalDetector.ENABLED_EVENTS);
       if (enabledEvent != null && enabledEvent.length > 0) {
         EventType[] newEabledEvents = Arrays.copyOf(enabledEvent, enabledEvent.length + 1);
         newEabledEvents[newEabledEvents.length - 1] = SignalDetectorEvent.SIGNAL_DETECTED;
@@ -718,6 +716,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       }
 
       if (patternMatchedEvts.size() > 0) {
+        final EventType[] enabledEvent = (EventType[]) params.get(SignalDetector.ENABLED_EVENTS);
         if (enabledEvent != null && enabledEvent.length > 0) {
           EventType[] newEabledEvents = Arrays.copyOf(enabledEvent, enabledEvent.length + patternMatchedEvts.size());
           System.arraycopy(patternMatchedEvts.toArray(new EventType[patternMatchedEvts.size()]), 0, newEabledEvents,
