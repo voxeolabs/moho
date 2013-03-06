@@ -564,7 +564,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   @SuppressWarnings("deprecation")
   protected Input<T> detectSignal(final InputCommand cmd, final InputImpl<T> input, Parameters internalParams,
       List<RTC> internalRtcs) throws MediaException {
-
+    if (cmd == null) {
+      throw new MediaException("InputCommand not initialized");
+    }
     if (cmd.isRecord()) {
       try {
         getRecorder().record(cmd.getRecordURI(), cmd.getRtcs() != null ? cmd.getRtcs() : RTC.NO_RTC,
