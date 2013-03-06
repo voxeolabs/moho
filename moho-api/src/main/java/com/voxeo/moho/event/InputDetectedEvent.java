@@ -14,6 +14,8 @@
 
 package com.voxeo.moho.event;
 
+import com.voxeo.moho.media.input.SignalGrammar.Signal;
+
 /**
  * If the {@link com.voxeo.moho.Call Call} is in the supervised mode,
  * this event is fired when some input -- DTMF or speech -- is detected
@@ -25,4 +27,11 @@ package com.voxeo.moho.event;
 public interface InputDetectedEvent<T extends EventSource> extends MediaNotificationEvent<T> {
 
   String getInput();
+  
+
+  boolean isStartOfSpeech();
+
+  boolean isEndOfSpeech();
+  
+  Signal getSignal();
 }

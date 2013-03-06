@@ -31,6 +31,7 @@ public class Grammar implements MediaResource {
   protected URI _uri;
   protected String _text = null;
   protected String _contentType = null;
+  protected boolean _isTerminatingCondition = true;
 
   public Grammar() {}
 
@@ -41,6 +42,16 @@ public class Grammar implements MediaResource {
 
   public Grammar(final URI uri) {
       _uri = uri;
+  }
+  
+  public Grammar(final String contentType, final String contents, final boolean terminating) {
+    this(contents, contents);
+    _isTerminatingCondition = terminating;
+  }
+
+  public Grammar(final URI uri, final boolean terminating) {
+    this(uri);
+    _isTerminatingCondition = terminating;
   }
 
   public String getText() {
@@ -103,5 +114,9 @@ public class Grammar implements MediaResource {
       return new SimpleGrammar(grammar);
     }
   }
-  
+
+  public boolean isTerminatingCondition() {
+    return _isTerminatingCondition;
+  }
+
 }
