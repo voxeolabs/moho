@@ -458,4 +458,11 @@ public class InputCommand implements Parameters {
   public void setFlushBuffer(boolean flushBuffer) {
     this._flushBuffer = flushBuffer;
   }
+  public void setAutoRest(boolean autoreset) {
+
+  }
+  public void setEnergyParameters(Long finalSilence, Long maxSilence, Long maxSpeechDuration, Long minSpeechDuration,
+	      Integer minVolume) {	
+	 
+  }
 }

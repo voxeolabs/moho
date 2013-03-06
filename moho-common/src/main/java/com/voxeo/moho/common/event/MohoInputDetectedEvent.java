@@ -16,6 +16,7 @@ package com.voxeo.moho.common.event;
 
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputDetectedEvent;
+import com.voxeo.moho.media.input.SignalGrammar.Signal;
 
 public class MohoInputDetectedEvent<T extends EventSource> extends MohoMediaNotificationEvent<T> implements InputDetectedEvent<T> {
 
@@ -31,4 +32,21 @@ public class MohoInputDetectedEvent<T extends EventSource> extends MohoMediaNoti
     return _input;
   }
 
+  @Override
+	public boolean isEndOfSpeech() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+  
+  @Override
+	public boolean isStartOfSpeech() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+  
+  @Override
+	public Signal getSignal() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
