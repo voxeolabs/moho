@@ -16,6 +16,7 @@ package com.voxeo.moho.event;
 import java.util.Map;
 
 import com.voxeo.moho.media.InputMode;
+import com.voxeo.moho.media.input.SignalGrammar.Signal;
 
 /**
  * This event is fired when an {@link com.voxeo.moho.media.Input Input} is
@@ -86,4 +87,6 @@ public interface InputCompleteEvent<T extends EventSource> extends MediaComplete
    * @return semantic interpretation result slots
    */
   Map<String, String> getSISlots();
+  
+  Signal getSignal();
 }

@@ -963,12 +963,18 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
           String signalString = e.getSignalString();
           if (signalString != null) {
-            inputCompleteEvent.setConcept(se.getTag());
-            inputCompleteEvent.setTag(se.getTag());
-            inputCompleteEvent.setConfidence(1.0F);
-            inputCompleteEvent.setInterpretation(signalString);
-            inputCompleteEvent.setUtterance(signalString);
-            inputCompleteEvent.setInputMode(InputMode.DTMF);
+            final Signal signal = Signal.parse(signalString);
+            if (signal == null) {
+              inputCompleteEvent.setConcept(se.getTag());
+              inputCompleteEvent.setTag(se.getTag());
+              inputCompleteEvent.setConfidence(1.0F);
+              inputCompleteEvent.setInterpretation(signalString);
+              inputCompleteEvent.setUtterance(signalString);
+              inputCompleteEvent.setInputMode(InputMode.DTMF);
+            }
+            else {
+              inputCompleteEvent.setSignal(signal);
+            }
           }
           else {
             inputCompleteEvent.setUtterance(se.getUserInput());
@@ -1008,11 +1014,17 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         }
         else {
           String signalString = e.getSignalString();
-          inputCompleteEvent.setConcept(signalString);
-          inputCompleteEvent.setConfidence(1.0F);
-          inputCompleteEvent.setInterpretation(signalString);
-          inputCompleteEvent.setUtterance(signalString);
-          inputCompleteEvent.setInputMode(InputMode.DTMF);
+          final Signal signal = Signal.parse(signalString);
+          if (signal == null) {
+            inputCompleteEvent.setConcept(signalString);
+            inputCompleteEvent.setConfidence(1.0F);
+            inputCompleteEvent.setInterpretation(signalString);
+            inputCompleteEvent.setUtterance(signalString);
+            inputCompleteEvent.setInputMode(InputMode.DTMF);
+          }
+          else {
+            inputCompleteEvent.setSignal(signal);
+          }
         }
         inputCompleteEvent.setSISlots(_dialect.getSISlots(e));
 
