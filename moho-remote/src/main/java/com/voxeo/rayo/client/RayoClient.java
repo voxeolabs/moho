@@ -91,6 +91,18 @@ public class RayoClient {
 	private ReentrantReadWriteLock connectionLock = new ReentrantReadWriteLock();
 	
 	private Timer pingTimer = null;
+
+	public class Grammar {
+		
+		private String content;
+		private String type;
+		
+		public Grammar(String content, String type) {
+			
+			this.content = content;
+			this.type = type;
+		}
+	}
 	
 	/**
 	 * Creates a new client object. This object will be used to interact with an Rayo server.
