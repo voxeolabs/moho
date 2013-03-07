@@ -41,20 +41,49 @@ public interface InputCompleteEvent<T extends EventSource> extends MediaComplete
     NO_MATCH,
     /** the input is completed with a match */
     MATCH,
+    /** the input is terminated because of the first occurrence of speech **/
+    START_OF_SPEECH,
+    /** the input is terminated because of the first consecutive speech ends **/
+    END_OF_SPEECH,
     /** the input is terminated because the source is disconnected */
-    DISCONNECT, UNKNOWN
+    DISCONNECT,
+    /** No input has been detected before the MAX_SILENCE timeout popped. **/
+    MAX_SILENCE_TIMEOUT_EXPIRED,
+    /**
+     * The maximum amount of speech has been detected before the END_OF_SPEECH
+     * event popped.
+     **/
+    _MAX_SPEECH_DETECTED, UNKNOWN
   }
 
+  /**
+   * @return the concept of voice or DTMF inputs
+   */
   String getConcept();
 
+  /**
+   * @return the full semantic interpretation of voice or DTMF input
+   */
   String getInterpretation();
 
+  /**
+   * @return the recognized voice or DTMF input before interpretation
+   */
   String getUtterance();
 
+  /**
+   * @return the ASR engine's confidence in the voice or DTMF input
+   */
   float getConfidence();
 
+  /**
+   * @return the raw NLSML result returned from the underlying MRCP engine
+   */
   String getNlsml();
 
+  /**
+   * @return the tag returned from the lower JSR-309 level
+   */
   String getTag();
 
   /**
@@ -64,8 +93,14 @@ public interface InputCompleteEvent<T extends EventSource> extends MediaComplete
 
   boolean hasMatch();
 
+  /**
+   * @return the type of the recognized voice or DTMF input
+   */
   InputMode getInputMode();
 
+  /**
+   * @return the default semantic interpretation of voice or DTMF input
+   */
   String getValue();
 
   /**
@@ -74,12 +109,16 @@ public interface InputCompleteEvent<T extends EventSource> extends MediaComplete
    * @return
    */
   String getErrorText();
-  
+
   /**
    * get the semantic interpretation result slots.
-   * @return semantic interpretation result slots
+   * 
+   * @return semantic interpretation result slots for voice or DTMF input
    */
   Map<String, String> getSISlots();
-  
+
+  /**
+   * @return the recognized signal
+   */
   Signal getSignal();
 }
