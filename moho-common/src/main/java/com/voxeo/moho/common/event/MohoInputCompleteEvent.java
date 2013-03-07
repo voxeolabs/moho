@@ -19,6 +19,7 @@ import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputCompleteEvent;
 import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.InputMode;
+import com.voxeo.moho.media.input.SignalGrammar.Signal;
 
 public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaCompleteEvent<T> implements
     InputCompleteEvent<T> {
@@ -157,6 +158,12 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
     _SISlots = slots;
   }
 
+  @Override
+	public Signal getSignal() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+  
   @Override
   public String toString() {
     return String.format("[Event class=%s sourceClass=%s id=%s cause=%s ]", getClass().getName(),
