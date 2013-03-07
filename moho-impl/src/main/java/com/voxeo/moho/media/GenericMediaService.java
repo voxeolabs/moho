@@ -924,6 +924,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         InputCompleteEvent.Cause cause = InputCompleteEvent.Cause.UNKNOWN;
         final Qualifier q = e.getQualifier();
         String errorText = null;
+        final InputPattern pattern = patternMatched(q);
         if (q == SignalDetectorEvent.DURATION_EXCEEDED) {
           cause = InputCompleteEvent.Cause.MAX_TIMEOUT;
         }
@@ -944,8 +945,19 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
             cause = InputCompleteEvent.Cause.CANCEL;
           }
         }
-        else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED || patternMatched(e)) {
+        else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED) {
           cause = InputCompleteEvent.Cause.MATCH;
+        }
+        else if (pattern != null) {
+          if (pattern.getValue() == SpeechRecognitionEvent.START_OF_SPEECH) {
+            cause = InputCompleteEvent.Cause.START_OF_SPEECH;
+          }
+          else if (pattern.getValue() == SpeechRecognitionEvent.END_OF_SPEECH) {
+            cause = InputCompleteEvent.Cause.END_OF_SPEECH;
+          }
+          else {
+            cause = InputCompleteEvent.Cause.MATCH;
+          }
         }
         else if (q == ResourceEvent.NO_QUALIFIER) {
           if (e.getError() != ResourceEvent.NO_ERROR) {
@@ -1041,15 +1053,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       else if (_dialect.isPromptCompleteEvent(e)) {
         _parent.dispatch(new MohoOutputCompleteEvent<T>(_parent, OutputCompleteEvent.Cause.END, _input));
       }
-      else if (isPatternMatchedEvent(t)) {
-        InputPattern pattern = null;
-        if (_patterns != null && _patterns.size() > 0) {
-          for (final InputPattern p : _patterns) {
-            if (e.getQualifier() == SignalDetectorEvent.PATTERN_MATCHING[p.getIndex()]) {
-              pattern = p;
-            }
-          }
-        }
+      else {
+        final InputPattern pattern = patternMatched(t);
         if (pattern == null) {
           LOG.warn("Skipped " + e.getEventType() + " event! No InputPattern is found.");
           return;
@@ -1137,25 +1142,28 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         _parent.dispatch(inputDetectedEvent);
       }
     }
-  }
 
-  private boolean patternMatched(final SignalDetectorEvent event) {
-    for (final Qualifier q : SignalDetectorEvent.PATTERN_MATCHING) {
-      if (event.getQualifier() == q) {
-        return true;
+    private InputPattern patternMatched(final Qualifier qualifier) {
+      if (_patterns != null && _patterns.size() > 0) {
+        for (final InputPattern p : _patterns) {
+          if (qualifier == SignalDetectorEvent.PATTERN_MATCHING[p.getIndex()]) {
+            return p;
+          }
+        }
       }
+      return null;
     }
 
-    return false;
-  }
-
-  private boolean isPatternMatchedEvent(final EventType type) {
-    for (final EventType t : SignalDetectorEvent.PATTERN_MATCHED) {
-      if (type == t) {
-        return true;
+    private InputPattern patternMatched(final EventType type) {
+      if (_patterns != null && _patterns.size() > 0) {
+        for (final InputPattern p : _patterns) {
+          if (type == SignalDetectorEvent.PATTERN_MATCHED[p.getIndex()]) {
+            return p;
+          }
+        }
       }
+      return null;
     }
-    return false;
   }
 
   protected class RecorderListener implements MediaEventListener<RecorderEvent> {

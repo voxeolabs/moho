@@ -29,31 +29,61 @@ import com.voxeo.moho.media.input.SignalGrammar.Signal;
  */
 public interface InputDetectedEvent<T extends EventSource> extends MediaNotificationEvent<T> {
 
+  /**
+   * @return the concept of voice or DTMF inputs
+   */
   String getConcept();
 
+  /**
+   * @return the full semantic interpretation of voice or DTMF input
+   */
   String getInterpretation();
 
+  /**
+   * @return the ASR engine's confidence in the voice or DTMF input
+   */
   float getConfidence();
 
+  /**
+   * @return the raw NLSML result returned from the underlying MRCP engine
+   */
   String getNlsml();
 
+  /**
+   * @return the tag returned from the lower JSR-309 level
+   */
   String getTag();
 
+  /**
+   * @return the type of the recognized voice or DTMF input
+   */
   InputMode getInputMode();
 
   /**
    * get the semantic interpretation result slots.
    * 
-   * @return semantic interpretation result slots
+   * @return semantic interpretation result slots for voice or DTMF input
    */
   Map<String, String> getSISlots();
 
+  /**
+   * @return the recognized voice or DTMF input
+   */
   String getInput();
 
+  /**
+   * @return START-OF-SPEECH is detected
+   */
   boolean isStartOfSpeech();
 
+  /**
+   * @return END-OF-SPEECH is detected
+   */
   boolean isEndOfSpeech();
 
+  /**
+   * @return the recognized signal
+   */
   Signal getSignal();
 
 }
