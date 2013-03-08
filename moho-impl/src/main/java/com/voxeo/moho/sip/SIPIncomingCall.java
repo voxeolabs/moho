@@ -190,14 +190,14 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   }
 
   protected synchronized void doPrack(final SipServletRequest req) throws IOException {
-    if (_cstate == SIPCall.State.PROGRESSED) {
+    //if (_cstate == SIPCall.State.PROGRESSED) {
       //TODO support SDP in Prack?
       final SipServletResponse res = req.createResponse(SipServletResponse.SC_OK);
       if (SIPHelper.getRawContentWOException(req) != null && getLocalSDP() != null) {
         res.setContent(getLocalSDP(), "application/sdp");
       }
       res.send();
-    }
+   // }
   }
 
   protected boolean _acceptedWithEarlyMedia = false;
