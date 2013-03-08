@@ -1033,6 +1033,20 @@ public class RayoClient {
 		return input(input, callId);
 	}
 	
+	public VerbRef input(Input input, String callId, Grammar... grammars) throws XmppException {
+		
+		List<Choices> choices = new ArrayList<Choices>();
+		for (Grammar grammar: grammars) {
+			Choices choice = new Choices();
+			choice.setContent(grammar.content);
+			choice.setContentType(grammar.type);
+			choices.add(choice);
+		}
+		input.setGrammars(choices);
+		
+		return input(input, callId);
+	}
+	
 	public VerbRef input(Input input, String callId) throws XmppException {
 		
 		IQ iq = new IQ(IQ.Type.set)
