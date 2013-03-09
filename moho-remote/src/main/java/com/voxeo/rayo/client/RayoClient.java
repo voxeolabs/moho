@@ -91,6 +91,18 @@ public class RayoClient {
 	private ReentrantReadWriteLock connectionLock = new ReentrantReadWriteLock();
 	
 	private Timer pingTimer = null;
+
+	public class Grammar {
+		
+		private String content;
+		private String type;
+		
+		public Grammar(String content, String type) {
+			
+			this.content = content;
+			this.type = type;
+		}
+	}
 	
 	/**
 	 * Creates a new client object. This object will be used to interact with an Rayo server.
@@ -1016,6 +1028,20 @@ public class RayoClient {
 		choice.setContent(simpleGrammar);
 		choice.setContentType("application/grammar+voxeo");
 		choices.add(choice);
+		input.setGrammars(choices);
+		
+		return input(input, callId);
+	}
+	
+	public VerbRef input(Input input, String callId, Grammar... grammars) throws XmppException {
+		
+		List<Choices> choices = new ArrayList<Choices>();
+		for (Grammar grammar: grammars) {
+			Choices choice = new Choices();
+			choice.setContent(grammar.content);
+			choice.setContentType(grammar.type);
+			choices.add(choice);
+		}
 		input.setGrammars(choices);
 		
 		return input(input, callId);
