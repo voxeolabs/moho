@@ -500,7 +500,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   public void joinDone(final Participant participant, final JoinDelegate delegate) {
     if(delegate != _joinDelegate){
-       return;
+      return;
     }
     setJoiningPeer(null);
     if (_joinDelegate.getPeer() != null) {

@@ -14,14 +14,18 @@ package com.voxeo.moho.sip;
 import java.util.Map;
 
 import javax.media.mscontrol.join.Joinable.Direction;
+import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
+
+import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPCall.State;
 
 public class DirectNI2NOJoinDelegate extends JoinDelegate {
+  private static final Logger LOG = Logger.getLogger(DirectAI2NOJoinDelegate.class);
 
   protected Direction _direction;
 
@@ -53,6 +57,20 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
               res.getReasonPhrase());
           SIPHelper.copyContent(res, newRes);
+          
+          if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
+              try {
+                res.createPrack().send();
+                newRes.addHeader("Supported", "100rel");
+              }
+              catch (Rel100Exception ex) {
+                LOG.warn(ex.getMessage());
+              }
+              catch (IllegalStateException ex) {
+                LOG.warn(ex.getMessage());
+              }
+          }
+          
           newRes.send();
         }
         else if (SIPHelper.isErrorResponse(res)) {
