@@ -8,6 +8,7 @@
   <version>trunk-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+<<<<<<< Updated upstream
 	<repositories>
 		<repository>
 			<id>maven.voxeolabs.net</id>
@@ -45,6 +46,10 @@
 			<id>sun-public</id>
 			<url>http://download.java.net/maven/2/</url>
 		</repository>
+    <repository>
+      <id>codehause</id>
+      <url>http://repository.codehaus.org/</url>
+    </repository>
 	</repositories>
 
   <scm>
@@ -86,7 +91,7 @@
    <plugin>
     <groupId>org.codehaus.mojo</groupId>
     <artifactId>buildnumber-maven-plugin</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2</version>
     <executions>
      <execution>
       <phase>validate</phase>

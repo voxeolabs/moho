@@ -15,6 +15,9 @@ public class SettableResultFuture<C> implements Future<C>, FutureResult<C> {
   private Condition hasResult = lock.newCondition();
 
   private C result;
+  
+  // Needed to support a result value of null
+  private boolean complete;
 
   private Throwable exception;
 
@@ -35,7 +38,7 @@ public class SettableResultFuture<C> implements Future<C>, FutureResult<C> {
 
   @Override
   public C get() throws InterruptedException, ExecutionException {
-    if (result == null && exception == null) {
+    if (!complete) {
       lock.lock();
       try {
         while (result == null && exception == null) {
@@ -54,7 +57,7 @@ public class SettableResultFuture<C> implements Future<C>, FutureResult<C> {
 
   @Override
   public C get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-    if (result == null && exception == null) {
+    if (!complete) {
       lock.lock();
       try {
         while (result == null && exception == null) {
@@ -75,6 +78,7 @@ public class SettableResultFuture<C> implements Future<C>, FutureResult<C> {
 
   public void setResult(C result) {
     this.result = result;
+    this.complete = true;
     lock.lock();
     try {
       hasResult.signalAll();
@@ -86,6 +90,7 @@ public class SettableResultFuture<C> implements Future<C>, FutureResult<C> {
 
   public void setException(Throwable t) {
     this.exception = t;
+    this.complete = true;
     lock.lock();
     try {
       hasResult.signalAll();
