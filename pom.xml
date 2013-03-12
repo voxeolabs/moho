@@ -8,7 +8,6 @@
   <version>trunk-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-<<<<<<< Updated upstream
 	<repositories>
 		<repository>
 			<id>maven.voxeolabs.net</id>
