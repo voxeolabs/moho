@@ -33,7 +33,7 @@ public class SettableResultFuture<C> implements Future<C>, FutureResult<C> {
 
   @Override
   public boolean isDone() {
-    return result != null || exception != null;
+    return complete;
   }
 
   @Override
@@ -41,7 +41,7 @@ public class SettableResultFuture<C> implements Future<C>, FutureResult<C> {
     if (!complete) {
       lock.lock();
       try {
-        while (result == null && exception == null) {
+        while (!complete) {
           hasResult.await();
         }
       }
@@ -60,7 +60,7 @@ public class SettableResultFuture<C> implements Future<C>, FutureResult<C> {
     if (!complete) {
       lock.lock();
       try {
-        while (result == null && exception == null) {
+        while (!complete) {
           if (!hasResult.await(timeout, unit)) {
             throw new TimeoutException();
           }
