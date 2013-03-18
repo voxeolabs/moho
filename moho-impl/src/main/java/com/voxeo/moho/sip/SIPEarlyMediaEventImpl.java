@@ -64,14 +64,16 @@ public class SIPEarlyMediaEventImpl extends MohoEarlyMediaEvent implements SIPEa
         throw new SignalException(e);
       }
       
-      while (!call.isTerminated() && !(call.getSIPCallState() == SIPCall.State.PROGRESSED)) {
-        try {
-          synchronized (this) {
-            this.wait(5000);
+      if(call.getJoinDelegate() != null && call.getJoinDelegate() instanceof Media2NOJoinDelegate){
+        while (!call.isTerminated() && !(call.getSIPCallState() == SIPCall.State.PROGRESSED)) {
+          try {
+            synchronized (this) {
+              this.wait(500);
+            }
           }
-        }
-        catch (final InterruptedException e) {
-          // ignore
+          catch (final InterruptedException e) {
+            // ignore
+          }
         }
       }
       // do the following in delegate

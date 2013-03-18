@@ -32,8 +32,24 @@ public class Media2NIJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
-    _call1.setSIPCallState(SIPCall.State.ANSWERING);
-    _call1.processSDPOffer(_call1.getSipInitnalRequest());
+    if (_call1.getSIPCallState() == SIPCall.State.PROGRESSED) {
+      try {
+        final SipServletResponse res = _call1.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
+        if (_call1.getRemoteSdp() == null) {
+          waitAnswerProcessed = true;
+        }
+        res.setContent(_call1.getLocalSDP(), "application/sdp");
+        res.send();
+      }
+      catch (final IOException e) {
+        done(Cause.ERROR, e);
+        _call1.fail(e);
+      }
+    }
+    else {
+      _call1.setSIPCallState(SIPCall.State.ANSWERING);
+      _call1.processSDPOffer(_call1.getSipInitnalRequest());
+    }
   }
 
   @Override
