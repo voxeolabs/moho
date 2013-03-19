@@ -1116,7 +1116,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (_network != null) {
       try {
         MediaDialect dialect = ((ApplicationContextImpl) this.getApplicationContext()).getDialect();
-        dialect.stopCallRecord(_network);
+        if (dialect != null) {
+        	dialect.stopCallRecord(_network);
+        }
       }
       catch (final Throwable t) {
         LOG.warn("Exception when stopping call record", t);
