@@ -9,7 +9,7 @@
   <parent>
     <groupId>com.voxeo.moho</groupId>
     <artifactId>moho-parent</artifactId>
-    <version>cpa-SNAPSHOT</version>
+    <version>trunk</version>
   </parent>
 
   <scm>
