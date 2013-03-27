@@ -68,24 +68,6 @@ public class MohoInputDetectedEvent<T extends EventSource> extends MohoMediaNoti
   }
 
   @Override
-<<<<<<< HEAD
-	public boolean isEndOfSpeech() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-  @Override
-	public boolean isStartOfSpeech() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-  @Override
-	public Signal getSignal() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-=======
   public String getConcept() {
     return _concept;
   }
@@ -169,5 +151,4 @@ public class MohoInputDetectedEvent<T extends EventSource> extends MohoMediaNoti
         getClass().getName(), (source != null ? source.getClass().getSimpleName() : null), hashCode(), _input, _isEOS,
         _isSOS, _signal);
   }
->>>>>>> cpa
 }

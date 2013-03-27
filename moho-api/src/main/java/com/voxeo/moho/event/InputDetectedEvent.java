@@ -70,15 +70,6 @@ public interface InputDetectedEvent<T extends EventSource> extends MediaNotifica
    * @return the recognized voice or DTMF input
    */
   String getInput();
-<<<<<<< HEAD
-
-
-  boolean isStartOfSpeech();
-
-  boolean isEndOfSpeech();
-
-  Signal getSignal();
-=======
 
   /**
    * @return START-OF-SPEECH is detected
@@ -95,5 +86,4 @@ public interface InputDetectedEvent<T extends EventSource> extends MediaNotifica
    */
   Signal getSignal();
 
->>>>>>> cpa
 }
