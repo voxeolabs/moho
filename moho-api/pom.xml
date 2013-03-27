@@ -8,7 +8,7 @@
   <parent>
     <groupId>com.voxeo.moho</groupId>
     <artifactId>moho-parent</artifactId>
-    <version>trunk</version>
+    <version>trunk-SNAPSHOT</version>
   </parent>
 
   <scm>

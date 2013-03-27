@@ -9,7 +9,7 @@
   <parent>
     <groupId>com.voxeo.moho</groupId>
     <artifactId>moho-parent</artifactId>
-    <version>trunk</version>
+    <version>trunk-SNAPSHOT</version>
   </parent>
 
   <modules>
@@ -62,12 +62,12 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-api</artifactId>
-      <version>trunk</version>
+      <version>trunk-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-impl</artifactId>
-      <version>trunk</version>
+      <version>trunk-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>
