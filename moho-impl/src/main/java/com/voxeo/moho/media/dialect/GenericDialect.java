@@ -1,17 +1,23 @@
 package com.voxeo.moho.media.dialect;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.Parameters;
+import javax.media.mscontrol.Qualifier;
 import javax.media.mscontrol.Value;
 import javax.media.mscontrol.mediagroup.RecorderEvent;
 import javax.media.mscontrol.mediagroup.signals.SignalDetectorEvent;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.resource.RTC;
 
+import com.voxeo.moho.event.InputCompleteEvent.Cause;
+import com.voxeo.moho.media.BeepParameters;
+import com.voxeo.moho.media.EnergyParameters;
 import com.voxeo.moho.media.InputMode;
+import com.voxeo.moho.media.input.SignalGrammar.Signal;
 
 public class GenericDialect implements MediaDialect {
 
@@ -110,11 +116,33 @@ public class GenericDialect implements MediaDialect {
 
   @Override
   public void setDtmfPassThrough(NetworkConnection nc, boolean passThrough) {
-    
+
   }
 
   @Override
   public Map<String, String> getSISlots(SignalDetectorEvent event) {
+    return null;
+  }
+
+  @Override
+  public Value getSignalConstants(Signal signal) {
+    return null;
+  }
+
+  @Override
+  public void setAutoReset(Parameters params, boolean autoreset) {
+  }
+
+  @Override
+  public void setEnergyParameters(Parameters params, EnergyParameters energy) {
+  }
+
+  @Override
+  public void setBeepParameters(Parameters params, BeepParameters beep) {
+  }
+
+  @Override
+  public Cause getInputCompleteEventCause(Qualifier qualifier) {
     return null;
   }
 }

@@ -9,10 +9,11 @@
   <parent>
     <groupId>com.voxeo.moho</groupId>
     <artifactId>moho-parent</artifactId>
-    <version>trunk-SNAPSHOT</version>
+    <version>cpa-SNAPSHOT</version>
   </parent>
 
   <modules>
+    <module>CPA</module>
     <module>AutomaticRedial</module>
     <module>BlackList</module>
     <module>CallForward</module>
@@ -61,12 +62,12 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-api</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <version>cpa-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-impl</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <version>cpa-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

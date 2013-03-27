@@ -1,17 +1,23 @@
 package com.voxeo.moho.media.dialect;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.Parameters;
+import javax.media.mscontrol.Qualifier;
 import javax.media.mscontrol.Value;
 import javax.media.mscontrol.mediagroup.RecorderEvent;
 import javax.media.mscontrol.mediagroup.signals.SignalDetectorEvent;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.resource.RTC;
 
+import com.voxeo.moho.event.InputCompleteEvent.Cause;
+import com.voxeo.moho.media.BeepParameters;
+import com.voxeo.moho.media.EnergyParameters;
 import com.voxeo.moho.media.InputMode;
+import com.voxeo.moho.media.input.SignalGrammar.Signal;
 
 public interface MediaDialect {
 
@@ -62,4 +68,15 @@ public interface MediaDialect {
   void setDtmfPassThrough(NetworkConnection nc, boolean passThrough);
   
   Map<String, String> getSISlots(SignalDetectorEvent event);
+  
+  void setAutoReset(Parameters params, boolean autoreset);
+
+  // translate Signal into 309 extended VoxeoSignalConstants
+  Value getSignalConstants(Signal signal);
+
+  void setEnergyParameters(Parameters params, EnergyParameters energy);
+
+  void setBeepParameters(Parameters params, BeepParameters beep);
+  
+  Cause getInputCompleteEventCause(Qualifier qualifier);
 }
