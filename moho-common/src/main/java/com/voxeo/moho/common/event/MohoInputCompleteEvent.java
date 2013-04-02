@@ -46,6 +46,8 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
 
   protected Map<String, String> _SISlots;
 
+  protected Signal _signal;
+
   public MohoInputCompleteEvent(final T source, final Cause cause, Input<T> mediaOperation) {
     super(source, mediaOperation);
     _cause = cause;
@@ -159,11 +161,14 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
   }
 
   @Override
-	public Signal getSignal() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-  
+  public Signal getSignal() {
+    return _signal;
+  }
+
+  public void setSignal(final Signal signal) {
+    _signal = signal;
+  }
+
   @Override
   public String toString() {
     return String.format("[Event class=%s sourceClass=%s id=%s cause=%s ]", getClass().getName(),

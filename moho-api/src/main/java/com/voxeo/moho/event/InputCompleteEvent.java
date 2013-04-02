@@ -21,7 +21,7 @@ import com.voxeo.moho.media.input.SignalGrammar.Signal;
 /**
  * This event is fired when an {@link com.voxeo.moho.media.Input Input} is
  * completed.
- * 
+ *
  * @author wchen
  */
 public interface InputCompleteEvent<T extends EventSource> extends MediaCompleteEvent<T> {
@@ -105,14 +105,14 @@ public interface InputCompleteEvent<T extends EventSource> extends MediaComplete
 
   /**
    * get error description text.
-   * 
+   *
    * @return
    */
   String getErrorText();
 
   /**
    * get the semantic interpretation result slots.
-   * 
+   *
    * @return semantic interpretation result slots for voice or DTMF input
    */
   Map<String, String> getSISlots();

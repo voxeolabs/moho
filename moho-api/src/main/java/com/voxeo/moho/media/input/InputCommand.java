@@ -26,11 +26,13 @@ import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.resource.RTC;
 import javax.media.mscontrol.resource.Resource;
 
+import com.voxeo.moho.media.BeepParameters;
+import com.voxeo.moho.media.EnergyParameters;
 import com.voxeo.moho.media.InputMode;
 
 /**
  * Media command to recognize the input based on a set of grammars.
- * 
+ *
  * @author wchen
  */
 public class InputCommand implements Parameters {
@@ -91,8 +93,14 @@ public class InputCommand implements Parameters {
    * nomatch event).
    */
   protected long _speechCompleteTimeout;
-  
+
   protected boolean _flushBuffer;
+
+  protected boolean _autoreset;
+
+  protected EnergyParameters _energyParams = new EnergyParameters();
+
+  protected BeepParameters _beepParams = new BeepParameters();
 
   /**
    * @param grammers
@@ -110,7 +118,7 @@ public class InputCommand implements Parameters {
 
   /**
    * Construct command with multiple grammars
-   * 
+   *
    * @param grammars
    */
   public InputCommand(final Grammar... grammars) {
@@ -128,7 +136,7 @@ public class InputCommand implements Parameters {
 
   /**
    * Set the inter digits timeout for DTMF.
-   * 
+   *
    * @param time
    *          the timeout value in millisecond.
    */
@@ -157,7 +165,7 @@ public class InputCommand implements Parameters {
   /**
    * Set the number of DTMF digits this command expects. By default, the value
    * is -1 which means unlimited.
-   * 
+   *
    * @param num
    *          a negative number means unlimited.
    */
@@ -212,7 +220,7 @@ public class InputCommand implements Parameters {
   /**
    * Set the minimum confidence required for the recognizer to recognize the
    * speech based on the grammar.
-   * 
+   *
    * @param confidence
    *          a float between 0 and 1.
    */
@@ -235,7 +243,7 @@ public class InputCommand implements Parameters {
 
   /**
    * Set the timeout value to determine no digits will be entered.
-   * 
+   *
    * @param time
    *          the timeout value in milliseconds.
    */
@@ -252,7 +260,7 @@ public class InputCommand implements Parameters {
 
   /**
    * Set the max time to wait for the completion of the input
-   * 
+   *
    * @param time
    *          the time in milliseconds.
    */
@@ -278,7 +286,7 @@ public class InputCommand implements Parameters {
 
   /**
    * Set the name of the speech recognizer.
-   * 
+   *
    * @param recognizer
    */
   public void setRecognizer(String recognizer) {
@@ -294,7 +302,7 @@ public class InputCommand implements Parameters {
 
   /**
    * Set the terminating character of the input.
-   * 
+   *
    * @param termChar
    *          one of the valid DTMF input on the phone pad.
    */
@@ -311,7 +319,7 @@ public class InputCommand implements Parameters {
 
   /**
    * Set Input Mode of this input.
-   * 
+   *
    * @param inputMode
    */
   public void setInputMode(InputMode inputMode) {
@@ -458,11 +466,74 @@ public class InputCommand implements Parameters {
   public void setFlushBuffer(boolean flushBuffer) {
     this._flushBuffer = flushBuffer;
   }
-  public void setAutoRest(boolean autoreset) {
 
+  public boolean getAutoReset() {
+    return this._autoreset;
   }
+
+  public void setAutoRest(boolean autoreset) {
+    this._autoreset=autoreset;
+  }
+
   public void setEnergyParameters(Long finalSilence, Long maxSilence, Long maxSpeechDuration, Long minSpeechDuration,
-	      Integer minVolume) {	
-	 
+      Integer minVolume) {
+    if (finalSilence != null) {
+      _energyParams.setFinalSilence(finalSilence);
+    }
+    if (maxSilence != null) {
+      _energyParams.setMaxSilence(maxSilence);
+    }
+    if (maxSpeechDuration != null) {
+      _energyParams.setMaxSpeechDuration(maxSpeechDuration);
+    }
+    if (minSpeechDuration != null) {
+      _energyParams.setMinSpeechDuration(minSpeechDuration);
+    }
+    if (minVolume != null) {
+      _energyParams.setMinVolume(minVolume);
+    }
+  }
+
+  public EnergyParameters getEnergyParameters() {
+    return _energyParams;
+  }
+
+  public void setBeepParameters(Long onTime, Long offTime, Long minFrequency, Long maxFrequency,
+      Float frequencyTolerance, Float monotonicity, Float signalToNoise, Float highMonotonicity, Integer minPower,
+      Long maxNoiseTime, Long maxConsequitiveNoiseTime) {
+    if (onTime != null) {
+      _beepParams.setOnTime(onTime);
+    }
+    if (offTime != null) {
+      _beepParams.setOffTime(offTime);
+    }
+    if (minFrequency != null) {
+      _beepParams.setMinFrequency(minFrequency);
+    }
+    if (maxFrequency != null) {
+      _beepParams.setMaxFrequency(maxFrequency);
+    }
+    if (monotonicity != null) {
+      _beepParams.setMonotonicity(monotonicity);
+    }
+    if (signalToNoise != null) {
+      _beepParams.setSignalToNoise(signalToNoise);
+    }
+    if (highMonotonicity != null) {
+      _beepParams.setHighMonotonicity(highMonotonicity);
+    }
+    if (minPower != null) {
+      _beepParams.setMinPower(minPower);
+    }
+    if (maxNoiseTime != null) {
+      _beepParams.setMaxNoiseTime(maxNoiseTime);
+    }
+    if (maxConsequitiveNoiseTime != null) {
+      _beepParams.setMaxConsecutiveNoiseTime(maxConsequitiveNoiseTime);
+    }
+  }
+
+  public BeepParameters getBeepParameters() {
+    return _beepParams;
   }
 }

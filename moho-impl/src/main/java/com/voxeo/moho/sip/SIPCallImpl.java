@@ -950,7 +950,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     destroyNetworkConnection();
 
     Participant[] _joineesArray = _joinees.getJoinees();
-    for (Participant participant : _joineesArray) {
+    for (final Participant participant : _joineesArray) {
       UnjoinCompleteEvent.Cause unjoinCause = UnjoinCompleteEvent.Cause.ERROR;
       if (cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) {
         unjoinCause = UnjoinCompleteEvent.Cause.DISCONNECT;
@@ -959,12 +959,17 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       dispatch(new MohoUnjoinCompleteEvent(this, participant, unjoinCause, exception, true));
 
       if (participant instanceof ParticipantContainer) {
-        try {
-          ((ParticipantContainer) participant).doUnjoin(this, false);
-        }
-        catch (Exception e) {
-          LOG.error("Exception when unjoining participant" + participant, e);
-        }
+        _context.getExecutor().execute(new Runnable(){
+          @Override
+          public void run() {
+            try {
+              ((ParticipantContainer) participant).doUnjoin(SIPCallImpl.this, false);
+            }
+            catch (Exception e) {
+              LOG.error("Exception when unjoining participant" + participant, e);
+            }          
+          }
+        });
       }
     }
     _joinees.clear();
@@ -972,7 +977,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     synchronized (_peers) {
       for (final Call peer : _peers) {
         try {
-          peer.disconnect();
+          _context.getExecutor().execute(new Runnable(){
+
+            @Override
+            public void run() {
+              peer.disconnect();              
+            }
+          });
+          
         }
         catch (final Throwable t) {
           LOG.warn("Exception when disconnecting peer:" + peer, t);

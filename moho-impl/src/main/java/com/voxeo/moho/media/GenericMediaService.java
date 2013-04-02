@@ -70,8 +70,11 @@ import com.voxeo.moho.event.OutputCompleteEvent.Cause;
 import com.voxeo.moho.event.RecordCompleteEvent;
 import com.voxeo.moho.media.dialect.CallRecordListener;
 import com.voxeo.moho.media.dialect.MediaDialect;
+import com.voxeo.moho.media.input.EnergyGrammar;
 import com.voxeo.moho.media.input.Grammar;
 import com.voxeo.moho.media.input.InputCommand;
+import com.voxeo.moho.media.input.SignalGrammar;
+import com.voxeo.moho.media.input.SignalGrammar.Signal;
 import com.voxeo.moho.media.input.SimpleGrammar;
 import com.voxeo.moho.media.output.AudibleResource;
 import com.voxeo.moho.media.output.AudioURIResource;
@@ -106,7 +109,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   protected MediaDialect _dialect;
 
   protected List<MediaOperation<?, ? extends MediaCompleteEvent<?>>> _futures = new LinkedList<MediaOperation<?, ? extends MediaCompleteEvent<?>>>();
-  
+
   protected PlayerListener playerListener = new PlayerListener();
 
   protected GenericMediaService(final T parent, final MediaGroup group) {
@@ -613,7 +616,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     if (cmd.isSupervised()) {
       _dialect.enableDetectorPromptCompleteEvent(params, true);
 
-      EventType[] enabledEvent = (EventType[]) params.get(SignalDetector.ENABLED_EVENTS);
+      final EventType[] enabledEvent = (EventType[]) params.get(SignalDetector.ENABLED_EVENTS);
       if (enabledEvent != null && enabledEvent.length > 0) {
         EventType[] newEabledEvents = Arrays.copyOf(enabledEvent, enabledEvent.length + 1);
         newEabledEvents[newEabledEvents.length - 1] = SignalDetectorEvent.SIGNAL_DETECTED;
@@ -638,70 +641,118 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     _dialect.setDtmfHotwordEnabled(params, cmd.isDtmfHotword());
     _dialect.setDtmfTypeaheadEnabled(params, cmd.isDtmfTypeahead());
     _dialect.setConfidence(params, cmd.getMinConfidence());
-
-    Parameter[] patternKeys = null;
+    _dialect.setAutoReset(params, cmd.getAutoReset());
+    _dialect.setEnergyParameters(params, cmd.getEnergyParameters());
+    _dialect.setBeepParameters(params, cmd.getBeepParameters());
 
     final Grammar[] grammars = cmd.getGrammars();
+    List<InputPattern> patterns = null;
+    List<Parameter> patternKeys = null;
+    List<EventType> patternMatchedEvts = null;
     if (grammars.length > 0) {
-      final List<Object> patterns = new ArrayList<Object>(grammars.length);
+      patterns = new ArrayList<InputPattern>(grammars.length);
+      patternKeys = new ArrayList<Parameter>(grammars.length);
+      patternMatchedEvts = new ArrayList<EventType>(grammars.length);
+
+      int i = 0;
       for (final Grammar grammar : grammars) {
         if (grammar == null) {
           continue;
         }
 
         Object pattern = null;
-
-        URI uri = grammar.toURI();
-
-        if ("data".equals(uri.getScheme())) {
-          pattern = uri;
+        if (grammar instanceof EnergyGrammar) {
+          final EnergyGrammar eg = (EnergyGrammar) grammar;
+          if (eg.isStartOfSpeech()) {
+            pattern = SpeechRecognitionEvent.START_OF_SPEECH;
+          }
+          else if (eg.isEndOfSpeech()) {
+            pattern = SpeechRecognitionEvent.END_OF_SPEECH;
+          }
         }
-        else if ("digits".equals(uri.getScheme())) {
-          try {
-            pattern = URLDecoder.decode(uri.getSchemeSpecificPart(), "UTF-8");
-          }
-          catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException(e);
-          }
+        else if (grammar instanceof SignalGrammar) {
+          final SignalGrammar sg = (SignalGrammar) grammar;
+          pattern = _dialect.getSignalConstants(sg.getSignal());
         }
         else {
-          try {
-            pattern = uri.toURL();
+          final URI uri = grammar.toURI();
+
+          if ("data".equals(uri.getScheme())) {
+            pattern = uri;
           }
-          catch (MalformedURLException e) {
-            LOG.warn("Skipped Grammar! Only 'data' URIs and http/https/ftp/file URLs are permitted [uri="
-                + uri.toString() + "]");
+          else if ("digits".equals(uri.getScheme())) {
+            try {
+              pattern = URLDecoder.decode(uri.getSchemeSpecificPart(), "UTF-8");
+            }
+            catch (UnsupportedEncodingException e) {
+              throw new IllegalStateException(e);
+            }
+          }
+          else {
+            try {
+              pattern = uri.toURL();
+            }
+            catch (MalformedURLException e) {
+              LOG.warn("Skipped Grammar! Only 'data' URIs and http/https/ftp/file URLs are permitted [uri="
+                  + uri.toString() + "]");
+            }
           }
         }
 
-        patterns.add(pattern);
+        if (pattern == null) {
+          continue;
+        }
 
-      }
+        patterns.add(new InputPattern(i, pattern, grammar.isTerminatingCondition()));
+        if (grammar.isTerminatingCondition()) {
+          patternKeys.add(SignalDetector.PATTERN[i]);
+        }
+        else {
+          patternMatchedEvts.add(SignalDetectorEvent.PATTERN_MATCHED[i]);
+        }
 
-      final Parameters patternParams = _group.createParameters();
-      patternKeys = new Parameter[patterns.size()];
-      int i = 0;
-      for (; i < patterns.size(); i++) {
-        final Object o = patterns.get(i);
-        patternKeys[i] = SignalDetector.PATTERN[i];
-        patternParams.put(SignalDetector.PATTERN[i], o);
+        i++;
       }
 
       if (patterns.size() > 0) {
+        final Parameters patternParams = _group.createParameters();
+        for (InputPattern p : patterns) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(p);
+          }
+          patternParams.put(SignalDetector.PATTERN[p.getIndex()], p.getValue());
+        }
         _group.setParameters(patternParams);
+      }
+
+      if (patternMatchedEvts.size() > 0) {
+        final EventType[] enabledEvent = (EventType[]) params.get(SignalDetector.ENABLED_EVENTS);
+        if (enabledEvent != null && enabledEvent.length > 0) {
+          EventType[] newEabledEvents = Arrays.copyOf(enabledEvent, enabledEvent.length + patternMatchedEvts.size());
+          System.arraycopy(patternMatchedEvts.toArray(new EventType[patternMatchedEvts.size()]), 0, newEabledEvents,
+              enabledEvent.length, patternMatchedEvts.size());
+          params.put(SignalDetector.ENABLED_EVENTS, newEabledEvents);
+        }
+        else {
+          params.put(SignalDetector.ENABLED_EVENTS,
+              patternMatchedEvts.toArray(new EventType[patternMatchedEvts.size()]));
+        }
       }
     }
 
-    if (patternKeys == null && cmd.getNumberOfDigits() == -1) {
+    if (patterns == null && cmd.getNumberOfDigits() == -1) {
       throw new MediaException("No pattern");
     }
 
-    getSignalDetector().addListener(new DetectorListener(input, cmd));
+    getSignalDetector().addListener(new DetectorListener(input, cmd, patterns));
     try {
-      if(cmd.isFlushBuffer()){
+      if (cmd.isFlushBuffer()) {
         getSignalDetector().flushBuffer();
       }
-      getSignalDetector().receiveSignals(cmd.getNumberOfDigits(), patternKeys, rtcs.toArray(new RTC[] {}), params);
+      getSignalDetector().receiveSignals(
+          cmd.getNumberOfDigits(),
+          (patternKeys == null || patternKeys.size() == 0) ? SignalDetector.NO_PATTERN : patternKeys
+              .toArray(new Parameter[patternKeys.size()]), rtcs.toArray(new RTC[] {}), params);
       _futures.add(input);
     }
     catch (final MsControlException e) {
@@ -759,12 +810,12 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   @SuppressWarnings("rawtypes")
   protected class PlayerListener implements MediaEventListener<PlayerEvent> {
     Queue<OutputImpl> _outputQueue = new LinkedList<OutputImpl>();
-    
-    public void addOutput(OutputImpl outputImpl){
+
+    public void addOutput(OutputImpl outputImpl) {
       _outputQueue.offer(outputImpl);
     }
-    
-    public void removeOutput(OutputImpl outputImpl){
+
+    public void removeOutput(OutputImpl outputImpl) {
       _outputQueue.remove(outputImpl);
     }
 
@@ -776,7 +827,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           final EventType t = e.getEventType();
           synchronized (GenericMediaService.this) {
             OutputImpl _output = _outputQueue.peek();
-            if(_output == null){
+            if (_output == null) {
               LOG.error("Received PlayerEvent, but didn't find corresponding output future. " + e);
               throw new RuntimeException("Received PlayerEvent, but didn't find corresponding output future.");
             }
@@ -797,10 +848,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
                 }
                 // for _group.triggerAction(Player.STOP);
                 else if (e.getRTCTrigger() == ResourceEvent.MANUAL_TRIGGER) {
-                  if(_output.isNormalDisconnect()){
+                  if (_output.isNormalDisconnect()) {
                     cause = Cause.DISCONNECT;
                   }
-                  else{
+                  else {
                     cause = Cause.CANCEL;
                   }
                 }
@@ -861,13 +912,19 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
     private InputCommand _cmd = null;
 
-    public DetectorListener(final InputImpl<T> input, final InputCommand inputCmd) {
+    private List<InputPattern> _patterns = null;
+
+    public DetectorListener(final InputImpl<T> input, final InputCommand inputCmd, final List<InputPattern> patterns) {
       _input = input;
       _cmd = inputCmd;
+      _patterns = patterns;
     }
 
     @Override
     public void onEvent(final SignalDetectorEvent e) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("DetectorListener[" + _parent + "] received: " + e);
+      }
       final EventType t = e.getEventType();
       if (t == SignalDetectorEvent.RECEIVE_SIGNALS_COMPLETED) {
         getSignalDetector().removeListener(this);
@@ -877,6 +934,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         InputCompleteEvent.Cause cause = InputCompleteEvent.Cause.UNKNOWN;
         final Qualifier q = e.getQualifier();
         String errorText = null;
+        final InputPattern pattern = patternMatched(q);
         if (q == SignalDetectorEvent.DURATION_EXCEEDED) {
           cause = InputCompleteEvent.Cause.MAX_TIMEOUT;
         }
@@ -897,8 +955,19 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
             cause = InputCompleteEvent.Cause.CANCEL;
           }
         }
-        else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED || patternMatched(e)) {
+        else if (q == SignalDetectorEvent.NUM_SIGNALS_DETECTED) {
           cause = InputCompleteEvent.Cause.MATCH;
+        }
+        else if (pattern != null) {
+          if (pattern.getValue() == SpeechRecognitionEvent.START_OF_SPEECH) {
+            cause = InputCompleteEvent.Cause.START_OF_SPEECH;
+          }
+          else if (pattern.getValue() == SpeechRecognitionEvent.END_OF_SPEECH) {
+            cause = InputCompleteEvent.Cause.END_OF_SPEECH;
+          }
+          else {
+            cause = InputCompleteEvent.Cause.MATCH;
+          }
         }
         else if (q == ResourceEvent.NO_QUALIFIER) {
           if (e.getError() != ResourceEvent.NO_ERROR) {
@@ -907,18 +976,27 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
           errorText = e.getError() + ": " + e.getErrorText();
         }
-        final MohoInputCompleteEvent<T> inputCompleteEvent = new MohoInputCompleteEvent<T>(_parent, cause, errorText,
-            _input);
+        else {
+          cause = _dialect.getInputCompleteEventCause(q);
+        }
+        final MohoInputCompleteEvent<T> inputCompleteEvent = new MohoInputCompleteEvent<T>(_parent,
+            cause == null ? InputCompleteEvent.Cause.UNKNOWN : cause, errorText, _input);
         if (e instanceof SpeechRecognitionEvent) {
           final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
           String signalString = e.getSignalString();
           if (signalString != null) {
-            inputCompleteEvent.setConcept(se.getTag());
-            inputCompleteEvent.setTag(se.getTag());
-            inputCompleteEvent.setConfidence(1.0F);
-            inputCompleteEvent.setInterpretation(signalString);
-            inputCompleteEvent.setUtterance(signalString);
-            inputCompleteEvent.setInputMode(InputMode.DTMF);
+            final Signal signal = Signal.parse(signalString);
+            if (signal == null) {
+              inputCompleteEvent.setConcept(se.getTag());
+              inputCompleteEvent.setTag(se.getTag());
+              inputCompleteEvent.setConfidence(1.0F);
+              inputCompleteEvent.setInterpretation(signalString);
+              inputCompleteEvent.setUtterance(signalString);
+              inputCompleteEvent.setInputMode(InputMode.DTMF);
+            }
+            else {
+              inputCompleteEvent.setSignal(signal);
+            }
           }
           else {
             inputCompleteEvent.setUtterance(se.getUserInput());
@@ -958,16 +1036,22 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         }
         else {
           String signalString = e.getSignalString();
-          inputCompleteEvent.setConcept(signalString);
-          inputCompleteEvent.setConfidence(1.0F);
-          inputCompleteEvent.setInterpretation(signalString);
-          inputCompleteEvent.setUtterance(signalString);
-          inputCompleteEvent.setInputMode(InputMode.DTMF);
+          final Signal signal = Signal.parse(signalString);
+          if (signal == null) {
+            inputCompleteEvent.setConcept(signalString);
+            inputCompleteEvent.setConfidence(1.0F);
+            inputCompleteEvent.setInterpretation(signalString);
+            inputCompleteEvent.setUtterance(signalString);
+            inputCompleteEvent.setInputMode(InputMode.DTMF);
+          }
+          else {
+            inputCompleteEvent.setSignal(signal);
+          }
         }
         inputCompleteEvent.setSISlots(_dialect.getSISlots(e));
 
         _parent.dispatch(inputCompleteEvent);
-        
+
         _input.done(inputCompleteEvent);
         _futures.remove(_input);
       }
@@ -979,17 +1063,117 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       else if (_dialect.isPromptCompleteEvent(e)) {
         _parent.dispatch(new MohoOutputCompleteEvent<T>(_parent, OutputCompleteEvent.Cause.END, _input));
       }
-    }
-  }
+      else {
+        final InputPattern pattern = patternMatched(t);
+        if (pattern == null) {
+          LOG.warn("Skipped " + e.getEventType() + " event! No InputPattern is found.");
+          return;
+        }
 
-  private boolean patternMatched(final SignalDetectorEvent event) {
-    for (final Qualifier q : SignalDetectorEvent.PATTERN_MATCHING) {
-      if (event.getQualifier() == q) {
-        return true;
+        final MohoInputDetectedEvent<T> inputDetectedEvent;
+        if (pattern.getValue() == SpeechRecognitionEvent.START_OF_SPEECH) {
+          inputDetectedEvent = new MohoInputDetectedEvent<T>(_parent, true, false);
+        }
+        else if (pattern.getValue() == SpeechRecognitionEvent.END_OF_SPEECH) {
+          inputDetectedEvent = new MohoInputDetectedEvent<T>(_parent, false, true);
+        }
+        else {
+          Signal signal = Signal.parse(e.getSignalString());
+          if (signal != null) {
+            inputDetectedEvent = new MohoInputDetectedEvent<T>(_parent, signal);
+          }
+          else {
+            String input = null;
+            if (e instanceof SpeechRecognitionEvent) {
+              input = ((SpeechRecognitionEvent) e).getUserInput();
+              if (input == null) {
+                input = e.getSignalString();
+              }
+            }
+            else {
+              input = e.getSignalString();
+            }
+            inputDetectedEvent = new MohoInputDetectedEvent<T>(_parent, input);
+            if (e instanceof SpeechRecognitionEvent) {
+              final SpeechRecognitionEvent se = (SpeechRecognitionEvent) e;
+              String signalString = e.getSignalString();
+              if (signalString != null) {
+                inputDetectedEvent.setConcept(se.getTag());
+                inputDetectedEvent.setTag(se.getTag());
+                inputDetectedEvent.setConfidence(1.0F);
+                inputDetectedEvent.setInterpretation(signalString);
+                inputDetectedEvent.setInputMode(InputMode.DTMF);
+              }
+              else {
+                inputDetectedEvent.setTag(se.getTag());
+                inputDetectedEvent.setConcept(se.getTag());
+              }
+
+              final URL semanticResult = se.getSemanticResult();
+              if (semanticResult != null && "application/x-nlsml".equalsIgnoreCase(semanticResult.getHost())) {
+                try {
+                  inputDetectedEvent.setNlsml(semanticResult.getPath());
+                  final List<Map<String, String>> nlsml = NLSMLParser.parse(inputDetectedEvent.getNlsml());
+                  for (final Map<String, String> reco : nlsml) {
+                    final String conf = reco.get("_confidence");
+                    if (conf != null && signalString == null) {
+                      inputDetectedEvent.setConfidence(Float.parseFloat(conf));
+                    }
+                    final String interpretation = reco.get("_interpretation");
+                    if (interpretation != null) {
+                      inputDetectedEvent.setInterpretation(interpretation);
+                    }
+                    final String inputmode = reco.get("_inputmode");
+                    if (inputmode != null && signalString == null) {
+                      if (inputmode.equalsIgnoreCase("speech") || inputmode.equalsIgnoreCase("voice")) {
+                        inputDetectedEvent.setInputMode(InputMode.SPEECH);
+                      }
+                      else {
+                        inputDetectedEvent.setInputMode(InputMode.DTMF);
+                      }
+                    }
+                  }
+                }
+                catch (final Exception e1) {
+                  LOG.warn("No NLSML", e1);
+                }
+              }
+            }
+            else {
+              String signalString = e.getSignalString();
+              inputDetectedEvent.setConcept(signalString);
+              inputDetectedEvent.setConfidence(1.0F);
+              inputDetectedEvent.setInterpretation(signalString);
+              inputDetectedEvent.setInputMode(InputMode.DTMF);
+            }
+            inputDetectedEvent.setSISlots(_dialect.getSISlots(e));
+          }
+        }
+        _parent.dispatch(inputDetectedEvent);
       }
     }
 
-    return false;
+    private InputPattern patternMatched(final Qualifier qualifier) {
+      if (_patterns != null && _patterns.size() > 0) {
+        for (final InputPattern p : _patterns) {
+          if (qualifier == SignalDetectorEvent.PATTERN_MATCHING[p.getIndex()]) {
+            return p;
+          }
+        }
+      }
+      return null;
+    }
+
+    private InputPattern patternMatched(final EventType type) {
+      if (_patterns != null && _patterns.size() > 0) {
+        for (final InputPattern p : _patterns) {
+          if (type == SignalDetectorEvent.PATTERN_MATCHED[p.getIndex()]) {
+            return p;
+          }
+        }
+      }
+      return null;
+    }
   }
 
   protected class RecorderListener implements MediaEventListener<RecorderEvent> {
@@ -1069,7 +1253,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
   @SuppressWarnings("unchecked")
   public void release(boolean isNormalDisconnect) {
-    //avoid ConcurrentModificationException
+    // avoid ConcurrentModificationException
     List<MediaOperation<?, ? extends MediaCompleteEvent<?>>> copy = new LinkedList<MediaOperation<?, ? extends MediaCompleteEvent<?>>>();
     copy.addAll(_futures);
     Iterator<MediaOperation<? extends EventSource, ? extends MediaCompleteEvent<?>>> ite = copy.iterator();
@@ -1081,10 +1265,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         RecordingImpl<T> recording = (RecordingImpl<T>) future;
         recording.pauseActionDone();
         recording.resumeActionDone();
-        
+
         if (recording.isPending()) {
           recording.normalDisconnect(isNormalDisconnect);
-          try{
+          try {
             recording.stop();
           }
           catch (Exception e) {
@@ -1102,7 +1286,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         InputImpl<T> input = (InputImpl<T>) future;
         if (input.isPending()) {
           input.normalDisconnect(isNormalDisconnect);
-          try{
+          try {
             input.stop();
           }
           catch (Exception e) {
@@ -1120,7 +1304,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         CallRecordingImpl<T> recording = (CallRecordingImpl<T>) future;
         if (!recording.isDone()) {
           recording.normalDisconnect(isNormalDisconnect);
-          try{
+          try {
             recording.stop();
           }
           catch (Exception e) {
@@ -1140,11 +1324,11 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         output.resumeActionDone();
         output.speedActionDone();
         output.volumeActionDone();
-        
+
         if (output.isPending()) {
           output.normalDisconnect(isNormalDisconnect);
-          
-          try{
+
+          try {
             output.stop();
           }
           catch (Exception e) {

@@ -13,6 +13,7 @@ package com.voxeo.moho.sip;
 
 import java.util.Map;
 
+import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -33,6 +34,10 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
 
   protected boolean _reInvited;
 
+  protected SipServletResponse _waitingReponseCall2;
+
+  protected Object syncLock = new Object();
+
   protected DirectNO2AOJoinDelegate(final SIPOutgoingCall call1, final SIPOutgoingCall call2,
       final Direction direction, final SIPCallImpl peer) {
     _call1 = call1;
@@ -51,58 +56,71 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {
     try {
-      if (_call1.equals(call)) {
-        if (SIPHelper.isProvisionalResponse(res)) {
-          _call1.setSIPCallState(SIPCall.State.ANSWERING);
+      boolean successJoin = false;
+      synchronized (syncLock) {
+        if (_call1.equals(call)) {
+          if (SIPHelper.isProvisionalResponse(res)) {
+            _call1.setSIPCallState(SIPCall.State.ANSWERING);
 
-          if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
-            if (SIPHelper.getRawContentWOException(res) != null) {
+            if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
+              if (SIPHelper.getRawContentWOException(res) != null) {
+                reInviteCall2(res);
+                _reInvited = true;
+              }
+
+              try {
+                res.createPrack().send();
+              }
+              catch (Exception ex) {
+                LOG.warn(ex.getMessage());
+              }
+            }
+          }
+          else if (SIPHelper.isSuccessResponse(res)) {
+            _response = res;
+            if (!_reInvited) {
               ((SIPOutgoingCall) _call2).call(res.getRawContent());
-              _reInvited = true;
             }
-
-            try {
-              res.createPrack().send();
-            }
-            catch (Exception ex) {
-              LOG.warn(ex.getMessage());
+            else if (_waitingReponseCall2 != null) {
+              SipServletRequest ack1 = res.createAck();
+              SIPHelper.copyContent(_waitingReponseCall2, ack1);
+              _call1.setSIPCallState(State.ANSWERED);
+              ack1.send();
+              _waitingReponseCall2.createAck().send();
+              successJoin = true;
             }
           }
-        }
-        else if (SIPHelper.isSuccessResponse(res)) {
-          _response = res;
-          if (!_reInvited) {
-            ((SIPOutgoingCall) _call2).call(res.getRawContent());
+          else if (SIPHelper.isErrorResponse(res)) {
+            Exception ex = getExceptionByResponse(res);
+            done(getJoinCompleteCauseByResponse(res), ex);
+            _call1.disconnect(true, getCallCompleteCauseByResponse(res), ex, null);
           }
         }
-        else if (SIPHelper.isErrorResponse(res)) {
-          Exception ex = getExceptionByResponse(res);
-          done(getJoinCompleteCauseByResponse(res), ex);
-          _call1.disconnect(true, getCallCompleteCauseByResponse(res), ex, null);
+        else if (_call2.equals(call)) {
+          if (SIPHelper.isSuccessResponse(res)) {
+            if (_response != null) {
+              final SipServletResponse origRes = _response;
+              _response = null;
+              SipServletRequest ack2 = origRes.createAck();
+              SIPHelper.copyContent(res, ack2);
+              res.createAck().send();
+              ack2.send();
+              _call1.setSIPCallState(State.ANSWERED);
+              successJoin = true;
+            }
+            else {
+              _waitingReponseCall2 = res;
+            }
+          }
+          else if (SIPHelper.isErrorResponse(res)) {
+            Exception ex = getExceptionByResponse(res);
+            done(getJoinCompleteCauseByResponse(res), ex);
+            _call1.disconnect(true, getCallCompleteCauseByResponse(res), ex, null);
+          }
         }
       }
-      else if (_call2.equals(call)) {
-        if (SIPHelper.isSuccessResponse(res)) {
-          final SipServletRequest ack1 = res.createAck();
-          SipServletRequest ack2 = null;
-          if (_response != null) {
-            final SipServletResponse origRes = _response;
-            _response = null;
-            ack2 = origRes.createAck();
-            SIPHelper.copyContent(res, ack2);
-          }
-          ack1.send();
-          ack2.send();
-          _call1.setSIPCallState(State.ANSWERED);
-          doDisengage(_call2, JoinType.DIRECT);
-          _call1.linkCall(_call2, JoinType.DIRECT, _direction);
-          done(JoinCompleteEvent.Cause.JOINED, null);
-        }
-        else if (SIPHelper.isErrorResponse(res)) {
-          Exception ex = getExceptionByResponse(res);
-          done(getJoinCompleteCauseByResponse(res), ex);
-          _call1.disconnect(true, getCallCompleteCauseByResponse(res), ex, null);
-        }
+      if(successJoin){
+        successJoin();
       }
     }
     catch (final Exception e) {
@@ -110,5 +128,17 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
       _call1.fail(e);
       throw e;
     }
+  }
+
+  private void successJoin() throws MsControlException {
+    doDisengage(_call2, JoinType.DIRECT);
+    _call1.linkCall(_call2, JoinType.DIRECT, _direction);
+    done(JoinCompleteEvent.Cause.JOINED, null);
+  }
+
+  private void reInviteCall2(SipServletResponse res) throws Exception {
+    final SipServletRequest req = _call2.getSipSession().createRequest("INVITE");
+    SIPHelper.copyContent(res, req);
+    req.send();
   }
 }
