@@ -4,7 +4,9 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -919,6 +921,22 @@ public class RayoClient {
 		return dial(null, from, to);
 	}
 	
+	
+	/**
+	 * Sends a dial message to the connected node
+	 * to dial a destination from the specified URI
+	 * 
+	 * @param from URI that is dialing
+	 * @param to URI that we want to dial
+	 * @param headers Map with dial headers
+	 * 
+	 * @throws XmppException If there is any issue while transfering the call
+	 */
+	public CallRef dial(URI from, URI to, Map<String, String> headers) throws XmppException {
+
+		return dial(null, from, to, headers);
+	}
+	
 	/**
 	 * Sends a dial message to a specific rayo node or gateway 
 	 * to dial a destination from the specified URI
@@ -926,13 +944,31 @@ public class RayoClient {
 	 * @param String Rayo/Gateway node
 	 * @param from URI that is dialing
 	 * @param to URI that we want to dial
+	 * @param headers Map with dial headers
 	 * 
 	 * @throws XmppException If there is any issue while transfering the call
 	 */
 	public CallRef dial(String destination, URI from, URI to) throws XmppException {
+		
+		return dial(destination, from, to, new HashMap<String, String>());
+	}
+	
+	/**
+	 * Sends a dial message to a specific rayo node or gateway 
+	 * to dial a destination from the specified URI
+	 * 
+	 * @param String Rayo/Gateway node
+	 * @param from URI that is dialing
+	 * @param to URI that we want to dial
+	 * @param headers Map with dial headers
+	 * 
+	 * @throws XmppException If there is any issue while transfering the call
+	 */
+	public CallRef dial(String destination, URI from, URI to, Map<String, String> headers) throws XmppException {
 
 		DialCommand dial = new DialCommand();
 		dial.setTo(to);
+		dial.setHeaders(headers);
 		if (from == null) {
 			try {
 				from = new URI(String.format("sip:%s:5060",InetAddress.getLocalHost().getHostAddress()));
