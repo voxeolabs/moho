@@ -381,6 +381,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   @Override
   public synchronized Prompt<T> prompt(final OutputCommand output, final InputCommand input, final int repeat)
       throws MediaException {
+    if (!haveInput(input) && !haveOutput(output)) {
+      throw new IllegalArgumentException("No output or input.");
+    }
     final PromptImpl<T> retval = new PromptImpl<T>();
     OutputImpl<T> outFuture = null;
     InputImpl<T> inFuture = null;
@@ -500,11 +503,11 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           params.put(SpeechDetectorConstants.BARGE_IN_ENABLED, Boolean.TRUE);
           params.put(Recorder.SPEECH_DETECTION_MODE, Recorder.DETECT_FIRST_OCCURRENCE);
         }
-        
-        if(command.getPrompt().getVoiceName() != null){
+
+        if (command.getPrompt().getVoiceName() != null) {
           _dialect.setTextToSpeechVoice(params, command.getPrompt().getVoiceName());
         }
-        if(command.getPrompt().getLanguage() != null){
+        if (command.getPrompt().getLanguage() != null) {
           _dialect.setTextToSpeechLanguage(params, command.getPrompt().getLanguage());
         }
       }
