@@ -36,6 +36,12 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
 
   private static final Logger LOG = Logger.getLogger(SIPIncomingCall.class);
 
+  protected Exception acceptEarlyMediaException;
+  
+  protected SIPCall.State oldStateBeforeEarlyMedia;
+  
+  protected boolean reliableEarlyMedia;
+
   protected SIPIncomingCall(final ExecutionContext context, final SipServletRequest req) {
     super(context, req);
     setRemoteSDP(SIPHelper.getRawContentWOException(req));
@@ -106,26 +112,52 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   @Override
   public synchronized void onEvent(final SdpPortManagerEvent event) {
     if (getSIPCallState() == SIPCall.State.PROGRESSING) {
-      try {
+      if (event.getEventType() == SdpPortManagerEvent.OFFER_GENERATED
+          || event.getEventType() == SdpPortManagerEvent.ANSWER_GENERATED) {
         final byte[] sdp = event.getMediaServerSdp();
         this.setLocalSDP(sdp);
         final SipServletResponse res = getSipInitnalRequest().createResponse(SipServletResponse.SC_SESSION_PROGRESS);
-        res.setContent(sdp, "application/sdp");
+
         try {
-          res.sendReliably();
+          res.setContent(sdp, "application/sdp");
+
+          try {
+            res.sendReliably();
+            reliableEarlyMedia = true;
+          }
+          catch (Rel100Exception ex) {
+            LOG.debug("Can't send reliably.");
+            res.send();
+          }
+
+          if (this.getRemoteSdp() != null) {
+            if(reliableEarlyMedia) {
+              setSIPCallState(SIPCall.State.PROGRESSED);
+            }
+            else {
+              setSIPCallState(oldStateBeforeEarlyMedia);
+            }
+            notifyAll();
+          }
         }
-        catch (final Rel100Exception e) {
-          LOG.warn("", e);
-          res.send();
+        catch (final Exception e) {
+          LOG.warn("Can't send early media response.", e);
+          acceptEarlyMediaException = e;
+          setSIPCallState(oldStateBeforeEarlyMedia);
+          notifyAll();
         }
-        setSIPCallState(SIPCall.State.PROGRESSED);
-        this.notifyAll();
       }
-      catch (final IOException e) {
-        LOG.warn("", e);
+      else if (event.getEventType() == SdpPortManagerEvent.ANSWER_PROCESSED) {
+        if(reliableEarlyMedia) {
+          setSIPCallState(SIPCall.State.PROGRESSED);
+        }
+        else {
+          setSIPCallState(oldStateBeforeEarlyMedia);
+        }
+        notifyAll();
       }
     }
-    else{
+    else {
       super.onEvent(event);
     }
   }
@@ -153,7 +185,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
       this.setSIPCallState(SIPCall.State.DISCONNECTED);
       terminate(CallCompleteEvent.Cause.CANCEL, null, null);
     }
-    
+
     try {
       req.createResponse(200).send();
     }
@@ -171,33 +203,72 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
     }
   }
 
-  protected synchronized void doInviteWithEarlyMedia(final Map<String, String> headers) throws MediaException {
+  protected synchronized void doInviteWithEarlyMedia(final Map<String, String> headers) throws MediaException,
+      SignalException {
     if (_cstate == SIPCall.State.INVITING || _cstate == SIPCall.State.RINGING) {
+      oldStateBeforeEarlyMedia = _cstate;
       setSIPCallState(SIPCall.State.PROGRESSING);
-      processSDPOffer(getSipInitnalRequest());
+      try {
+        processSDPOffer(getSipInitnalRequest());
+      }
+      catch (MediaException ex) {
+        acceptEarlyMediaException = ex;
+        setSIPCallState(oldStateBeforeEarlyMedia);
+      }
       while (!this.isTerminated() && _cstate == SIPCall.State.PROGRESSING) {
         try {
-          this.wait();
+          wait(20000);
         }
         catch (final InterruptedException e) {
           // ignore
         }
       }
-      if (_cstate != SIPCall.State.PROGRESSED) {
-        throw new IllegalStateException("Can't negotiate early media." + this);
+      if (acceptEarlyMediaException != null
+          || (_cstate != SIPCall.State.PROGRESSED && _cstate != oldStateBeforeEarlyMedia)) {
+        if (acceptEarlyMediaException != null) {
+          if (acceptEarlyMediaException instanceof SignalException) {
+            throw (SignalException) acceptEarlyMediaException;
+          }
+          else {
+            throw (MediaException) acceptEarlyMediaException;
+          }
+        }
+        else {
+          throw new SignalException("Can't acceptWithEarlyMedia." + this);
+        }
       }
     }
   }
 
   protected synchronized void doPrack(final SipServletRequest req) throws IOException {
-    //if (_cstate == SIPCall.State.PROGRESSED) {
-      //TODO support SDP in Prack?
+    final byte[] content = SIPHelper.getRawContentWOException(req);
+    if (content != null) {
+      setRemoteSDP(content);
+    }
+
+    if (_joinDelegate != null) {
+      try {
+        _joinDelegate.doPrack(req, this, null);
+      }
+      catch (Exception ex) {
+        LOG.error("Exception when processing PRACK", ex);
+      }
+    }
+    else {
       final SipServletResponse res = req.createResponse(SipServletResponse.SC_OK);
-      if (SIPHelper.getRawContentWOException(req) != null && getLocalSDP() != null) {
-        res.setContent(getLocalSDP(), "application/sdp");
+      if (_cstate == SIPCall.State.PROGRESSING && content != null
+          && SIPHelper.getRawContentWOException(_invite) == null) {
+        try {
+          processSDPAnswer(req);
+        }
+        catch (MediaException ex) {
+          acceptEarlyMediaException = ex;
+          setSIPCallState(oldStateBeforeEarlyMedia);
+          notifyAll();
+        }
       }
       res.send();
-   // }
+    }
   }
 
   protected boolean _acceptedWithEarlyMedia = false;
@@ -277,6 +348,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   public synchronized void acceptWithEarlyMedia(final Map<String, String> headers) throws SignalException,
       MediaException {
     checkState();
+
     _accepted = true;
     _acceptedWithEarlyMedia = true;
     try {
@@ -472,6 +544,6 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   @Override
   public void setContinueRouting(SIPCall origCall) {
     throw new UnsupportedOperationException("incoming call doesn't support this method.");
-    
+
   }
 }

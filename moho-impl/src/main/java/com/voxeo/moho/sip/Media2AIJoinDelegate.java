@@ -33,7 +33,7 @@ public class Media2AIJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
-    _call1.processSDPOffer((SipServletMessage)null);
+    _call1.processSDPOffer((SipServletMessage) null);
   }
 
   @Override
@@ -77,6 +77,9 @@ public class Media2AIJoinDelegate extends JoinDelegate {
         res.createAck().send();
         processedAnswer = true;
         _call1.processSDPAnswer(res);
+      }
+      else if (SIPHelper.isProvisionalResponse(res)) {
+        SIPHelper.trySendPrack(res);
       }
       else if (SIPHelper.isErrorResponse(res)) {
         done(this.getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));

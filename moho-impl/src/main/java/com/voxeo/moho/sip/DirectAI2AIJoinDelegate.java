@@ -48,6 +48,9 @@ public class DirectAI2AIJoinDelegate extends JoinDelegate {
     if (SIPHelper.isErrorResponse(res)) {
       done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
     }
+    else if (SIPHelper.isProvisionalResponse(res)) {
+      SIPHelper.trySendPrack(res);
+    }
     else {
       try {
         if (SIPHelper.isSuccessResponse(res)) {

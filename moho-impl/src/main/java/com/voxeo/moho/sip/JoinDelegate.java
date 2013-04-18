@@ -44,6 +44,7 @@ import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
+import com.voxeo.moho.spi.ExecutionContext;
 
 public abstract class JoinDelegate {
 
@@ -66,13 +67,13 @@ public abstract class JoinDelegate {
   protected Exception _exception;
 
   protected SIPCallImpl _peer;
-  
+
   protected boolean dtmfPassThrough;
 
   public void setSettableJoint(SettableJointImpl settableJoint) {
     _settableJoint = settableJoint;
   }
-  
+
   public void setDtmfPassThrough(boolean dtmfPassThrough) {
     this.dtmfPassThrough = dtmfPassThrough;
   }
@@ -82,13 +83,13 @@ public abstract class JoinDelegate {
   }
 
   public synchronized void done(final Cause cause, Exception exception) {
-    if(exception != null){
-      LOG.error("Join complete in error cause:"+ cause + " for joinDelegate" + this, exception);
+    if (exception != null) {
+      LOG.error("Join complete in error cause:" + cause + " for joinDelegate" + this, exception);
     }
-    else{
-      LOG.debug("Join complete with cause:"+ cause + " for joinDelegate" + this);
+    else {
+      LOG.debug("Join complete with cause:" + cause + " for joinDelegate" + this);
     }
-    
+
     if (done) {
       return;
     }
@@ -123,12 +124,12 @@ public abstract class JoinDelegate {
     _settableJoint.done(joinCompleteEvent);
     done = true;
 
-      ((ApplicationContextImpl) _call1.getApplicationContext()).getExecutor().execute(new InheritLogContextRunnable() {
-        @Override
-        public void run() {
-          _call1.continueQueuedJoin();
-        }
-      });
+    ((ApplicationContextImpl) _call1.getApplicationContext()).getExecutor().execute(new InheritLogContextRunnable() {
+      @Override
+      public void run() {
+        _call1.continueQueuedJoin();
+      }
+    });
 
     if (_call2 != null) {
       ((ApplicationContextImpl) _call1.getApplicationContext()).getExecutor().execute(new InheritLogContextRunnable() {
@@ -158,6 +159,26 @@ public abstract class JoinDelegate {
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {
     throw new UnsupportedOperationException("" + this);
+  }
+
+  protected void doUpdate(final SipServletRequest req, final SIPCallImpl call, final Map<String, String> headers)
+      throws Exception {
+    throw new UnsupportedOperationException("" + this);
+  }
+
+  protected void doUpdateResponse(final SipServletResponse resp, final SIPCallImpl call,
+      final Map<String, String> headers) throws Exception {
+    throw new UnsupportedOperationException("" + this);
+  }
+
+  protected void doPrack(final SipServletRequest req, final SIPCallImpl call, final Map<String, String> headers)
+      throws Exception {
+    throw new UnsupportedOperationException("" + this);
+  }
+
+  protected void doPrackResponse(final SipServletResponse resp, final SIPCallImpl call,
+      final Map<String, String> headers) throws Exception {
+    // do nothing
   }
 
   protected void doAck(final SipServletRequest req, final SIPCallImpl call) throws Exception {
@@ -334,11 +355,11 @@ public abstract class JoinDelegate {
     // check if part and other has been joined
     final Direction oldDirection = getJoinDirection(part, other);
     if (oldDirection != null) {
-      if(oldDirection != direction){
+      if (oldDirection != direction) {
         bridgeUnjoin(part, other);
       }
-      else{
-        LOG.debug(part + "already joined to " + other + " in " + direction +",ignore the operation");
+      else {
+        LOG.debug(part + "already joined to " + other + " in " + direction + ",ignore the operation");
         return;
       }
     }

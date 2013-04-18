@@ -38,6 +38,7 @@ public class DirectNI2AIJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
+    // TODO call1 in PROCESSED state.
     final SipServletRequest req = _call2.getSipSession().createRequest("INVITE");
     if (_call1.getRemoteSdp() != null) {
       req.setContent(_call1.getRemoteSdp(), "application/sdp");
@@ -55,10 +56,12 @@ public class DirectNI2AIJoinDelegate extends JoinDelegate {
         }
         else if (SIPHelper.isSuccessResponse(res)) {
           _response = res;
-          final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
-              res.getReasonPhrase());
+          final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus());
           SIPHelper.copyContent(res, newRes);
           newRes.send();
+        }
+        else if (SIPHelper.isProvisionalResponse(res)) {
+          SIPHelper.trySendPrack(res);
         }
       }
     }
@@ -85,17 +88,18 @@ public class DirectNI2AIJoinDelegate extends JoinDelegate {
         final SipServletRequest ack = _response.createAck();
         SIPHelper.copyContent(req, ack);
         ack.send();
+
+        doDisengage(_call2, JoinType.DIRECT);
+        doDisengage(_call1, JoinType.DIRECT);
+        _call1.linkCall(_call2, JoinType.DIRECT, _direction);
+        _response = null;
+        done(JoinCompleteEvent.Cause.JOINED, null);
       }
       catch (final Exception e) {
         done(JoinCompleteEvent.Cause.ERROR, e);
         _call1.fail(e);
         throw e;
       }
-      doDisengage(_call2, JoinType.DIRECT);
-      doDisengage(_call1, JoinType.DIRECT);
-      _call1.linkCall(_call2, JoinType.DIRECT, _direction);
-      _response = null;
-      done(JoinCompleteEvent.Cause.JOINED, null);
     }
   }
 }

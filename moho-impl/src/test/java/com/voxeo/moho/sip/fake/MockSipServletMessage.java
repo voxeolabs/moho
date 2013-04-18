@@ -17,8 +17,10 @@ package com.voxeo.moho.sip.fake;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
@@ -172,9 +174,9 @@ public class MockSipServletMessage implements SipServletMessage {
   }
 
   @Override
-  public Iterator<String> getHeaderNames() {
-
-    return null;
+  public final Iterator<String> getHeaderNames() {
+    List<String> temp = new ArrayList<String>();
+    return temp.iterator();
   }
 
   @Override

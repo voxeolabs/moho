@@ -747,6 +747,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (content != null) {
       setRemoteSDP(content);
     }
+    if(_joinDelegate != null){
+      _joinDelegate.doUpdate(req, this, headers);
+    }
     if (_callDelegate != null) {
       _callDelegate.handleUpdate(this, req, headers);
     }
@@ -779,10 +782,31 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         _callDelegate.handleReinviteResponse(this, res, headers);
       }
     }
-    else if (SIPHelper.isCancel(res) || SIPHelper.isBye(res) || SIPHelper.isPrack(res)) {
+    else if (SIPHelper.isCancel(res) || SIPHelper.isBye(res)) {
       // ignore the response
     }
-    else if(SIPHelper.isUpdate(res)){
+    else if(SIPHelper.isPrack(res)) {
+      if (SIPHelper.isSuccessResponse(res)) {
+        final byte[] content = SIPHelper.getRawContentWOException(res);
+        if (content != null) {
+          setRemoteSDP(content);
+        }
+      }
+
+      if(_joinDelegate != null){
+        _joinDelegate.doPrackResponse(res, this, headers);
+      }
+    }
+    else if(SIPHelper.isUpdate(res)) {
+      if (SIPHelper.isSuccessResponse(res)) {
+        final byte[] content = SIPHelper.getRawContentWOException(res);
+        if (content != null) {
+          setRemoteSDP(content);
+        }
+      }
+      if(_joinDelegate != null){
+        _joinDelegate.doUpdateResponse(res, this, headers);
+      }
       if (_callDelegate != null) {
         _callDelegate.handleUpdateResponse(this, res, headers);
       }
@@ -927,6 +951,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       else {
         this.setSIPCallState(SIPCall.State.DISCONNECTED);
       }
+      
+      notifyAll();
     }
 
     doDisconnect(failed, cause, exception, headers, old);

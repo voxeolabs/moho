@@ -46,6 +46,9 @@ public class DirectAO2AOJoinDelegate extends JoinDelegate {
     if (SIPHelper.isErrorResponse(res)) {
       done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
     }
+    else if (SIPHelper.isProvisionalResponse(res)) {
+      SIPHelper.trySendPrack(res);
+    }
     else if (SIPHelper.isSuccessResponse(res)) {
       try {
         if (_call2.equals(call)) {

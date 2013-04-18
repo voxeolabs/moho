@@ -96,6 +96,9 @@ public class Media2AOJoinDelegate extends JoinDelegate {
         processedAnswer = true;
         _call1.processSDPAnswer(res);
       }
+      else if (SIPHelper.isProvisionalResponse(res)) {
+        SIPHelper.trySendPrack(res);
+      }
       else if (SIPHelper.isErrorResponse(res)) {
         done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
       }

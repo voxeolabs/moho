@@ -38,6 +38,7 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
+    // TODO call1 in PROCESSED state.
     ((SIPOutgoingCall) _call2).call(_call1.getRemoteSdp());
   }
 
@@ -47,6 +48,9 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
     if (_call2.equals(call)) {
       if (SIPHelper.isErrorResponse(res)) {
         done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
+      }
+      else if (SIPHelper.isProvisionalResponse(res)) {
+        SIPHelper.trySendPrack(res);
       }
       else if (SIPHelper.isSuccessResponse(res)) {
         try {
@@ -80,17 +84,18 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
         final SipServletRequest ack = _response.createAck();
         SIPHelper.copyContent(req, ack);
         ack.send();
+
+        doDisengage(_call2, JoinType.DIRECT);
+        doDisengage(_call1, JoinType.DIRECT);
+        _call1.linkCall(_call2, JoinType.DIRECT, _direction);
+        _response = null;
+        done(JoinCompleteEvent.Cause.JOINED, null);
       }
       catch (final Exception e) {
         done(JoinCompleteEvent.Cause.ERROR, e);
         _call1.fail(e);
         throw e;
       }
-      doDisengage(_call2, JoinType.DIRECT);
-      doDisengage(_call1, JoinType.DIRECT);
-      _call1.linkCall(_call2, JoinType.DIRECT, _direction);
-      _response = null;
-      done(JoinCompleteEvent.Cause.JOINED, null);
     }
   }
 

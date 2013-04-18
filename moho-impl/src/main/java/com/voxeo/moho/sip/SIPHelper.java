@@ -1,14 +1,11 @@
 /**
- * Copyright 2010 Voxeo Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License.
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
+ * Copyright 2010 Voxeo Corporation Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -20,6 +17,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.regex.PatternSyntaxException;
 
@@ -28,6 +26,7 @@ import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.servlet.sip.Address;
 import javax.servlet.sip.B2buaHelper;
 import javax.servlet.sip.Proxy;
+import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipFactory;
@@ -52,7 +51,8 @@ public class SIPHelper {
   private static final String LINKED_MESSAGE = "linked.message";
 
   public static SipServletRequest createSipInitnalRequest(final SipFactory factory, final String method,
-      final Address from, final Address to, final Map<String, String> headers, SipApplicationSession applicationSession, SipServletRequest origRequest) {
+      final Address from, final Address to, final Map<String, String> headers,
+      SipApplicationSession applicationSession, SipServletRequest origRequest) {
     SipServletRequest req = null;
     if (origRequest != null) {
       LOG.debug("Continue routing from orig req:" + origRequest);
@@ -65,33 +65,33 @@ public class SIPHelper {
       }
       req.removeHeader("Content-Type");
       Address reqFrom = req.getFrom();
-      if(from.getDisplayName() != null){
+      if (from.getDisplayName() != null) {
         reqFrom.setDisplayName(from.getDisplayName());
       }
-      else{
+      else {
         reqFrom.setDisplayName(null);
       }
-      
+
       reqFrom.setURI(from.getURI());
-      for (final Iterator<String> names = from.getParameterNames(); names.hasNext(); ) {
-        String name =  names.next();
-        if(name.equalsIgnoreCase("tag")){
+      for (final Iterator<String> names = from.getParameterNames(); names.hasNext();) {
+        String name = names.next();
+        if (name.equalsIgnoreCase("tag")) {
           continue;
         }
         reqFrom.setParameter(name, from.getParameter(name));
       }
-      
+
       Address reqTo = req.getTo();
-      if(to.getDisplayName() != null){
+      if (to.getDisplayName() != null) {
         reqTo.setDisplayName(to.getDisplayName());
       }
-      else{
+      else {
         reqTo.setDisplayName(null);
       }
       reqTo.setURI(to.getURI());
-      for (final Iterator<String> names = to.getParameterNames(); names.hasNext(); ) {
-        String name =  names.next();
-        if(name.equalsIgnoreCase("tag")){
+      for (final Iterator<String> names = to.getParameterNames(); names.hasNext();) {
+        String name = names.next();
+        if (name.equalsIgnoreCase("tag")) {
           continue;
         }
         reqTo.setParameter(name, to.getParameter(name));
@@ -101,11 +101,11 @@ public class SIPHelper {
       req = factory.createRequest(applicationSession != null ? applicationSession : factory.createApplicationSession(),
           method, from, to);
     }
-    
+
     req.setRequestURI(to.getURI());
     URI ruri = req.getRequestURI();
     if (ruri instanceof SipURI) {
-      SipURI sruri = (SipURI)ruri;
+      SipURI sruri = (SipURI) ruri;
       if (sruri.getUserParam() == null) {
         sruri.setUserParam("phone");
         req.setRequestURI(sruri);
@@ -118,25 +118,25 @@ public class SIPHelper {
       for (final Map.Entry<String, String> e : clones.entrySet()) {
         if (e.getKey().equalsIgnoreCase("Route")) {
           try {
-          String[] values = e.getValue().split("\\|\\|\\|");
-          int length = values.length;
-          for (int i = length-1; i >= 0; i--) {
-            LOG.debug("route["+i+"]: "+values[i]);
-            try {
-              req.pushRoute(factory.createAddress(values[i]));
+            String[] values = e.getValue().split("\\|\\|\\|");
+            int length = values.length;
+            for (int i = length - 1; i >= 0; i--) {
+              LOG.debug("route[" + i + "]: " + values[i]);
+              try {
+                req.pushRoute(factory.createAddress(values[i]));
+              }
+              catch (ServletParseException ex) {
+                LOG.error("Invalid Route Header: " + values[i]);
+              }
             }
-            catch (ServletParseException ex) {
-              LOG.error("Invalid Route Header: " + values[i]);
-            }              
           }
-          }
-          catch(PatternSyntaxException ex) {
+          catch (PatternSyntaxException ex) {
             LOG.error(ex);
           }
         }
       }
       clones.remove("Route");
-      clones.remove("route");    
+      clones.remove("route");
     }
     SIPHelper.addHeaders(req, clones);
     return req;
@@ -229,15 +229,15 @@ public class SIPHelper {
   public static boolean isBye(final SipServletMessage msg) {
     return msg.getMethod().equalsIgnoreCase("BYE");
   }
-  
+
   public static boolean isPrack(final SipServletMessage msg) {
     return msg.getMethod().equalsIgnoreCase("PRACK");
   }
-  
+
   public static boolean isRegister(final SipServletMessage msg) {
     return msg.getMethod().equalsIgnoreCase("REGISTER");
   }
-  
+
   public static boolean isUpdate(final SipServletMessage msg) {
     return msg.getMethod().equalsIgnoreCase("UPDATE");
   }
@@ -337,6 +337,18 @@ public class SIPHelper {
     newReq.send();
   }
 
+  public static void relayResponse(SipServletResponse origResp) throws IOException {
+    SipServletRequest peerReq = (SipServletRequest) SIPHelper.getLinkSIPMessage(origResp.getRequest());
+    if (peerReq != null) {
+      SipServletResponse peerResp = peerReq.createResponse(origResp.getStatus());
+      SIPHelper.copyContent(origResp, peerResp);
+      peerResp.send();
+    }
+    else {
+      LOG.warn("Didn't find linked request for response:" + origResp);
+    }
+  }
+
   public static void sendReinvite(final SipSession session, final SipServletMessage origReq,
       final Map<String, String> headers) throws IOException {
     final SipServletRequest reinvite = session.createRequest("INVITE");
@@ -360,8 +372,10 @@ public class SIPHelper {
       return false;
     }
   }
-  
-  public static void proxyTo(final SipFactory factory, SipServletRequest initialRequest, final Map<String, String> headers, boolean recordRoute, boolean parallel, Endpoint... destinations) throws SignalException {
+
+  public static void proxyTo(final SipFactory factory, SipServletRequest initialRequest,
+      final Map<String, String> headers, boolean recordRoute, boolean parallel, Endpoint... destinations)
+      throws SignalException {
     if (destinations == null || destinations.length == 0) {
       throw new IllegalArgumentException("Illegal endpoints");
     }
@@ -396,7 +410,7 @@ public class SIPHelper {
       throw new SignalException(e);
     }
   }
-  
+
   public static URI getCleanUri(URI uri) {
     if (uri.isSipURI()) {
       SipURI sipURI = (SipURI) uri.clone();
@@ -409,6 +423,91 @@ public class SIPHelper {
     }
     else {
       return uri;
+    }
+  }
+
+  public static boolean support100rel(SipServletRequest req) {
+    boolean result = false;
+    ListIterator<String> values = req.getHeaders("Supported");
+
+    while (values.hasNext()) {
+      String value = values.next();
+      if (value.equalsIgnoreCase("100rel")) {
+        result = true;
+        break;
+      }
+    }
+
+    return result;
+  }
+
+  public static boolean needPrack(SipServletResponse resp) {
+    if (resp.getStatus() > 199 || resp.getStatus() < 101) {
+      return false;
+    }
+
+    boolean result = false;
+    ListIterator<String> values = resp.getHeaders("Require");
+
+    while (values.hasNext()) {
+      String value = values.next();
+      if (value.equalsIgnoreCase("100rel")) {
+        result = true;
+        break;
+      }
+    }
+
+    return result;
+  }
+
+  public static void trySendPrack(SipServletResponse resp) throws IOException {
+    if (!needPrack(resp)) {
+      return;
+    }
+
+    try {
+      resp.createPrack().send();
+    }
+    catch (Rel100Exception ex) {
+      LOG.warn(ex.getMessage());
+    }
+    catch (IllegalStateException ex) {
+      LOG.warn(ex.getMessage());
+    }
+  }
+
+  public static void remove100relSupport(SipServletRequest req) {
+    ListIterator<String> values = req.getHeaders("Supported");
+    while (values.hasNext()) {
+      String value = values.next();
+      if (value.equalsIgnoreCase("100rel")) {
+        values.remove();
+      }
+    }
+
+    values = req.getHeaders("Require");
+    while (values.hasNext()) {
+      String value = values.next();
+      if (value.equalsIgnoreCase("100rel")) {
+        values.remove();
+      }
+    }
+  }
+
+  public static void copyPandXHeaders(SipServletMessage origReq, SipServletMessage req) {
+    Iterator<String> headerNames = origReq.getHeaderNames();
+
+    while (headerNames.hasNext()) {
+      String headerName = headerNames.next();
+      if (headerName.startsWith("P-") || headerName.startsWith("p-") || headerName.startsWith("X-")
+          || headerName.startsWith("x-")) {
+        req.removeHeader(headerName);
+        ListIterator<String> values = origReq.getHeaders(headerName);
+        while (values.hasNext()) {
+          String headerValue = values.next();
+          req.addHeader(headerName, headerValue);
+        }
+      }
     }
   }
 }
