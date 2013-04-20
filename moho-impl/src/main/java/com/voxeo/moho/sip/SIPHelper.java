@@ -57,6 +57,10 @@ public class SIPHelper {
     if (origRequest != null) {
       LOG.debug("Continue routing from orig req:" + origRequest);
       req = origRequest.getB2buaHelper().createRequest(origRequest);
+      req.removeHeader("x-vdirect");
+      req.removeHeader("x-accountid");
+      req.removeHeader("x-appid");
+      req.removeHeader("x-sid");
       try {
         req.setContent(null, null);
       }
