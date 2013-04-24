@@ -55,7 +55,7 @@ public class DirectNO2NOJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
-    // TODO try to disable 183. should we disable 183 here?
+    // TODO try to disable 183 by removing 100rel. should we disable 183 here?
     // should we use mock SDP (SDP connection address 0.0.0.0 or with sendonly
     // atrribute) to disable 183 here?
     SIPHelper.remove100relSupport(_call2.getSipInitnalRequest());

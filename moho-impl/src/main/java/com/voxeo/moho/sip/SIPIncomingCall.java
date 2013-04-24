@@ -11,6 +11,8 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -28,6 +30,7 @@ import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.Joint;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.spi.ExecutionContext;
@@ -107,6 +110,22 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
       retval = new BridgeJoinDelegate(this, other, direction, type, other);
     }
     return retval;
+  }
+  
+  protected JoinDelegate createJoinDelegate(final Call[] others, final JoinType type, final Direction direction) {
+    if (this.isNoAnswered() && type == JoinType.DIRECT) {
+      JoinDelegate retval = null;
+      List<SIPCallImpl> candidates = new LinkedList<SIPCallImpl>();
+      for (Call call : others) {
+        candidates.add((SIPCallImpl) call);
+      }
+      retval = new DirectNI2MultipleNOJoinDelegate(type, direction, this,
+          Utils.suppressEarlyMedia(getApplicationContext()), candidates);
+      return retval;
+    }
+    else {
+      return super.createJoinDelegate(others, type, direction);
+    }
   }
 
   @Override

@@ -13,6 +13,8 @@ package com.voxeo.moho.sip;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -22,8 +24,10 @@ import javax.servlet.sip.SipServletRequest;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.ApplicationContextImpl;
+import com.voxeo.moho.Call;
 import com.voxeo.moho.OutgoingCall;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.SessionUtils;
 
@@ -118,6 +122,22 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
       retval = new BridgeJoinDelegate(this, other, direction, type, other);
     }
     return retval;
+  }
+  
+  protected JoinDelegate createJoinDelegate(final Call[] others, final JoinType type, final Direction direction) {
+    if (this.isNoAnswered() && type == JoinType.DIRECT) {
+      JoinDelegate retval = null;
+      List<SIPCallImpl> candidates = new LinkedList<SIPCallImpl>();
+      for (Call call : others) {
+        candidates.add((SIPCallImpl) call);
+      }
+      retval = new DirectNO2MultipleNOJoinDelegate(type, direction, this,
+          Utils.suppressEarlyMedia(getApplicationContext()), candidates);
+      return retval;
+    }
+    else {
+      return super.createJoinDelegate(others, type, direction);
+    }
   }
 
   protected synchronized void call(final byte[] sdp) throws IOException {

@@ -110,7 +110,63 @@ public interface Call extends MultiStreamParticipant, MediaService<Call> {
    *          the additional protocol specific headers sent to the endpoint.
    * @return the participant of the specified endpoint
    */
-  Joint join(CallableEndpoint other, Participant.JoinType type, Direction direction, Map<String, String> headers);
+  Joint join(CallableEndpoint other, Participant.JoinType type, Direction direction,
+      Map<String, String> headers);
+  
+  /**
+   * Connect this participant to the specified endpoints. The signaling protocol
+   * used is based on the endpoint type. The first endpoint answered will be
+   * joined. other endpoints will be canceled.
+   * 
+   * @param others
+   *          the endpoints
+   * @param type
+   *          whether the media is bridged or direct between the two
+   *          participants
+   * @param force
+   *          'false' means the join operation results in an
+   *          AlreadyJoinedException, otherwise the requested participant is
+   *          joined
+   * @param direction
+   *          whether the media is full duplex or half-duplex between the two
+   *          participants
+   * @param headers
+   *          the additional protocol specific headers sent to the endpoint.
+   * @param dtmfPassThrough
+   *          Identifies whether or not participant can hear the tone generated
+   *          when a key on the phone of the other side is pressed. Default is
+   *          true. Note that, setting it to 'false' only works when the
+   *          JoinType is not JoinType.DIRECT.
+   * @return the participant of the specified endpoint
+   */
+  Joint join(Participant.JoinType type, boolean force, Direction direction, Map<String, String> headers,
+      boolean dtmfPassThrough, CallableEndpoint... others);
+
+  /**
+   * Connect this participant to the specified endpoints. The signaling protocol
+   * used is based on the endpoint type. The first call answered will be joined.
+   * other calls will be canceled.
+   * 
+   * @param others
+   *          other calls, those call must be not-answered outbound call.
+   * @param type
+   *          whether the media is bridged or direct between the two
+   *          participants
+   * @param force
+   *          'false' means the join operation results in an
+   *          AlreadyJoinedException, otherwise the requested participant is
+   *          joined
+   * @param direction
+   *          whether the media is full duplex or half-duplex between the two
+   *          participants
+   * @param dtmfPassThrough
+   *          Identifies whether or not participant can hear the tone generated
+   *          when a key on the phone of the other side is pressed. Default is
+   *          true. Note that, setting it to 'false' only works when the
+   *          JoinType is not JoinType.DIRECT.
+   * @return the participant of the specified endpoint
+   */
+  Joint join(Participant.JoinType type, boolean force, Direction direction, boolean dtmfPassThrough, Call... others);
 
   /**
    * @return the current signaling state of the call

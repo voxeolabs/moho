@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.MDC;
 
+import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.event.Event;
 import com.voxeo.moho.utils.EventListener;
 
@@ -118,4 +119,17 @@ public class Utils {
     }
   }
 
+  protected static Boolean supressEarlyMeida;
+
+  public static boolean suppressEarlyMedia(ApplicationContext context) {
+    if (supressEarlyMeida == null) {
+      String config = context.getParameter("com.voxeolabs.moho.supressEarlyMeida");
+      if (config == null) {
+        config = System.getProperty("com.voxeolabs.moho.supressEarlyMeida");
+      }
+      supressEarlyMeida = Boolean.valueOf(config);
+    }
+
+    return supressEarlyMeida;
+  }
 }

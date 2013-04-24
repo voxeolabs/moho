@@ -629,4 +629,15 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
   public void update() {
     
   }
+
+  @Override
+  public Joint join(JoinType type, boolean force, Direction direction, Map<String, String> headers,
+      boolean dtmfPassThrough, CallableEndpoint... others) {
+    throw new UnsupportedOperationException("Moho remote doens't support this operation now");
+  }
+
+  @Override
+  public Joint join(JoinType type, boolean force, Direction direction, boolean dtmfPassThrough, Call... others) {
+    throw new UnsupportedOperationException("Moho remote doens't support this operation now");
+  }
 }

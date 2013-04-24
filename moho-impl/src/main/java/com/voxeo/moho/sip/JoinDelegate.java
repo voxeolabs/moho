@@ -11,6 +11,7 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -202,6 +203,9 @@ public abstract class JoinDelegate {
   }
 
   protected Exception getExceptionByResponse(SipServletResponse res) {
+    if(res == null) {
+      return null;
+    }
     Exception e = null;
     if (SIPHelper.isBusy(res)) {
       e = new BusyException();
@@ -271,6 +275,46 @@ public abstract class JoinDelegate {
     return _exception;
   }
 
+  public static ExecutionException checkJoinStrategy(final Participant part, final JoinType type, final boolean force)
+      throws Exception {
+    final Participant[] parts = part.getParticipants();
+
+    if (parts.length > 0) {
+      if (type == JoinType.DIRECT || type == JoinType.BRIDGE_EXCLUSIVE) {
+        if (force) {
+          // unjoin previous joined Participant
+          Unjoint unjoint = null;
+          if (parts.length > 0) {
+            for (Participant participant : parts) {
+              unjoint = part.unjoin(participant);
+              unjoint.get();
+            }
+          }
+        }
+        else {
+          // "AlreadyJoined" error
+          return new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(part), null);
+        }
+      }
+      else { // BRIDGE_SHARED
+        if (!force) {
+          JoinType checkJoinType = null;
+          if (parts.length > 0) {
+            for (final Participant participant : parts) {
+              checkJoinType = getJoinType(part, participant);
+              if (checkJoinType == JoinType.DIRECT || checkJoinType == JoinType.BRIDGE_EXCLUSIVE) {
+                // "AlreadyJoined" error
+                return new ExecutionException(JoinDelegate.buildAlreadyJoinedExceptionMessage(part), null);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+  
   public static ExecutionException checkJoinStrategy(final Participant part, final Participant other,
       final JoinType type, final boolean force) throws Exception {
     final Participant[] parts = part.getParticipants();
@@ -726,5 +770,25 @@ public abstract class JoinDelegate {
   // used for remote join
   public void remoteJoinAnswer(byte[] sdp) throws Exception {
 
+  }
+  
+  protected void disconnectCalls(final List<SIPCallImpl> calls) {
+    ((ExecutionContext) _call1.getApplicationContext()).getExecutor().execute(new Runnable() {
+      @Override
+      public void run() {
+        for (SIPCallImpl call : calls) {
+          try {
+            call._joinDelegate = null;
+            call.disconnect(false, CallCompleteEvent.Cause.CANCEL, null, null);
+          }
+          catch (Exception ex) {
+            LOG.debug("Exception when disconnecting call " + call);
+          }
+        }
+        
+        calls.clear();
+      }
+
+    });
   }
 }

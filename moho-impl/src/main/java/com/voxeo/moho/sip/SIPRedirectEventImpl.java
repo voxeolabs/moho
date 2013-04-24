@@ -104,7 +104,19 @@ public class SIPRedirectEventImpl<T extends EventSource> extends MohoRedirectEve
 
   @Override
   public void reject(Reason reason, Map<String, String> headers) throws SignalException {
-    // TODO Auto-generated method stub
-    
+    this.checkState();
+    _rejected = true;
+    if (this.source instanceof SIPCallImpl) {
+      final SIPCallImpl call = (SIPCallImpl) this.source;
+      try {
+        call.doResponse(_res, headers);
+      }
+      catch (final Exception e) {
+        throw new SignalException(e);
+      }
+    }
+    else {
+      //TODO other source such as Subscrption
+    }
   }
 }

@@ -12,9 +12,12 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Queue;
@@ -37,7 +40,10 @@ import javax.media.mscontrol.join.JoinableStream.StreamType;
 import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
+import javax.sdp.MediaDescription;
 import javax.sdp.SdpException;
+import javax.sdp.SdpFactory;
+import javax.sdp.SessionDescription;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
@@ -67,6 +73,7 @@ import com.voxeo.moho.UnjointImpl;
 import com.voxeo.moho.common.event.MohoCallCompleteEvent;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
+import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
@@ -126,7 +133,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected Lock mediaServiceLock = new ReentrantLock();
 
   protected Queue<JoinRequest> _joinQueue = new LinkedList<JoinRequest>();
-  
+
   protected Lock _joinQueueLock = new ReentrantLock();
 
   protected SipServletResponse _inviteResponse;
@@ -294,9 +301,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   @Override
   public Participant[] getParticipants() {
-    if(this.getJoiningPeer() != null){
+    if (this.getJoiningPeer() != null) {
       Participant[] participants = _joinees.getJoinees();
-      Participant[] allParticipants = Arrays.copyOf(participants, participants.length +1);
+      Participant[] allParticipants = Arrays.copyOf(participants, participants.length + 1);
       allParticipants[participants.length] = this.getJoiningPeer().getParticipant();
       return allParticipants;
     }
@@ -305,9 +312,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   @Override
   public Participant[] getParticipants(final Direction direction) {
-    if(this.getJoiningPeer() != null){
+    if (this.getJoiningPeer() != null) {
       Participant[] participants = _joinees.getJoinees(direction);
-      Participant[] allParticipants = Arrays.copyOf(participants, participants.length +1);
+      Participant[] allParticipants = Arrays.copyOf(participants, participants.length + 1);
       allParticipants[participants.length] = this.getJoiningPeer().getParticipant();
       return allParticipants;
     }
@@ -442,7 +449,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       final Map<String, String> headers) {
     Participant p = null;
     try {
-      p = other.call(getAddress(), headers);
+      p = other.createCall(getAddress(), headers, this);
     }
     catch (final Exception e) {
       LOG.error(e);
@@ -455,19 +462,20 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   public synchronized Joint join(final Direction direction) {
     return this.join(direction, null);
   }
-  
+
   public synchronized Joint join(final Direction direction, SettableJointImpl joint) {
     if (isTerminated()) {
       throw new IllegalStateException("already terminated.");
     }
     if (_operationInProcess) {
       if (_joinDelegate != null
-          && !(_joinDelegate instanceof BridgeJoinDelegate || _joinDelegate instanceof OtherParticipantJoinDelegate
+          && !(_joinDelegate instanceof BridgeJoinDelegate || _joinDelegate instanceof MultipleNOBridgeJoinDelegate
+              || _joinDelegate instanceof OtherParticipantJoinDelegate
               || _joinDelegate instanceof LocalRemoteJoinDelegate || _joinDelegate instanceof RemoteLocalJoinDelegate)) {
 
-          if(joint == null){
-            joint = new SettableJointImpl();
-          }
+        if (joint == null) {
+          joint = new SettableJointImpl();
+        }
         JoinRequest joinReq = new JoinRequest(direction, joint);
         _joinQueue.add(joinReq);
         return joint;
@@ -483,10 +491,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
       _joinDelegate = createJoinDelegate(direction);
 
-      if(joint == null){
+      if (joint == null) {
         joint = new SettableJointImpl();
       }
-      
+
       _joinDelegate.setSettableJoint(joint);
       _joinDelegate.doJoin();
 
@@ -499,7 +507,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   public void joinDone(final Participant participant, final JoinDelegate delegate) {
-    if(delegate != _joinDelegate){
+    if (delegate != _joinDelegate) {
       return;
     }
     setJoiningPeer(null);
@@ -570,14 +578,76 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       final Direction direction) {
     return this.join(other, type, force, direction, true);
   }
-  
+
   @Override
   public synchronized Joint join(final Participant other, final JoinType type, final boolean force,
       final Direction direction, boolean dtmfPassThrough) {
-   return join(other, type, force, direction, dtmfPassThrough, null) ;
+    return join(other, type, force, direction, dtmfPassThrough, null);
   }
 
-  public synchronized Joint join(final Participant other, final JoinType type, final boolean force,
+  @Override
+  public synchronized Joint join(JoinType type, boolean force, Direction direction, Map<String, String> headers,
+      boolean dtmfPassThrough, CallableEndpoint... others) {
+    if (others == null || others.length == 0 || type == null || direction == null) {
+      throw new IllegalArgumentException("others should not be empty.");
+    }
+    List<Call> calls = new ArrayList<Call>();
+    for (CallableEndpoint other : others) {
+      calls.add(other.createCall(getAddress(), headers, this));
+    }
+    return join(type, force, direction, dtmfPassThrough, calls.toArray(new Call[calls.size()]));
+  }
+
+  @Override
+  public synchronized Joint join(JoinType type, boolean force, Direction direction, boolean dtmfPassThrough,
+      Call... others) {
+    if (isTerminated()) {
+      throw new IllegalStateException("This call is already terminated.");
+    }
+    for (Call other : others) {
+      if (other.equals(this)) {
+        throw new IllegalArgumentException("Can't join to itself.");
+      }
+      if (((SIPCallImpl) other).isAnswered()) {
+        throw new IllegalArgumentException("Doesn't support join to multiple answered calls now.");
+      }
+    }
+    // TODO support queue join request
+
+    _operationInProcess = true;
+
+    try {
+      ExecutionException ex = JoinDelegate.checkJoinStrategy(this, type, force);
+
+      SettableJointImpl joint = new SettableJointImpl();
+      if (ex == null) {
+        _joinDelegate = createJoinDelegate(others, type, direction);
+        _joinDelegate.setSettableJoint(joint);
+        _joinDelegate.setDtmfPassThrough(dtmfPassThrough);
+        
+        for(Call other : others){
+          ((SIPCallImpl)other).startJoin(this, _joinDelegate);
+        }
+        
+        _joinDelegate.doJoin();
+      }
+      else {
+        // dispatch BUSY event
+        JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(this, others[0], Cause.BUSY, ex, true);
+        dispatch(joinCompleteEvent);
+        joint.done(ex);
+      }
+      return joint;
+    }
+    catch (Exception ex) {
+      if (_joinDelegate != null) {
+        _joinDelegate.done(Cause.ERROR, ex);
+      }
+      throw new RuntimeException(ex);
+    }
+  }
+
+  protected synchronized Joint join(final Participant other, final JoinType type, final boolean force,
       final Direction direction, boolean dtmfPassThrough, SettableJointImpl joint) {
     if (isTerminated()) {
       throw new IllegalStateException("This call is already terminated.");
@@ -587,12 +657,13 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
 
     if (_operationInProcess) {
-      //this is used for the case that receive 183 from not-answered outgoing call
-      if(other instanceof SIPCallImpl){
+      // this is used for the case that receive 183 from not-answered outgoing
+      // call
+      if (other instanceof SIPCallImpl) {
         this.setJoiningPeer(new JoinData(other, direction, type));
       }
-      
-      if(joint == null){
+
+      if (joint == null) {
         joint = new SettableJointImpl();
       }
       JoinRequest joinReq = new JoinRequest(other, type, direction, force, dtmfPassThrough, joint);
@@ -614,7 +685,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
     }
     catch (Exception ex) {
-      if(_joinDelegate != null){
+      if (_joinDelegate != null) {
         _joinDelegate.done(Cause.ERROR, ex);
       }
       throw new RuntimeException(ex);
@@ -646,11 +717,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   protected void doBye(final SipServletRequest req, final Map<String, String> headers) {
-    if(LOG.isDebugEnabled()){
+    if (LOG.isDebugEnabled()) {
       LOG.debug(this + "Processing BYE request.");
     }
-    
-    synchronized(this){
+
+    synchronized (this) {
       if (isTerminated()) {
         LOG.debug(this + " is already terminated.");
         try {
@@ -665,9 +736,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         this.setSIPCallState(SIPCall.State.DISCONNECTED);
       }
     }
-    
+
     terminate(CallCompleteEvent.Cause.DISCONNECT, null, headers);
-    
+
     try {
       req.createResponse(SipServletResponse.SC_OK).send();
     }
@@ -685,11 +756,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug("The SIP request isn't ACK.");
       return;
     }
-    
+
     if (LOG.isDebugEnabled()) {
       LOG.debug(this + "Processing ACK.");
     }
-    
+
     final byte[] content = SIPHelper.getRawContentWOException(req);
     if (content != null) {
       setRemoteSDP(content);
@@ -715,11 +786,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug("The SIP request isn't Re-INVITE.");
       return;
     }
-    
+
     if (LOG.isDebugEnabled()) {
       LOG.debug(this + "Processing re-INVITE.");
     }
-    
+
     final byte[] content = SIPHelper.getRawContentWOException(req);
     if (content != null) {
       setRemoteSDP(content);
@@ -731,30 +802,29 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug("The SIP message will be discarded.");
     }
   }
-  
-  protected synchronized void doUpdate(final SipServletRequest req, final Map<String, String> headers)
-      throws Exception {
+
+  protected synchronized void doUpdate(final SipServletRequest req, final Map<String, String> headers) throws Exception {
     if (isTerminated()) {
       LOG.debug(this + " is already terminated.");
       return;
     }
-    
+
     if (LOG.isDebugEnabled()) {
       LOG.debug(this + "Processing UPDATE.");
     }
-    
+
     final byte[] content = SIPHelper.getRawContentWOException(req);
     if (content != null) {
       setRemoteSDP(content);
     }
-    if(_joinDelegate != null){
+    if (_joinDelegate != null) {
       _joinDelegate.doUpdate(req, this, headers);
     }
     if (_callDelegate != null) {
       _callDelegate.handleUpdate(this, req, headers);
     }
     else {
-      LOG.debug("CallDelegate is null, the SIP message will be discarded."+ req);
+      LOG.debug("CallDelegate is null, the SIP message will be discarded." + req);
     }
   }
 
@@ -785,7 +855,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     else if (SIPHelper.isCancel(res) || SIPHelper.isBye(res)) {
       // ignore the response
     }
-    else if(SIPHelper.isPrack(res)) {
+    else if (SIPHelper.isPrack(res)) {
       if (SIPHelper.isSuccessResponse(res)) {
         final byte[] content = SIPHelper.getRawContentWOException(res);
         if (content != null) {
@@ -793,24 +863,24 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
       }
 
-      if(_joinDelegate != null){
+      if (_joinDelegate != null) {
         _joinDelegate.doPrackResponse(res, this, headers);
       }
     }
-    else if(SIPHelper.isUpdate(res)) {
+    else if (SIPHelper.isUpdate(res)) {
       if (SIPHelper.isSuccessResponse(res)) {
         final byte[] content = SIPHelper.getRawContentWOException(res);
         if (content != null) {
           setRemoteSDP(content);
         }
       }
-      if(_joinDelegate != null){
+      if (_joinDelegate != null) {
         _joinDelegate.doUpdateResponse(res, this, headers);
       }
       if (_callDelegate != null) {
         _callDelegate.handleUpdateResponse(this, res, headers);
       }
-      else{
+      else {
         LOG.warn("Call delegate is null, discarding UPDATE response:" + res);
       }
     }
@@ -823,14 +893,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         SIPHelper.copyContent(res, newRes);
         newRes.send();
       }
-      else{
+      else {
         LOG.warn("Discarding this response:" + res);
       }
     }
   }
 
   protected synchronized void setSIPCallState(final SIPCall.State state) {
-    LOG.debug(this + " state changed from "+ _cstate + " to "+ state);
+    LOG.debug(this + " state changed from " + _cstate + " to " + state);
     _cstate = state;
   }
 
@@ -857,36 +927,38 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   protected void fail(Exception ex) {
-    LOG.error(this +" failed.", ex);
+    LOG.error(this + " failed.", ex);
     disconnect(true, CallCompleteEvent.Cause.ERROR, ex, null);
   }
-  
-  protected void doDisconnect(final boolean failed, final CallCompleteEvent.Cause cause,
-      final Exception exception, Map<String, String> headers, SIPCall.State old){
-    if(LOG.isDebugEnabled()){
+
+  protected void doDisconnect(final boolean failed, final CallCompleteEvent.Cause cause, final Exception exception,
+      Map<String, String> headers, SIPCall.State old) {
+    if (LOG.isDebugEnabled()) {
       LOG.debug(this + " is disconnecting.");
     }
-    
+
     terminate(cause, exception, null);
 
     try {
       if (isNoAnswered(old)) {
         try {
           if (this instanceof SIPOutgoingCall) {
-            if (_invite != null && (_invite.getSession().getState() == SipSession.State.EARLY || _invite.getSession().getState() == SipSession.State.INITIAL)) {
-              try{
+            if (_invite != null
+                && (_invite.getSession().getState() == SipSession.State.EARLY || _invite.getSession().getState() == SipSession.State.INITIAL)) {
+              try {
                 SipServletRequest cancelRequest = _invite.createCancel();
                 SIPHelper.addHeaders(cancelRequest, headers);
                 cancelRequest.send();
               }
-              catch(Exception ex){
-                LOG.warn("Exception when disconnecting failed outbound call:"+ ex.getMessage());
+              catch (Exception ex) {
+                LOG.warn("Exception when disconnecting failed outbound call:" + ex.getMessage());
                 _invite.getSession().invalidate();
               }
             }
           }
           else if (this instanceof SIPIncomingCall) {
-            if (_invite != null && (_invite.getSession().getState() == SipSession.State.EARLY || _invite.getSession().getState() == SipSession.State.INITIAL)) {
+            if (_invite != null
+                && (_invite.getSession().getState() == SipSession.State.EARLY || _invite.getSession().getState() == SipSession.State.INITIAL)) {
               SipServletResponse declineResponse = _invite.createResponse(SipServletResponse.SC_DECLINE);
               SIPHelper.addHeaders(declineResponse, headers);
               declineResponse.send();
@@ -894,7 +966,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           }
         }
         catch (final Exception t) {
-          LOG.warn("Exception when disconnecting call:"+ t.getMessage());
+          LOG.warn("Exception when disconnecting call:" + t.getMessage());
         }
       }
       else if (isAnswered(old) && _invite.getSession().getState() != SipSession.State.TERMINATED) {
@@ -933,11 +1005,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
   }
 
-  protected  void disconnect(final boolean failed, final CallCompleteEvent.Cause cause,
-      final Exception exception, final Map<String, String> headers) {
+  protected void disconnect(final boolean failed, final CallCompleteEvent.Cause cause, final Exception exception,
+      final Map<String, String> headers) {
     final SIPCall.State old = getSIPCallState();
-    
-    synchronized(this){
+
+    synchronized (this) {
       if (isTerminated()) {
         if (LOG.isDebugEnabled()) {
           LOG.debug(this + " is already terminated.");
@@ -951,19 +1023,19 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       else {
         this.setSIPCallState(SIPCall.State.DISCONNECTED);
       }
-      
+
       notifyAll();
     }
 
     doDisconnect(failed, cause, exception, headers, old);
   }
-  
+
   protected void terminate(final CallCompleteEvent.Cause cause, final Exception exception,
-      final Map<String, String> headers){
+      final Map<String, String> headers) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(this + " is terminating.");
     }
-    
+
     _context.removeCall(getId());
 
     if (_service != null) {
@@ -985,7 +1057,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       dispatch(new MohoUnjoinCompleteEvent(this, participant, unjoinCause, exception, true));
 
       if (participant instanceof ParticipantContainer) {
-        _context.getExecutor().execute(new Runnable(){
+        _context.getExecutor().execute(new Runnable() {
           @Override
           public void run() {
             try {
@@ -993,7 +1065,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
             }
             catch (Exception e) {
               LOG.error("Exception when unjoining participant" + participant, e);
-            }          
+            }
           }
         });
       }
@@ -1003,14 +1075,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     synchronized (_peers) {
       for (final Call peer : _peers) {
         try {
-          _context.getExecutor().execute(new Runnable(){
+          _context.getExecutor().execute(new Runnable() {
 
             @Override
             public void run() {
-              peer.disconnect();              
+              peer.disconnect();
             }
           });
-          
+
         }
         catch (final Throwable t) {
           LOG.warn("Exception when disconnecting peer:" + peer, t);
@@ -1044,6 +1116,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected SipServletRequest getSipInitnalRequest() {
     return _invite;
+  }
+  
+  protected SipServletResponse getLastReponse() {
+    return _inviteResponse;
   }
 
   protected byte[] getRemoteSdp() {
@@ -1155,14 +1231,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       try {
         MediaDialect dialect = ((ApplicationContextImpl) this.getApplicationContext()).getDialect();
         if (dialect != null) {
-        	dialect.stopCallRecord(_network);
+          dialect.stopCallRecord(_network);
         }
       }
       catch (final Throwable t) {
         LOG.warn("Exception when stopping call record", t);
       }
     }
-    
+
     if (_service != null) {
       try {
         ((GenericMediaService) _service).release(true);
@@ -1268,8 +1344,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected Joint doJoin(final SIPCallImpl other, final JoinType type, final boolean force, final Direction direction,
       boolean dtmfPassThrough, SettableJointImpl joint) throws Exception {
-    
-    if(joint == null){
+
+    if (joint == null) {
       joint = new SettableJointImpl();
     }
 
@@ -1341,7 +1417,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       throw new IllegalArgumentException("MediaObject is't joinable.");
     }
 
-    if(joint == null){
+    if (joint == null) {
       joint = new SettableJointImpl();
     }
 
@@ -1368,6 +1444,25 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected abstract JoinDelegate createJoinDelegate(final SIPCallImpl other, final JoinType type,
       final Direction direction);
+
+  protected JoinDelegate createJoinDelegate(final Call[] others, final JoinType type, final Direction direction) {
+    JoinDelegate retval = null;
+    List<SIPCallImpl> candidates = new LinkedList<SIPCallImpl>();
+    for (Call call : others) {
+      candidates.add((SIPCallImpl) call);
+    }
+    if (type == JoinType.DIRECT) {
+      if (this.isAnswered()) {
+        retval = new DirectAnswered2MultipleNOJoinDelegate(type, direction, this,
+            Utils.suppressEarlyMedia(getApplicationContext()), candidates);
+      }
+    }
+    else {
+      retval = new MultipleNOBridgeJoinDelegate(type, direction, this, candidates);
+    }
+
+    return retval;
+  }
 
   protected boolean isOperationInprocess() {
     return _operationInProcess;
@@ -1690,7 +1785,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   public void setJoiningPeer(final JoinData bridgeJoiningPeer) {
     _bridgeJoiningPeer = bridgeJoiningPeer;
   }
-  
+
   @Override
   public synchronized Endpoint getAddress() {
     return _address;
@@ -1732,15 +1827,21 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     return _multiplejoiningMixer;
   }
 
-  class JoinRequest{
+  class JoinRequest {
     private Participant peer;
+
     private JoinType type;
+
     private Direction direction;
+
     private boolean force;
+
     private boolean dtmfPassThrough;
+
     private SettableJointImpl joint;
-    
-    public JoinRequest(Participant peer, JoinType type, Direction direction,  boolean force, boolean dtmfPassThrough, SettableJointImpl joint) {
+
+    public JoinRequest(Participant peer, JoinType type, Direction direction, boolean force, boolean dtmfPassThrough,
+        SettableJointImpl joint) {
       super();
       this.peer = peer;
       this.direction = direction;
@@ -1749,7 +1850,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       this.joint = joint;
       this.force = force;
     }
-    
+
     public JoinRequest(Direction direction, SettableJointImpl joint) {
       super();
       this.direction = direction;
@@ -1763,12 +1864,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     public Participant getPeer() {
       return peer;
     }
+
     public Direction getDirection() {
       return direction;
     }
+
     public JoinType getType() {
       return type;
     }
+
     public boolean isDtmfPassThrough() {
       return dtmfPassThrough;
     }
@@ -1779,7 +1883,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   private boolean sendingUpdate;
-  
+
   public boolean isSendingUpdate() {
     return sendingUpdate;
   }
@@ -1789,21 +1893,36 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   }
 
   public void update() {
-    if(_cstate != SIPCall.State.PROGRESSED && _cstate != SIPCall.State.ANSWERED){
+    if (_cstate != SIPCall.State.PROGRESSED && _cstate != SIPCall.State.ANSWERED) {
       LOG.warn("Call media didn't negotiate, can't send UPDATE");
       return;
     }
-    try{
+    try {
       SipServletRequest updateReq = _invite.getSession().createRequest("UPDATE");
-      if(_localSDP != null){
+      if (_localSDP != null) {
         updateReq.setContent(_localSDP, "application/sdp");
       }
       sendingUpdate = true;
       updateReq.send();
     }
-    catch(Exception ex){
+    catch (Exception ex) {
       sendingUpdate = false;
       LOG.error("Can't send UPDATE reqeust.", ex);
     }
+  }
+  
+  public SessionDescription createSendonlySDP(final byte[] sdpByte) throws UnsupportedEncodingException, SdpException {
+    SdpFactory sdpFactory = ((ExecutionContext) getApplicationContext()).getSdpFactory();
+    SessionDescription sd = sdpFactory.createSessionDescription(new String(sdpByte, "iso8859-1"));
+
+    sd.removeAttribute("sendrecv");
+    sd.removeAttribute("recvonly");
+
+    MediaDescription md = ((MediaDescription) sd.getMediaDescriptions(false).get(0));
+    md.removeAttribute("sendrecv");
+    md.removeAttribute("recvonly");
+    md.setAttribute("sendonly", null);
+
+    return sd;
   }
 }
