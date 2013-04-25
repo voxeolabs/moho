@@ -87,12 +87,14 @@ public class DirectNO2MultipleNOJoinDelegate extends JoinDelegate {
           if (_call1.equals(call)) {
             LOG.warn("INVITE call1 got error response, failed join on delegate " + this);
             done(this.getJoinCompleteCauseByResponse(res), this.getExceptionByResponse(res));
+            this.disconnectCall(_call1, true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res));
           }
           else {
             candidateCalls.remove(call);
             if (candidateCalls.isEmpty() && _call2 == null) {
               done(this.getJoinCompleteCauseByResponse(res), this.getExceptionByResponse(res));
             }
+            disconnectCall(call, true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res));
           }
         }
       }
@@ -100,9 +102,9 @@ public class DirectNO2MultipleNOJoinDelegate extends JoinDelegate {
     catch (Exception ex) {
       LOG.error("Exception when joining using delegate " + this, ex);
       done(JoinCompleteEvent.Cause.ERROR, ex);
-      _call1.fail(ex);
+      failCall(_call1, ex);
       if (_call2 != null) {
-        _call2.fail(ex);
+        failCall(_call2, ex);
       }
       throw ex;
     }

@@ -112,13 +112,13 @@ public abstract class JoinDelegate {
     }
 
     JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(p1, p2, cause, exception, _call2 == null ? true
-        : _peer.equals(_call2));
+        : _peer == null ? true :_peer.equals(_call2));
     _call1.dispatch(joinCompleteEvent);
 
     if (_call2 != null) {
       _call2.joinDone(_call1, this);
       JoinCompleteEvent peerJoinCompleteEvent = new MohoJoinCompleteEvent(p2, p1, cause, exception,
-          !_peer.equals(_call2));
+          _peer == null ? false : !_peer.equals(_call2));
       _call2.dispatch(peerJoinCompleteEvent);
     }
 
@@ -260,6 +260,9 @@ public abstract class JoinDelegate {
     }
     else if (SIPHelper.isDecline(res)) {
       cause = JoinCompleteEvent.Cause.REJECT;
+    }
+    else if (SIPHelper.isNotAcceptableHere(res)) {
+      cause = JoinCompleteEvent.Cause.NOT_ACCEPTABLE;
     }
     else {
       cause = JoinCompleteEvent.Cause.ERROR;
@@ -771,7 +774,7 @@ public abstract class JoinDelegate {
   public void remoteJoinAnswer(byte[] sdp) throws Exception {
 
   }
-  
+
   protected void disconnectCalls(final List<SIPCallImpl> calls) {
     ((ExecutionContext) _call1.getApplicationContext()).getExecutor().execute(new Runnable() {
       @Override
@@ -785,10 +788,31 @@ public abstract class JoinDelegate {
             LOG.debug("Exception when disconnecting call " + call);
           }
         }
-        
+
         calls.clear();
       }
 
     });
+  }
+
+  protected void disconnectCall(final SIPCallImpl call, final boolean fail, final CallCompleteEvent.Cause cause,
+      final Exception ex) {
+    ((ExecutionContext) _call1.getApplicationContext()).getExecutor().execute(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          call._joinDelegate = null;
+          call.disconnect(fail, cause == null ? (ex != null ? CallCompleteEvent.Cause.ERROR
+              : CallCompleteEvent.Cause.NEAR_END_DISCONNECT) : cause, ex, null);
+        }
+        catch (Exception ex) {
+          LOG.debug("Exception when disconnecting call " + call);
+        }
+      }
+    });
+  }
+
+  protected void failCall(final SIPCallImpl call, final Exception ex) {
+    disconnectCall(call, true, null, ex);
   }
 }

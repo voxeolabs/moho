@@ -13,6 +13,7 @@ import javax.servlet.sip.SipServletResponse;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPCall.State;
 
@@ -108,14 +109,24 @@ public class DirectAnswered2MultipleNOJoinDelegate extends JoinDelegate {
         else if (SIPHelper.isErrorResponse(res)) {
           if (_call1.equals(call)) {
             LOG.warn("re-INVITE call1 got error response, failed join on delegate " + this);
-            done(this.getJoinCompleteCauseByResponse(res), this.getExceptionByResponse(res));
-            _call2.disconnect();
+            done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
+
+            try {
+              if (_response != null) {
+                _response.createAck().send();
+              }
+            }
+            catch (Exception ex) {
+              LOG.debug("Exception when sending back ACK", ex);
+            }
+            disconnectCall(_call2, false, CallCompleteEvent.Cause.CANCEL, null);
           }
           else {
             candidateCalls.remove(call);
             if (candidateCalls.isEmpty() && _call2 == null) {
-              done(this.getJoinCompleteCauseByResponse(res), this.getExceptionByResponse(res));
+              done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
             }
+            disconnectCall(call, true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res));
           }
         }
       }
@@ -124,7 +135,7 @@ public class DirectAnswered2MultipleNOJoinDelegate extends JoinDelegate {
       LOG.error("Exception when joining using delegate " + this, ex);
       done(JoinCompleteEvent.Cause.ERROR, ex);
       if (_call2 != null) {
-        _call2.fail(ex);
+        failCall(_call2, ex);
       }
       throw ex;
     }

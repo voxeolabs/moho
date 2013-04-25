@@ -13,6 +13,7 @@ import javax.servlet.sip.SipServletResponse;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Participant.JoinType;
+import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPCall.State;
 
@@ -91,7 +92,7 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
               // receive second success response, ignore it.
               return;
             }
-            
+
             if (_response == null) {
               _response = res;
               _call2 = call;
@@ -121,13 +122,23 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
           if (_call1.equals(call)) {
             LOG.warn("re-INVITE call1 got error response, failed join on delegate " + this);
             done(this.getJoinCompleteCauseByResponse(res), this.getExceptionByResponse(res));
-            _call2.disconnect();
+
+            try {
+              if (_response != null) {
+                _response.createAck().send();
+              }
+            }
+            catch (Exception ex) {
+              LOG.debug("Exception when sending back ACK", ex);
+            }
+            disconnectCall(_call2, false, CallCompleteEvent.Cause.CANCEL, null);
           }
           else {
             candidateCalls.remove(call);
             if (candidateCalls.isEmpty() && _call2 == null) {
               done(this.getJoinCompleteCauseByResponse(res), this.getExceptionByResponse(res));
             }
+            disconnectCall(call, true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res));
           }
         }
       }
@@ -136,7 +147,7 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
       LOG.error("Exception when joining using delegate " + this, ex);
       done(JoinCompleteEvent.Cause.ERROR, ex);
       if (_call2 != null) {
-        _call2.fail(ex);
+        failCall(_call2, ex);
       }
       throw ex;
     }
@@ -155,8 +166,8 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
         }
         catch (final Exception e) {
           done(JoinCompleteEvent.Cause.ERROR, e);
-          _call1.fail(e);
-          _call2.fail(e);
+          failCall(_call2, e);
+          failCall(_call1, e);
           throw e;
         }
       }

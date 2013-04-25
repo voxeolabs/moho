@@ -196,6 +196,10 @@ public class SIPHelper {
   public static boolean isDecline(final SipServletResponse res) {
     return res.getStatus() == SipServletResponse.SC_DECLINE;
   }
+  
+  public static boolean isNotAcceptableHere(final SipServletResponse res) {
+    return res.getStatus() == SipServletResponse.SC_NOT_ACCEPTABLE_HERE;
+  }
 
   public static boolean isTimeout(final SipServletResponse res) {
     return res.getStatus() == SipServletResponse.SC_REQUEST_TIMEOUT;
