@@ -25,7 +25,7 @@ public interface JoinCompleteEvent extends Event<EventSource> {
 
     JOINED,
 
-    BUSY, TIMEOUT, REJECT, REDIRECT,
+    BUSY, TIMEOUT, REJECT, REDIRECT, NOT_ACCEPTABLE, 
 
     ERROR,
 

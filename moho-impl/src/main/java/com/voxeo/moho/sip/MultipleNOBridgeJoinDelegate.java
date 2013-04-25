@@ -86,7 +86,7 @@ public class MultipleNOBridgeJoinDelegate extends JoinDelegate implements Observ
       catch (final Exception e) {
         LOG.error("Exception when doing join on delegate " + this, e);
         done(Cause.ERROR, e);
-        call.fail(e);
+        failCall(call, e);
       }
     }
     else {
