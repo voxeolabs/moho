@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.MDC;
 
+import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.event.Event;
 import com.voxeo.moho.utils.EventListener;
 
@@ -117,5 +118,31 @@ public class Utils {
       return t;
     }
   }
+  
+  protected static Boolean copyHeadersForContinueRouting;
 
+  public static boolean isCopyHeadersForContinueRouting(ApplicationContext context) {
+    if (copyHeadersForContinueRouting == null) {
+      String config = context.getParameter("com.voxeolabs.moho.copyHeadersForContinueRouting");
+      if (config == null) {
+        config = System.getProperty("com.voxeolabs.moho.copyHeadersForContinueRouting");
+      }
+      copyHeadersForContinueRouting = Boolean.valueOf(config);
+    }
+
+    return copyHeadersForContinueRouting;
+  }
+
+  protected static String headersToCopyForContinueRouting;
+
+  public static String getHeadersToCopyForContinueRouting(ApplicationContext context) {
+    if (headersToCopyForContinueRouting == null) {
+      headersToCopyForContinueRouting = context.getParameter("com.voxeolabs.moho.headersToCopyForContinueRouting");
+      if (headersToCopyForContinueRouting == null) {
+        headersToCopyForContinueRouting = System.getProperty("com.voxeolabs.moho.headersToCopyForContinueRouting");
+      }
+    }
+
+    return headersToCopyForContinueRouting;
+  }
 }

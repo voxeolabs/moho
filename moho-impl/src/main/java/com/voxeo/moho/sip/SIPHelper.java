@@ -16,10 +16,12 @@ package com.voxeo.moho.sip;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.regex.PatternSyntaxException;
 
@@ -42,8 +44,11 @@ import javax.servlet.sip.URI;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.ApplicationContext;
+import com.voxeo.moho.Constants;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.common.util.Utils;
 
 public class SIPHelper {
 
@@ -52,15 +57,32 @@ public class SIPHelper {
   private static final String LINKED_MESSAGE = "linked.message";
 
   public static SipServletRequest createSipInitnalRequest(final SipFactory factory, final String method,
-      final Address from, final Address to, final Map<String, String> headers, SipApplicationSession applicationSession, SipServletRequest origRequest) {
+      final Address from, final Address to, final Map<String, String> headers,
+      SipApplicationSession applicationSession, SipServletRequest origRequest, ApplicationContext appContext) {
     SipServletRequest req = null;
     if (origRequest != null) {
       LOG.debug("Continue routing from orig req:" + origRequest);
-      req = origRequest.getB2buaHelper().createRequest(origRequest);
-      req.removeHeader("x-vdirect");
-      req.removeHeader("x-accountid");
-      req.removeHeader("x-appid");
-      req.removeHeader("x-sid");
+      if (!Utils.isCopyHeadersForContinueRouting(appContext)) {
+        Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+        headerMap.put(Constants.PrismB2BUADoNotCopyHeader, new ArrayList<String>());
+        try {
+          req = origRequest.getB2buaHelper().createRequest(origRequest, true, headerMap);
+        }
+        catch (final TooManyHopsException e) {
+          throw new RuntimeException(e);
+        }
+
+        if (Utils.getHeadersToCopyForContinueRouting(appContext) != null) {
+          String[] copyHeaders = Utils.getHeadersToCopyForContinueRouting(appContext).split(",");
+          for (String copyHeader : copyHeaders) {
+            SIPHelper.copyHeader(copyHeader.trim(), origRequest, req);
+          }
+        }
+      }
+      else {
+        req = origRequest.getB2buaHelper().createRequest(origRequest);
+      }
+
       try {
         req.setContent(null, null);
       }
@@ -69,33 +91,33 @@ public class SIPHelper {
       }
       req.removeHeader("Content-Type");
       Address reqFrom = req.getFrom();
-      if(from.getDisplayName() != null){
+      if (from.getDisplayName() != null) {
         reqFrom.setDisplayName(from.getDisplayName());
       }
-      else{
+      else {
         reqFrom.setDisplayName(null);
       }
-      
+
       reqFrom.setURI(from.getURI());
-      for (final Iterator<String> names = from.getParameterNames(); names.hasNext(); ) {
-        String name =  names.next();
-        if(name.equalsIgnoreCase("tag")){
+      for (final Iterator<String> names = from.getParameterNames(); names.hasNext();) {
+        String name = names.next();
+        if (name.equalsIgnoreCase("tag")) {
           continue;
         }
         reqFrom.setParameter(name, from.getParameter(name));
       }
-      
+
       Address reqTo = req.getTo();
-      if(to.getDisplayName() != null){
+      if (to.getDisplayName() != null) {
         reqTo.setDisplayName(to.getDisplayName());
       }
-      else{
+      else {
         reqTo.setDisplayName(null);
       }
       reqTo.setURI(to.getURI());
-      for (final Iterator<String> names = to.getParameterNames(); names.hasNext(); ) {
-        String name =  names.next();
-        if(name.equalsIgnoreCase("tag")){
+      for (final Iterator<String> names = to.getParameterNames(); names.hasNext();) {
+        String name = names.next();
+        if (name.equalsIgnoreCase("tag")) {
           continue;
         }
         reqTo.setParameter(name, to.getParameter(name));
@@ -105,11 +127,11 @@ public class SIPHelper {
       req = factory.createRequest(applicationSession != null ? applicationSession : factory.createApplicationSession(),
           method, from, to);
     }
-    
+
     req.setRequestURI(to.getURI());
     URI ruri = req.getRequestURI();
     if (ruri instanceof SipURI) {
-      SipURI sruri = (SipURI)ruri;
+      SipURI sruri = (SipURI) ruri;
       if (sruri.getUserParam() == null) {
         sruri.setUserParam("phone");
         req.setRequestURI(sruri);
@@ -122,25 +144,25 @@ public class SIPHelper {
       for (final Map.Entry<String, String> e : clones.entrySet()) {
         if (e.getKey().equalsIgnoreCase("Route")) {
           try {
-          String[] values = e.getValue().split("\\|\\|\\|");
-          int length = values.length;
-          for (int i = length-1; i >= 0; i--) {
-            LOG.debug("route["+i+"]: "+values[i]);
-            try {
-              req.pushRoute(factory.createAddress(values[i]));
+            String[] values = e.getValue().split("\\|\\|\\|");
+            int length = values.length;
+            for (int i = length - 1; i >= 0; i--) {
+              LOG.debug("route[" + i + "]: " + values[i]);
+              try {
+                req.pushRoute(factory.createAddress(values[i]));
+              }
+              catch (ServletParseException ex) {
+                LOG.error("Invalid Route Header: " + values[i]);
+              }
             }
-            catch (ServletParseException ex) {
-              LOG.error("Invalid Route Header: " + values[i]);
-            }              
           }
-          }
-          catch(PatternSyntaxException ex) {
+          catch (PatternSyntaxException ex) {
             LOG.error(ex);
           }
         }
       }
       clones.remove("Route");
-      clones.remove("route");    
+      clones.remove("route");
     }
     SIPHelper.addHeaders(req, clones);
     return req;
@@ -413,6 +435,18 @@ public class SIPHelper {
     }
     else {
       return uri;
+    }
+  }
+  
+  public static void copyHeader(String header, SipServletMessage origMessage, SipServletMessage targetMessage) {
+    if (header == null || header.trim().isEmpty()) {
+      return;
+    }
+    ListIterator<String> values = origMessage.getHeaders(header);
+    if (values != null) {
+      while (values.hasNext()) {
+        targetMessage.addHeader(header, values.next());
+      }
     }
   }
 }
