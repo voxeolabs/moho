@@ -1,14 +1,11 @@
 /**
- * Copyright 2010 Voxeo Corporation
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
- * file except in compliance with the License.
- *
- * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
- * OF ANY KIND, either express or implied. See the License for the specific language
+ * Copyright 2010 Voxeo Corporation Licensed under the Apache License, Version
+ * 2.0 (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
 
@@ -58,7 +55,7 @@ public class Utils {
         }
       }
     }
-    
+
     return null;
   }
 
@@ -74,7 +71,7 @@ public class Utils {
     while (clazz != null);
     return null;
   }
-  
+
   @SuppressWarnings({"rawtypes", "unchecked"})
   public static Map<String, String> getCurrentLogContexts() {
     Map<String, String> current = null;
@@ -85,7 +82,7 @@ public class Utils {
     }
     return current;
   }
-  
+
   public static void inheritLogContexts(Map<String, String> contexts) {
     if (contexts != null) {
       for (String key : contexts.keySet()) {
@@ -93,7 +90,7 @@ public class Utils {
       }
     }
   }
-  
+
   public static void clearContexts() {
     if (MDC.getContext() == null) {
       return;
@@ -131,5 +128,32 @@ public class Utils {
     }
 
     return supressEarlyMeida;
+  }
+
+  protected static Boolean copyHeadersForContinueRouting;
+
+  public static boolean isCopyHeadersForContinueRouting(ApplicationContext context) {
+    if (copyHeadersForContinueRouting == null) {
+      String config = context.getParameter("com.voxeolabs.moho.copyHeadersForContinueRouting");
+      if (config == null) {
+        config = System.getProperty("com.voxeolabs.moho.copyHeadersForContinueRouting");
+      }
+      copyHeadersForContinueRouting = Boolean.valueOf(config);
+    }
+
+    return copyHeadersForContinueRouting;
+  }
+
+  protected static String headersToCopyForContinueRouting;
+
+  public static String getHeadersToCopyForContinueRouting(ApplicationContext context) {
+    if (headersToCopyForContinueRouting == null) {
+      headersToCopyForContinueRouting = context.getParameter("com.voxeolabs.moho.headersToCopyForContinueRouting");
+      if (headersToCopyForContinueRouting == null) {
+        headersToCopyForContinueRouting = System.getProperty("com.voxeolabs.moho.headersToCopyForContinueRouting");
+      }
+    }
+
+    return headersToCopyForContinueRouting;
   }
 }

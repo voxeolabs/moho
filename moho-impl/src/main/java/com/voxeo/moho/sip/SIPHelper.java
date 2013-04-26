@@ -13,6 +13,7 @@ package com.voxeo.moho.sip;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -41,8 +42,11 @@ import javax.servlet.sip.URI;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.ApplicationContext;
+import com.voxeo.moho.Constants;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
+import com.voxeo.moho.common.util.Utils;
 
 public class SIPHelper {
 
@@ -52,15 +56,31 @@ public class SIPHelper {
 
   public static SipServletRequest createSipInitnalRequest(final SipFactory factory, final String method,
       final Address from, final Address to, final Map<String, String> headers,
-      SipApplicationSession applicationSession, SipServletRequest origRequest) {
+      SipApplicationSession applicationSession, SipServletRequest origRequest, ApplicationContext appContext) {
     SipServletRequest req = null;
     if (origRequest != null) {
       LOG.debug("Continue routing from orig req:" + origRequest);
-      req = origRequest.getB2buaHelper().createRequest(origRequest);
-      req.removeHeader("x-vdirect");
-      req.removeHeader("x-accountid");
-      req.removeHeader("x-appid");
-      req.removeHeader("x-sid");
+      if (!Utils.isCopyHeadersForContinueRouting(appContext)) {
+        Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+        headerMap.put(Constants.PrismB2BUADoNotCopyHeader, new ArrayList<String>());
+        try {
+          req = origRequest.getB2buaHelper().createRequest(origRequest, true, headerMap);
+        }
+        catch (final TooManyHopsException e) {
+          throw new RuntimeException(e);
+        }
+
+        if (Utils.getHeadersToCopyForContinueRouting(appContext) != null) {
+          String[] copyHeaders = Utils.getHeadersToCopyForContinueRouting(appContext).split(",");
+          for (String copyHeader : copyHeaders) {
+            SIPHelper.copyHeader(copyHeader.trim(), origRequest, req);
+          }
+        }
+      }
+      else {
+        req = origRequest.getB2buaHelper().createRequest(origRequest);
+      }
+
       try {
         req.setContent(null, null);
       }
@@ -196,7 +216,7 @@ public class SIPHelper {
   public static boolean isDecline(final SipServletResponse res) {
     return res.getStatus() == SipServletResponse.SC_DECLINE;
   }
-  
+
   public static boolean isNotAcceptableHere(final SipServletResponse res) {
     return res.getStatus() == SipServletResponse.SC_NOT_ACCEPTABLE_HERE;
   }
@@ -515,6 +535,18 @@ public class SIPHelper {
           String headerValue = values.next();
           req.addHeader(headerName, headerValue);
         }
+      }
+    }
+  }
+
+  public static void copyHeader(String header, SipServletMessage origMessage, SipServletMessage targetMessage) {
+    if (header == null || header.trim().isEmpty()) {
+      return;
+    }
+    ListIterator<String> values = origMessage.getHeaders(header);
+    if (values != null) {
+      while (values.hasNext()) {
+        targetMessage.addHeader(header, values.next());
       }
     }
   }

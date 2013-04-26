@@ -205,7 +205,7 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
   private void createRequest() {
     try {
       _invite = SIPHelper.createSipInitnalRequest(_context.getSipFactory(), "INVITE", _from.getSipAddress(),
-          _address.getSipAddress(), _headers, _appSession, _continueRoutingOrigCall!= null ? _continueRoutingOrigCall.getSipRequest() : null);
+          _address.getSipAddress(), _headers, _appSession, _continueRoutingOrigCall!= null ? _continueRoutingOrigCall.getSipRequest() : null, this.getApplicationContext());
   
       _signal = _invite.getSession();
   
