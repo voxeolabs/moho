@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.sip.SIPCall.State;
 
 public class DirectNO2MultipleNOJoinDelegate extends JoinDelegate {
   private static final Logger LOG = Logger.getLogger(DirectNO2MultipleNOJoinDelegate.class);
@@ -57,6 +58,7 @@ public class DirectNO2MultipleNOJoinDelegate extends JoinDelegate {
         else if (SIPHelper.isSuccessResponse(res)) {
           if (_call1.equals(call)) {
             _responseCall1 = res;
+            _call1.setSIPCallState(State.ANSWERED);
 
             for (SIPCallImpl candidate : candidateCalls) {
               SIPHelper.remove100relSupport(candidate.getSipInitnalRequest());
@@ -75,6 +77,7 @@ public class DirectNO2MultipleNOJoinDelegate extends JoinDelegate {
             _call2 = call;
             candidateCalls.remove(call);
             disconnectCalls(candidateCalls);
+            _call2.setSIPCallState(State.ANSWERED);
 
             SipServletRequest ack1 = _responseCall1.createAck();
             SIPHelper.copyContent(_responseCall2, ack1);
@@ -94,7 +97,18 @@ public class DirectNO2MultipleNOJoinDelegate extends JoinDelegate {
             if (candidateCalls.isEmpty() && _call2 == null) {
               done(this.getJoinCompleteCauseByResponse(res), this.getExceptionByResponse(res));
             }
+
             disconnectCall(call, true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res));
+
+            try {
+              if (_responseCall1 != null) {
+                _responseCall1.createAck().send();
+              }
+            }
+            catch (Exception ex) {
+              LOG.debug("Exception when sending back ACK", ex);
+            }
+            disconnectCall(_call1, true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res));
           }
         }
       }
@@ -105,6 +119,9 @@ public class DirectNO2MultipleNOJoinDelegate extends JoinDelegate {
       failCall(_call1, ex);
       if (_call2 != null) {
         failCall(_call2, ex);
+      }
+      if (!candidateCalls.isEmpty()) {
+        disconnectCalls(candidateCalls);
       }
       throw ex;
     }

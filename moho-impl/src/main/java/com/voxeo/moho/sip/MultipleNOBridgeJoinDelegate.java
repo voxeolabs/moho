@@ -87,6 +87,9 @@ public class MultipleNOBridgeJoinDelegate extends JoinDelegate implements Observ
         LOG.error("Exception when doing join on delegate " + this, e);
         done(Cause.ERROR, e);
         failCall(call, e);
+        if (!candidateCalls.isEmpty()) {
+          disconnectCalls(candidateCalls);
+        }
       }
     }
     else {
@@ -124,6 +127,9 @@ public class MultipleNOBridgeJoinDelegate extends JoinDelegate implements Observ
       LOG.error("Exception when doing join on delegate " + this, e);
       done(Cause.ERROR, e);
       failCall(call, e);
+      if (!candidateCalls.isEmpty()) {
+        disconnectCalls(candidateCalls);
+      }
     }
   }
 }

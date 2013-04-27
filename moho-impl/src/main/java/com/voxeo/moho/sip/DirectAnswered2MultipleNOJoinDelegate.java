@@ -69,10 +69,8 @@ public class DirectAnswered2MultipleNOJoinDelegate extends JoinDelegate {
           if (_call1.equals(call)) {
             res.createAck().send();
             SipServletRequest ack2 = _response.createAck();
-            if (!_suppressEarlyMedia) {
-              SIPHelper.copyContent(res, ack2);
-            }
-            _call2.setSIPCallState(State.ANSWERED);
+
+            SIPHelper.copyContent(res, ack2);
             ack2.send();
             successJoin();
           }
@@ -87,13 +85,14 @@ public class DirectAnswered2MultipleNOJoinDelegate extends JoinDelegate {
               _response = res;
               _call2 = call;
               candidateCalls.remove(call);
-              this.disconnectCalls(candidateCalls);
+              disconnectCalls(candidateCalls);
+              _call2.setSIPCallState(State.ANSWERED);
 
               if (_suppressEarlyMedia) {
                 res.createAck().send();
                 // re-INVITE call2 with real SDP
                 final SipServletRequest req = _call2.getSipSession().createRequest("INVITE");
-                req.setContent(_call1.getRemoteSdp(), "application/sdp");
+                // req.setContent(_call1.getRemoteSdp(), "application/sdp");
                 req.send();
               }
               else {
@@ -136,6 +135,9 @@ public class DirectAnswered2MultipleNOJoinDelegate extends JoinDelegate {
       done(JoinCompleteEvent.Cause.ERROR, ex);
       if (_call2 != null) {
         failCall(_call2, ex);
+      }
+      if (!candidateCalls.isEmpty()) {
+        disconnectCalls(candidateCalls);
       }
       throw ex;
     }

@@ -83,7 +83,7 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
             if (call1Processed) {
               SIPHelper.copyContent(res, ack2);
             }
-            _call2.setSIPCallState(State.ANSWERED);
+
             ack2.send();
             successJoin();
           }
@@ -98,6 +98,7 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
               _call2 = call;
               candidateCalls.remove(call);
               disconnectCalls(candidateCalls);
+              _call2.setSIPCallState(State.ANSWERED);
 
               if (_suppressEarlyMedia) {
                 res.createAck().send();
@@ -149,6 +150,9 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
       if (_call2 != null) {
         failCall(_call2, ex);
       }
+      if (!candidateCalls.isEmpty()) {
+        disconnectCalls(candidateCalls);
+      }
       throw ex;
     }
   }
@@ -156,26 +160,28 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
   @Override
   protected void doAck(final SipServletRequest req, final SIPCallImpl call) throws Exception {
     if (_call1.equals(call)) {
-      _call1.setSIPCallState(State.ANSWERED);
-      if (!call1Processed) {
-        try {
+      try {
+        _call1.setSIPCallState(State.ANSWERED);
+        if (!call1Processed) {
           final SipServletRequest ack = _response.createAck();
           ack.send();
           _call2.setSIPCallState(State.ANSWERED);
           successJoin();
         }
-        catch (final Exception e) {
-          done(JoinCompleteEvent.Cause.ERROR, e);
-          failCall(_call2, e);
-          failCall(_call1, e);
-          throw e;
+        else {
+          // re-INVITE call1
+          SipServletRequest reInvite = _call1.getSipSession().createRequest("INVITE");
+          SIPHelper.copyContent(_response, reInvite);
+          reInvite.send();
         }
       }
-      else {
-        // re-INVITE call1
-        SipServletRequest reInvite = _call1.getSipSession().createRequest("INVITE");
-        SIPHelper.copyContent(_response, reInvite);
-        reInvite.send();
+      catch (final Exception e) {
+        done(JoinCompleteEvent.Cause.ERROR, e);
+        failCall(_call2, e);
+        if (!candidateCalls.isEmpty()) {
+          disconnectCalls(candidateCalls);
+        }
+        throw e;
       }
     }
   }
