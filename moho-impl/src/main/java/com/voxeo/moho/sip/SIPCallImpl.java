@@ -591,10 +591,16 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (others == null || others.length == 0 || type == null || direction == null) {
       throw new IllegalArgumentException("others should not be empty.");
     }
+    
     List<Call> calls = new ArrayList<Call>();
     for (CallableEndpoint other : others) {
       calls.add(other.createCall(getAddress(), headers, this));
     }
+    
+    if(calls.size() ==1) {
+      return this.join(calls.get(0), type, force, direction, dtmfPassThrough);
+    }
+    
     return join(type, force, direction, dtmfPassThrough, calls.toArray(new Call[calls.size()]));
   }
 
@@ -604,6 +610,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (isTerminated()) {
       throw new IllegalStateException("This call is already terminated.");
     }
+    
+    if(others.length ==1) {
+      return this.join(others[0], type, force, direction, dtmfPassThrough);
+    }
+    
     for (Call other : others) {
       if (other.equals(this)) {
         throw new IllegalArgumentException("Can't join to itself.");
