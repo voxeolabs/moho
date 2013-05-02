@@ -321,7 +321,7 @@ public class SIPHelper {
   public static void handleErrorSdpPortManagerEvent(final SdpPortManagerEvent event, final SipServletRequest req) {
     final MediaErr error = event.getError();
     try {
-      if (SdpPortManagerEvent.SDP_NOT_ACCEPTABLE.equals(error)) {
+      if (SdpPortManagerEvent.SDP_NOT_ACCEPTABLE.equals(error) || MediaErr.NOT_SUPPORTED.equals(error)) {
         // Send 488 error response to INVITE
         req.createResponse(SipServletResponse.SC_NOT_ACCEPTABLE_HERE).send();
       }
