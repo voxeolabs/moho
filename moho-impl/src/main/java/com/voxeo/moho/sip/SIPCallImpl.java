@@ -522,7 +522,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     else {
       _callDelegate = new SIPCallMediaDelegate();
     }
-    if (_oldJoinDelegate != null) {
+    if (_oldJoinDelegate != null && !(_oldJoinDelegate instanceof MultipleNOBridgeJoinDelegate)) {
       JoinCompleteEvent.Cause cause = _joinDelegate.getCause();
       Exception exception = _joinDelegate.getException();
       _joinDelegate = _oldJoinDelegate;
@@ -546,6 +546,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     else {
       _joinDelegate = null;
+      _oldJoinDelegate = null;
       _operationInProcess = false;
     }
   }

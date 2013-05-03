@@ -1,5 +1,6 @@
 package com.voxeo.moho.sip;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ import com.voxeo.moho.sip.SIPCall.State;
 public class DirectNO2MultipleNOJoinDelegate extends JoinDelegate {
   private static final Logger LOG = Logger.getLogger(DirectNO2MultipleNOJoinDelegate.class);
 
-  protected List<SIPCallImpl> candidateCalls;
+  protected List<SIPCallImpl> candidateCalls = new LinkedList<SIPCallImpl>();
 
   protected boolean _suppressEarlyMedia;
 
@@ -33,7 +34,7 @@ public class DirectNO2MultipleNOJoinDelegate extends JoinDelegate {
     _suppressEarlyMedia = suppressEarlyMedia;
     _direction = direction;
     _joinType = type;
-    candidateCalls = others;
+    candidateCalls.addAll(others);
   }
 
   @Override

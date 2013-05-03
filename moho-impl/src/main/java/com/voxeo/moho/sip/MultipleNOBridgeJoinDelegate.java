@@ -1,5 +1,6 @@
 package com.voxeo.moho.sip;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -23,7 +24,7 @@ public class MultipleNOBridgeJoinDelegate extends JoinDelegate implements Observ
 
   private static final Logger LOG = Logger.getLogger(MultipleNOBridgeJoinDelegate.class);
 
-  protected List<SIPCallImpl> candidateCalls;
+  protected List<SIPCallImpl> candidateCalls = new LinkedList<SIPCallImpl>();
 
   protected boolean joinedOutgoingCall;
 
@@ -33,7 +34,7 @@ public class MultipleNOBridgeJoinDelegate extends JoinDelegate implements Observ
     _call1 = call1;
     _direction = direction;
     _joinType = type;
-    candidateCalls = others;
+    candidateCalls.addAll(others);
   }
 
   @Override
