@@ -24,6 +24,8 @@ import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 public class Media2NIJoinDelegate extends JoinDelegate {
 
   protected boolean waitAnswerProcessed = false;
+  
+  protected boolean callProcessed;
 
   protected Media2NIJoinDelegate(final SIPIncomingCall call) {
     _call1 = call;
@@ -34,10 +36,8 @@ public class Media2NIJoinDelegate extends JoinDelegate {
     super.doJoin();
     if (_call1.getSIPCallState() == SIPCall.State.PROGRESSED) {
       try {
+        callProcessed = true;
         final SipServletResponse res = _call1.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
-        if (_call1.getRemoteSdp() == null) {
-          waitAnswerProcessed = true;
-        }
         res.setContent(_call1.getLocalSDP(), "application/sdp");
         res.send();
       }
@@ -97,7 +97,11 @@ public class Media2NIJoinDelegate extends JoinDelegate {
   protected void doAck(final SipServletRequest req, final SIPCallImpl call) throws Exception {
     try {
       _call1.setSIPCallState(SIPCall.State.ANSWERED);
-      _call1.processSDPAnswer(req);
+      
+      if(!callProcessed) {
+        _call1.processSDPAnswer(req);
+      }
+      
       if (!waitAnswerProcessed) {
         done(JoinCompleteEvent.Cause.JOINED, null);
       }

@@ -14,6 +14,9 @@
 
 package com.voxeo.moho.sip;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import javax.media.mscontrol.MediaEventListener;
 import javax.media.mscontrol.MediaSession;
 import javax.media.mscontrol.MsControlFactory;
@@ -33,6 +36,7 @@ import org.jmock.Mockery;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Ignore;
 
 import com.voxeo.moho.ApplicationContext;
 import com.voxeo.moho.ApplicationContextImpl;
@@ -173,6 +177,9 @@ public class SIPInviteEventImplTest extends TestCase {
 
     final SdpPortManagerEvent mediaEvent0 = mockery.mock(SdpPortManagerEvent.class, "mediaEvent0");
     final byte[] sdpOffer = new byte[10];
+    
+    final List<String> supportedHeaders = new LinkedList<String>();
+    supportedHeaders.add("100rel");
     try {
       mockery.checking(new Expectations() {
         {
@@ -192,6 +199,9 @@ public class SIPInviteEventImplTest extends TestCase {
       {
         oneOf(inviteReq).createResponse(SipServletResponse.SC_SESSION_PROGRESS);
         will(returnValue(inviteResp));
+
+        allowing(inviteReq).getHeaders("Supported");
+        will(returnValue(supportedHeaders.listIterator()));
 
         oneOf(inviteResp).setContent(with(same(sdpOffer)), with(any(String.class)));
 

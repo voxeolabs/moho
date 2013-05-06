@@ -158,6 +158,12 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
             }
             notifyAll();
           }
+          else {
+            if (!reliableEarlyMedia) {
+              setSIPCallState(oldStateBeforeEarlyMedia);
+              notifyAll();
+            }
+          }
         }
         catch (final Exception e) {
           LOG.warn("Can't send early media response.", e);
@@ -224,6 +230,11 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
 
   protected synchronized void doInviteWithEarlyMedia(final Map<String, String> headers) throws MediaException,
       SignalException {
+    if(!SIPHelper.support100rel(getSipInitnalRequest())) {
+      LOG.error("Request doesn't support 100rel, can't acceptWithEarlyMedia.");
+      throw new SignalException("Request doesn't support 100rel, can't acceptWithEarlyMedia." + this);
+    }
+    
     if (_cstate == SIPCall.State.INVITING || _cstate == SIPCall.State.RINGING) {
       oldStateBeforeEarlyMedia = _cstate;
       setSIPCallState(SIPCall.State.PROGRESSING);

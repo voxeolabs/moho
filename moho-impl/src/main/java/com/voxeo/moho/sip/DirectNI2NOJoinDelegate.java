@@ -109,20 +109,28 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           if (SIPHelper.getRawContentWOException(res) != null) {
             _responseWithSDP = res;
           }
-          final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
-              res.getReasonPhrase());
-          SIPHelper.copyContent(res, newRes);
-
-          if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS && SIPHelper.needPrack(res)) {
-            newRes.addHeader("Require", "100rel");
+          
+          if(res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS && call1Processed && SIPHelper.needPrack(res)) {
+            SipServletRequest prack = res.createPrack();
+            prack.setContent(_call1.getRemoteSdp(), "application/sdp");
+            prack.send();
           }
+          else {
+            final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
+                res.getReasonPhrase());
+            SIPHelper.copyContent(res, newRes);
 
-          // TODO should do this at container?
-          if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS || res.getStatus() == SipServletResponse.SC_OK) {
-            SIPHelper.copyPandXHeaders(res, newRes);
+            if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS && SIPHelper.needPrack(res)) {
+              newRes.addHeader("Require", "100rel");
+            }
+
+            // TODO should do this at container?
+            if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS || res.getStatus() == SipServletResponse.SC_OK) {
+              SIPHelper.copyPandXHeaders(res, newRes);
+            }
+
+            newRes.send();
           }
-
-          newRes.send();
         }
         else if (SIPHelper.isErrorResponse(res)) {
           Exception ex = getExceptionByResponse(res);
