@@ -14,6 +14,7 @@ package com.voxeo.moho.sip;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.locks.Lock;
 
 import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.join.Joinable;
@@ -46,6 +47,7 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.util.JoinLockService;
 
 public abstract class JoinDelegate {
 
@@ -112,7 +114,7 @@ public abstract class JoinDelegate {
     }
 
     JoinCompleteEvent joinCompleteEvent = new MohoJoinCompleteEvent(p1, p2, cause, exception, _call2 == null ? true
-        : _peer == null ? true :_peer.equals(_call2));
+        : _peer == null ? true : _peer.equals(_call2));
     _call1.dispatch(joinCompleteEvent);
 
     if (_call2 != null) {
@@ -203,7 +205,7 @@ public abstract class JoinDelegate {
   }
 
   protected Exception getExceptionByResponse(SipServletResponse res) {
-    if(res == null) {
+    if (res == null) {
       return null;
     }
     Exception e = null;
@@ -317,7 +319,7 @@ public abstract class JoinDelegate {
 
     return null;
   }
-  
+
   public static ExecutionException checkJoinStrategy(final Participant part, final Participant other,
       final JoinType type, final boolean force) throws Exception {
     final Participant[] parts = part.getParticipants();
@@ -399,100 +401,126 @@ public abstract class JoinDelegate {
       throws MsControlException {
     LOG.info(part + " joins to " + other + " in " + direction);
 
-    // check if part and other has been joined
-    final Direction oldDirection = getJoinDirection(part, other);
-    if (oldDirection != null) {
-      if (oldDirection != direction) {
-        bridgeUnjoin(part, other);
+    final Lock lock = JoinLockService.getInstance().get(new String[] {part.getId(), other.getId()});
+    lock.lock();
+    try {
+      // check if part and other has been joined
+      final Direction oldDirection = getJoinDirection(part, other);
+      if (oldDirection != null) {
+        if (oldDirection != direction) {
+          bridgeUnjoin(part, other);
+        }
+        else {
+          LOG.debug(part + "already joined to " + other + " in " + direction + ",ignore the operation");
+          return;
+        }
+      }
+
+      final Joinable joinable = getJoinable(part);
+      final Joinable otherJoinable = getJoinable(other);
+
+      MediaMixer multipleJoiningMixer = null;
+      MediaMixer otherMultipleJoiningMixer = null;
+
+      final Participant[] parts = part.getParticipants(Direction.RECV);
+      final Participant[] otherParts = other.getParticipants(Direction.RECV);
+
+      final Joinable[] joinees = joinable.getJoinees(Direction.RECV);
+      final Joinable[] otherJoinees = otherJoinable.getJoinees(Direction.RECV);
+
+      if (joinees.length == 0 && otherJoinees.length == 0) {
+        joinable.join(direction, otherJoinable);
       }
       else {
-        LOG.debug(part + "already joined to " + other + " in " + direction + ",ignore the operation");
-        return;
+        if (joinees.length > 0) {
+          multipleJoiningMixer = getMultipleJoiningMixer(part, true);
+        }
+        if (otherJoinees.length > 0) {
+          otherMultipleJoiningMixer = getMultipleJoiningMixer(other, true);
+        }
+
+        MediaGroup medGro = getMediaService(part);
+        MediaGroup otherMedGro = getMediaService(other);
+
+        if (joinees.length > 0) {
+          if (medGro == null) {
+            sharedJoin(part, multipleJoiningMixer, parts[0], other, otherMultipleJoiningMixer, direction);
+          }
+          else {
+            sharedJoin(part, multipleJoiningMixer, medGro, other, otherMultipleJoiningMixer, direction);
+          }
+        }
+        if (otherJoinees.length > 0) {
+          if (otherMedGro == null) {
+            sharedJoin(other, otherMultipleJoiningMixer, otherParts[0], part, multipleJoiningMixer, reserve(direction));
+          }
+          else {
+            sharedJoin(other, otherMultipleJoiningMixer, otherMedGro, part, multipleJoiningMixer, reserve(direction));
+          }
+        }
       }
     }
-
-    final Joinable joinable = getJoinable(part);
-    final Joinable otherJoinable = getJoinable(other);
-
-    MediaMixer multipleJoiningMixer = null;
-    MediaMixer otherMultipleJoiningMixer = null;
-
-    final Participant[] parts = part.getParticipants(Direction.RECV);
-    final Participant[] otherParts = other.getParticipants(Direction.RECV);
-
-    final Joinable[] joinees = joinable.getJoinees(Direction.RECV);
-    final Joinable[] otherJoinees = otherJoinable.getJoinees(Direction.RECV);
-
-    if (joinees.length == 0 && otherJoinees.length == 0) {
-      joinable.join(direction, otherJoinable);
-    }
-    else {
-      if (joinees.length > 0) {
-        multipleJoiningMixer = getMultipleJoiningMixer(part, true);
-      }
-      if (otherJoinees.length > 0) {
-        otherMultipleJoiningMixer = getMultipleJoiningMixer(other, true);
-      }
-
-      MediaGroup medGro = getMediaService(part);
-      MediaGroup otherMedGro = getMediaService(other);
-
-      if (joinees.length > 0) {
-        if (medGro == null) {
-          sharedJoin(part, multipleJoiningMixer, parts[0], other, otherMultipleJoiningMixer, direction);
-        }
-        else {
-          sharedJoin(part, multipleJoiningMixer, medGro, other, otherMultipleJoiningMixer, direction);
-        }
-      }
-      if (otherJoinees.length > 0) {
-        if (otherMedGro == null) {
-          sharedJoin(other, otherMultipleJoiningMixer, otherParts[0], part, multipleJoiningMixer, reserve(direction));
-        }
-        else {
-          sharedJoin(other, otherMultipleJoiningMixer, otherMedGro, part, multipleJoiningMixer, reserve(direction));
-        }
-      }
+    finally {
+      lock.unlock();
+      JoinLockService.getInstance().remove(part.getId());
+      JoinLockService.getInstance().remove(other.getId());
     }
   }
 
   public static void bridgeJoin(final Participant part, final MediaGroup medGro) throws MsControlException {
     LOG.info(part + " joins to " + medGro + " in DUPLEX");
 
-    final Participant[] parts = part.getParticipants(Direction.RECV);
-    if (parts.length == 0) {
-      getJoinable(part).join(Direction.DUPLEX, medGro);
+    final Lock lock = JoinLockService.getInstance().get(new String[] {part.getId()});
+    lock.lock();
+    try {
+      final Participant[] parts = part.getParticipants(Direction.RECV);
+      if (parts.length == 0) {
+        getJoinable(part).join(Direction.DUPLEX, medGro);
+      }
+      else {
+        MediaMixer multipleJoiningMixer = getMultipleJoiningMixer(part, true);
+        sharedJoin(part, multipleJoiningMixer, parts[0], medGro);
+      }
     }
-    else {
-      MediaMixer multipleJoiningMixer = getMultipleJoiningMixer(part, true);
-      sharedJoin(part, multipleJoiningMixer, parts[0], medGro);
+    finally {
+      lock.unlock();
+      JoinLockService.getInstance().remove(part.getId());
     }
   }
 
   public static void bridgeUnjoin(final Participant part, final Participant other) throws MsControlException {
     LOG.info(part + " unjoins from " + other);
 
-    final Joinable joinable = getJoinable(part);
-    final Joinable otherJoinable = getJoinable(other);
+    final Lock lock = JoinLockService.getInstance().get(new String[] {part.getId(), other.getId()});
+    lock.lock();
+    try {
+      final Joinable joinable = getJoinable(part);
+      final Joinable otherJoinable = getJoinable(other);
 
-    if (contains(joinable, otherJoinable, null)) {
-      joinable.unjoin(otherJoinable);
-    }
+      if (contains(joinable, otherJoinable, null)) {
+        joinable.unjoin(otherJoinable);
+      }
 
-    final MediaMixer multipleJoiningMixer = getMultipleJoiningMixer(part, false);
-    final MediaMixer otherMultipleJoiningMixer = getMultipleJoiningMixer(other, false);
+      final MediaMixer multipleJoiningMixer = getMultipleJoiningMixer(part, false);
+      final MediaMixer otherMultipleJoiningMixer = getMultipleJoiningMixer(other, false);
 
-    if (multipleJoiningMixer != null && contains(multipleJoiningMixer, otherJoinable, null)) {
-      multipleJoiningMixer.unjoin(otherJoinable);
-      if (multipleJoiningMixer.getJoinees().length == 1) {
-        destroyMultipleJoiningMixer(part);
+      if (multipleJoiningMixer != null && contains(multipleJoiningMixer, otherJoinable, null)) {
+        multipleJoiningMixer.unjoin(otherJoinable);
+        if (multipleJoiningMixer.getJoinees().length == 1) {
+          destroyMultipleJoiningMixer(part);
+        }
+      }
+      if (otherMultipleJoiningMixer != null && contains(otherMultipleJoiningMixer, joinable, null)) {
+        otherMultipleJoiningMixer.unjoin(joinable);
+        if (otherMultipleJoiningMixer.getJoinees().length == 1) {
+          destroyMultipleJoiningMixer(other);
+        }
       }
     }
-    if (otherMultipleJoiningMixer != null && contains(otherMultipleJoiningMixer, joinable, null)) {
-      otherMultipleJoiningMixer.unjoin(joinable);
-      if (otherMultipleJoiningMixer.getJoinees().length == 1) {
-        destroyMultipleJoiningMixer(other);
-      }
+    finally {
+      lock.unlock();
+      JoinLockService.getInstance().remove(part.getId());
+      JoinLockService.getInstance().remove(other.getId());
     }
   }
 
