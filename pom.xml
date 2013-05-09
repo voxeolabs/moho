@@ -56,7 +56,7 @@
     <developerConnection>scm:git:git@github.com:voxeolabs/moho.git</developerConnection>
     <url>scm:git:git@github.com:voxeolabs/moho.git</url>
    </scm>
- 
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <svnUrlBase>scm:git@github.com:voxeo/moho.git/1.0</svnUrlBase>
@@ -86,7 +86,7 @@
           </execution>
         </executions>
       </plugin>
-      
+
    <plugin>
     <groupId>org.codehaus.mojo</groupId>
     <artifactId>buildnumber-maven-plugin</artifactId>
@@ -109,7 +109,7 @@
      <doUpdate>false</doUpdate>
     </configuration>
    </plugin>
-   
+
    <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-jar-plugin</artifactId>
@@ -126,12 +126,26 @@
      </archive>
     </configuration>
    </plugin>
-   
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-scm-plugin</artifactId>
         <version>1.3</version>
         <configuration />
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <!-- version>2.10</version -->
+        <configuration>
+          <excludes>
+            <exclude>%regex[com.voxeo.moho.conference.Conference*.*]</exclude>
+            <exclude>%regex[com.voxeo.moho.Mixer*.*]</exclude>
+            <exclude>%regex[com.voxeo.moho.media*.*]</exclude>
+            <exclude>%regex[com.voxeo.moho.sip*.*]</exclude>
+         </excludes>
+        </configuration>
       </plugin>
 
       <plugin>
