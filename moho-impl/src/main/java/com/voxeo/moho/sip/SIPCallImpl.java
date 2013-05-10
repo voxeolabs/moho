@@ -893,7 +893,13 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         _callDelegate.handleUpdateResponse(this, res, headers);
       }
       else {
-        LOG.warn("Call delegate is null, discarding UPDATE response:" + res);
+        if(sendingUpdate) {
+          sendingUpdate = false;
+          LOG.debug("receive response for UPDATE:" + res);
+        }
+        else {
+          LOG.warn("Call delegate is null, discarding UPDATE response:" + res);
+        }
       }
     }
     else {

@@ -19,6 +19,7 @@ import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletMessage;
+import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
@@ -39,8 +40,25 @@ public class Media2NOJoinDelegate extends JoinDelegate {
 
   protected SipServletResponse _earlyMediaResponse;
 
+  protected SipServletRequest _updateRequest;
+
   protected Media2NOJoinDelegate(final SIPOutgoingCall call) {
     _call1 = call;
+  }
+
+  @Override
+  protected void doUpdate(SipServletRequest req, SIPCallImpl call, Map<String, String> headers) throws Exception {
+    if (call.equals(_call1) && _call1.getSIPCallState() == SIPCall.State.PROGRESSED && req.getRawContent() != null) {
+      _updateRequest = req;
+      call.processSDPOffer(req);
+    }
+    else if (req.getRawContent() == null) {
+      req.createResponse(SipServletResponse.SC_OK).send();
+    }
+    else {
+      LOG.error("call received UPDATE request in wrong state." + call + " " + req);
+      req.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR).send();
+    }
   }
 
   @Override
@@ -55,14 +73,35 @@ public class Media2NOJoinDelegate extends JoinDelegate {
         || event.getEventType().equals(SdpPortManagerEvent.ANSWER_GENERATED)) {
       if (event.isSuccessful()) {
         try {
-          final byte[] sdp = event.getMediaServerSdp();
-          _call1.setLocalSDP(sdp);
-          ((SIPOutgoingCall) _call1).call(sdp);
-          return;
+          if (_updateRequest != null) {
+            SipServletResponse updateResponse = _updateRequest.createResponse(200);
+            _updateRequest = null;
+            updateResponse.setContent(event.getMediaServerSdp(), "application/sdp");
+            updateResponse.send();
+            return;
+          }
+          else {
+            final byte[] sdp = event.getMediaServerSdp();
+            _call1.setLocalSDP(sdp);
+            ((SIPOutgoingCall) _call1).call(sdp);
+            return;
+          }
         }
         catch (final Exception e) {
           done(Cause.ERROR, e);
           _call1.fail(e);
+        }
+      }
+      else {
+        if (_updateRequest != null) {
+          LOG.error("call received fail SdpPortManagerEvent when processing UPDATE." + _call1 + " " + event);
+          try {
+            _updateRequest.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR).send();
+            _updateRequest = null;
+          }
+          catch (Exception ex) {
+            LOG.error("Exception when sending response", ex);
+          }
         }
       }
 
@@ -95,7 +134,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
                   SIPIncomingCall incomingCall = (SIPIncomingCall) _call1.getJoiningPeer().getParticipant();
                   if (incomingCall.getSIPCallState() == SIPCall.State.INVITING
                       || incomingCall.getSIPCallState() == SIPCall.State.RINGING) {
-                    ((SIPIncomingCall) _call1.getJoiningPeer().getParticipant()).acceptWithEarlyMedia();
+                    ((SIPIncomingCall) _call1.getJoiningPeer().getParticipant()).answer();
                   }
                 }
                 else {
@@ -114,9 +153,9 @@ public class Media2NOJoinDelegate extends JoinDelegate {
               throw new SignalException(e);
             }
           }
-          
+
           _call1.setSIPCallState(SIPCall.State.PROGRESSED);
-          
+
           synchronized (this) {
             this.notify();
           }
