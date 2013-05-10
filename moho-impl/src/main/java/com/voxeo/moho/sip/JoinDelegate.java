@@ -656,7 +656,9 @@ public abstract class JoinDelegate {
       throws MsControlException {
     // first rejoin to peer
     if (peerJoinable != null && !peerJoinable.equals(multipleJoiningMixer)) {
-      joinable.unjoin(peerJoinable);
+      if (contains(joinable, peerJoinable, null)) {
+        joinable.unjoin(peerJoinable);
+      }
       joinable.join(Direction.RECV, multipleJoiningMixer);
       if (isRecv(peerDirection)) {
         peerJoinable.join(Direction.SEND, multipleJoiningMixer);
