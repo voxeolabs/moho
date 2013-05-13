@@ -62,7 +62,7 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
         }
         catch (final Exception e) {
           done(JoinCompleteEvent.Cause.ERROR, e);
-          _call1.fail(e);
+          failCall(_call1, e);
           throw e;
         }
       }
@@ -93,7 +93,7 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
       }
       catch (final Exception e) {
         done(JoinCompleteEvent.Cause.ERROR, e);
-        _call1.fail(e);
+        failCall(_call1, e);
         throw e;
       }
     }

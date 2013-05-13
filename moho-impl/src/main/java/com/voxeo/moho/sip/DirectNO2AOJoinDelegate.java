@@ -119,7 +119,7 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
           else if (SIPHelper.isErrorResponse(res)) {
             Exception ex = getExceptionByResponse(res);
             done(getJoinCompleteCauseByResponse(res), ex);
-            _call1.disconnect(true, getCallCompleteCauseByResponse(res), ex, null);
+            disconnectCall(_call1, true, getCallCompleteCauseByResponse(res), ex);
           }
         }
         else if (_call2.equals(call)) {
@@ -164,7 +164,7 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
           else if (SIPHelper.isErrorResponse(res)) {
             Exception ex = getExceptionByResponse(res);
             done(getJoinCompleteCauseByResponse(res), ex);
-            _call1.disconnect(true, getCallCompleteCauseByResponse(res), ex, null);
+            disconnectCall(_call1, true, getCallCompleteCauseByResponse(res), ex);
           }
         }
       }
@@ -174,7 +174,7 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
     }
     catch (final Exception e) {
       done(JoinCompleteEvent.Cause.ERROR, e);
-      _call1.fail(e);
+      failCall(_call1, e);
       throw e;
     }
   }

@@ -124,6 +124,7 @@ public class DirectAnswered2MultipleNOJoinDelegate extends JoinDelegate {
           else {
             candidateCalls.remove(call);
             if (candidateCalls.isEmpty() && _call2 == null) {
+              _call2 = call;
               done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
             }
             disconnectCall(call, true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res));

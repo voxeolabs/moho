@@ -138,6 +138,7 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
           else {
             candidateCalls.remove(call);
             if (candidateCalls.isEmpty() && _call2 == null) {
+              _call2 = call;
               done(this.getJoinCompleteCauseByResponse(res), this.getExceptionByResponse(res));
             }
             disconnectCall(call, true, getCallCompleteCauseByResponse(res), getExceptionByResponse(res));

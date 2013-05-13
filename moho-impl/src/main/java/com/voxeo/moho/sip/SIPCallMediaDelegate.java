@@ -134,15 +134,6 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
       _isUpdateWaiting = true;
       _req = req;
       call.processSDPOffer(req);
-
-      while (call.isAnswered() & _isUpdateWaiting) {
-        try {
-          call.wait();
-        }
-        catch (final InterruptedException e) {
-          // ignore
-        }
-      }
     }
     else{
       req.createResponse(SipServletResponse.SC_OK).send();
