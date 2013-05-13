@@ -70,7 +70,7 @@ public class MultipleNOBridgeJoinDelegate extends JoinDelegate implements Observ
         disconnectCalls(candidateCalls);
 
         if (_call1 instanceof SIPIncomingCall && _call1.getSIPCallState() == SIPCall.State.PROGRESSED) {
-          final SipServletResponse res = call.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
+          final SipServletResponse res = _call1.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
           if (call.getLocalSDP() != null) {
             res.setContent(call.getLocalSDP(), "application/sdp");
           }
