@@ -33,6 +33,8 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   protected SipServletResponse _responseWithSDP;
 
   protected boolean call1Processed;
+  
+  protected SipServletResponse _waitingPrackResponse;
 
   protected DirectNI2NOJoinDelegate(final SIPIncomingCall call1, final SIPOutgoingCall call2,
       final Direction direction, final SIPCallImpl peer) {
@@ -80,8 +82,9 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doPrack(SipServletRequest req, SIPCallImpl call, Map<String, String> headers) throws Exception {
-    if (_call1.equals(call)) {
-      SIPHelper.sendSubsequentRequest(_call2.getSipSession(), req, headers);
+    if (_call1.equals(call) && _waitingPrackResponse != null) {
+      SIPHelper.relayPrack(_waitingPrackResponse, req, headers);
+      _waitingPrackResponse = null;
     }
     else {
       LOG.error("Can't process PRACK request:" + req);
@@ -120,22 +123,32 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
                 res.getReasonPhrase());
             SIPHelper.copyContent(res, newRes);
 
-            if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS && SIPHelper.needPrack(res)) {
-              newRes.addHeader("Require", "100rel");
-            }
-
             // TODO should do this at container?
             if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS || res.getStatus() == SipServletResponse.SC_OK) {
               SIPHelper.copyPandXHeaders(res, newRes);
             }
 
-            newRes.send();
+            if(SIPHelper.isProvisionalResponse(res) && SIPHelper.needPrack(res)) {
+              try{
+                newRes.sendReliably();
+                _waitingPrackResponse = res;
+              }
+              catch(Exception ex) {
+                LOG.warn("Got exception when trying send 183 reliably. trying send back PRACK.", ex);
+                res.createPrack().send();
+                
+                newRes.send();
+              }
+            }
+            else {
+              newRes.send();
+            }
           }
         }
         else if (SIPHelper.isErrorResponse(res)) {
           Exception ex = getExceptionByResponse(res);
           done(getJoinCompleteCauseByResponse(res), ex);
-          _call2.disconnect(true, getCallCompleteCauseByResponse(res), ex, null);
+          disconnectCall(_call2, true,  getCallCompleteCauseByResponse(res), ex);
         }
       }
       else if (_call1.equals(call)) {
@@ -152,8 +165,8 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           }
           catch (final Exception e) {
             done(JoinCompleteEvent.Cause.ERROR, e);
-            _call1.fail(e);
-            _call2.fail(e);
+            failCall(_call1, e);
+            failCall(_call2, e);
             throw e;
           }
         }
@@ -164,8 +177,8 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
     }
     catch (final Exception e) {
       done(JoinCompleteEvent.Cause.ERROR, e);
-      _call1.fail(e);
-      _call2.fail(e);
+      failCall(_call1, e);
+      failCall(_call2, e);
       throw e;
     }
   }
@@ -186,8 +199,8 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
         }
         catch (final Exception e) {
           done(JoinCompleteEvent.Cause.ERROR, e);
-          _call1.fail(e);
-          _call2.fail(e);
+          failCall(_call1, e);
+          failCall(_call2, e);
           throw e;
         }
       }

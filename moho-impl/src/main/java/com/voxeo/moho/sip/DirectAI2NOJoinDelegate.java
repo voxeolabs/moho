@@ -83,7 +83,7 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
       final Map<String, String> headers) throws Exception {
     if (SIPHelper.isErrorResponse(res)) {
       done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
-      _call2.disconnect(true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res), null);
+      disconnectCall(_call2, true, this.getCallCompleteCauseByResponse(res), this.getExceptionByResponse(res));
     }
     else if (SIPHelper.isProvisionalResponse(res) && _call2.equals(call)) {
       _call2.setSIPCallState(SIPCall.State.ANSWERING);
@@ -101,7 +101,7 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
         }
         catch (Exception e) {
           done(JoinCompleteEvent.Cause.ERROR, e);
-          _call2.fail(e);
+          failCall(_call2, e);
           throw e;
         }
       }
@@ -173,7 +173,7 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
       }
       catch (final Exception e) {
         done(JoinCompleteEvent.Cause.ERROR, e);
-        _call2.fail(e);
+        failCall(_call2, e);
         throw e;
       }
     }

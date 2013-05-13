@@ -364,6 +364,15 @@ public class SIPHelper {
     SIPHelper.linkSIPMessage(origReq, newReq);
     newReq.send();
   }
+  
+  public static void relayPrack(final SipServletResponse waitingPrackResp, final SipServletRequest origReq, 
+      final Map<String, String> headers) throws IOException, Rel100Exception {
+    final SipServletRequest newReq = waitingPrackResp.createPrack();
+    SIPHelper.addHeaders(newReq, headers);
+    SIPHelper.copyContent(origReq, newReq);
+    SIPHelper.linkSIPMessage(origReq, newReq);
+    newReq.send();
+  }
 
   public static void relayResponse(SipServletResponse origResp) throws IOException {
     SipServletRequest peerReq = (SipServletRequest) SIPHelper.getLinkSIPMessage(origResp.getRequest());
