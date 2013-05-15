@@ -116,18 +116,18 @@ public class Utils {
     }
   }
 
-  protected static Boolean supressEarlyMeida;
+  protected static Boolean suppressEarlyMedia;
 
   public static boolean suppressEarlyMedia(ApplicationContext context) {
-    if (supressEarlyMeida == null) {
-      String config = context.getParameter("com.voxeolabs.moho.supressEarlyMeida");
+    if (suppressEarlyMedia == null) {
+      String config = context.getParameter("com.voxeolabs.moho.suppressEarlyMedia");
       if (config == null) {
-        config = System.getProperty("com.voxeolabs.moho.supressEarlyMeida");
+        config = System.getProperty("com.voxeolabs.moho.suppressEarlyMedia");
       }
-      supressEarlyMeida = Boolean.valueOf(config);
+      suppressEarlyMedia = Boolean.valueOf(config);
     }
 
-    return supressEarlyMeida;
+    return suppressEarlyMedia;
   }
 
   protected static Boolean copyHeadersForContinueRouting;
