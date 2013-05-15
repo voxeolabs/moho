@@ -152,6 +152,7 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
               }
               else if (_reliable183Resp != null) {
                 try {
+                  doDisengage(_call1, JoinType.DIRECT);
                   SipServletRequest prack = _reliable183Resp.createPrack();
                   SIPHelper.copyContent(res, prack);
                   prack.send();
