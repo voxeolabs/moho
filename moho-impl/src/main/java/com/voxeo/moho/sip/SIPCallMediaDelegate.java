@@ -26,8 +26,6 @@ import javax.servlet.sip.SipServletResponse;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.NegotiateException;
-import com.voxeo.moho.SignalException;
-import com.voxeo.moho.sip.SIPCall.State;
 import com.voxeo.moho.sip.SIPCallImpl.HoldState;
 
 public class SIPCallMediaDelegate extends SIPCallDelegate {
@@ -69,18 +67,6 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
     if (call.getHoldState() == HoldState.None) {
       _isWaiting = true;
       call.processSDPOffer(req);
-
-      while (call.isAnswered() & _isWaiting) {
-        try {
-          call.wait();
-        }
-        catch (final InterruptedException e) {
-          // ignore
-        }
-      }
-      if (call.getSIPCallState() != State.ANSWERED) {
-        throw new SignalException("Call state error: " + call);
-      }
     }
   }
 
