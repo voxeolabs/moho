@@ -401,7 +401,7 @@ public abstract class JoinDelegate {
       throws MsControlException {
     LOG.info(part + " joins to " + other + " in " + direction);
 
-    final Lock lock = JoinLockService.getInstance().get(new String[] {part.getId(), other.getId()});
+    final Lock lock = JoinLockService.getInstance().get(part, other);
     lock.lock();
     try {
       // check if part and other has been joined
@@ -470,7 +470,7 @@ public abstract class JoinDelegate {
   public static void bridgeJoin(final Participant part, final MediaGroup medGro) throws MsControlException {
     LOG.info(part + " joins to " + medGro + " in DUPLEX");
 
-    final Lock lock = JoinLockService.getInstance().get(new String[] {part.getId()});
+    final Lock lock = JoinLockService.getInstance().get(part);
     lock.lock();
     try {
       final Participant[] parts = part.getParticipants(Direction.RECV);
@@ -491,7 +491,7 @@ public abstract class JoinDelegate {
   public static void bridgeUnjoin(final Participant part, final Participant other) throws MsControlException {
     LOG.info(part + " unjoins from " + other);
 
-    final Lock lock = JoinLockService.getInstance().get(new String[] {part.getId(), other.getId()});
+    final Lock lock = JoinLockService.getInstance().get(part, other);
     lock.lock();
     try {
       final Joinable joinable = getJoinable(part);
