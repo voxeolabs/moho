@@ -557,7 +557,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     
     joinCompleteLock.lock();
     try{
-      joinCompleteCondition.notifyAll();
+      joinCompleteCondition.signalAll();
     }
     finally{
       joinCompleteLock.unlock();
