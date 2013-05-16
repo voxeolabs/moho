@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -137,6 +138,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected Lock _joinQueueLock = new ReentrantLock();
 
   protected SipServletResponse _inviteResponse;
+  
+  protected Lock joinCompleteLock = new ReentrantLock();
+  
+  protected Condition joinCompleteCondition = joinCompleteLock.newCondition();
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
@@ -549,6 +554,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       _oldJoinDelegate = null;
       _operationInProcess = false;
     }
+    
+    joinCompleteLock.lock();
+    try{
+      joinCompleteCondition.notifyAll();
+    }
+    finally{
+      joinCompleteLock.unlock();
+    }
   }
 
   public synchronized void continueQueuedJoin() {
@@ -807,6 +820,17 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (content != null) {
       setRemoteSDP(content);
     }
+    
+    joinCompleteLock.lock();
+    try{
+      while(_joinDelegate != null && this.getSIPCallState() == SIPCall.State.ANSWERED) {
+        joinCompleteCondition.await();
+      }
+    }
+    finally{
+      joinCompleteLock.unlock();
+    }
+    
     if (_callDelegate != null) {
       _callDelegate.handleReinvite(this, req, headers);
     }
