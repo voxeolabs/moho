@@ -1,12 +1,16 @@
 package com.voxeo.moho.util;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
+
+import com.voxeo.moho.Participant;
 
 public class JoinLockService {
 
@@ -20,11 +24,43 @@ public class JoinLockService {
     return INSTANCE;
   }
 
-  public synchronized Lock get(final String[] ids) {
+  public synchronized Lock get(final Participant part, final Participant other) {
+    final List<String> ids1 = new ArrayList<String>();
+    ids1.add(part.getId());
+    Participant[] joinees = part.getParticipants();
+    if (joinees != null && joinees.length > 0) {
+      for (Participant p : joinees) {
+        ids1.add(p.getId());
+      }
+    }
+    if (other != null) {
+      ids1.add(other.getId());
+      joinees = other.getParticipants();
+      if (joinees != null && joinees.length > 0) {
+        for (Participant p : joinees) {
+          ids1.add(p.getId());
+        }
+      }
+    }
+
+    final List<String> ids2 = new ArrayList<String>();
+    ids2.add(part.getId());
+    if (other != null) {
+      ids2.add(other.getId());
+    }
+
+    return get(ids1, ids2);
+  }
+
+  public synchronized Lock get(final Participant part) {
+    return get(part, null);
+  }
+
+  protected synchronized Lock get(final List<String> ids1, final List<String> ids2) {
     Lock retval = null;
 
     // find the lock
-    for (final String id : ids) {
+    for (final String id : ids1) {
       if (_m.containsKey(id)) {
         retval = _m.get(id).getLock();
         break;
@@ -33,7 +69,7 @@ public class JoinLockService {
 
     // increase the lock counter
     LockImpl lock;
-    for (final String id : ids) {
+    for (final String id : ids2) {
       lock = _m.get(id);
       if (lock == null) {
         if (retval == null) {
