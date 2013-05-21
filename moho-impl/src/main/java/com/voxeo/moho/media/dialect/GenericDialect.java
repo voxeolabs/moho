@@ -145,4 +145,9 @@ public class GenericDialect implements MediaDialect {
   public Cause getInputCompleteEventCause(Qualifier qualifier) {
     return null;
   }
+
+  @Override
+  public void setIgnorePromptFailure(Parameters params, boolean ignore) {
+    
+  }
 }
