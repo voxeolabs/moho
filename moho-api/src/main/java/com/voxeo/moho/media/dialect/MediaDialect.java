@@ -1,7 +1,6 @@
 package com.voxeo.moho.media.dialect;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
@@ -79,4 +78,6 @@ public interface MediaDialect {
   void setBeepParameters(Parameters params, BeepParameters beep);
   
   Cause getInputCompleteEventCause(Qualifier qualifier);
+  
+  void setIgnorePromptFailure(Parameters params, boolean ignore);
 }

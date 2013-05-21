@@ -140,7 +140,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected SipServletResponse _inviteResponse;
   
   protected Lock joinCompleteLock = new ReentrantLock();
-  
+
   protected Condition joinCompleteCondition = joinCompleteLock.newCondition();
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
@@ -556,10 +556,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     
     joinCompleteLock.lock();
-    try{
+    try {
       joinCompleteCondition.signalAll();
     }
-    finally{
+    finally {
       joinCompleteLock.unlock();
     }
   }
@@ -814,6 +814,16 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(this + "Processing re-INVITE.");
+    }
+
+    joinCompleteLock.lock();
+    try {
+      while (_joinDelegate != null && this.getSIPCallState() == SIPCall.State.ANSWERED) {
+        joinCompleteCondition.await();
+      }
+    }
+    finally {
+      joinCompleteLock.unlock();
     }
 
     final byte[] content = SIPHelper.getRawContentWOException(req);

@@ -556,6 +556,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       }
 
       _dialect.enableRecorderPromptCompleteEvent(params, true);
+      
+      if(command.isIgnorePromptFailure()) {
+        _dialect.setIgnorePromptFailure(params, true);
+      }
 
       getRecorder().addListener(new RecorderListener(retval));
       getRecorder().record(command.getRecordURI(), rtcs.toArray(new RTC[] {}), params);
@@ -636,6 +640,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
     if (cmd.getSpeechIncompleteTimeout() > 0) {
       _dialect.setSpeechIncompleteTimeout(params, cmd.getSpeechIncompleteTimeout());
+    }
+    
+    if(cmd.isIgnorePromptFailure()) {
+      _dialect.setIgnorePromptFailure(params, true);
     }
 
     _dialect.setSpeechLanguage(params, cmd.getRecognizer());
