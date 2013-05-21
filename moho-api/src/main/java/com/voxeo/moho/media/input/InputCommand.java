@@ -94,6 +94,8 @@ public class InputCommand implements Parameters {
   
   protected boolean _flushBuffer;
 
+  protected boolean _ignorePromptFailure;
+  
   /**
    * @param grammers
    *          can be simple string or string that starts with "#JSGF". if the
@@ -457,5 +459,13 @@ public class InputCommand implements Parameters {
   }
   public void setFlushBuffer(boolean flushBuffer) {
     this._flushBuffer = flushBuffer;
+  }
+
+  public boolean isIgnorePromptFailure() {
+    return _ignorePromptFailure;
+  }
+
+  public void setIgnorePromptFailure(boolean ignorePromptFailure) {
+    this._ignorePromptFailure = ignorePromptFailure;
   }
 }

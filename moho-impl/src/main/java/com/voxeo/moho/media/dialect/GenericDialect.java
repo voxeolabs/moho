@@ -117,4 +117,9 @@ public class GenericDialect implements MediaDialect {
   public Map<String, String> getSISlots(SignalDetectorEvent event) {
     return null;
   }
+
+  @Override
+  public void setIgnorePromptFailure(Parameters params, boolean ignore) {
+    
+  }
 }

@@ -62,4 +62,6 @@ public interface MediaDialect {
   void setDtmfPassThrough(NetworkConnection nc, boolean passThrough);
   
   Map<String, String> getSISlots(SignalDetectorEvent event);
+  
+  void setIgnorePromptFailure(Parameters params, boolean ignore);
 }
