@@ -199,6 +199,17 @@ public class Media2NOJoinDelegate extends JoinDelegate {
             LOG.warn(ex.getMessage());
           }
         }
+        else {
+          try {
+            res.createPrack().send();
+          }
+          catch (Rel100Exception ex) {
+            LOG.warn(ex.getMessage());
+          }
+          catch (IllegalStateException ex) {
+            LOG.warn(ex.getMessage());
+          }
+        }
       }
       else if (SIPHelper.isSuccessResponse(res)) {
         _call1.setSIPCallState(SIPCall.State.ANSWERED);
