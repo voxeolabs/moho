@@ -831,16 +831,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       setRemoteSDP(content);
     }
     
-    joinCompleteLock.lock();
-    try{
-      while(_joinDelegate != null && this.getSIPCallState() == SIPCall.State.ANSWERED) {
-        joinCompleteCondition.await();
-      }
-    }
-    finally{
-      joinCompleteLock.unlock();
-    }
-    
     if (_callDelegate != null) {
       _callDelegate.handleReinvite(this, req, headers);
     }
