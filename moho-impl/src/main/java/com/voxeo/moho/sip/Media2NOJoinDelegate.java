@@ -179,36 +179,18 @@ public class Media2NOJoinDelegate extends JoinDelegate {
       if (SIPHelper.isProvisionalResponse(res)) {
         _call1.setSIPCallState(SIPCall.State.ANSWERING);
 
-        if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
+        if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res) && _earlyMediaResponse == null) {
           _earlyMediaResponse = res;
           _call1.setSIPCallState(SIPCall.State.PROGRESSING);
-          if (SIPHelper.getRawContentWOException(res) != null) {
-            if (!processedAnswer) {
-              processedAnswer = true;
-              _call1.processSDPAnswer(res);
-            }
+          if (!processedAnswer) {
+            processedAnswer = true;
+            _call1.processSDPAnswer(res);
           }
 
-          try {
-            res.createPrack().send();
-          }
-          catch (Rel100Exception ex) {
-            LOG.warn(ex.getMessage());
-          }
-          catch (IllegalStateException ex) {
-            LOG.warn(ex.getMessage());
-          }
+          SIPHelper.trySendPrack(res);
         }
         else {
-          try {
-            res.createPrack().send();
-          }
-          catch (Rel100Exception ex) {
-            LOG.warn(ex.getMessage());
-          }
-          catch (IllegalStateException ex) {
-            LOG.warn(ex.getMessage());
-          }
+          SIPHelper.trySendPrack(res);
         }
       }
       else if (SIPHelper.isSuccessResponse(res)) {
