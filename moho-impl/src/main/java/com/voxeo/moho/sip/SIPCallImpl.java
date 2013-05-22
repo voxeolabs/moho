@@ -1013,7 +1013,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
       else if (isAnswered(old) && _invite.getSession().getState() != SipSession.State.TERMINATED) {
         try {
-          _signal.createRequest("BYE").send();
+          SipServletRequest byeReq = _signal.createRequest("BYE");
+          SIPHelper.addHeaders(byeReq, headers);
+          byeReq.send();
         }
         catch (final Exception t) {
           LOG.warn("Exception when disconnecting call:" + t.getMessage());
