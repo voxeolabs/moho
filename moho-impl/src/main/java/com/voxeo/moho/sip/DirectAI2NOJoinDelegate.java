@@ -88,25 +88,20 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
     else if (SIPHelper.isProvisionalResponse(res) && _call2.equals(call)) {
       _call2.setSIPCallState(SIPCall.State.ANSWERING);
 
-      if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
-        try {
-          if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
-            _reliable183Resp = res;
-            reInviteCall1(res);
-            _reInvited = true;
-          }
-          else {
-            SIPHelper.trySendPrack(res);
-          }
+      try {
+        if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res) && _reliable183Resp == null) {
+          _reliable183Resp = res;
+          reInviteCall1(res);
+          _reInvited = true;
         }
-        catch (Exception e) {
-          done(JoinCompleteEvent.Cause.ERROR, e);
-          failCall(_call2, e);
-          throw e;
+        else {
+          SIPHelper.trySendPrack(res);
         }
       }
-      else {
-        SIPHelper.trySendPrack(res);
+      catch (Exception e) {
+        done(JoinCompleteEvent.Cause.ERROR, e);
+        failCall(_call2, e);
+        throw e;
       }
     }
     else if (SIPHelper.isProvisionalResponse(res) && _call1.equals(call)) {

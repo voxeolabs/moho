@@ -87,15 +87,10 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
           if (SIPHelper.isProvisionalResponse(res)) {
             _call1.setSIPCallState(SIPCall.State.ANSWERING);
 
-            if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS) {
-              if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
-                _reliable183Resp = res;
-                reInviteCall2(res);
-                _reInvited = true;
-              }
-              else {
-                SIPHelper.trySendPrack(res);
-              }
+            if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res) && _reliable183Resp == null) {
+              _reliable183Resp = res;
+              reInviteCall2(res);
+              _reInvited = true;
             }
             else {
               SIPHelper.trySendPrack(res);
