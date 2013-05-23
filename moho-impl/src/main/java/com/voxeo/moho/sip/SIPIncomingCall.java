@@ -148,21 +148,10 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
             LOG.debug("Can't send reliably.");
             res.send();
           }
-
-          if (this.getRemoteSdp() != null) {
-            if(reliableEarlyMedia) {
-              setSIPCallState(SIPCall.State.PROGRESSED);
-            }
-            else {
-              setSIPCallState(oldStateBeforeEarlyMedia);
-            }
+          
+          if (!reliableEarlyMedia) {
+            setSIPCallState(oldStateBeforeEarlyMedia);
             notifyAll();
-          }
-          else {
-            if (!reliableEarlyMedia) {
-              setSIPCallState(oldStateBeforeEarlyMedia);
-              notifyAll();
-            }
           }
         }
         catch (final Exception e) {
@@ -286,16 +275,21 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
     }
     else {
       final SipServletResponse res = req.createResponse(SipServletResponse.SC_OK);
-      if (_cstate == SIPCall.State.PROGRESSING && content != null
-          && SIPHelper.getRawContentWOException(_invite) == null) {
-        try {
-          processSDPAnswer(req);
+      if (_cstate == SIPCall.State.PROGRESSING) {
+        if (content != null && SIPHelper.getRawContentWOException(_invite) == null) {
+          try {
+            processSDPAnswer(req);
+            setSIPCallState(SIPCall.State.PROGRESSED);
+          }
+          catch (MediaException ex) {
+            acceptEarlyMediaException = ex;
+            setSIPCallState(oldStateBeforeEarlyMedia);
+          }
         }
-        catch (MediaException ex) {
-          acceptEarlyMediaException = ex;
-          setSIPCallState(oldStateBeforeEarlyMedia);
-          notifyAll();
+        else {
+          setSIPCallState(SIPCall.State.PROGRESSED);
         }
+        notifyAll();
       }
       res.send();
     }
