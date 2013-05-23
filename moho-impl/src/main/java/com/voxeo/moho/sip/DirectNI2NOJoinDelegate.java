@@ -87,7 +87,8 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
       _waitingPrackResponse = null;
     }
     else {
-      LOG.error("Can't process PRACK request:" + req);
+      LOG.warn("Can't process PRACK, send back 200OK response:" + req);
+      req.createResponse(200).send();
     }
   }
 

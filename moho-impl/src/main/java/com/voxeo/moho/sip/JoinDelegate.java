@@ -176,7 +176,7 @@ public abstract class JoinDelegate {
 
   protected void doPrack(final SipServletRequest req, final SIPCallImpl call, final Map<String, String> headers)
       throws Exception {
-    throw new UnsupportedOperationException("" + this);
+    req.createResponse(200).send();
   }
 
   protected void doPrackResponse(final SipServletResponse resp, final SIPCallImpl call,
