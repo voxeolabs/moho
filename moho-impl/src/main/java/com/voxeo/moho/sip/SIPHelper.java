@@ -128,13 +128,13 @@ public class SIPHelper {
 
     req.setRequestURI(to.getURI());
     URI ruri = req.getRequestURI();
-    if (ruri instanceof SipURI) {
-      SipURI sruri = (SipURI) ruri;
-      if (sruri.getUserParam() == null) {
-        sruri.setUserParam("phone");
-        req.setRequestURI(sruri);
-      }
-    }
+//    if (ruri instanceof SipURI) {
+//      SipURI sruri = (SipURI) ruri;
+//      if (sruri.getUserParam() == null) {
+//        sruri.setUserParam("phone");
+//        req.setRequestURI(sruri);
+//      }
+//    }
     Map<String, String> clones = null;
     if (headers != null) {
       clones = new HashMap<String, String>();
