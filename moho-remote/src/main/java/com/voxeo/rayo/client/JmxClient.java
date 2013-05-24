@@ -16,6 +16,11 @@ public class JmxClient {
 	J4pClient client;
 
 	public JmxClient(String hostname, String port) {
+	
+		this(hostname, port, "jolokia");
+	}
+	
+	public JmxClient(String hostname, String port, String context) {
 		
 		if (System.getProperty("hudson.append.ext") != null && !hostname.contains("-ext")) {
 			// Small "hack" needed for Hudson functional tests. Otherwise the 
@@ -28,7 +33,7 @@ public class JmxClient {
 		}
 		
 		this.client = new J4pClient("http://" + hostname + ":" + port
-				+ "/jolokia");
+				+ "/" + context);
 	}
 
 	public Object jmxValue(String url, String attribute) throws Exception {
