@@ -339,13 +339,13 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       _dialect.setTextToSpeechVoice(params, output.getVoiceName());
       _dialect.setTextToSpeechLanguage(params, output.getLanguage());
 
-      if (output.getRepeatTimes() > 0) {
-        params.put(Player.REPEAT_COUNT, output.getRepeatTimes() + 1);
+      if (output.getRepeatTimes() > 1) {
+        params.put(Player.REPEAT_COUNT, output.getRepeatTimes());
         params.put(Player.INTERVAL, output.getRepeatInterval());
       }
 
-      if (repeat > 0) {
-        params.put(Player.REPEAT_COUNT, repeat + 1);
+      if (repeat > 1) {
+        params.put(Player.REPEAT_COUNT, repeat);
         params.put(Player.INTERVAL, output.getRepeatInterval());
       }
 
