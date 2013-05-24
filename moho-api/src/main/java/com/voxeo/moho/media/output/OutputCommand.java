@@ -119,7 +119,7 @@ public class OutputCommand implements Parameters, Cloneable {
 
   protected long _repeatInterval = 0;
 
-  protected int _repeatTimes = 0;
+  protected int _repeatTimes = 1;
 
   protected int _jumpPlaylistIncrement = 1;
 
@@ -536,7 +536,8 @@ public class OutputCommand implements Parameters, Cloneable {
 
   /**
    * Set how many times this command should be repeated.
-   * @param repeatTimes
+   * @param repeatTimes 
+   *        The play request will be repeated repeatTimes times. Default value = 1.
    */
   public void setRepeatTimes(int repeatTimes) {
     _repeatTimes = repeatTimes;
