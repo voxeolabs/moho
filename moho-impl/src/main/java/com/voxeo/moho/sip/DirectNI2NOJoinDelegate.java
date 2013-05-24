@@ -87,7 +87,8 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
       _waitingPrackResponse = null;
     }
     else {
-      LOG.error("Can't process PRACK request:" + req);
+      LOG.warn("Can't process PRACK, send back 200OK response:" + req);
+      req.createResponse(200).send();
     }
   }
 
@@ -113,10 +114,15 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
             _responseWithSDP = res;
           }
           
-          if(res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS && call1Processed && SIPHelper.needPrack(res)) {
-            SipServletRequest prack = res.createPrack();
-            prack.setContent(_call1.getRemoteSdp(), "application/sdp");
-            prack.send();
+          if(call1Processed && SIPHelper.isProvisionalResponse(res)) {
+            if(SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
+              SipServletRequest prack = res.createPrack();
+              prack.setContent(_call1.getRemoteSdp(), "application/sdp");
+              prack.send();
+            }
+            else {
+              SIPHelper.trySendPrack(res);
+            }
           }
           else {
             final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),

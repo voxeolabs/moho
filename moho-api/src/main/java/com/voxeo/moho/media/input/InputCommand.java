@@ -102,6 +102,8 @@ public class InputCommand implements Parameters {
 
   protected BeepParameters _beepParams = new BeepParameters();
 
+  protected boolean _ignorePromptFailure;
+  
   /**
    * @param grammers
    *          can be simple string or string that starts with "#JSGF". if the
@@ -535,5 +537,13 @@ public class InputCommand implements Parameters {
 
   public BeepParameters getBeepParameters() {
     return _beepParams;
+  }
+
+  public boolean isIgnorePromptFailure() {
+    return _ignorePromptFailure;
+  }
+
+  public void setIgnorePromptFailure(boolean ignorePromptFailure) {
+    this._ignorePromptFailure = ignorePromptFailure;
   }
 }

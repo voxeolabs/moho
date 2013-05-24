@@ -158,6 +158,8 @@ public class RecordCommand {
   protected String _finishOnKey;
   
   protected boolean duplex;
+  
+  protected boolean _ignorePromptFailure;
 
   public long getInitialTimeout() {
     return _initialTimeout;
@@ -352,4 +354,11 @@ public class RecordCommand {
     this.duplex = duplex;
   }
   
+  public boolean isIgnorePromptFailure() {
+    return _ignorePromptFailure;
+  }
+
+  public void setIgnorePromptFailure(boolean ignorePromptFailure) {
+    this._ignorePromptFailure = ignorePromptFailure;
+  }
 }
