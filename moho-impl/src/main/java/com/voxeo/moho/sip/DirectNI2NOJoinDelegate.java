@@ -30,11 +30,13 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
 
   protected SipServletResponse _response;
 
-  protected SipServletResponse _responseWithSDP;
-
+  protected Object _latestCall2SDP;
+  
   protected boolean call1Processed;
   
   protected SipServletResponse _waitingPrackResponse;
+  
+  protected boolean _call1No100Rel;
 
   protected DirectNI2NOJoinDelegate(final SIPIncomingCall call1, final SIPOutgoingCall call2,
       final Direction direction, final SIPCallImpl peer) {
@@ -47,6 +49,10 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
+    if(!SIPHelper.support100rel(_call1.getSipInitnalRequest())) {
+      _call1No100Rel =true;
+      SIPHelper.remove100relSupport(_call2.getSipInitnalRequest());
+    }
     ((SIPOutgoingCall) _call2).setContinueRouting(_call1);
     if (_call1.getSIPCallState() == SIPCall.State.PROGRESSED) {
       call1Processed = true;
@@ -62,7 +68,17 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   @Override
   protected void doUpdate(SipServletRequest req, SIPCallImpl call, Map<String, String> headers) throws Exception {
     if (_call2.equals(call)) {
-      SIPHelper.sendSubsequentRequest(_call1.getSipSession(), req, headers);
+      if (SIPHelper.getRawContentWOException(req) != null) {
+        _latestCall2SDP = req.getContent();
+      }
+      if(_call1No100Rel) {
+        SipServletResponse updateResp = req.createResponse(200);
+        SIPHelper.copyContent(_call1.getSipInitnalRequest(), updateResp);
+        updateResp.send();
+      }
+      else {
+        SIPHelper.sendSubsequentRequest(_call1.getSipSession(), req, headers);
+      }
     }
     else {
       LOG.error("Can't process UPDATE request:" + req);
@@ -99,7 +115,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
       SIPHelper.relayResponse(resp);
     }
     else {
-      LOG.error("Can't process PRACK response, discarding it:" + resp);
+      LOG.warn("Didn't process PRACK response, discarding it:" + resp);
     }
   }
 
@@ -111,10 +127,10 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
         if (SIPHelper.isSuccessResponse(res) || SIPHelper.isProvisionalResponse(res)) {
           _response = res;
           if (SIPHelper.getRawContentWOException(res) != null) {
-            _responseWithSDP = res;
+            _latestCall2SDP = res.getContent();
           }
           
-          if(call1Processed && SIPHelper.isProvisionalResponse(res)) {
+          if((call1Processed || _call1No100Rel) && SIPHelper.isProvisionalResponse(res)) {
             if(SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
               SipServletRequest prack = res.createPrack();
               prack.setContent(_call1.getRemoteSdp(), "application/sdp");
@@ -147,6 +163,9 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
               }
             }
             else {
+              if(res.getStatus() == SipServletResponse.SC_OK && SIPHelper.getRawContentWOException(newRes) == null) {
+                newRes.setContent(_latestCall2SDP, "application/sdp");
+              }
               newRes.send();
             }
           }
@@ -213,7 +232,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
       else {
         // re-INVITE call1
         SipServletRequest reInvite = _call1.getSipSession().createRequest("INVITE");
-        SIPHelper.copyContent(_responseWithSDP, reInvite);
+        reInvite.setContent(_latestCall2SDP, "application/sdp");
         reInvite.send();
       }
     }
