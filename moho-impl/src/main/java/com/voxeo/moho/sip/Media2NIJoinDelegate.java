@@ -74,9 +74,9 @@ public class Media2NIJoinDelegate extends JoinDelegate {
         }
       }
       else {
-        SIPHelper.handleErrorSdpPortManagerEvent(event, _call1.getSipInitnalRequest());
         Exception ex = new NegotiateException(event);
         done(Cause.ERROR, ex);
+        SIPHelper.handleErrorSdpPortManagerEvent(event, _call1.getSipInitnalRequest());
         _call1.fail(ex);
       }
     }

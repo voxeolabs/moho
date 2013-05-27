@@ -255,11 +255,16 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     try {
       if (_network == null) {
         if (reinvite) {
+          JoinCompleteEvent joinResult = null;
           try {
-            this.join(Direction.DUPLEX).get();
+            joinResult = this.join(Direction.DUPLEX).get();
           }
           catch (final Exception e) {
             throw new MediaException(e);
+          }
+          
+          if(joinResult.getCause() != JoinCompleteEvent.Cause.JOINED) {
+            throw new MediaException("Join result in error result:" + joinResult.getCause());
           }
         }
         else {
