@@ -96,13 +96,13 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           SIPHelper.addHeaders(newReq, headers);
           SIPHelper.copyContent(resp, newReq);
           newReq.send();
-          _call1.destroyNetworkConnection();
         }
         else {
           SipServletRequest prack = prackResponse.createPrack();
           prack.setContent(_call1.getRemoteSdp(), "application/sdp");
           prack.send();
         }
+        _call1.destroyNetworkConnection();
       }
       else {
         SIPHelper.relayResponse(resp);
@@ -223,6 +223,19 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
         }
         else if (SIPHelper.isProvisionalResponse(res)) {
           SIPHelper.trySendPrack(res);
+        }
+        else {
+          try {
+            _response.createAck().send();
+            _call2.setSIPCallState(State.ANSWERED);
+          }
+          catch(Exception ex) {
+            LOG.warn("Exception when sending ACK.", ex);
+          }
+          
+          Exception ex = getExceptionByResponse(res);
+          done(getJoinCompleteCauseByResponse(res), ex);
+          disconnectCall(_call2, true, getCallCompleteCauseByResponse(res), ex);
         }
       }
     }
