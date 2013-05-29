@@ -32,7 +32,7 @@ public class InheritLogContextThreadPoolExecutor extends ThreadPoolExecutor {
   protected void afterExecute(Runnable r, Throwable t) {
     Utils.clearContexts();
     if(t != null){
-      LOG.error("Exception when execuring " + r, t);
+      LOG.error("Exception when executing " + r, t);
     }
     super.afterExecute(r, t);
   }
