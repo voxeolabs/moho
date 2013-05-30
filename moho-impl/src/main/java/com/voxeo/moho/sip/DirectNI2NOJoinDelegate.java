@@ -56,7 +56,6 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
     ((SIPOutgoingCall) _call2).setContinueRouting(_call1);
     if (_call1.getSIPCallState() == SIPCall.State.PROGRESSED) {
       call1Processed = true;
-      SIPHelper.remove100relSupport(_call2.getSipInitnalRequest());
       ((SIPOutgoingCall) _call2).call(null, _call1.getSipSession().getApplicationSession());
     }
     else {
@@ -89,7 +88,25 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   protected void doUpdateResponse(SipServletResponse resp, SIPCallImpl call, Map<String, String> headers)
       throws Exception {
     if (_call1.equals(call)) {
-      SIPHelper.relayResponse(resp);
+      if(_waitingPrackResponse != null) {
+        SipServletResponse prackResponse = _waitingPrackResponse;
+        _waitingPrackResponse = null;
+        if(resp.getStatus() == SipServletResponse.SC_OK) {
+          final SipServletRequest newReq = prackResponse.createPrack();
+          SIPHelper.addHeaders(newReq, headers);
+          SIPHelper.copyContent(resp, newReq);
+          newReq.send();
+        }
+        else {
+          SipServletRequest prack = prackResponse.createPrack();
+          prack.setContent(_call1.getRemoteSdp(), "application/sdp");
+          prack.send();
+        }
+        _call1.destroyNetworkConnection();
+      }
+      else {
+        SIPHelper.relayResponse(resp);
+      }
     }
     else {
       LOG.error("Can't process UPDATE response, discarding it:" + resp);
@@ -99,8 +116,9 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   @Override
   protected void doPrack(SipServletRequest req, SIPCallImpl call, Map<String, String> headers) throws Exception {
     if (_call1.equals(call) && _waitingPrackResponse != null) {
-      SIPHelper.relayPrack(_waitingPrackResponse, req, headers);
+      SipServletResponse prackResponse = _waitingPrackResponse;
       _waitingPrackResponse = null;
+      SIPHelper.relayPrack(prackResponse, req, headers);
     }
     else {
       LOG.warn("Can't process PRACK, send back 200OK response:" + req);
@@ -132,9 +150,17 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           
           if((call1Processed || _call1No100Rel) && SIPHelper.isProvisionalResponse(res)) {
             if(SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
-              SipServletRequest prack = res.createPrack();
-              prack.setContent(_call1.getRemoteSdp(), "application/sdp");
-              prack.send();
+              if(call1Processed) {
+                _waitingPrackResponse = res;
+                SipServletRequest updateCall1Req = _call1.getSipSession().createRequest("UPDATE");
+                updateCall1Req.setContent(res.getContent(), "application/sdp");
+                updateCall1Req.send();
+              }
+              else {
+                SipServletRequest prack = res.createPrack();
+                prack.setContent(_call1.getRemoteSdp(), "application/sdp");
+                prack.send();
+              }
             }
             else {
               SIPHelper.trySendPrack(res);
@@ -197,6 +223,19 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
         }
         else if (SIPHelper.isProvisionalResponse(res)) {
           SIPHelper.trySendPrack(res);
+        }
+        else {
+          try {
+            _response.createAck().send();
+            _call2.setSIPCallState(State.ANSWERED);
+          }
+          catch(Exception ex) {
+            LOG.warn("Exception when sending ACK.", ex);
+          }
+          
+          Exception ex = getExceptionByResponse(res);
+          done(getJoinCompleteCauseByResponse(res), ex);
+          disconnectCall(_call2, true, getCallCompleteCauseByResponse(res), ex);
         }
       }
     }
