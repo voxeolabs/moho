@@ -543,13 +543,13 @@ public class SIPDriverImpl implements SIPDriver {
     if(source != null){
       if (source instanceof SIPCallImpl) {
         final SIPCallImpl call = (SIPCallImpl) source;
+        source.dispatch(new SIPDeniedEventImpl<Call>((SIPCall) source, res));
         try {
           call.doResponse(res, null);
         }
         catch (final Exception e) {
           LOG.warn("", e);
         }
-        source.dispatch(new SIPDeniedEventImpl<Call>((SIPCall) source, res));
       }
       else if (source instanceof Registration) {
         source.dispatch(new SIPDeniedEventImpl<Registration>((Registration) source, res));
