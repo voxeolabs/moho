@@ -644,7 +644,23 @@ public class RayoClient {
 	 */
 	public IQ accept(String callId) throws XmppException {
 		
-		return accept(callId, new AcceptCommand());	
+		return accept(callId, false);	
+	}	
+	
+	/**
+	 * Accepts the call with the id specified as a parameter. 
+	 * 
+	 * @param callId Id of the call that will be accepted
+	 * @param earlyMedia Whether early media is supported or not
+	 * 
+	 * @return IQ Resulting IQ
+	 * @throws XmppException If there is any issue while accepting the call
+	 */
+	public IQ accept(String callId, boolean earlyMedia) throws XmppException {
+		
+		AcceptCommand command = new AcceptCommand();
+		command.setEarlyMedia(earlyMedia);
+		return accept(callId, command);	
 	}	
 	
 	
