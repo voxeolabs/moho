@@ -37,6 +37,10 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   protected SipServletResponse _waitingPrackResponse;
   
   protected boolean _call1No100Rel;
+  
+  protected boolean updatedCall1Success;
+  
+  protected boolean call2Processed;
 
   protected DirectNI2NOJoinDelegate(final SIPIncomingCall call1, final SIPOutgoingCall call2,
       final Direction direction, final SIPCallImpl peer) {
@@ -88,6 +92,10 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   protected void doUpdateResponse(SipServletResponse resp, SIPCallImpl call, Map<String, String> headers)
       throws Exception {
     if (_call1.equals(call)) {
+      if(resp.getStatus() == SipServletResponse.SC_OK) {
+        updatedCall1Success = true;
+      }
+        
       if(_waitingPrackResponse != null) {
         SipServletResponse prackResponse = _waitingPrackResponse;
         _waitingPrackResponse = null;
@@ -146,6 +154,10 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           _response = res;
           if (SIPHelper.getRawContentWOException(res) != null) {
             _latestCall2SDP = res.getContent();
+            
+            if(SIPHelper.isProvisionalResponse(res) && SIPHelper.needPrack(res)) {
+              call2Processed = true;
+            }
           }
           
           if((call1Processed || _call1No100Rel) && SIPHelper.isProvisionalResponse(res)) {
@@ -169,7 +181,6 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           else {
             final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
                 res.getReasonPhrase());
-            SIPHelper.copyContent(res, newRes);
 
             // TODO should do this at container?
             if (res.getStatus() == SipServletResponse.SC_SESSION_PROGRESS || res.getStatus() == SipServletResponse.SC_OK) {
@@ -178,6 +189,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
 
             if(SIPHelper.isProvisionalResponse(res) && SIPHelper.needPrack(res)) {
               try{
+                SIPHelper.copyContent(res, newRes);
                 newRes.sendReliably();
                 _waitingPrackResponse = res;
               }
@@ -189,7 +201,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
               }
             }
             else {
-              if(res.getStatus() == SipServletResponse.SC_OK && SIPHelper.getRawContentWOException(newRes) == null) {
+              if(res.getStatus() == SipServletResponse.SC_OK && SIPHelper.getRawContentWOException(newRes) == null && !call1Processed) {
                 newRes.setContent(_latestCall2SDP, "application/sdp");
               }
               newRes.send();
@@ -207,7 +219,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           res.createAck().send();
           try {
             final SipServletRequest ack2 = _response.createAck();
-            if (SIPHelper.getRawContentWOException(_response) != null) {
+            if (call1Processed && !call2Processed) {
               ack2.setContent(_call1.getRemoteSdp(), "application/sdp");
             }
             ack2.send();
@@ -251,11 +263,11 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   protected void doAck(final SipServletRequest req, final SIPCallImpl call) throws Exception {
     if (_call1.equals(call)) {
       _call1.setSIPCallState(State.ANSWERED);
-      if (!call1Processed) {
+      if (!call1Processed || (call1Processed && updatedCall1Success)) {
         try {
           final SipServletRequest ack = _response.createAck();
-          if (SIPHelper.getRawContentWOException(_response) != null) {
-            SIPHelper.copyContent(req, ack);
+          if (call1Processed && !call2Processed) {
+            ack.setContent(_call1.getRemoteSdp(), "application/sdp");
           }
           ack.send();
           _call2.setSIPCallState(State.ANSWERED);
