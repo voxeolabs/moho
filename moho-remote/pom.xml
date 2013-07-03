@@ -1,148 +1,287 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
-  <modelVersion>4.0.0</modelVersion>
-  <name>Moho API Rayo Implements</name>
-  <artifactId>moho-remote</artifactId>
-
+<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd'>
+  <modelVersion>
+    4.0.0
+  </modelVersion>
+  <name>
+    Moho API Rayo Implements
+  </name>
+  <artifactId>
+    moho-remote
+  </artifactId>
   <parent>
-    <groupId>com.voxeo.moho</groupId>
-    <artifactId>moho-parent</artifactId>
-    <version>trunk-SNAPSHOT</version>
+    <groupId>
+      com.voxeo.moho
+    </groupId>
+    <artifactId>
+      moho-parent
+    </artifactId>
+    <version>
+      99.98
+    </version>
   </parent>
-
   <properties>
-    <spring.version>3.0.5.RELEASE</spring.version>
+    <spring.version>
+      3.0.5.RELEASE
+    </spring.version>
   </properties>
-
   <scm>
-    <connection>${svnUrlBase}/moho-rayo-impl</connection>
-    <url>${svnUrlBase}/moho-rayo-impl</url>
+    <connection>
+      ${svnUrlBase}/moho-rayo-impl
+    </connection>
+    <url>
+      ${svnUrlBase}/moho-rayo-impl
+    </url>
   </scm>
-
   <dependencies>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.15</version>
-      <scope>provided</scope>
+      <groupId>
+        log4j
+      </groupId>
+      <artifactId>
+        log4j
+      </artifactId>
+      <version>
+        1.2.15
+      </version>
+      <scope>
+        provided
+      </scope>
       <exclusions>
         <exclusion>
-          <groupId>javax.mail</groupId>
-          <artifactId>mail</artifactId>
+          <groupId>
+            javax.mail
+          </groupId>
+          <artifactId>
+            mail
+          </artifactId>
         </exclusion>
         <exclusion>
-          <groupId>javax.jms</groupId>
-          <artifactId>jms</artifactId>
+          <groupId>
+            javax.jms
+          </groupId>
+          <artifactId>
+            jms
+          </artifactId>
         </exclusion>
         <exclusion>
-          <groupId>com.sun.jdmk</groupId>
-          <artifactId>jmxtools</artifactId>
+          <groupId>
+            com.sun.jdmk
+          </groupId>
+          <artifactId>
+            jmxtools
+          </artifactId>
         </exclusion>
         <exclusion>
-          <groupId>com.sun.jmx</groupId>
-          <artifactId>jmxri</artifactId>
+          <groupId>
+            com.sun.jmx
+          </groupId>
+          <artifactId>
+            jmxri
+          </artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.4</version>
-      <scope>test</scope>
+      <groupId>
+        junit
+      </groupId>
+      <artifactId>
+        junit
+      </artifactId>
+      <version>
+        4.4
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>moho-api</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        moho-api
+      </artifactId>
+      <version>
+        trunk-SNAPSHOT
+      </version>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>moho-common</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        moho-common
+      </artifactId>
+      <version>
+        trunk-SNAPSHOT
+      </version>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>mscontrol-api</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        mscontrol-api
+      </artifactId>
+      <version>
+        1.0-SNAPSHOT
+      </version>
     </dependency>
-
     <!-- Rayo client -->
     <dependency>
-      <groupId>com.rayo</groupId>
-      <artifactId>rayo-core</artifactId>
-      <version>2.0-SNAPSHOT</version>
+      <groupId>
+        com.rayo
+      </groupId>
+      <artifactId>
+        rayo-core
+      </artifactId>
+      <version>
+        2.0-SNAPSHOT
+      </version>
       <exclusions>
         <exclusion>
-          <groupId>com.voxeo</groupId>
-          <artifactId>vlib-core</artifactId>
+          <groupId>
+            com.voxeo
+          </groupId>
+          <artifactId>
+            vlib-core
+          </artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.voxeo</groupId>
-      <artifactId>vlib-core</artifactId>
-      <version>12.2.22</version>
+      <groupId>
+        com.voxeo
+      </groupId>
+      <artifactId>
+        vlib-core
+      </artifactId>
+      <version>
+        12.2.22
+      </version>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-beans</artifactId>
-      <version>${spring.version}</version>
+      <groupId>
+        org.springframework
+      </groupId>
+      <artifactId>
+        spring-beans
+      </artifactId>
+      <version>
+        ${spring.version}
+      </version>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>${spring.version}</version>
+      <groupId>
+        org.springframework
+      </groupId>
+      <artifactId>
+        spring-context
+      </artifactId>
+      <version>
+        ${spring.version}
+      </version>
     </dependency>
     <dependency>
-      <groupId>org.jboss.netty</groupId>
-      <artifactId>netty</artifactId>
-      <version>3.2.4.Final</version>
-      <scope>test</scope>
+      <groupId>
+        org.jboss.netty
+      </groupId>
+      <artifactId>
+        netty
+      </artifactId>
+      <version>
+        3.2.4.Final
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
-      <artifactId>concurrentlinkedhashmap-lru</artifactId>
-      <version>1.1</version>
+      <groupId>
+        com.googlecode.concurrentlinkedhashmap
+      </groupId>
+      <artifactId>
+        concurrentlinkedhashmap-lru
+      </artifactId>
+      <version>
+        1.1
+      </version>
     </dependency>
     <dependency>
-      <groupId>xpp3</groupId>
-      <artifactId>xpp3</artifactId>
-      <version>1.1.4c</version>
+      <groupId>
+        xpp3
+      </groupId>
+      <artifactId>
+        xpp3
+      </artifactId>
+      <version>
+        1.1.4c
+      </version>
     </dependency>
     <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-      <version>1.4</version>
+      <groupId>
+        commons-codec
+      </groupId>
+      <artifactId>
+        commons-codec
+      </artifactId>
+      <version>
+        1.4
+      </version>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.6.1</version>
+      <groupId>
+        org.slf4j
+      </groupId>
+      <artifactId>
+        slf4j-log4j12
+      </artifactId>
+      <version>
+        1.6.1
+      </version>
     </dependency>
-
     <!-- Jolokia -->
     <dependency>
-      <groupId>org.jolokia</groupId>
-      <artifactId>jolokia-core</artifactId>
-      <version>1.0.0</version>
+      <groupId>
+        org.jolokia
+      </groupId>
+      <artifactId>
+        jolokia-core
+      </artifactId>
+      <version>
+        1.0.0
+      </version>
     </dependency>
     <dependency>
-      <groupId>org.jolokia</groupId>
-      <artifactId>jolokia-client-java</artifactId>
-      <version>1.0.0</version>
+      <groupId>
+        org.jolokia
+      </groupId>
+      <artifactId>
+        jolokia-client-java
+      </artifactId>
+      <version>
+        1.0.0
+      </version>
     </dependency>
   </dependencies>
-
   <reporting>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>cobertura-maven-plugin</artifactId>
+        <groupId>
+          org.codehaus.mojo
+        </groupId>
+        <artifactId>
+          cobertura-maven-plugin
+        </artifactId>
         <configuration>
           <formats>
-            <format>html</format>
-            <format>xml</format>
+            <format>
+              html
+            </format>
+            <format>
+              xml
+            </format>
           </formats>
         </configuration>
       </plugin>
