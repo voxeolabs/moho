@@ -231,23 +231,23 @@ public class SIPDriverImpl implements SIPDriver {
 
   protected void doCancel(final SipServletRequest req) throws ServletException, IOException {
     final EventSource source = SessionUtils.getEventSource(req);
-//    if (source instanceof SIPIncomingCall) {
-//      final SIPIncomingCall call = (SIPIncomingCall) source;
-//      try {
-//        call.doCancel(req);
-//      }
-//      catch (final Exception e) {
-//        LOG.warn("", e);
-//      }
-//    }
+    if (source instanceof SIPIncomingCall) {
+      final SIPIncomingCall call = (SIPIncomingCall) source;
+      try {
+        call.doCancel(req);
+      }
+      catch (final Exception e) {
+        LOG.warn("", e);
+      }
+    }
 
-     if (source != null) {
-       source.dispatch(new SIPCancelEventImpl((SIPCall) source, req));
-     }
-     else{
-       LOG.warn("Can't find event source for CANCEL request:" + req);
-       req.createResponse(200).send();
-     }
+//     if (source != null) {
+//       source.dispatch(new SIPCancelEventImpl((SIPCall) source, req));
+//     }
+//     else{
+//       LOG.warn("Can't find event source for CANCEL request:" + req);
+//       req.createResponse(200).send();
+//     }
   }
 
   protected void doRefer(final SipServletRequest req) throws ServletException, IOException {
@@ -543,13 +543,13 @@ public class SIPDriverImpl implements SIPDriver {
     if(source != null){
       if (source instanceof SIPCallImpl) {
         final SIPCallImpl call = (SIPCallImpl) source;
+        source.dispatch(new SIPDeniedEventImpl<Call>((SIPCall) source, res));
         try {
           call.doResponse(res, null);
         }
         catch (final Exception e) {
           LOG.warn("", e);
         }
-        source.dispatch(new SIPDeniedEventImpl<Call>((SIPCall) source, res));
       }
       else if (source instanceof Registration) {
         source.dispatch(new SIPDeniedEventImpl<Registration>((Registration) source, res));

@@ -87,6 +87,20 @@ public interface AcceptableEvent {
       }
     },
 
+    TIMEOUT {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_REQUEST_TIMEOUT;
+      }
+    },
+    
+    NOT_FOUND {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_NOT_FOUND;
+      }
+    },
+    
     ERROR {
       @Override
       public int getCode() {
@@ -95,7 +109,6 @@ public interface AcceptableEvent {
     };
 
     public abstract int getCode();
-
   }
 
   /**

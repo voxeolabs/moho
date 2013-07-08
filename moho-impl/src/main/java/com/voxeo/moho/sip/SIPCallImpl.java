@@ -140,7 +140,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected SipServletResponse _inviteResponse;
   
   protected Lock joinCompleteLock = new ReentrantLock();
- 
+
   protected Condition joinCompleteCondition = joinCompleteLock.newCondition();
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
@@ -835,6 +835,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (content != null) {
       setRemoteSDP(content);
     }
+    
     if (_callDelegate != null) {
       _callDelegate.handleReinvite(this, req, headers);
     }
@@ -1017,7 +1018,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
       else if (isAnswered(old) && _invite.getSession().getState() != SipSession.State.TERMINATED) {
         try {
-          _signal.createRequest("BYE").send();
+          SipServletRequest byeReq = _signal.createRequest("BYE");
+          SIPHelper.addHeaders(byeReq, headers);
+          byeReq.send();
         }
         catch (final Exception t) {
           LOG.warn("Exception when disconnecting call:" + t.getMessage());

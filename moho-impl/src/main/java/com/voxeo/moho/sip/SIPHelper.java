@@ -60,8 +60,16 @@ public class SIPHelper {
     SipServletRequest req = null;
     if (origRequest != null) {
       LOG.debug("Continue routing from orig req:" + origRequest);
+      Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+      List<String> fromList = new ArrayList<String>();
+      fromList.add(from.toString());
+      headerMap.put("From", fromList);
+      
+      List<String> toList = new ArrayList<String>();
+      toList.add(to.toString());
+      headerMap.put("To", toList);
+      
       if (!Utils.isCopyHeadersForContinueRouting(appContext)) {
-        Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
         headerMap.put(Constants.PrismB2BUADoNotCopyHeader, new ArrayList<String>());
         try {
           req = origRequest.getB2buaHelper().createRequest(origRequest, true, headerMap);
@@ -78,7 +86,12 @@ public class SIPHelper {
         }
       }
       else {
-        req = origRequest.getB2buaHelper().createRequest(origRequest);
+        try{
+          req = origRequest.getB2buaHelper().createRequest(origRequest, true, headerMap);
+        }
+        catch (final TooManyHopsException e) {
+          throw new RuntimeException(e);
+        }
       }
 
       try {
@@ -128,13 +141,13 @@ public class SIPHelper {
 
     req.setRequestURI(to.getURI());
     URI ruri = req.getRequestURI();
-    if (ruri instanceof SipURI) {
-      SipURI sruri = (SipURI) ruri;
-      if (sruri.getUserParam() == null) {
-        sruri.setUserParam("phone");
-        req.setRequestURI(sruri);
-      }
-    }
+//    if (ruri instanceof SipURI) {
+//      SipURI sruri = (SipURI) ruri;
+//      if (sruri.getUserParam() == null) {
+//        sruri.setUserParam("phone");
+//        req.setRequestURI(sruri);
+//      }
+//    }
     Map<String, String> clones = null;
     if (headers != null) {
       clones = new HashMap<String, String>();
