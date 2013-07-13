@@ -466,10 +466,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       }
       if (command.isStartBeep()) {
         params.put(Recorder.START_BEEP, Boolean.TRUE);
-        if (command.getBeepFrequency() > 0) {
+        if (command.getBeepFrequency() > 0 || command.getBeepFrequency() == -1 ) {
           params.put(Recorder.BEEP_FREQUENCY, command.getBeepFrequency());
-        }
-        if (command.getBeepLength() > 0) {
+        } 
+        if (command.getBeepLength() > 0 || command.getBeepLength() == -1) {
           params.put(Recorder.BEEP_LENGTH, command.getBeepLength());
         }
       }
