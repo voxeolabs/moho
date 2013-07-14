@@ -1,208 +1,394 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>moho-api</artifactId>
-  <name>Moho APIs</name>
-
+<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd'>
+  <modelVersion>
+    4.0.0
+  </modelVersion>
+  <artifactId>
+    moho-api
+  </artifactId>
+  <name>
+    Moho APIs
+  </name>
   <parent>
-    <groupId>com.voxeo.moho</groupId>
-    <artifactId>moho-parent</artifactId>
-    <version> 1.0-SNAPSHOT   </version>
+    <groupId>
+      com.voxeo.moho
+    </groupId>
+    <artifactId>
+      moho-parent
+    </artifactId>
+    <version>
+      1.2.7-ameche
+    </version>
   </parent>
-
   <scm>
-    <connection>${svnUrlBase}/moho-api</connection>
-    <url>${svnUrlBase}/moho-api</url>
+    <connection>
+      ${svnUrlBase}/moho-api
+    </connection>
+    <url>
+      ${svnUrlBase}/moho-api
+    </url>
   </scm>
-
   <dependencies>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <scope>provided</scope>
+      <groupId>
+        javax.servlet
+      </groupId>
+      <artifactId>
+        servlet-api
+      </artifactId>
+      <version>
+        2.5
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.15</version>
-      <scope>provided</scope>
+      <groupId>
+        log4j
+      </groupId>
+      <artifactId>
+        log4j
+      </artifactId>
+      <version>
+        1.2.15
+      </version>
+      <scope>
+        provided
+      </scope>
       <exclusions>
         <exclusion>
-          <groupId>javax.mail</groupId>
-          <artifactId>mail</artifactId>
+          <groupId>
+            javax.mail
+          </groupId>
+          <artifactId>
+            mail
+          </artifactId>
         </exclusion>
         <exclusion>
-          <groupId>javax.jms</groupId>
-          <artifactId>jms</artifactId>
+          <groupId>
+            javax.jms
+          </groupId>
+          <artifactId>
+            jms
+          </artifactId>
         </exclusion>
         <exclusion>
-          <groupId>com.sun.jdmk</groupId>
-          <artifactId>jmxtools</artifactId>
+          <groupId>
+            com.sun.jdmk
+          </groupId>
+          <artifactId>
+            jmxtools
+          </artifactId>
         </exclusion>
         <exclusion>
-          <groupId>com.sun.jmx</groupId>
-          <artifactId>jmxri</artifactId>
+          <groupId>
+            com.sun.jmx
+          </groupId>
+          <artifactId>
+            jmxri
+          </artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>dom4j</groupId>
-      <artifactId>dom4j</artifactId>
-      <version>1.6.1</version>
-    </dependency>
-  <dependency>
-    <groupId>javax.sdp</groupId>
-    <artifactId>sdp-api</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <scope>provided</scope>
-  </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.4</version>
-      <scope>test</scope>
+      <groupId>
+        dom4j
+      </groupId>
+      <artifactId>
+        dom4j
+      </artifactId>
+      <version>
+        1.6.1
+      </version>
     </dependency>
     <dependency>
-      <groupId>org.jmock</groupId>
-      <artifactId>jmock-junit4</artifactId>
-      <version>2.5.1</version>
-      <scope>test</scope>
+      <groupId>
+        javax.sdp
+      </groupId>
+      <artifactId>
+        sdp-api
+      </artifactId>
+      <version>
+        1.0-SNAPSHOT
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.jmock</groupId>
-      <artifactId>jmock-legacy</artifactId>
-      <version>2.5.1</version>
-      <scope>test</scope>
+      <groupId>
+        junit
+      </groupId>
+      <artifactId>
+        junit
+      </artifactId>
+      <version>
+        4.4
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>cglib</groupId>
-      <artifactId>cglib</artifactId>
-      <version>2.1_3</version>
-      <scope>test</scope>
+      <groupId>
+        org.jmock
+      </groupId>
+      <artifactId>
+        jmock-junit4
+      </artifactId>
+      <version>
+        2.5.1
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>cglib</groupId>
-      <artifactId>cglib-nodep</artifactId>
-      <version>2.1_3</version>
-      <scope>test</scope>
+      <groupId>
+        org.jmock
+      </groupId>
+      <artifactId>
+        jmock-legacy
+      </artifactId>
+      <version>
+        2.5.1
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <version>1.1</version>
-      <scope>test</scope>
+      <groupId>
+        cglib
+      </groupId>
+      <artifactId>
+        cglib
+      </artifactId>
+      <version>
+        2.1_3
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.objenesis</groupId>
-      <artifactId>objenesis</artifactId>
-      <version>1.1</version>
-      <scope>test</scope>
+      <groupId>
+        cglib
+      </groupId>
+      <artifactId>
+        cglib-nodep
+      </artifactId>
+      <version>
+        2.1_3
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>sipservlet-api</artifactId>
-      <version>1.1-SNAPSHOT</version>
-      <scope>provided</scope>
+      <groupId>
+        org.hamcrest
+      </groupId>
+      <artifactId>
+        hamcrest-all
+      </artifactId>
+      <version>
+        1.1
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>mscontrol-api</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>provided</scope>
+      <groupId>
+        org.objenesis
+      </groupId>
+      <artifactId>
+        objenesis
+      </artifactId>
+      <version>
+        1.1
+      </version>
+      <scope>
+        test
+      </scope>
+    </dependency>
+    <dependency>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        sipservlet-api
+      </artifactId>
+      <version>
+        1.1-SNAPSHOT
+      </version>
+      <scope>
+        provided
+      </scope>
+    </dependency>
+    <dependency>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        mscontrol-api
+      </artifactId>
+      <version>
+        1.0-SNAPSHOT
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.6.1</version>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-javadoc-plugin
+        </artifactId>
+        <version>
+          2.6.1
+        </version>
         <executions>
           <execution>
-            <id>attach-javadocs</id>
+            <id>
+              attach-javadocs
+            </id>
             <configuration>
               <javadocDirectory>
-                ${basedir}/src/main/javadoc/
+                 ${basedir}/src/main/javadoc/ 
               </javadocDirectory>
-              <docfilessubdirs>true</docfilessubdirs>
-              <show>public</show>
+              <docfilessubdirs>
+                true
+              </docfilessubdirs>
+              <show>
+                public
+              </show>
             </configuration>
             <goals>
-              <goal>jar</goal>
+              <goal>
+                jar
+              </goal>
             </goals>
           </execution>
         </executions>
       </plugin>
     </plugins>
   </build>
-
   <profiles>
     <profile>
-      <id>uml</id>
+      <id>
+        uml
+      </id>
       <activation>
         <property>
-          <name>moho.javadoc.enableUml</name>
-          <value>true</value>
+          <name>
+            moho.javadoc.enableUml
+          </name>
+          <value>
+            true
+          </value>
         </property>
       </activation>
       <build>
         <plugins>
           <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.6.1</version>
+            <groupId>
+              org.apache.maven.plugins
+            </groupId>
+            <artifactId>
+              maven-javadoc-plugin
+            </artifactId>
+            <version>
+              2.6.1
+            </version>
             <executions>
               <execution>
-                <id>attach-javadocs</id>
+                <id>
+                  attach-javadocs
+                </id>
                 <configuration>
                   <javadocDirectory>
-                    ${basedir}/src/main/javadoc/
+                     ${basedir}/src/main/javadoc/ 
                   </javadocDirectory>
-                  <docfilessubdirs>true</docfilessubdirs>
+                  <docfilessubdirs>
+                    true
+                  </docfilessubdirs>
                 </configuration>
                 <goals>
-                  <goal>jar</goal>
+                  <goal>
+                    jar
+                  </goal>
                 </goals>
               </execution>
             </executions>
             <configuration>
-              <docfilessubdirs>true</docfilessubdirs>
+              <docfilessubdirs>
+                true
+              </docfilessubdirs>
               <!--
                 Note: You must have the Graphviz binary in your PATH, or
                 the UML images will not be generated. For more
                 information about Graphviz, please refer to
                 http://www.graphviz.org/
               -->
-              <doclet>org.umlgraph.doclet.UmlGraphDoc</doclet>
+              <doclet>
+                org.umlgraph.doclet.UmlGraphDoc
+              </doclet>
               <docletArtifact>
-                <groupId>org.umlgraph</groupId>
-                <artifactId>doclet</artifactId>
-                <version>5.1</version>
+                <groupId>
+                  org.umlgraph
+                </groupId>
+                <artifactId>
+                  doclet
+                </artifactId>
+                <version>
+                  5.1
+                </version>
               </docletArtifact>
-              <additionalparam>-all</additionalparam>
-              <useStandardDocletOptions>true</useStandardDocletOptions>
+              <additionalparam>
+                -all
+              </additionalparam>
+              <useStandardDocletOptions>
+                true
+              </useStandardDocletOptions>
             </configuration>
           </plugin>
         </plugins>
       </build>
     </profile>
   </profiles>
-  
-    <distributionManagement>
+  <distributionManagement>
     <repository>
-      <id>maven.voxeo.net</id>
-      <name>Nexus Public Mirror</name>
-      <url>http://maven.voxeo.net/nexus/content/repositories/releases/</url>
+      <id>
+        maven.voxeo.net
+      </id>
+      <name>
+        Nexus Public Mirror
+      </name>
+      <url>
+        http://maven.voxeo.net/nexus/content/repositories/releases/
+      </url>
     </repository>
     <!-- use the following if you ARE using a snapshot version. -->
     <snapshotRepository>
-      <id>maven.voxeo.net</id>
-      <name>Nexus Public Mirror</name>
-      <url>http://maven.voxeo.net/nexus/content/repositories/snapshots/</url>
-      <uniqueVersion>false</uniqueVersion>
+      <id>
+        maven.voxeo.net
+      </id>
+      <name>
+        Nexus Public Mirror
+      </name>
+      <url>
+        http://maven.voxeo.net/nexus/content/repositories/snapshots/
+      </url>
+      <uniqueVersion>
+        false
+      </uniqueVersion>
     </snapshotRepository>
   </distributionManagement>
 </project>
