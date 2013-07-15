@@ -1,21 +1,41 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-  <modelVersion>4.0.0</modelVersion>
-  <name>Moho Sample PresenceNotify</name>  
-  <artifactId>Moho-Sample-PresenceNotify</artifactId>
-  <packaging>war</packaging>
-  
+<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd'>
+  <modelVersion>
+    4.0.0
+  </modelVersion>
+  <name>
+    Moho Sample PresenceNotify
+  </name>
+  <artifactId>
+    Moho-Sample-PresenceNotify
+  </artifactId>
+  <packaging>
+    war
+  </packaging>
   <parent>
-    <artifactId>moho-sample-parent</artifactId>
-    <groupId>com.voxeo.moho</groupId>
-    <version>trunk-SNAPSHOT</version>
-    <relativePath>..</relativePath>
+    <artifactId>
+      moho-sample-parent
+    </artifactId>
+    <groupId>
+      com.voxeo.moho
+    </groupId>
+    <version>
+      1.2.8-ameche
+    </version>
+    <relativePath>
+      ..
+    </relativePath>
   </parent>
   <dependencies>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>moho-presence</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        moho-presence
+      </artifactId>
+      <version>
+        trunk-SNAPSHOT
+      </version>
     </dependency>
   </dependencies>
 </project>
