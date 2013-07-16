@@ -1,73 +1,159 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
-  <modelVersion>4.0.0</modelVersion>
-  <name>Moho Sample Parent</name>
-  <artifactId>moho-sample-parent</artifactId>
-  <packaging>pom</packaging>
-
+<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd'>
+  <modelVersion>
+    4.0.0
+  </modelVersion>
+  <name>
+    Moho Sample Parent
+  </name>
+  <artifactId>
+    moho-sample-parent
+  </artifactId>
+  <packaging>
+    pom
+  </packaging>
   <parent>
-    <groupId>com.voxeo.moho</groupId>
-    <artifactId>moho-parent</artifactId>
-    <version>trunk-SNAPSHOT</version>
+    <groupId>
+      com.voxeo.moho
+    </groupId>
+    <artifactId>
+      moho-parent
+    </artifactId>
+    <version>
+      1.2.21-ameche
+    </version>
   </parent>
-
   <modules>
-    <module>CPA</module>
-    <module>AutomaticRedial</module>
-    <module>BlackList</module>
-    <module>CallForward</module>
-    <module>CallRingBack</module>
-    <module>ConferenceRoom</module>
-    <module>IVR</module>
-    <module>MidCallRecord</module>
-    <module>Outbound</module>
-    <module>PresenceSubscribe</module>
-    <module>SampleAutowire</module>
-    <module>SampleQueue</module>
-    <module>Transfer</module>
-    <module>MusicOnHold</module>
-    <module>Echo</module>
+    <module>
+      CPA
+    </module>
+    <module>
+      AutomaticRedial
+    </module>
+    <module>
+      BlackList
+    </module>
+    <module>
+      CallForward
+    </module>
+    <module>
+      CallRingBack
+    </module>
+    <module>
+      ConferenceRoom
+    </module>
+    <module>
+      IVR
+    </module>
+    <module>
+      MidCallRecord
+    </module>
+    <module>
+      Outbound
+    </module>
+    <module>
+      PresenceSubscribe
+    </module>
+    <module>
+      SampleAutowire
+    </module>
+    <module>
+      SampleQueue
+    </module>
+    <module>
+      Transfer
+    </module>
+    <module>
+      MusicOnHold
+    </module>
+    <module>
+      Echo
+    </module>
     <!--module>ImifiedEcho</module-->
-    <module>DefaultTestApp</module>
-    <module>SamplePresenceNotify</module>
-    <module>XmppPresence</module>
-    <module>SampleJoinStrategy</module>
+    <module>
+      DefaultTestApp
+    </module>
+    <module>
+      SamplePresenceNotify
+    </module>
+    <module>
+      XmppPresence
+    </module>
+    <module>
+      SampleJoinStrategy
+    </module>
   </modules>
-
   <scm>
-    <connection>${svnUrlBase}/moho-sample</connection>
-    <url>${svnUrlBase}/moho-sample</url>
+    <connection>
+      ${svnUrlBase}/moho-sample
+    </connection>
+    <url>
+      ${svnUrlBase}/moho-sample
+    </url>
   </scm>
-
   <dependencies>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <scope>provided</scope>
+      <groupId>
+        javax.servlet
+      </groupId>
+      <artifactId>
+        servlet-api
+      </artifactId>
+      <version>
+        2.5
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>sipservlet-api</artifactId>
-      <version>1.1-SNAPSHOT</version>
-      <scope>provided</scope>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        sipservlet-api
+      </artifactId>
+      <version>
+        1.1-SNAPSHOT
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>mscontrol-api</artifactId>
-      <version>1.0-SNAPSHOT</version>
-      <scope>provided</scope>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        mscontrol-api
+      </artifactId>
+      <version>
+        1.0-SNAPSHOT
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>moho-api</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        moho-api
+      </artifactId>
+      <version>
+        trunk-SNAPSHOT
+      </version>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>moho-impl</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        moho-impl
+      </artifactId>
+      <version>
+        trunk-SNAPSHOT
+      </version>
     </dependency>
   </dependencies>
 </project>

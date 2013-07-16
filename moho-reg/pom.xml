@@ -1,52 +1,112 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd'>
+  <modelVersion>
+    4.0.0
+  </modelVersion>
   <parent>
-    <artifactId>moho-parent</artifactId>
-    <groupId>com.voxeo.moho</groupId>
-    <version>trunk-SNAPSHOT</version>
-    <relativePath>..</relativePath>
+    <artifactId>
+      moho-parent
+    </artifactId>
+    <groupId>
+      com.voxeo.moho
+    </groupId>
+    <version>
+      1.2.21-ameche
+    </version>
+    <relativePath>
+      ..
+    </relativePath>
   </parent>
-  <artifactId>moho-reg</artifactId>
-  <name>Moho Registrar</name>
+  <artifactId>
+    moho-reg
+  </artifactId>
+  <name>
+    Moho Registrar
+  </name>
   <dependencies>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>moho-api</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        moho-api
+      </artifactId>
+      <version>
+        trunk-SNAPSHOT
+      </version>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>sipservlet-api</artifactId>
-      <version>1.1-SNAPSHOT</version>
-      <scope>provided</scope>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        sipservlet-api
+      </artifactId>
+      <version>
+        1.1-SNAPSHOT
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <scope>provided</scope>
+      <groupId>
+        javax.servlet
+      </groupId>
+      <artifactId>
+        servlet-api
+      </artifactId>
+      <version>
+        2.5
+      </version>
+      <scope>
+        provided
+      </scope>
     </dependency>
     <dependency>
-      <groupId>me.prettyprint</groupId>
-      <artifactId>hector-core</artifactId>
-      <version>0.8.0-2</version>
+      <groupId>
+        me.prettyprint
+      </groupId>
+      <artifactId>
+        hector-core
+      </artifactId>
+      <version>
+        0.8.0-2
+      </version>
       <exclusions>
         <exclusion>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
+          <groupId>
+            junit
+          </groupId>
+          <artifactId>
+            junit
+          </artifactId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.4</version>
-      <scope>test</scope>
+      <groupId>
+        junit
+      </groupId>
+      <artifactId>
+        junit
+      </artifactId>
+      <version>
+        4.4
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>moho-impl</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        moho-impl
+      </artifactId>
+      <version>
+        trunk-SNAPSHOT
+      </version>
     </dependency>
   </dependencies>
 </project>
