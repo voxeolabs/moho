@@ -1,106 +1,208 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
-  <modelVersion>4.0.0</modelVersion>
-  <name>Moho Common</name>
-  <artifactId>moho-common</artifactId>
-
+<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd'>
+  <modelVersion>
+    4.0.0
+  </modelVersion>
+  <name>
+    Moho Common
+  </name>
+  <artifactId>
+    moho-common
+  </artifactId>
   <parent>
-    <groupId>com.voxeo.moho</groupId>
-    <artifactId>moho-parent</artifactId>
-    <version>trunk-SNAPSHOT</version>
+    <groupId>
+      com.voxeo.moho
+    </groupId>
+    <artifactId>
+      moho-parent
+    </artifactId>
+    <version>
+      1.2.22-ameche
+    </version>
   </parent>
-
   <scm>
-    <connection>${svnUrlBase}/moho-impl</connection>
-    <url>${svnUrlBase}/moho-impl</url>
+    <connection>
+      ${svnUrlBase}/moho-impl
+    </connection>
+    <url>
+      ${svnUrlBase}/moho-impl
+    </url>
   </scm>
-
   <dependencies>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.15</version>
-      <scope>provided</scope>
+      <groupId>
+        log4j
+      </groupId>
+      <artifactId>
+        log4j
+      </artifactId>
+      <version>
+        1.2.15
+      </version>
+      <scope>
+        provided
+      </scope>
       <exclusions>
         <exclusion>
-          <groupId>javax.mail</groupId>
-          <artifactId>mail</artifactId>
+          <groupId>
+            javax.mail
+          </groupId>
+          <artifactId>
+            mail
+          </artifactId>
         </exclusion>
         <exclusion>
-          <groupId>javax.jms</groupId>
-          <artifactId>jms</artifactId>
+          <groupId>
+            javax.jms
+          </groupId>
+          <artifactId>
+            jms
+          </artifactId>
         </exclusion>
         <exclusion>
-          <groupId>com.sun.jdmk</groupId>
-          <artifactId>jmxtools</artifactId>
+          <groupId>
+            com.sun.jdmk
+          </groupId>
+          <artifactId>
+            jmxtools
+          </artifactId>
         </exclusion>
         <exclusion>
-          <groupId>com.sun.jmx</groupId>
-          <artifactId>jmxri</artifactId>
+          <groupId>
+            com.sun.jmx
+          </groupId>
+          <artifactId>
+            jmxri
+          </artifactId>
         </exclusion>
       </exclusions>
     </dependency>
-   
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.4</version>
-      <scope>test</scope>
+      <groupId>
+        junit
+      </groupId>
+      <artifactId>
+        junit
+      </artifactId>
+      <version>
+        4.4
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.jmock</groupId>
-      <artifactId>jmock-junit4</artifactId>
-      <version>2.5.1</version>
-      <scope>test</scope>
+      <groupId>
+        org.jmock
+      </groupId>
+      <artifactId>
+        jmock-junit4
+      </artifactId>
+      <version>
+        2.5.1
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.jmock</groupId>
-      <artifactId>jmock-legacy</artifactId>
-      <version>2.5.1</version>
-      <scope>test</scope>
+      <groupId>
+        org.jmock
+      </groupId>
+      <artifactId>
+        jmock-legacy
+      </artifactId>
+      <version>
+        2.5.1
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>cglib</groupId>
-      <artifactId>cglib</artifactId>
-      <version>2.1_3</version>
-      <scope>test</scope>
+      <groupId>
+        cglib
+      </groupId>
+      <artifactId>
+        cglib
+      </artifactId>
+      <version>
+        2.1_3
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>cglib</groupId>
-      <artifactId>cglib-nodep</artifactId>
-      <version>2.1_3</version>
-      <scope>test</scope>
+      <groupId>
+        cglib
+      </groupId>
+      <artifactId>
+        cglib-nodep
+      </artifactId>
+      <version>
+        2.1_3
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <version>1.1</version>
-      <scope>test</scope>
+      <groupId>
+        org.hamcrest
+      </groupId>
+      <artifactId>
+        hamcrest-all
+      </artifactId>
+      <version>
+        1.1
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
     <dependency>
-      <groupId>org.objenesis</groupId>
-      <artifactId>objenesis</artifactId>
-      <version>1.1</version>
-      <scope>test</scope>
+      <groupId>
+        org.objenesis
+      </groupId>
+      <artifactId>
+        objenesis
+      </artifactId>
+      <version>
+        1.1
+      </version>
+      <scope>
+        test
+      </scope>
     </dependency>
-
     <dependency>
-      <groupId>com.voxeo.moho</groupId>
-      <artifactId>moho-api</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <groupId>
+        com.voxeo.moho
+      </groupId>
+      <artifactId>
+        moho-api
+      </artifactId>
+      <version>
+        trunk-SNAPSHOT
+      </version>
     </dependency>
   </dependencies>
-
   <reporting>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>cobertura-maven-plugin</artifactId>
+        <groupId>
+          org.codehaus.mojo
+        </groupId>
+        <artifactId>
+          cobertura-maven-plugin
+        </artifactId>
         <configuration>
           <formats>
-            <format>html</format>
-            <format>xml</format>
+            <format>
+              html
+            </format>
+            <format>
+              xml
+            </format>
           </formats>
         </configuration>
       </plugin>
