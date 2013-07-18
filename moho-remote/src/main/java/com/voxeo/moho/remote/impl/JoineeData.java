@@ -93,4 +93,12 @@ public class JoineeData {
     }
     return null;
   }
+  
+  public synchronized Direction getDirection(final Participant p) {
+    JoinData data = _joinees.get(p);
+    if (data != null) {
+      return data.getDirection();
+    }
+    return null;
+  }
 }

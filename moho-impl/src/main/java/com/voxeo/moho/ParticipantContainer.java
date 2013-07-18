@@ -36,8 +36,6 @@ public interface ParticipantContainer {
 
   public JoinDelegate getJoinDelegate(String participantID);
 
-  Direction getDirection(Participant participant);
-
   // ///the following method is used for direct remote join.
   // return sdp async(by joinDelegate.doInviteReponse) or sync(not answered
   // incoming call)

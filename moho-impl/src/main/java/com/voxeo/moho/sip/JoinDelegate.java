@@ -567,7 +567,7 @@ public abstract class JoinDelegate {
     else {
       final Joinable peerJoinable = getJoinable(peer);
       final MediaMixer peerMultipleJoiningMixer = getMultipleJoiningMixer(peer, false);
-      final Direction peerDirection = ((ParticipantContainer) part).getDirection(peer);
+      final Direction peerDirection = part.getDirection(peer);
       _sharedJoin(joinable, multipleJoiningMixer, peerJoinable, peerDirection, peerMultipleJoiningMixer, otherJoinable,
           otherMultipleJoiningMixer, direction);
     }
@@ -643,7 +643,7 @@ public abstract class JoinDelegate {
     }
     else {
       final Joinable peerJoinable = getJoinable(peer);
-      final Direction peerDirection = ((ParticipantContainer) part).getDirection(peer);
+      final Direction peerDirection = part.getDirection(peer);
       final MediaMixer peerMultipleJoiningMixer = getMultipleJoiningMixer(peer, false);
       _sharedJoin(joinable, multipleJoiningMixer, peerJoinable, peerDirection, peerMultipleJoiningMixer, medGro, null,
           Direction.DUPLEX);

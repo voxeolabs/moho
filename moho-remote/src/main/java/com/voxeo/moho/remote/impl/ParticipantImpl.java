@@ -41,6 +41,11 @@ public abstract class ParticipantImpl extends DispatchableEventSource implements
     return _joinees.getJoinType(participant);
   }
 
+  @Override
+  public Direction getDirection(Participant participant) {
+    return _joinees.getDirection(participant);
+  }
+
   // //////////////////
   protected void addParticipant(Participant peer, JoinType joinType, Direction direction) {
     addParticipant(peer, joinType, direction, null);

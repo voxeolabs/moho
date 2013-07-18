@@ -165,4 +165,11 @@ public interface Participant extends EventSource {
    * @return remote address
    */
   String getRemoteAddress();
+  
+  /**
+   * Get the join direction for the joined participant.
+   * @param participant
+   * @return
+   */
+  Direction getDirection(Participant participant);
 }
