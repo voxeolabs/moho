@@ -81,8 +81,8 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
   @Override
   protected void doInviteResponse(final SipServletResponse res, final SIPCallImpl call,
       final Map<String, String> headers) throws Exception {
-    if (SIPHelper.isErrorResponse(res) && _call1.equals(call)) {
-      if(_response != null) {
+    if (SIPHelper.isErrorResponse(res)) {
+      if(_response != null && _call1.equals(call)) {
         try{
           _response.createAck().send();
           _call2.setSIPCallState(State.ANSWERED);
