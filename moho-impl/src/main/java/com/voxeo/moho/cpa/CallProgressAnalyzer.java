@@ -168,8 +168,8 @@ public class CallProgressAnalyzer implements Observer {
     else if (event.isEndOfSpeech()) {
       status._lastEndOfSpeech = System.currentTimeMillis();
 
-      ++status._retries;
-      long duration = status._lastEndOfSpeech - status._lastStartOfSpeech;
+      status._retries = +1;
+      long duration = status._lastEndOfSpeech - status._lastStartOfSpeech - voxeo_cpa_final_silence;
       if (duration < voxeo_cpa_max_time) {
         call.dispatch(new MohoCPAEvent<Call>(event.getSource(), Type.HUMAN_DETECTED, duration, status._retries));
       }
