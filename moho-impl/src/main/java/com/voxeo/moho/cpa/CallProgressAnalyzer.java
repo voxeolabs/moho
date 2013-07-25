@@ -1,5 +1,7 @@
 package com.voxeo.moho.cpa;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -160,14 +162,30 @@ public class CallProgressAnalyzer implements Observer {
     if (status == null) {
       return;
     }
-
+    if (!event.isStartOfSpeech() && !event.isEndOfSpeech() && event.getSignal() == null) {
+      return;
+    }
     log.info(event);
+    InputDetectedEvent<Call> lastEvent = null;
+    if (status._events.size() > 0) {
+      lastEvent = status._events.get(status._events.size() - 1);
+    }
+    status._events.add(event);
     if (event.isStartOfSpeech()) {
       status._lastStartOfSpeech = System.currentTimeMillis();
     }
     else if (event.isEndOfSpeech()) {
-      status._lastEndOfSpeech = System.currentTimeMillis();
+      if (lastEvent != null && lastEvent.getSignal() != null) {
+        status.reset();
+        return;
+      }
+      if (status._lastStartOfSpeech == 0) {
+        log.warn("Not received START-OF-SPEECH event yet.");
+        status.reset();
+        return;
+      }
 
+      status._lastEndOfSpeech = System.currentTimeMillis();
       status._retries = +1;
       long duration = status._lastEndOfSpeech - status._lastStartOfSpeech - voxeo_cpa_final_silence;
       if (duration < voxeo_cpa_max_time) {
@@ -208,6 +226,8 @@ public class CallProgressAnalyzer implements Observer {
     protected final Input<Call> _input;
 
     protected final Call _call;
+
+    protected final List<InputDetectedEvent<Call>> _events = new ArrayList<InputDetectedEvent<Call>>();
 
     public ProgressStatus(final Call call, final Input<Call> input) {
       _input = input;
