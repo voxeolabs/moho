@@ -87,7 +87,11 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
           if (SIPHelper.isProvisionalResponse(res)) {
             _call1.setSIPCallState(SIPCall.State.ANSWERING);
 
-            if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res) && _reliable183Resp == null) {
+            if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
+              if(_reliable183Resp != null) {
+                // this is a re-send of 183 response, ignore it
+                return;
+              }
               _reliable183Resp = res;
               reInviteCall2(res);
               _reInvited = true;
@@ -141,6 +145,7 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
               else if (_reliable183Resp != null) {
                 try {
                   SipServletRequest prack = _reliable183Resp.createPrack();
+                  _reliable183Resp = null;
                   SIPHelper.copyContent(res, prack);
                   prack.send();
                 }
