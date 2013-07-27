@@ -1,54 +1,79 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>moho-artifacts</artifactId>
-  <name>Moho artifacts</name>
-  <packaging>pom</packaging>
-
+<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd'>
+  <modelVersion>
+    4.0.0
+  </modelVersion>
+  <artifactId>
+    moho-artifacts
+  </artifactId>
+  <name>
+    Moho artifacts
+  </name>
+  <packaging>
+    pom
+  </packaging>
   <parent>
-    <groupId>com.voxeo.moho</groupId>
-    <artifactId>moho-parent</artifactId>
-    <version>trunk-SNAPSHOT</version>
+    <groupId>
+      com.voxeo.moho
+    </groupId>
+    <artifactId>
+      moho-parent
+    </artifactId>
+    <version>
+      1.3.4-ameche
+    </version>
   </parent>
-
   <scm>
-    <connection>${svnUrlBase}/moho-api</connection>
-    <url>${svnUrlBase}/moho-api</url>
+    <connection>
+      ${svnUrlBase}/moho-api
+    </connection>
+    <url>
+      ${svnUrlBase}/moho-api
+    </url>
   </scm>
-
   <build>
-    <outputDirectory>target/output</outputDirectory>
+    <outputDirectory>
+      target/output
+    </outputDirectory>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.3</version>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-antrun-plugin
+        </artifactId>
+        <version>
+          1.3
+        </version>
         <executions>
           <execution>
-            <phase>package</phase>
+            <phase>
+              package
+            </phase>
             <goals>
-              <goal>run</goal>
+              <goal>
+                run
+              </goal>
             </goals>
             <configuration>
               <tasks>
-				<mkdir dir="${project.build.outputDirectory}"/>
-                <zip destfile="${project.build.directory}/${project.build.finalName}.zip">
-                  <zipfileset dir="${project.parent.basedir}/moho-api/target/" defaultexcludes="false" prefix="moho-api">
-                    <include name="*.jar" />
+                <mkdir dir='${project.build.outputDirectory}'/>
+                <zip destfile='${project.build.directory}/${project.build.finalName}.zip'>
+                  <zipfileset dir='${project.parent.basedir}/moho-api/target/' defaultexcludes='false' prefix='moho-api'>
+                    <include name='*.jar'/>
                   </zipfileset>
-                  <zipfileset dir="${project.parent.basedir}/moho-impl/target/" defaultexcludes="false" prefix="moho-impl">
-					<include name="*.jar"/>
+                  <zipfileset dir='${project.parent.basedir}/moho-impl/target/' defaultexcludes='false' prefix='moho-impl'>
+                    <include name='*.jar'/>
                   </zipfileset>
-                  <zipfileset dir="${project.parent.basedir}/moho-reg/target/" defaultexcludes="false" prefix="moho-reg">
-          <include name="*.jar"/>
+                  <zipfileset dir='${project.parent.basedir}/moho-reg/target/' defaultexcludes='false' prefix='moho-reg'>
+                    <include name='*.jar'/>
                   </zipfileset>
-                  <zipfileset dir="${project.parent.basedir}/moho-presence/target/" defaultexcludes="false" prefix="moho-presence">
-          <include name="*.jar"/>
+                  <zipfileset dir='${project.parent.basedir}/moho-presence/target/' defaultexcludes='false' prefix='moho-presence'>
+                    <include name='*.jar'/>
                   </zipfileset>
-				  <zipfileset dir="${project.parent.basedir}/moho-sample/" defaultexcludes="false" prefix="moho-sample">
-					<include name="*/target/*.jar"/>
-					<include name="*/target/*.war"/>
+                  <zipfileset dir='${project.parent.basedir}/moho-sample/' defaultexcludes='false' prefix='moho-sample'>
+                    <include name='*/target/*.jar'/>
+                    <include name='*/target/*.war'/>
                   </zipfileset>
                 </zip>
               </tasks>
@@ -57,20 +82,34 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.2</version>
+        <groupId>
+          org.codehaus.mojo
+        </groupId>
+        <artifactId>
+          build-helper-maven-plugin
+        </artifactId>
+        <version>
+          1.2
+        </version>
         <executions>
           <execution>
-            <phase>package</phase>
+            <phase>
+              package
+            </phase>
             <goals>
-              <goal>attach-artifact</goal>
+              <goal>
+                attach-artifact
+              </goal>
             </goals>
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>${project.build.directory}/${project.build.finalName}.zip</file>
-                  <type>zip</type>
+                  <file>
+                    ${project.build.directory}/${project.build.finalName}.zip
+                  </file>
+                  <type>
+                    zip
+                  </type>
                 </artifact>
               </artifacts>
             </configuration>
