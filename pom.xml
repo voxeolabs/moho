@@ -1,241 +1,435 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.voxeo.moho</groupId>
-  <name>Moho Parent</name>
-  <artifactId>moho-parent</artifactId>
-  <version>trunk-SNAPSHOT</version>
-  <packaging>pom</packaging>
-
-	<repositories>
-		<repository>
-			<id>maven.voxeolabs.net</id>
-			<name>Voxeo Labs</name>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</snapshots>
-			<url>http://maven.voxeolabs.net:8081/nexus/content/repositories/snapshots</url>
-			<layout>default</layout>
-		</repository>
-		<repository>
-			<id>public.maven.voxeolabs.net</id>
-			<name>Voxeo Labs</name>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>never</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</snapshots>
-			<url>http://maven.voxeolabs.net:8081/nexus/content/groups/public/</url>
-			<layout>default</layout>
-		</repository>
-		<repository>
-			<id>sun-public</id>
-			<url>http://download.java.net/maven/2/</url>
-		</repository>
+<project xmlns='http://maven.apache.org/POM/4.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd'>
+  <modelVersion>
+    4.0.0
+  </modelVersion>
+  <groupId>
+    com.voxeo.moho
+  </groupId>
+  <name>
+    Moho Parent
+  </name>
+  <artifactId>
+    moho-parent
+  </artifactId>
+  <version>
+    1.3.3-ameche
+  </version>
+  <packaging>
+    pom
+  </packaging>
+  <repositories>
     <repository>
-      <id>codehause</id>
-      <url>http://repository.codehaus.org/</url>
+      <id>
+        maven.voxeolabs.net
+      </id>
+      <name>
+        Voxeo Labs
+      </name>
+      <releases>
+        <enabled>
+          true
+        </enabled>
+        <updatePolicy>
+          never
+        </updatePolicy>
+        <checksumPolicy>
+          fail
+        </checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>
+          true
+        </enabled>
+        <updatePolicy>
+          always
+        </updatePolicy>
+        <checksumPolicy>
+          fail
+        </checksumPolicy>
+      </snapshots>
+      <url>
+        http://maven.voxeolabs.net:8081/nexus/content/repositories/snapshots
+      </url>
+      <layout>
+        default
+      </layout>
     </repository>
-	</repositories>
-
+    <repository>
+      <id>
+        public.maven.voxeolabs.net
+      </id>
+      <name>
+        Voxeo Labs
+      </name>
+      <releases>
+        <enabled>
+          true
+        </enabled>
+        <updatePolicy>
+          never
+        </updatePolicy>
+        <checksumPolicy>
+          fail
+        </checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>
+          true
+        </enabled>
+        <updatePolicy>
+          always
+        </updatePolicy>
+        <checksumPolicy>
+          fail
+        </checksumPolicy>
+      </snapshots>
+      <url>
+        http://maven.voxeolabs.net:8081/nexus/content/groups/public/
+      </url>
+      <layout>
+        default
+      </layout>
+    </repository>
+    <repository>
+      <id>
+        sun-public
+      </id>
+      <url>
+        http://download.java.net/maven/2/
+      </url>
+    </repository>
+    <repository>
+      <id>
+        codehause
+      </id>
+      <url>
+        http://repository.codehaus.org/
+      </url>
+    </repository>
+  </repositories>
   <scm>
-    <connection>scm:git:git@github.com:voxeolabs/moho.git</connection>
-    <developerConnection>scm:git:git@github.com:voxeolabs/moho.git</developerConnection>
-    <url>scm:git:git@github.com:voxeolabs/moho.git</url>
-   </scm>
-
+    <connection>
+      scm:git:git@github.com:voxeolabs/moho.git
+    </connection>
+    <developerConnection>
+      scm:git:git@github.com:voxeolabs/moho.git
+    </developerConnection>
+    <url>
+      scm:git:git@github.com:voxeolabs/moho.git
+    </url>
+  </scm>
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <svnUrlBase>scm:git@github.com:voxeo/moho.git/1.0</svnUrlBase>
+    <project.build.sourceEncoding>
+      UTF-8
+    </project.build.sourceEncoding>
+    <svnUrlBase>
+      scm:git@github.com:voxeo/moho.git/1.0
+    </svnUrlBase>
   </properties>
-
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <artifactId>
+          maven-compiler-plugin
+        </artifactId>
+        <version>
+          2.3.2
+        </version>
         <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
+          <source>
+            1.6
+          </source>
+          <target>
+            1.6
+          </target>
         </configuration>
       </plugin>
-
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.1.1</version>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-source-plugin
+        </artifactId>
+        <version>
+          2.1.1
+        </version>
         <executions>
           <execution>
-            <id>attach-sources</id>
+            <id>
+              attach-sources
+            </id>
             <goals>
-              <goal>jar-no-fork</goal>
+              <goal>
+                jar-no-fork
+              </goal>
             </goals>
           </execution>
         </executions>
       </plugin>
-
-   <plugin>
-    <groupId>org.codehaus.mojo</groupId>
-    <artifactId>buildnumber-maven-plugin</artifactId>
-    <version>1.2</version>
-    <executions>
-     <execution>
-      <phase>validate</phase>
-      <goals>
-       <goal>create</goal>
-      </goals>
-     </execution>
-    </executions>
-    <configuration>
-     <providerImplementations>
-      <svn>git</svn>
-     </providerImplementations>
-     <!--shortRevisionLength>7</shortRevisionLength -->
-     <timestampFormat>{0,date,yyyy-MM-dd HH:mm:ss}</timestampFormat>
-     <doCheck>false</doCheck>
-     <doUpdate>false</doUpdate>
-    </configuration>
-   </plugin>
-
-   <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-jar-plugin</artifactId>
-    <version>2.3</version>
-    <configuration>
-     <archive>
-      <manifestEntries>
-       <Build-By>Voxeo Corporation</Build-By>
-       <Version-No>${project.version}</Version-No>
-       <Build-No>${GIT_BRANCH} - ${buildNumber}</Build-No>
-       <Build-Date>${timestamp}</Build-Date>
-       <Jenkins-Build-Number>${BUILD_NUMBER}</Jenkins-Build-Number>
-      </manifestEntries>
-     </archive>
-    </configuration>
-   </plugin>
-
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-scm-plugin</artifactId>
-        <version>1.3</version>
-        <configuration />
+        <groupId>
+          org.codehaus.mojo
+        </groupId>
+        <artifactId>
+          buildnumber-maven-plugin
+        </artifactId>
+        <version>
+          1.2
+        </version>
+        <executions>
+          <execution>
+            <phase>
+              validate
+            </phase>
+            <goals>
+              <goal>
+                create
+              </goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <providerImplementations>
+            <svn>
+              git
+            </svn>
+          </providerImplementations>
+          <!--shortRevisionLength>7</shortRevisionLength -->
+          <timestampFormat>
+            {0,date,yyyy-MM-dd HH:mm:ss}
+          </timestampFormat>
+          <doCheck>
+            false
+          </doCheck>
+          <doUpdate>
+            false
+          </doUpdate>
+        </configuration>
       </plugin>
-
-       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
+      <plugin>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-jar-plugin
+        </artifactId>
+        <version>
+          2.3
+        </version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Build-By>
+                Voxeo Corporation
+              </Build-By>
+              <Version-No>
+                ${project.version}
+              </Version-No>
+              <Build-No>
+                ${GIT_BRANCH} - ${buildNumber}
+              </Build-No>
+              <Build-Date>
+                ${timestamp}
+              </Build-Date>
+              <Jenkins-Build-Number>
+                ${BUILD_NUMBER}
+              </Jenkins-Build-Number>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-scm-plugin
+        </artifactId>
+        <version>
+          1.3
+        </version>
+        <configuration/>
+      </plugin>
+      <plugin>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-surefire-plugin
+        </artifactId>
         <!-- version>2.10</version -->
         <configuration>
           <excludes>
-            <exclude>%regex[com.voxeo.moho.conference.Conference*.*]</exclude>
-            <exclude>%regex[com.voxeo.moho.Mixer*.*]</exclude>
-            <exclude>%regex[com.voxeo.moho.media*.*]</exclude>
-            <exclude>%regex[com.voxeo.moho.sip*.*]</exclude>
-         </excludes>
+            <exclude>
+              %regex[com.voxeo.moho.conference.Conference*.*]
+            </exclude>
+            <exclude>
+              %regex[com.voxeo.moho.Mixer*.*]
+            </exclude>
+            <exclude>
+              %regex[com.voxeo.moho.media*.*]
+            </exclude>
+            <exclude>
+              %regex[com.voxeo.moho.sip*.*]
+            </exclude>
+          </excludes>
         </configuration>
       </plugin>
-
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-surefire-plugin
+        </artifactId>
         <!-- version>2.10</version -->
         <configuration>
           <excludes>
-            <exclude>%regex[com.voxeo.moho.conference.Conference*.*]</exclude>
-            <exclude>%regex[com.voxeo.moho.Mixer*.*]</exclude>
-            <exclude>%regex[com.voxeo.moho.media*.*]</exclude>
-            <exclude>%regex[com.voxeo.moho.sip*.*]</exclude>
-         </excludes>
+            <exclude>
+              %regex[com.voxeo.moho.conference.Conference*.*]
+            </exclude>
+            <exclude>
+              %regex[com.voxeo.moho.Mixer*.*]
+            </exclude>
+            <exclude>
+              %regex[com.voxeo.moho.media*.*]
+            </exclude>
+            <exclude>
+              %regex[com.voxeo.moho.sip*.*]
+            </exclude>
+          </excludes>
         </configuration>
       </plugin>
-
       <plugin>
-        <artifactId>maven-surefire-report-plugin</artifactId>
-        <version>2.5</version>
+        <artifactId>
+          maven-surefire-report-plugin
+        </artifactId>
+        <version>
+          2.5
+        </version>
       </plugin>
-
       <plugin>
-        <groupId>com.mycila.maven-license-plugin</groupId>
-        <artifactId>maven-license-plugin</artifactId>
+        <groupId>
+          com.mycila.maven-license-plugin
+        </groupId>
+        <artifactId>
+          maven-license-plugin
+        </artifactId>
         <configuration>
-          <header>header.txt</header>
+          <header>
+            header.txt
+          </header>
           <includes>
-            <include>src/**/*.java</include>
+            <include>
+              src/**/*.java
+            </include>
           </includes>
         </configuration>
       </plugin>
     </plugins>
   </build>
-
   <reporting>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-changelog-plugin</artifactId>
+        <groupId>
+          org.apache.maven.plugins
+        </groupId>
+        <artifactId>
+          maven-changelog-plugin
+        </artifactId>
         <reportSets>
           <reportSet>
-            <id>dual-report</id>
+            <id>
+              dual-report
+            </id>
             <configuration>
-              <type>range</type>
-              <range>30</range>
+              <type>
+                range
+              </type>
+              <range>
+                30
+              </range>
             </configuration>
             <reports>
-              <report>changelog</report>
-              <report>file-activity</report>
+              <report>
+                changelog
+              </report>
+              <report>
+                file-activity
+              </report>
             </reports>
           </reportSet>
         </reportSets>
       </plugin>
     </plugins>
   </reporting>
-
   <modules>
-    <module>moho-api</module>
-	<module>moho-common</module>
-    <module>moho-impl</module>
-    <module>moho-sample</module>
-    <module>moho-reg</module>
-    <module>moho-remote</module>
-    <module>moho-presence</module>
-    <module>moho-artifacts</module>
+    <module>
+      moho-api
+    </module>
+    <module>
+      moho-common
+    </module>
+    <module>
+      moho-impl
+    </module>
+    <module>
+      moho-sample
+    </module>
+    <module>
+      moho-reg
+    </module>
+    <module>
+      moho-remote
+    </module>
+    <module>
+      moho-presence
+    </module>
+    <module>
+      moho-artifacts
+    </module>
   </modules>
-
-	<pluginRepositories>
-		<!-- pluginRepository>
+  <pluginRepositories>
+    <!-- pluginRepository>
 			<id>codehouse-s-repo</id>
 			<name>CodeHouse Snapshot Repo</name>
 			<url>https://nexus.codehaus.org/content/groups/snapshots-group</url>
 		</pluginRepository> -->
-		<pluginRepository>
-			<id>public.maven.voxeolabs.net</id>
-			<name>Voxeo Labs</name>
-			<url>http://maven.voxeolabs.net:8081/nexus/content/groups/public/</url>
-		</pluginRepository>
-	</pluginRepositories>
-
+    <pluginRepository>
+      <id>
+        public.maven.voxeolabs.net
+      </id>
+      <name>
+        Voxeo Labs
+      </name>
+      <url>
+        http://maven.voxeolabs.net:8081/nexus/content/groups/public/
+      </url>
+    </pluginRepository>
+  </pluginRepositories>
   <distributionManagement>
     <repository>
-      <id>maven.voxeolabs.net</id>
-      <name>Nexus Public Mirror</name>
-      <url>http://maven.voxeolabs.net:8081/nexus/content/repositories/releases/</url>
+      <id>
+        maven.voxeolabs.net
+      </id>
+      <name>
+        Nexus Public Mirror
+      </name>
+      <url>
+        http://maven.voxeolabs.net:8081/nexus/content/repositories/releases/
+      </url>
     </repository>
     <snapshotRepository>
-      <id>maven.voxeolabs.net</id>
-      <name>Nexus Public Mirror</name>
-      <url>http://maven.voxeolabs.net:8081/nexus/content/repositories/snapshots/</url>
+      <id>
+        maven.voxeolabs.net
+      </id>
+      <name>
+        Nexus Public Mirror
+      </name>
+      <url>
+        http://maven.voxeolabs.net:8081/nexus/content/repositories/snapshots/
+      </url>
     </snapshotRepository>
   </distributionManagement>
 </project>
