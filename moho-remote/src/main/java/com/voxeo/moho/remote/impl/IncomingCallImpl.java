@@ -34,6 +34,8 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
 
   protected boolean isRedirected;
 
+  protected boolean isAcceptedWithEarlyMedia;
+
   protected JointImpl waitAnswerJoint = null;
 
   public IncomingCallImpl(MohoRemoteImpl mohoRemote, String callID, CallableEndpoint caller, CallableEndpoint callee,
@@ -119,25 +121,42 @@ public class IncomingCallImpl extends CallImpl implements IncomingCall {
 
   @Override
   public boolean isAcceptedWithEarlyMedia() {
-    // TODO rayo doesn't support this yes.
-    return false;
+    return isAcceptedWithEarlyMedia;
   }
 
   @Override
   public void acceptWithEarlyMedia() throws SignalException, MediaException {
-    // TODO rayo doesn't support this yes.
-
+    acceptWithEarlyMedia((Map<String, String>) null);
   }
 
   @Override
   public void acceptWithEarlyMedia(Observer... observer) throws SignalException, MediaException {
-    // TODO rayo doesn't support this yes.
-
+    addObserver(observer);
+    acceptWithEarlyMedia();
   }
 
   @Override
   public void acceptWithEarlyMedia(Map<String, String> headers) throws SignalException, MediaException {
-    // TODO rayo doesn't support this yes.
+    try {
+      AcceptCommand command = new AcceptCommand();
+      command.setHeaders(headers);
+      command.setCallId(this.getId());
+      command.setEarlyMedia(true);
+      IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
+      if (iq.isError()) {
+        this.setCallState(Call.State.FAILED);
+        com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
+        throw new SignalException(error.getCondition() + error.getText());
+      }
+      else {
+        isAcceptedWithEarlyMedia = true;
+        this.setCallState(Call.State.INPROGRESS);
+      }
+    }
+    catch (XmppException e) {
+      LOG.error("", e);
+      throw new MohoRemoteException(e);
+    }
   }
 
   @Override
