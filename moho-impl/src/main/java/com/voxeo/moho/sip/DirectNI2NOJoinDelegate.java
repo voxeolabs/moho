@@ -11,6 +11,7 @@
 
 package com.voxeo.moho.sip;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -172,10 +173,14 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
                 SipServletRequest prack = res.createPrack();
                 prack.setContent(_call1.getRemoteSdp(), "application/sdp");
                 prack.send();
+                relayUnreliableProvisionalResponse(res);
               }
             }
             else {
               SIPHelper.trySendPrack(res);
+              if(!call1Processed) {
+                relayUnreliableProvisionalResponse(res);
+              }
             }
           }
           else {
@@ -294,5 +299,12 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
     _call1.linkCall(_call2, JoinType.DIRECT, _direction);
     _response = null;
     done(JoinCompleteEvent.Cause.JOINED, null);
+  }
+  
+  private void relayUnreliableProvisionalResponse(SipServletResponse res) throws IOException {
+    final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
+        res.getReasonPhrase());
+    SIPHelper.copyContent(res, newRes);
+    newRes.send();
   }
 }
