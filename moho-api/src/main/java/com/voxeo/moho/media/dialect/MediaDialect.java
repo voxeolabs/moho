@@ -11,6 +11,7 @@ import javax.media.mscontrol.mediagroup.RecorderEvent;
 import javax.media.mscontrol.mediagroup.signals.SignalDetectorEvent;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.resource.RTC;
+import javax.media.mscontrol.resource.ResourceEvent;
 
 import com.voxeo.moho.event.InputCompleteEvent.Cause;
 import com.voxeo.moho.media.BeepParameters;
@@ -54,6 +55,8 @@ public interface MediaDialect {
   void startCallRecord(NetworkConnection nc, URI recordURI, RTC[] rtc, Parameters optargs, CallRecordListener listener) throws MsControlException;
   
   void stopCallRecord(NetworkConnection nc);
+
+  int getCallRecordDuration(ResourceEvent event);
   //call record related over
   
   void enableRecorderPromptCompleteEvent(Parameters params, boolean enable);

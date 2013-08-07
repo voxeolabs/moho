@@ -466,9 +466,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       }
       if (command.isStartBeep()) {
         params.put(Recorder.START_BEEP, Boolean.TRUE);
-        if (command.getBeepFrequency() > 0 || command.getBeepFrequency() == -1 ) {
+        if (command.getBeepFrequency() > 0 || command.getBeepFrequency() == -1) {
           params.put(Recorder.BEEP_FREQUENCY, command.getBeepFrequency());
-        } 
+        }
         if (command.getBeepLength() > 0 || command.getBeepLength() == -1) {
           params.put(Recorder.BEEP_LENGTH, command.getBeepLength());
         }
@@ -556,8 +556,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       }
 
       _dialect.enableRecorderPromptCompleteEvent(params, true);
-      
-      if(command.isIgnorePromptFailure()) {
+
+      if (command.isIgnorePromptFailure()) {
         _dialect.setIgnorePromptFailure(params, true);
       }
 
@@ -641,8 +641,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     if (cmd.getSpeechIncompleteTimeout() > 0) {
       _dialect.setSpeechIncompleteTimeout(params, cmd.getSpeechIncompleteTimeout());
     }
-    
-    if(cmd.isIgnorePromptFailure()) {
+
+    if (cmd.isIgnorePromptFailure()) {
       _dialect.setIgnorePromptFailure(params, true);
     }
 
@@ -810,8 +810,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         errorText = event.getError() + ": " + event.getErrorText();
       }
       // TODO record duration
-      final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause, 0, errorText,
-          callRecording);
+      final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause,
+          _dialect.getCallRecordDuration(event), errorText, callRecording);
       _parent.dispatch(recordCompleteEvent);
       callRecording.done(recordCompleteEvent);
       _futures.remove(callRecording);
