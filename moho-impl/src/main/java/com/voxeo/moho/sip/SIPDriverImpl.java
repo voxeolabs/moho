@@ -446,7 +446,7 @@ public class SIPDriverImpl implements SIPDriver {
     if (source != null) {
       if (source instanceof SIPCall) {
         final int status = res.getStatus();
-        if (status == SipServletResponse.SC_SESSION_PROGRESS) {
+        if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
           source.dispatch(new SIPEarlyMediaEventImpl((SIPCall) source, res));
         }
         else if (status != SipServletResponse.SC_TRYING) {
