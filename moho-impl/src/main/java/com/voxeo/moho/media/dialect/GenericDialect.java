@@ -1,7 +1,6 @@
 package com.voxeo.moho.media.dialect;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
@@ -12,6 +11,7 @@ import javax.media.mscontrol.mediagroup.RecorderEvent;
 import javax.media.mscontrol.mediagroup.signals.SignalDetectorEvent;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.resource.RTC;
+import javax.media.mscontrol.resource.ResourceEvent;
 
 import com.voxeo.moho.event.InputCompleteEvent.Cause;
 import com.voxeo.moho.media.BeepParameters;
@@ -95,6 +95,12 @@ public class GenericDialect implements MediaDialect {
   }
 
   @Override
+  public int getCallRecordDuration(ResourceEvent event) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
   public boolean isPromptCompleteEvent(RecorderEvent event) {
     return false;
   }
@@ -148,6 +154,6 @@ public class GenericDialect implements MediaDialect {
 
   @Override
   public void setIgnorePromptFailure(Parameters params, boolean ignore) {
-    
+
   }
 }
