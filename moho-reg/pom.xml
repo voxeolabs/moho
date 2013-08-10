@@ -12,7 +12,7 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-api</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>com.voxeo.moho</groupId>
@@ -46,7 +46,7 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-impl</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>
