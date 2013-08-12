@@ -30,6 +30,7 @@ import com.voxeo.moho.common.event.AutowiredEventListener;
 import com.voxeo.moho.common.event.AutowiredEventTarget;
 import com.voxeo.moho.common.event.EventDispatcher;
 import com.voxeo.moho.common.event.MohoEarlyMediaEvent;
+import com.voxeo.moho.common.util.InheritLogContextRunnable;
 import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.event.AcceptableEvent;
 import com.voxeo.moho.event.CallEvent;
@@ -292,7 +293,7 @@ public abstract class CallImpl implements Call {
       retval = this.internalDispatch(event);
     }
     else {
-      final Runnable acceptor = new Runnable() {
+      final Runnable acceptor = new InheritLogContextRunnable() {
         @Override
         public void run() {
           if (event instanceof EarlyMediaEvent) {
