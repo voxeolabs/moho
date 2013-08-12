@@ -776,7 +776,7 @@ public abstract class JoinDelegate {
   }
 
   protected void disconnectCalls(final List<SIPCallImpl> calls) {
-    ((ExecutionContext) _call1.getApplicationContext()).getExecutor().execute(new Runnable() {
+    ((ExecutionContext) _call1.getApplicationContext()).getExecutor().execute(new InheritLogContextRunnable() {
       @Override
       public void run() {
         for (SIPCallImpl call : calls) {
@@ -797,7 +797,7 @@ public abstract class JoinDelegate {
 
   protected void disconnectCall(final SIPCallImpl call, final boolean fail, final CallCompleteEvent.Cause cause,
       final Exception ex) {
-    ((ExecutionContext) _call1.getApplicationContext()).getExecutor().execute(new Runnable() {
+    ((ExecutionContext) _call1.getApplicationContext()).getExecutor().execute(new InheritLogContextRunnable() {
       @Override
       public void run() {
         try {

@@ -74,6 +74,7 @@ import com.voxeo.moho.UnjointImpl;
 import com.voxeo.moho.common.event.MohoCallCompleteEvent;
 import com.voxeo.moho.common.event.MohoJoinCompleteEvent;
 import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
+import com.voxeo.moho.common.util.InheritLogContextRunnable;
 import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent;
@@ -1103,7 +1104,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       dispatch(new MohoUnjoinCompleteEvent(this, participant, unjoinCause, exception, true));
 
       if (participant instanceof ParticipantContainer) {
-        _context.getExecutor().execute(new Runnable() {
+        _context.getExecutor().execute(new InheritLogContextRunnable() {
           @Override
           public void run() {
             try {
@@ -1121,7 +1122,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     synchronized (_peers) {
       for (final Call peer : _peers) {
         try {
-          _context.getExecutor().execute(new Runnable() {
+          _context.getExecutor().execute(new InheritLogContextRunnable() {
 
             @Override
             public void run() {
