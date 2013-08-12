@@ -6,6 +6,7 @@ import javax.servlet.sip.annotation.SipListener;
 
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.common.event.MohoCallCompleteEvent;
+import com.voxeo.moho.common.util.InheritLogContextRunnable;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.util.SessionUtils;
 
@@ -22,7 +23,7 @@ public class ClearResourceSessionListener implements SipSessionListener {
     final EventSource source = SessionUtils.getEventSource(sipsessionevent.getSession());
 
     if (source != null && source instanceof SIPCallImpl) {
-      ((ApplicationContextImpl)((SIPCallImpl) source).getApplicationContext()).getExecutor().execute(new Runnable() {
+      ((ApplicationContextImpl)((SIPCallImpl) source).getApplicationContext()).getExecutor().execute(new InheritLogContextRunnable() {
         @Override
         public void run() {
           ((SIPCallImpl) source).disconnect(true, MohoCallCompleteEvent.Cause.ERROR, null, null);
