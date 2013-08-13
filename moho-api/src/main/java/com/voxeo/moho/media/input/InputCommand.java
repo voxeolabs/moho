@@ -32,7 +32,7 @@ import com.voxeo.moho.media.InputMode;
 
 /**
  * Media command to recognize the input based on a set of grammars.
- *
+ * 
  * @author wchen
  */
 public class InputCommand implements Parameters {
@@ -103,7 +103,7 @@ public class InputCommand implements Parameters {
   protected BeepParameters _beepParams = new BeepParameters();
 
   protected boolean _ignorePromptFailure;
-  
+
   /**
    * @param grammers
    *          can be simple string or string that starts with "#JSGF". if the
@@ -120,7 +120,7 @@ public class InputCommand implements Parameters {
 
   /**
    * Construct command with multiple grammars
-   *
+   * 
    * @param grammars
    */
   public InputCommand(final Grammar... grammars) {
@@ -138,7 +138,10 @@ public class InputCommand implements Parameters {
 
   /**
    * Set the inter digits timeout for DTMF.
-   *
+   * <p>
+   * The defaut value is {@link Resource#FOREVER} which means this timeout is
+   * disabled.
+   * 
    * @param time
    *          the timeout value in millisecond.
    */
@@ -167,7 +170,7 @@ public class InputCommand implements Parameters {
   /**
    * Set the number of DTMF digits this command expects. By default, the value
    * is -1 which means unlimited.
-   *
+   * 
    * @param num
    *          a negative number means unlimited.
    */
@@ -215,6 +218,15 @@ public class InputCommand implements Parameters {
     return _sensitivity;
   }
 
+  /**
+   * Set how sensitive the interpreter is to loud versus quiet input.
+   * <p>
+   * Adjusting the default value of <code>0.5</code> upwards will make the
+   * interpeter more sensitive to quiet input, while adjusting this value
+   * downwards will make it less sensitive to quiet input.
+   * 
+   * @param _sensitivity
+   */
   public void setSensitivity(float _sensitivity) {
     this._sensitivity = _sensitivity;
   }
@@ -222,7 +234,12 @@ public class InputCommand implements Parameters {
   /**
    * Set the minimum confidence required for the recognizer to recognize the
    * speech based on the grammar.
-   *
+   * <p>
+   * If one were to change the default value of <code>0.3</code> to
+   * <code>0.1</code>, then any utterance would be matched, while if it were to
+   * be adjusted to <code>1.0</code>, then virtually every user utterance would
+   * be considered a nomatch.
+   * 
    * @param confidence
    *          a float between 0 and 1.
    */
@@ -245,7 +262,10 @@ public class InputCommand implements Parameters {
 
   /**
    * Set the timeout value to determine no digits will be entered.
-   *
+   * <p>
+   * The defaut value is {@link Resource#FOREVER} which means this timeout is
+   * disabled.
+   * 
    * @param time
    *          the timeout value in milliseconds.
    */
@@ -262,7 +282,10 @@ public class InputCommand implements Parameters {
 
   /**
    * Set the max time to wait for the completion of the input
-   *
+   * <p>
+   * The defaut value is {@link Resource#FOREVER} which means this timeout is
+   * disabled.
+   * 
    * @param time
    *          the time in milliseconds.
    */
@@ -287,8 +310,11 @@ public class InputCommand implements Parameters {
   }
 
   /**
-   * Set the name of the speech recognizer.
-   *
+   * Set the name of the speech recognizer. *
+   * <p>
+   * The defaut value is platform specific. For example, in Prism it defaults to
+   * <code>en-us</code>.
+   * 
    * @param recognizer
    */
   public void setRecognizer(String recognizer) {
@@ -303,8 +329,8 @@ public class InputCommand implements Parameters {
   }
 
   /**
-   * Set the terminating character of the input.
-   *
+   * Set the terminating character of the input. No default value.
+   * 
    * @param termChar
    *          one of the valid DTMF input on the phone pad.
    */
@@ -321,7 +347,9 @@ public class InputCommand implements Parameters {
 
   /**
    * Set Input Mode of this input.
-   *
+   * <p>
+   * The defaut value is {@link InputMode#ANY}.
+   * 
    * @param inputMode
    */
   public void setInputMode(InputMode inputMode) {
@@ -450,6 +478,17 @@ public class InputCommand implements Parameters {
     return _speechIncompleteTimeout;
   }
 
+  /**
+   * Change the setting of when, after a caller pauses in mid-utterance, the
+   * interpreter will start to process said utterance.
+   * <p>
+   * After the period of time specified, the interpreter will process the
+   * utterance and return either a valid grammar match, or a nomatch condition.
+   * <p>
+   * The default value is platform specific.
+   * 
+   * @param speechIncompleteTimeout
+   */
   public void setSpeechIncompleteTimeout(long speechIncompleteTimeout) {
     this._speechIncompleteTimeout = speechIncompleteTimeout;
   }
@@ -458,6 +497,14 @@ public class InputCommand implements Parameters {
     return _speechCompleteTimeout;
   }
 
+  /**
+   * Set the length of time after a user utterance where the interpreter will
+   * consider the utterance complete.
+   * <p>
+   * The default value is platform specific.
+   * 
+   * @param speechCompleteTimeout
+   */
   public void setSpeechCompleteTimeout(long speechCompleteTimeout) {
     this._speechCompleteTimeout = speechCompleteTimeout;
   }
@@ -474,7 +521,7 @@ public class InputCommand implements Parameters {
   }
 
   public void setAutoRest(boolean autoreset) {
-    this._autoreset=autoreset;
+    this._autoreset = autoreset;
   }
 
   public void setEnergyParameters(Long finalSilence, Long maxSilence, Long maxSpeechDuration, Long minSpeechDuration,
