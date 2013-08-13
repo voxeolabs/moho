@@ -203,11 +203,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     return this.getId().equals(((SIPCall) o).getId());
   }
-
+  
   @Override
   public String toString() {
-    return new StringBuilder().append(this.getClass().getSimpleName()).append("[").append(_signal).append(", ")
-        .append(_id).append(", ").append(_cstate).append("]").toString();
+    return String.format("%s[sipsessionid=%s id=%s callstate=%s]", getClass().getSimpleName(), _signal.getId(), _id,
+        _cstate);
   }
 
   public String useReplacesHeader() {

@@ -61,8 +61,8 @@ public class MohoJoinCompleteEvent extends MohoEvent<EventSource> implements Joi
 
   @Override
   public String toString() {
-    return String.format("[Event class=%s sourceClass=%s id=%s cause=%s participant=%s]", getClass().getName(), (source != null ? source
-        .getClass().getSimpleName() : null), hashCode(), _cause, _participant);
+    return String.format("[Event class=%s source=%s id=%s cause=%s participant=%s]", getClass().getSimpleName(), source,
+        hashCode(), _cause, _participant);
   }
   
 }

@@ -59,4 +59,9 @@ public class MohoUnjoinCompleteEvent extends MohoEvent<EventSource> implements U
     return _initiator;
   }
   
+  @Override
+  public String toString() {
+    return String.format("[Event class=%s source=%s id=%s cause=%s participant=%s]", getClass().getSimpleName(), source,
+        hashCode(), _cause, _participant);
+  }
 }
