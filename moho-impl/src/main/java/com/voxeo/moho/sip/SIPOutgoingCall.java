@@ -152,11 +152,7 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
       _invite.send();
     }
     else if (isAnswered()) {
-      final SipServletRequest reinvte = _signal.createRequest("INVITE");
-      if (sdp != null) {
-        reinvte.setContent(sdp, "application/sdp");
-      }
-      reinvte.send();
+      reInviteRemote(sdp, null, null);
     }
   }
 

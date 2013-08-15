@@ -50,9 +50,7 @@ public class Media2AOJoinDelegate extends JoinDelegate {
         try {
           final byte[] sdp = event.getMediaServerSdp();
           _call1.setLocalSDP(sdp);
-          final SipServletMessage message = _call1.getSipSession().createRequest("INVITE");
-          message.setContent(sdp, "application/sdp");
-          message.send();
+          _call1.reInviteRemote(sdp, null, null);
           return;
         }
         catch (final IOException e) {

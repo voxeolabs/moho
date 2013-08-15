@@ -186,8 +186,6 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
   }
 
   private void reInviteCall2(SipServletMessage res) throws Exception {
-    final SipServletRequest req = _call2.getSipSession().createRequest("INVITE");
-    SIPHelper.copyContent(res, req);
-    req.send();
+    _call2.reInviteRemote(res.getContent(), null, null);
   }
 }

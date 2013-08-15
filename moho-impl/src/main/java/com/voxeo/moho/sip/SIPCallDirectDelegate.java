@@ -15,6 +15,7 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
@@ -138,10 +139,9 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
             peer.setDeafState(HoldState.Undeafing);
           }
 
-          SipServletRequest reInvite = peer.getSipSession().createRequest("INVITE");
-          reInvite.setAttribute(SIPCallDelegate.SIPCALL_DEAF_REQUEST, "true");
-          reInvite.setContent(res.getRawContent(), "application/sdp");
-          reInvite.send();
+          Map<String, String> attributes = new HashMap<String, String>();
+          attributes.put(SIPCallDelegate.SIPCALL_DEAF_REQUEST, "true");
+          peer.reInviteRemote(res.getRawContent(), null, attributes);
 
           while (peer.getDeafState() != HoldState.Deafed && peer.getDeafState() != HoldState.None) {
             try {
@@ -198,10 +198,9 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
   protected void hold(SIPCallImpl call, boolean send) throws MsControlException, IOException, SdpException {
     final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
 
-    SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
-    reInvite.setAttribute(SIPCallDelegate.SIPCALL_HOLD_REQUEST, "true");
-    reInvite.setContent(createSendonlySDP(call, peer.getRemoteSdp()), "application/sdp");
-    reInvite.send();
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put(SIPCallDelegate.SIPCALL_HOLD_REQUEST, "true");
+    call.reInviteRemote(createSendonlySDP(call, peer.getRemoteSdp()), null, attributes);
 
     peer.hold();
   }
@@ -210,31 +209,28 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
   protected void mute(SIPCallImpl call) throws IOException, SdpException {
     final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
 
-    SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
-    reInvite.setAttribute(SIPCallDelegate.SIPCALL_MUTE_REQUEST, "true");
-    reInvite.setContent(createSendonlySDP(call, peer.getRemoteSdp()), "application/sdp");
-    reInvite.send();
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put(SIPCallDelegate.SIPCALL_MUTE_REQUEST, "true");
+    call.reInviteRemote(createSendonlySDP(call, peer.getRemoteSdp()), null, attributes);
   }
 
   @Override
   protected void unhold(SIPCallImpl call) throws MsControlException, IOException, SdpException {
     final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
 
-    SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
-    reInvite.setAttribute(SIPCallDelegate.SIPCALL_UNHOLD_REQUEST, "true");
-    reInvite.setContent(createSendrecvSDP(call, peer.getRemoteSdp()), "application/sdp");
-    reInvite.send();
-
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put(SIPCallDelegate.SIPCALL_UNHOLD_REQUEST, "true");
+    call.reInviteRemote(createSendrecvSDP(call, peer.getRemoteSdp()), null, attributes);
+    
     peer.unhold();
   }
 
   @Override
   protected void unmute(SIPCallImpl call) throws IOException, SdpException {
     final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
-
-    SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
-    reInvite.setAttribute(SIPCallDelegate.SIPCALL_UNMUTE_REQUEST, "true");
-    reInvite.setContent(createSendrecvSDP(call, peer.getRemoteSdp()), "application/sdp");
-    reInvite.send();
+    
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put(SIPCallDelegate.SIPCALL_UNMUTE_REQUEST, "true");
+    call.reInviteRemote(createSendrecvSDP(call, peer.getRemoteSdp()), null, attributes);
   }
 }
