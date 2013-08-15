@@ -60,9 +60,7 @@ public class DirectAI2AOJoinDelegate extends JoinDelegate {
       try {
         if (_call2.equals(call)) {
           _response = res;
-          final SipServletRequest req = _call1.getSipSession().createRequest("INVITE");
-          SIPHelper.copyContent(res, req);
-          req.send();
+          _call1.reInviteRemote(res.getContent(), null, null);
         }
         else if (_call1.equals(call)) {
           final SipServletRequest ack1 = res.createAck();

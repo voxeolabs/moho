@@ -197,8 +197,6 @@ public class DirectAI2NOJoinDelegate extends JoinDelegate {
   }
 
   private void reInviteCall1(SipServletMessage message) throws Exception {
-    final SipServletRequest req = _call1.getSipSession().createRequest("INVITE");
-    SIPHelper.copyContent(message, req);
-    req.send();
+    _call1.reInviteRemote(message.getContent(), null, null);
   }
 }

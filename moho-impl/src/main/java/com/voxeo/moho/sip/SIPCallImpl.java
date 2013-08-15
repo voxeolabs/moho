@@ -20,10 +20,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Random;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.locks.Condition;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -65,6 +68,7 @@ import com.voxeo.moho.Joint;
 import com.voxeo.moho.JointImpl;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
+import com.voxeo.moho.OutgoingCall;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.ParticipantContainer;
 import com.voxeo.moho.SettableJointImpl;
@@ -92,6 +96,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     ParticipantContainer {
 
   private static final Logger LOG = Logger.getLogger(SIPCallImpl.class);
+  
+  private static String Att_REINVITE_HEADERS = "Att_REINVITE_HEADERS";
+  private static String Att_REINVITE_ATTRIBUTES = "Att_REINVITE_ATTRIBUTES";
 
   protected SIPCall.State _cstate;
 
@@ -136,13 +143,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected Queue<JoinRequest> _joinQueue = new LinkedList<JoinRequest>();
 
-  protected Lock _joinQueueLock = new ReentrantLock();
-
   protected SipServletResponse _inviteResponse;
-  
-  protected Lock joinCompleteLock = new ReentrantLock();
 
-  protected Condition joinCompleteCondition = joinCompleteLock.newCondition();
+  protected boolean reInvitingRemote;
+  
+  protected boolean processingReinvite;
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
@@ -403,6 +408,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       SIPCallImpl.this.dispatch(event);
       return event;
     }
+    
+    // wait if processing re-INVITE from remote
+    waitProcessReInvite();
+    
     Participant participant = p;
     Participant local = this;
 
@@ -478,6 +487,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (isTerminated()) {
       throw new IllegalStateException("already terminated.");
     }
+    //wait if processing re-INVITE from remote.
+    waitProcessReInvite();
+    
     if (_operationInProcess) {
       if (_joinDelegate != null
           && !(_joinDelegate instanceof BridgeJoinDelegate || _joinDelegate instanceof MultipleNOBridgeJoinDelegate
@@ -559,14 +571,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       _joinDelegate = null;
       _oldJoinDelegate = null;
       _operationInProcess = false;
+      reInvitingRemote = false;
     }
     
-    joinCompleteLock.lock();
-    try {
-      joinCompleteCondition.signalAll();
-    }
-    finally {
-      joinCompleteLock.unlock();
+    synchronized(this) {
+      this.notifyAll();
     }
   }
 
@@ -643,6 +652,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         throw new IllegalArgumentException("Doesn't support join to multiple answered calls now.");
       }
     }
+    //wait if processing re-INVITE from remote.
+    waitProcessReInvite();
+    
     // TODO support queue join request
 
     _operationInProcess = true;
@@ -686,6 +698,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (other.equals(this)) {
       throw new IllegalStateException("Can't join to itself.");
     }
+    
+    //wait if processing re-INVITE from remote.
+    waitProcessReInvite();
 
     if (_operationInProcess) {
       // this is used for the case that receive 183 from not-answered outgoing
@@ -801,6 +816,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     else if (_callDelegate != null && isAnswered()) {
       _callDelegate.handleAck(this, req);
+      processingReinvite = false;
     }
     else {
       LOG.debug("The SIP message will be discarded.");
@@ -822,14 +838,26 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug(this + "Processing re-INVITE.");
     }
 
-    joinCompleteLock.lock();
-    try {
-      while (_joinDelegate != null && this.getSIPCallState() == SIPCall.State.ANSWERED) {
-        joinCompleteCondition.await();
-      }
+    //joining and sent out re-INVITE
+    if(_operationInProcess && reInvitingRemote) {
+      req.createResponse(SipServletResponse.SC_REQUEST_PENDING).send();
+      return;
     }
-    finally {
-      joinCompleteLock.unlock();
+    
+    //joining and not send out re-INVITE
+    while(_operationInProcess && isAnswered()) {
+      wait();
+      //sent out re-INVITE when joining
+      if(reInvitingRemote) {
+        req.createResponse(SipServletResponse.SC_REQUEST_PENDING).send();
+        return;
+      }
+      
+      if(!isAnswered()) {
+        req.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR).send();
+        LOG.warn(this + " is already terminated. return error response for re-INVITE.");
+        return;
+      }
     }
 
     final byte[] content = SIPHelper.getRawContentWOException(req);
@@ -839,6 +867,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     
     if (_callDelegate != null) {
       _callDelegate.handleReinvite(this, req, headers);
+      processingReinvite = true;
     }
     else {
       LOG.debug("The SIP message will be discarded.");
@@ -880,6 +909,29 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug(this + "Processing response.");
     }
     if (SIPHelper.isInvite(res)) {
+      if (res.getStatus() == SipServletResponse.SC_REQUEST_PENDING && isAnswered()) {
+        // glare re-INVITE. send again after a random delay between 2.1 and 4
+        // second.
+        LOG.debug(String.format("%s received 491 response, glare re-INVITE, will retry re-INVITE later.", this));
+        Random random = new Random();
+        int delay = (random.nextInt(191) + 210) * 10;
+        ((ScheduledThreadPoolExecutor) _context.getExecutor()).schedule(new InheritLogContextRunnable() {
+          @SuppressWarnings("unchecked")
+          @Override
+          public void run() {
+            try {
+              SIPCallImpl.this.reInviteRemote(res.getRequest().getContent(), (Map<String, String>) res.getRequest()
+                  .getAttribute(Att_REINVITE_HEADERS),
+                  (Map<String, String>) res.getRequest().getAttribute(Att_REINVITE_ATTRIBUTES));
+            }
+            catch (IOException e) {
+              LOG.debug("Exception when sending re-INVITE", e);
+              SIPCallImpl.this.fail(e);
+            }
+          }
+        }, delay, TimeUnit.MILLISECONDS);
+        return;
+      }
       _inviteResponse = res;
       if (SIPHelper.isSuccessResponse(res)) {
         final byte[] content = SIPHelper.getRawContentWOException(res);
@@ -887,6 +939,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
           setRemoteSDP(content);
         }
       }
+      
       if (_joinDelegate != null) {
         _joinDelegate.doInviteResponse(res, this, headers);
       }
@@ -1642,6 +1695,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     finally {
       _operationInProcess = false;
+      reInvitingRemote = false;
     }
   }
 
@@ -1701,6 +1755,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     finally {
       _operationInProcess = false;
+      reInvitingRemote = false;
     }
   }
 
@@ -1748,6 +1803,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     finally {
       _operationInProcess = false;
+      reInvitingRemote = false;
     }
   }
 
@@ -1792,6 +1848,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     finally {
       _operationInProcess = false;
+      reInvitingRemote = false;
     }
   }
 
@@ -1974,5 +2031,51 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     md.setAttribute("sendonly", null);
 
     return sd;
+  }
+  
+  public synchronized void reInviteRemote(Object sdp, Map<String, String> headers, Map<String, String> attributes) throws IOException {
+    if(!isAnswered()) {
+      throw new IllegalStateException(this + " was terminated.");
+    }
+    SipServletRequest reInvite = getSipSession().createRequest("INVITE");
+    if(sdp != null) {
+      reInvite.setContent(sdp, "application/sdp");
+    }
+    if(headers != null) {
+      reInvite.setAttribute(Att_REINVITE_HEADERS, headers);
+      SIPHelper.addHeaders(reInvite, headers);
+    }
+    
+    if(attributes != null) {
+      reInvite.setAttribute(Att_REINVITE_ATTRIBUTES, attributes);
+      for(Entry<String, String> entry: attributes.entrySet()) {
+        reInvite.setAttribute(entry.getKey(), entry.getValue());
+      }
+    }
+    
+    if(this instanceof OutgoingCall && _invite.getHeader("ALLOW") != null) {
+      reInvite.addHeader("ALLOW", _invite.getHeader("ALLOW"));
+    }
+    
+    reInvite.send();
+    reInvitingRemote = true;
+    notifyAll();
+  }
+  
+  private synchronized void waitProcessReInvite() {
+    while(processingReinvite && isAnswered()) {
+      try {
+        wait();
+      }
+      catch (InterruptedException e) {
+        //ignore
+      }
+      
+      if(!isAnswered()) {
+        String err = this + " is already terminated. operation can't complete.";
+        LOG.warn(err);
+        throw new IllegalStateException(err);
+      }
+    }
   }
 }

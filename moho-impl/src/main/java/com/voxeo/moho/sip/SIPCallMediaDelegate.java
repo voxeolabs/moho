@@ -13,6 +13,7 @@ package com.voxeo.moho.sip;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.media.mscontrol.MsControlException;
@@ -220,20 +221,18 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
             call.getRemoteSdp()).toString().getBytes());
     call.getMediaService(true);
 
-    SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
-    reInvite.setAttribute(SIPCallDelegate.SIPCALL_HOLD_REQUEST, "true");
-    reInvite.setContent(createSendonlySDP(call, call.getLocalSDP()), "application/sdp");
-    reInvite.send();
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put(SIPCallDelegate.SIPCALL_HOLD_REQUEST, "true");
+    call.reInviteRemote(createSendonlySDP(call, call.getLocalSDP()), null, attributes);
   }
 
   @Override
   protected void mute(SIPCallImpl call) throws MsControlException, IOException, SdpException {
     call.getMediaService(true);
 
-    SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
-    reInvite.setAttribute(SIPCallDelegate.SIPCALL_MUTE_REQUEST, "true");
-    reInvite.setContent(createSendonlySDP(call, call.getLocalSDP()), "application/sdp");
-    reInvite.send();
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put(SIPCallDelegate.SIPCALL_MUTE_REQUEST, "true");
+    call.reInviteRemote(createSendonlySDP(call, call.getLocalSDP()), null, attributes);
   }
 
   @Override
@@ -242,20 +241,18 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
         createSendrecvSDP(call, call.getRemoteSdp()).toString().getBytes());
 
     call.getMediaService(true);
-
-    SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
-    reInvite.setAttribute(SIPCallDelegate.SIPCALL_UNHOLD_REQUEST, "true");
-    reInvite.setContent(createSendrecvSDP(call, call.getLocalSDP()), "application/sdp");
-    reInvite.send();
+    
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put(SIPCallDelegate.SIPCALL_UNHOLD_REQUEST, "true");
+    call.reInviteRemote(createSendrecvSDP(call, call.getLocalSDP()), null, attributes);
   }
 
   @Override
   protected void unmute(SIPCallImpl call) throws MsControlException, IOException, SdpException {
     call.getMediaService(true);
-
-    SipServletRequest reInvite = call.getSipSession().createRequest("INVITE");
-    reInvite.setAttribute(SIPCallDelegate.SIPCALL_UNMUTE_REQUEST, "true");
-    reInvite.setContent(createSendrecvSDP(call, call.getLocalSDP()), "application/sdp");
-    reInvite.send();
+    
+    Map<String, String> attributes = new HashMap<String, String>();
+    attributes.put(SIPCallDelegate.SIPCALL_UNMUTE_REQUEST, "true");
+    call.reInviteRemote(createSendrecvSDP(call, call.getLocalSDP()), null, attributes);
   }
 }

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -92,6 +93,8 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
   protected ServletContext _servletContext;
 
   protected InheritLogContextThreadPoolExecutor _executor;
+  
+  protected ScheduledThreadPoolExecutor timerExecutor = new ScheduledThreadPoolExecutor(10, new DaemonThreadFactory("MohoContext"));
 
   protected org.springframework.context.support.AbstractApplicationContext _springContext;
 
@@ -199,8 +202,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       eventDispatcherThreadPoolSize = Integer.valueOf(eventDipatcherThreadPoolSizePara);
     }
     LOG.info("Moho is creating event dispatcher with " + eventDispatcherThreadPoolSize + " threads.");
-    _executor = new InheritLogContextThreadPoolExecutor(eventDispatcherThreadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
-        new SynchronousQueue<Runnable>(), new DaemonThreadFactory("MohoContext"));
+    _executor = new InheritLogContextThreadPoolExecutor(eventDispatcherThreadPoolSize, 60, TimeUnit.SECONDS, new DaemonThreadFactory("MohoContext"));
     _dispatcher.setExecutor(_executor, false);
 
     _springContext = new ClassPathXmlApplicationContext("classpath:moho-service-context.xml");

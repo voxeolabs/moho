@@ -293,9 +293,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
       }
       else {
         // re-INVITE call1
-        SipServletRequest reInvite = _call1.getSipSession().createRequest("INVITE");
-        reInvite.setContent(_latestCall2SDP, "application/sdp");
-        reInvite.send();
+        _call1.reInviteRemote(_latestCall2SDP, null, null);
       }
     }
   }

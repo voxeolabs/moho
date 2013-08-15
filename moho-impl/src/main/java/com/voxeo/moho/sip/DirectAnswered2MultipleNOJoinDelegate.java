@@ -92,9 +92,7 @@ public class DirectAnswered2MultipleNOJoinDelegate extends JoinDelegate {
               if (_suppressEarlyMedia) {
                 res.createAck().send();
                 // re-INVITE call2 with real SDP
-                final SipServletRequest req = _call2.getSipSession().createRequest("INVITE");
-                // req.setContent(_call1.getRemoteSdp(), "application/sdp");
-                req.send();
+                _call2.reInviteRemote(null, null, null);
               }
               else {
                 reInviteCall(_call1, res);
@@ -153,8 +151,6 @@ public class DirectAnswered2MultipleNOJoinDelegate extends JoinDelegate {
   }
 
   private void reInviteCall(SIPCallImpl call, SipServletMessage message) throws Exception {
-    final SipServletRequest req = call.getSipSession().createRequest("INVITE");
-    SIPHelper.copyContent(message, req);
-    req.send();
+    call.reInviteRemote(message.getContent(), null, null);
   }
 }
