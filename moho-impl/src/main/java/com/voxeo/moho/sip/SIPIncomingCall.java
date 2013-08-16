@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 import javax.media.mscontrol.join.Joinable.Direction;
@@ -569,5 +570,11 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   public void setContinueRouting(SIPCall origCall) {
     throw new UnsupportedOperationException("incoming call doesn't support this method.");
 
+  }
+  
+  protected int getGlareReInivteDelay() {
+    Random random = new Random();
+    int delay = (random.nextInt(201)) * 10;
+    return delay;
   }
 }

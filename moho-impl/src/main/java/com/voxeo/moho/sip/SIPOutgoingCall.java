@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipApplicationSession;
@@ -253,5 +254,11 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
 
   public void setContinueRouting(final SIPCall origCall) {
     _continueRoutingOrigCall = origCall;
+  }
+  
+  protected int getGlareReInivteDelay() {
+    Random random = new Random();
+    int delay = (random.nextInt(191) + 210) * 10;
+    return delay;
   }
 }
