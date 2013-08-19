@@ -411,6 +411,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       SIPCallImpl.this.dispatch(event);
       return event;
     }
+    LOG.debug(String.format("%s unjoining %s, initiator %s", this, p, initiator));
     
     // wait if processing re-INVITE from remote
     waitProcessReInvite();
@@ -490,6 +491,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (isTerminated()) {
       throw new IllegalStateException("already terminated.");
     }
+    LOG.debug(String.format("%s joining to media, direction %s", this, direction.toString()));
+
     //wait if processing re-INVITE from remote.
     waitProcessReInvite();
     
@@ -655,6 +658,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         throw new IllegalArgumentException("Doesn't support join to multiple answered calls now.");
       }
     }
+    
+    LOG.debug(String.format("%s joining to %s, JoinType %s, force %s, Direction %s, dtmfPassThrough %s", this, others,
+        type, force, direction.toString(), dtmfPassThrough));
+    
     //wait if processing re-INVITE from remote.
     waitProcessReInvite();
     
@@ -701,6 +708,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (other.equals(this)) {
       throw new IllegalStateException("Can't join to itself.");
     }
+    LOG.debug(String.format("%s joining to %s, JoinType %s, force %s, Direction %s, dtmfPassThrough %s", this, other,
+        type, force, direction.toString(), dtmfPassThrough));
     
     //wait if processing re-INVITE from remote.
     waitProcessReInvite();
@@ -967,6 +976,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       else if (_callDelegate != null) {
         _callDelegate.handleReinviteResponse(this, res, headers);
       }
+      
+      reInvitingRemote = false;
     }
     else if (SIPHelper.isCancel(res) || SIPHelper.isBye(res)) {
       // ignore the response
