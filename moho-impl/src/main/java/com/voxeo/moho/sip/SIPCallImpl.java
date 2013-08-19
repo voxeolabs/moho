@@ -869,6 +869,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         resp.send();
         return;
       }
+      pendingReinvite = false;
       
       if(!isAnswered()) {
         req.createResponse(SipServletResponse.SC_SERVER_INTERNAL_ERROR).send();
@@ -2096,7 +2097,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     
     reInvite.send();
     reInvitingRemote = true;
-    notifyAll();
   }
   
   private synchronized void waitProcessReInvite() {
