@@ -24,7 +24,6 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -945,10 +944,12 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         // second.
         LOG.debug(String.format("%s received 491 response, glare re-INVITE, will retry re-INVITE later.", this));
         reInvitingRemote = false;
-        ((ScheduledThreadPoolExecutor) _context.getExecutor()).schedule(new InheritLogContextRunnable() {
+        final Map<String, String> logContexts = Utils.getCurrentLogContexts();
+        ((ApplicationContextImpl) _context).getScheduledEcutor().schedule(new InheritLogContextRunnable() {
           @SuppressWarnings("unchecked")
           @Override
           public void run() {
+            Utils.inheritLogContexts(logContexts);
             try {
               SIPCallImpl.this.reInviteRemote(res.getRequest().getContent(), (Map<String, String>) res.getRequest()
                   .getAttribute(Att_REINVITE_HEADERS),
@@ -957,6 +958,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
             catch (IOException e) {
               LOG.debug("Exception when sending re-INVITE", e);
               SIPCallImpl.this.fail(e);
+            }
+            finally{
+              Utils.clearContexts();
             }
           }
         }, getGlareReInivteDelay(), TimeUnit.MILLISECONDS);
