@@ -164,6 +164,9 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           if((call1Processed || _call1No100Rel) && SIPHelper.isProvisionalResponse(res)) {
             if(SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
               if(call1Processed) {
+                if(_waitingPrackResponse != null && _waitingPrackResponse.getHeader("RSeq").trim().equalsIgnoreCase(res.getHeader("RSeq").trim())) {
+                  return;
+                }
                 _waitingPrackResponse = res;
                 SipServletRequest updateCall1Req = _call1.getSipSession().createRequest("UPDATE");
                 updateCall1Req.setContent(res.getContent(), "application/sdp");
@@ -194,6 +197,9 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
 
             if(SIPHelper.isProvisionalResponse(res) && SIPHelper.needPrack(res)) {
               try{
+                if(_waitingPrackResponse != null && _waitingPrackResponse.getHeader("RSeq").trim().equalsIgnoreCase(res.getHeader("RSeq").trim())) {
+                  return;
+                }
                 SIPHelper.copyContent(res, newRes);
                 newRes.sendReliably();
                 _waitingPrackResponse = res;
