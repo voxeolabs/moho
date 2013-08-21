@@ -152,6 +152,10 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
 
             if(SIPHelper.isProvisionalResponse(res) && SIPHelper.needPrack(res)) {
               try{
+                if (_waitingPrackResponse != null
+                    && _waitingPrackResponse.getHeader("RSeq").trim().equalsIgnoreCase(res.getHeader("RSeq").trim())) {
+                  return;
+                }
                 newRes.sendReliably();
                 _waitingPrackResponse = res;
               }
