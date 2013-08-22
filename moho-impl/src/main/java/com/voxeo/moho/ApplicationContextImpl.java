@@ -94,7 +94,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   protected InheritLogContextThreadPoolExecutor _executor;
   
-  protected ScheduledThreadPoolExecutor timerExecutor = new ScheduledThreadPoolExecutor(10, new DaemonThreadFactory("MohoContext"));
+  protected ScheduledThreadPoolExecutor _scheduledEcutor;
 
   protected org.springframework.context.support.AbstractApplicationContext _springContext;
 
@@ -202,7 +202,10 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       eventDispatcherThreadPoolSize = Integer.valueOf(eventDipatcherThreadPoolSizePara);
     }
     LOG.info("Moho is creating event dispatcher with " + eventDispatcherThreadPoolSize + " threads.");
-    _executor = new InheritLogContextThreadPoolExecutor(eventDispatcherThreadPoolSize, 60, TimeUnit.SECONDS, new DaemonThreadFactory("MohoContext"));
+    _executor = new InheritLogContextThreadPoolExecutor(eventDispatcherThreadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
+        new SynchronousQueue<Runnable>(), new DaemonThreadFactory("MohoContext"));
+    
+    _scheduledEcutor = new ScheduledThreadPoolExecutor(10, new DaemonThreadFactory("MohoContext"));
     _dispatcher.setExecutor(_executor, false);
 
     _springContext = new ClassPathXmlApplicationContext("classpath:moho-service-context.xml");
@@ -613,5 +616,9 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 
   public MediaDialect getDialect() {
     return _dialect;
+  }
+
+  public ScheduledThreadPoolExecutor getScheduledEcutor() {
+    return _scheduledEcutor;
   }
 }
