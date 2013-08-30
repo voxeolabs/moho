@@ -440,7 +440,12 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
 
       if (initiator) {
-        ((ParticipantContainer) other).unjoin(SIPCallImpl.this, false);
+        try {
+          ((ParticipantContainer) other).unjoin(SIPCallImpl.this, false).get();
+        }
+        catch(Exception ex) {
+          LOG.error("Exception when doing unjoin.", ex);
+        }
       }
 
       // for remote unjoin
@@ -738,7 +743,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         return doJoin((RemoteParticipant) other, type, force, direction, dtmfPassThrough, joint);
       }
       else {
-        return doJoin(other, type, false, direction, dtmfPassThrough, joint);
+        return doJoin(other, type, force, direction, dtmfPassThrough, joint);
       }
     }
     catch (Exception ex) {
