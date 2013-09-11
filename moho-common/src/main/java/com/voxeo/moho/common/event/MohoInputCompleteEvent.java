@@ -171,7 +171,6 @@ public class MohoInputCompleteEvent<T extends EventSource> extends MohoMediaComp
 
   @Override
   public String toString() {
-    return String.format("[Event class=%s sourceClass=%s id=%s cause=%s ]", getClass().getName(),
-        (source != null ? source.getClass().getSimpleName() : null), hashCode(), _cause);
+    return String.format("[Event class=%s source=%s id=%s cause=%s ]", getClass().getSimpleName(), source, hashCode(), _cause);
   }
 }

@@ -51,4 +51,10 @@ public class MohoCallCompleteEvent extends MohoCallEvent implements CallComplete
 
   		return _headers;
 	}
+  	
+  @Override
+  public String toString() {
+    return String.format("[Event class=%s source=%s id=%s cause=%s]", getClass().getSimpleName(), source,
+        hashCode(), _cause);
+  }
 }

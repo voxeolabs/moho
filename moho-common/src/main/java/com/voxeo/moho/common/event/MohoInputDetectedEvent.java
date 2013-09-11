@@ -147,8 +147,8 @@ public class MohoInputDetectedEvent<T extends EventSource> extends MohoMediaNoti
 
   @Override
   public String toString() {
-    return String.format("[Event class=%s sourceClass=%s id=%s input=%s eos=%s sos=%s signal=%s]",
-        getClass().getName(), (source != null ? source.getClass().getSimpleName() : null), hashCode(), _input, _isEOS,
+    return String.format("[Event class=%s source=%s id=%s input=%s eos=%s sos=%s signal=%s]",
+        getClass().getSimpleName(), source, hashCode(), _input, _isEOS,
         _isSOS, _signal);
   }
 }
