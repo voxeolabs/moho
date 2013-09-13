@@ -13,6 +13,7 @@ package com.voxeo.moho.sip;
 
 import java.util.Map;
 
+import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -26,6 +27,8 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
   protected Direction _direction;
 
   protected SipServletResponse _response;
+  
+  protected boolean call1Processed;
 
   protected DirectNI2AOJoinDelegate(final SIPIncomingCall call1, final SIPOutgoingCall call2,
       final Direction direction, final SIPCallImpl peer) {
@@ -38,8 +41,13 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
-    // TODO call1 in PROCESSED state.
-    ((SIPOutgoingCall) _call2).call(_call1.getRemoteSdp());
+    if (_call1.getSIPCallState() == SIPCall.State.PROGRESSED) {
+      call1Processed = true;
+      ((SIPOutgoingCall) _call2).call(null, _call1.getSipSession().getApplicationSession());
+    }
+    else {
+      ((SIPOutgoingCall) _call2).call(_call1.getRemoteSdp());
+    }
   }
 
   @Override
@@ -54,11 +62,43 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
       }
       else if (SIPHelper.isSuccessResponse(res)) {
         try {
-          final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
-              res.getReasonPhrase());
-          SIPHelper.copyContent(res, newRes);
-          newRes.send();
           _response = res;
+          if(call1Processed) {
+            final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
+                res.getReasonPhrase());
+            newRes.send();
+          }
+          else {
+            final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
+                res.getReasonPhrase());
+            SIPHelper.copyContent(res, newRes);
+            newRes.send();
+          }
+        }
+        catch (final Exception e) {
+          done(JoinCompleteEvent.Cause.ERROR, e);
+          failCall(_call1, e);
+          throw e;
+        }
+      }
+    }
+    else {
+      if (SIPHelper.isErrorResponse(res)) {
+        done(getJoinCompleteCauseByResponse(res), getExceptionByResponse(res));
+      }
+      else if (SIPHelper.isProvisionalResponse(res)) {
+        SIPHelper.trySendPrack(res);
+      }
+      else if (SIPHelper.isSuccessResponse(res)) {
+        try {
+          res.createAck().send();
+          SipServletRequest ack2 = _response.createAck();
+          if (call1Processed) {
+            SIPHelper.copyContent(res, ack2);
+          }
+
+          ack2.send();
+          successJoin();
         }
         catch (final Exception e) {
           done(JoinCompleteEvent.Cause.ERROR, e);
@@ -81,15 +121,16 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
     if (_call1.equals(call)) {
       _call1.setSIPCallState(State.ANSWERED);
       try {
-        final SipServletRequest ack = _response.createAck();
-        SIPHelper.copyContent(req, ack);
-        ack.send();
+        if (!call1Processed) {
+          final SipServletRequest ack = _response.createAck();
+          SIPHelper.copyContent(req, ack);
+          ack.send();
 
-        doDisengage(_call2, JoinType.DIRECT);
-        doDisengage(_call1, JoinType.DIRECT);
-        _call1.linkCall(_call2, JoinType.DIRECT, _direction);
-        _response = null;
-        done(JoinCompleteEvent.Cause.JOINED, null);
+          successJoin();
+        }
+        else {
+          _call1.reInviteRemote(_response.getContent(), null, null);
+        }
       }
       catch (final Exception e) {
         done(JoinCompleteEvent.Cause.ERROR, e);
@@ -99,4 +140,11 @@ public class DirectNI2AOJoinDelegate extends JoinDelegate {
     }
   }
 
+  private void successJoin() throws MsControlException {
+    doDisengage(_call2, JoinType.DIRECT);
+    doDisengage(_call1, JoinType.DIRECT);
+    _call1.linkCall(_call2, JoinType.DIRECT, _direction);
+    _response = null;
+    done(JoinCompleteEvent.Cause.JOINED, null);
+  }
 }
