@@ -1,6 +1,7 @@
 package com.voxeo.moho.media;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -10,6 +11,7 @@ import com.voxeo.moho.MediaException;
 import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.RecordCompleteEvent;
+import com.voxeo.moho.media.GenericMediaService.MaxCallRecordDurationTask;
 import com.voxeo.moho.media.dialect.MediaDialect;
 
 public class CallRecordingImpl<T extends EventSource> implements Recording<T> {
@@ -19,6 +21,10 @@ public class CallRecordingImpl<T extends EventSource> implements Recording<T> {
   protected MediaDialect _dialect;
 
   protected boolean _normalDisconnected = false;
+  
+  protected ScheduledFuture maxDurationTimerFuture;
+  
+  protected MaxCallRecordDurationTask maxDurationTask;
 
   protected SettableResultFuture<RecordCompleteEvent<T>> _future = new SettableResultFuture<RecordCompleteEvent<T>>();
 
@@ -96,5 +102,21 @@ public class CallRecordingImpl<T extends EventSource> implements Recording<T> {
 
   public boolean isNormalDisconnect() {
     return _normalDisconnected;
+  }
+
+  public ScheduledFuture getMaxDurationTimerFuture() {
+    return maxDurationTimerFuture;
+  }
+
+  public void setMaxDurationTimerFuture(ScheduledFuture maxDurationTimerFuture) {
+    this.maxDurationTimerFuture = maxDurationTimerFuture;
+  }
+
+  public MaxCallRecordDurationTask getMaxDurationTask() {
+    return maxDurationTask;
+  }
+
+  public void setMaxDurationTask(MaxCallRecordDurationTask maxDurationTask) {
+    this.maxDurationTask = maxDurationTask;
   }
 }

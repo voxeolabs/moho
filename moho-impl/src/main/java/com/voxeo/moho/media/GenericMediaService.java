@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.media.mscontrol.EventType;
@@ -431,7 +432,15 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         if (command.getFileFormat() != null) {
           _dialect.setCallRecordFileFormat(params, command.getFileFormat());
         }
+        
         _dialect.startCallRecord(nc, command.getRecordURI(), RTC.NO_RTC, params, new CallRecordListenerImpl(retValue));
+        
+        if(command.getMaxDuration() > 0) {
+          MaxCallRecordDurationTask timerTask = new MaxCallRecordDurationTask(retValue);
+          ScheduledFuture future = ((ApplicationContextImpl) _context).getScheduledEcutor().schedule(timerTask, command.getMaxDuration(), TimeUnit.MILLISECONDS);
+          retValue.setMaxDurationTimerFuture(future);
+          retValue.setMaxDurationTask(timerTask);
+        }
         _futures.add(retValue);
       }
       catch (Exception ex) {
@@ -809,12 +818,16 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
         errorText = event.getError() + ": " + event.getErrorText();
       }
-      // TODO record duration
       final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause,
           _dialect.getCallRecordDuration(event), errorText, callRecording);
       _parent.dispatch(recordCompleteEvent);
       callRecording.done(recordCompleteEvent);
       _futures.remove(callRecording);
+      if(callRecording.getMaxDurationTimerFuture() != null) {
+        callRecording.getMaxDurationTimerFuture().cancel(true);
+        ((ApplicationContextImpl) _context).getScheduledEcutor().remove(callRecording.getMaxDurationTask());
+        ((ApplicationContextImpl) _context).getScheduledEcutor().purge();
+      }
     }
   }
 
@@ -1405,4 +1418,19 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     }
   }
 
+  public class MaxCallRecordDurationTask extends InheritLogContextRunnable {
+    private CallRecordingImpl<T> future;
+    
+    public MaxCallRecordDurationTask(CallRecordingImpl<T> future) {
+      super();
+      this.future = future;
+    }
+
+    @Override
+    public void run() {
+      LOG.warn("Max call record duration expired, stopping.");
+      future.stop();
+      future.setMaxDurationTimerFuture(null);
+    }
+  }
 }
