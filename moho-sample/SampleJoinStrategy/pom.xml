@@ -3,7 +3,7 @@
   <parent>
     <artifactId>moho-sample-parent</artifactId>
     <groupId>com.voxeo.moho</groupId>
-    <version>1.1.0.4-SNAPSHOT</version>
+    <version>1.1.0.4</version>
   </parent>
   <artifactId>Moho-Sample-JoinStrategy</artifactId>
   <packaging>war</packaging>
