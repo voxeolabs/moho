@@ -200,9 +200,9 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
                 if(_waitingPrackResponse != null && _waitingPrackResponse.getHeader("RSeq").trim().equalsIgnoreCase(res.getHeader("RSeq").trim())) {
                   return;
                 }
+                _waitingPrackResponse = res;
                 SIPHelper.copyContent(res, newRes);
                 newRes.sendReliably();
-                _waitingPrackResponse = res;
               }
               catch(Exception ex) {
                 LOG.warn("Got exception when trying send 183 reliably. trying send back PRACK.", ex);
