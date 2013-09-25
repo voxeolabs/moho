@@ -156,8 +156,8 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
                     && _waitingPrackResponse.getHeader("RSeq").trim().equalsIgnoreCase(res.getHeader("RSeq").trim())) {
                   return;
                 }
-                newRes.sendReliably();
                 _waitingPrackResponse = res;
+                newRes.sendReliably();
               }
               catch(Exception ex) {
                 LOG.warn("Got exception when trying send 183 reliably. trying send back PRACK.", ex);
