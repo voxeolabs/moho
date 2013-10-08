@@ -48,7 +48,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
 
   @Override
   protected void doUpdate(SipServletRequest req, SIPCallImpl call, Map<String, String> headers) throws Exception {
-    if (call.equals(_call1) && _call1.getSIPCallState() == SIPCall.State.PROGRESSED && req.getRawContent() != null) {
+    if (call.equals(_call1) && req.getRawContent() != null) {
       _updateRequest = req;
       call.processSDPOffer(req);
     }
