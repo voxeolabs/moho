@@ -556,9 +556,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       _operationInProcess = false;
     }
     
-    synchronized(this) {
-      notifyAll();
-    }
+    _context.getExecutor().execute(new Runnable() {
+      @Override
+      public void run() {
+        synchronized (SIPCallImpl.this) {
+          SIPCallImpl.this.notifyAll();
+        }
+      }
+    });
+
   }
 
   public synchronized void continueQueuedJoin() {
