@@ -579,9 +579,21 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       reInvitingRemote = false;
     }
     
+<<<<<<< HEAD
     synchronized(this) {
       this.notifyAll();
     }
+=======
+    _context.getExecutor().execute(new Runnable() {
+      @Override
+      public void run() {
+        synchronized (SIPCallImpl.this) {
+          SIPCallImpl.this.notifyAll();
+        }
+      }
+    });
+
+>>>>>>> ab56bd9... TROPO-2493 Dead locks on Tropo staging 203.
   }
 
   public synchronized void continueQueuedJoin() {
