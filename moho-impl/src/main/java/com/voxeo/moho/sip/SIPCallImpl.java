@@ -760,6 +760,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug(this + " is already terminated.");
       return;
     }
+    if(event.getEventType() == SdpPortManagerEvent.NETWORK_STREAM_FAILURE) {
+      LOG.info(this + " detected media failure, hanguping call.");
+      hangup();
+    }
     else {
       try {
         if (_joinDelegate != null) {
