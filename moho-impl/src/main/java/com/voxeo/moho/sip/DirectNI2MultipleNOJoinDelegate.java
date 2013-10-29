@@ -30,6 +30,8 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
   protected boolean call1Processed;
 
   protected Object syncLock = new Object();
+  
+  protected boolean relayedRinging;
 
   protected DirectNI2MultipleNOJoinDelegate(JoinType type, Direction direction, SIPCallImpl call1,
       boolean suppressEarlyMedia, List<SIPCallImpl> others) {
@@ -75,6 +77,13 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
       synchronized (syncLock) {
         if (SIPHelper.isProvisionalResponse(res)) {
           SIPHelper.trySendPrack(res);
+          
+          if (!relayedRinging && res.getStatus() == SipServletResponse.SC_RINGING) {
+            final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(
+                SipServletResponse.SC_RINGING);
+            newRes.send();
+            relayedRinging = true;
+          }
           return;
         }
         else if (SIPHelper.isSuccessResponse(res)) {
