@@ -277,7 +277,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
       if (!call1Processed || (call1Processed && updatedCall1Success)) {
         try {
           final SipServletRequest ack = _response.createAck();
-          if (call1Processed && !call2Processed) {
+          if ((call1Processed && !call2Processed) || (!call1Processed && !call2Processed && SIPHelper.getRawContentWOException(_response.getRequest()) == null)) {
             ack.setContent(_call1.getRemoteSdp(), "application/sdp");
           }
           ack.send();
