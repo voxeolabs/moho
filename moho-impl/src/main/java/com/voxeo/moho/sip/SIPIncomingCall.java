@@ -280,7 +280,6 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
         if (content != null && SIPHelper.getRawContentWOException(_invite) == null) {
           try {
             processSDPAnswer(req);
-            setSIPCallState(SIPCall.State.PROGRESSED);
           }
           catch (MediaException ex) {
             acceptEarlyMediaException = ex;
