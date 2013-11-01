@@ -4,11 +4,14 @@ import java.util.Map;
 
 import javax.servlet.sip.SipServletResponse;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.Constants;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.common.event.MohoEarlyMediaEvent;
 
 public class SIPEarlyMediaEventImpl extends MohoEarlyMediaEvent implements SIPEarlyMediaEvent {
+  private static final Logger LOG = Logger.getLogger(SIPEarlyMediaEventImpl.class);
 
   protected SipServletResponse _res;
 
@@ -65,16 +68,17 @@ public class SIPEarlyMediaEventImpl extends MohoEarlyMediaEvent implements SIPEa
       }
       
       if(call.getJoinDelegate() != null && call.getJoinDelegate() instanceof Media2NOJoinDelegate){
-        while (!call.isTerminated() && !(call.getSIPCallState() == SIPCall.State.PROGRESSED)) {
+        while (!call.isTerminated() && (call.getSIPCallState() == SIPCall.State.PROGRESSING)) {
           try {
-            synchronized (this) {
-              this.wait(500);
+            synchronized (call) {
+              call.wait(500);
             }
           }
           catch (final InterruptedException e) {
             // ignore
           }
         }
+        LOG.debug(call + " EarlyMediaEvent accepted.");
       }
       // do the following in delegate
       // if join to media server, process as normal.
