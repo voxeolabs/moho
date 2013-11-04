@@ -155,10 +155,22 @@ public class Media2NOJoinDelegate extends JoinDelegate {
           }
 
           _call1.setSIPCallState(SIPCall.State.PROGRESSED);
+          _call1.notify();
 
-          synchronized (this) {
-            this.notify();
+          if (_earlyMediaResponse != null) {
+            SipServletResponse resp = _earlyMediaResponse;
+            _earlyMediaResponse = null;
+            try {
+              SIPHelper.trySendPrack(resp);
+            }
+            catch (IOException e) {
+              LOG.error("Exception when sending back PRACK", e);
+              Exception ex = new NegotiateException(event);
+              done(Cause.ERROR, ex);
+              _call1.fail(ex);
+            }
           }
+
         }
         return;
       }
@@ -179,15 +191,20 @@ public class Media2NOJoinDelegate extends JoinDelegate {
       if (SIPHelper.isProvisionalResponse(res)) {
         _call1.setSIPCallState(SIPCall.State.ANSWERING);
 
-        if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res) && _earlyMediaResponse == null) {
+        if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
+          if (_earlyMediaResponse != null) {
+            return;
+          }
+
           _earlyMediaResponse = res;
           _call1.setSIPCallState(SIPCall.State.PROGRESSING);
           if (!processedAnswer) {
             processedAnswer = true;
             _call1.processSDPAnswer(res);
           }
-
-          SIPHelper.trySendPrack(res);
+          else {
+            SIPHelper.trySendPrack(res);
+          }
         }
         else {
           SIPHelper.trySendPrack(res);
