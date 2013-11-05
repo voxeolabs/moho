@@ -196,13 +196,14 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       LOG.error("Moho is unable to create media dialect (" + mediaDialectClassName + ")", ex);
     }
 
-    int eventDispatcherThreadPoolSize = 50;
-    final String eventDipatcherThreadPoolSizePara = getParameter("eventDispatcherThreadPoolSize");
-    if (eventDipatcherThreadPoolSizePara != null) {
-      eventDispatcherThreadPoolSize = Integer.valueOf(eventDipatcherThreadPoolSizePara);
-    }
-    LOG.info("Moho is creating event dispatcher with " + eventDispatcherThreadPoolSize + " threads.");
-    _executor = new InheritLogContextThreadPoolExecutor(eventDispatcherThreadPoolSize, Integer.MAX_VALUE, 60, TimeUnit.SECONDS,
+    int eventDispatcherCorePoolSize = getParameterValue("eventDispatcherThreadPoolSize", 50);
+    int eventDispatcherMaxPoolSize = getParameterValue("eventDispatcherMaxThreadPoolSize", Integer.MAX_VALUE);
+    int eventDispatcherThreadTimeout = getParameterValue("eventDispatcherThreadTimeout", 60);
+    
+    
+    LOG.info("Moho is creating event dispatcher with " + eventDispatcherCorePoolSize + " core threads. Max threads: " 
+    		+ eventDispatcherMaxPoolSize + ". Thread timeout: " + eventDispatcherThreadTimeout);
+    _executor = new InheritLogContextThreadPoolExecutor(eventDispatcherCorePoolSize, eventDispatcherMaxPoolSize, eventDispatcherThreadTimeout, TimeUnit.SECONDS,
         new SynchronousQueue<Runnable>(), new DaemonThreadFactory("MohoContext"));
     
     _scheduledEcutor = new ScheduledThreadPoolExecutor(10, new DaemonThreadFactory("MohoContext"));
@@ -280,6 +281,16 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
 //      LOG.error("Error when initialize remote communication", ex);
 //    }
   }
+
+private int getParameterValue(String param, int defaultValue) {
+	
+	int intValue = defaultValue;
+    final String paramValue = getParameter(param);
+    if (paramValue != null) {
+      intValue = Integer.valueOf(paramValue);
+    }
+	return intValue;
+}
 
   @Override
   public Application getApplication() {
