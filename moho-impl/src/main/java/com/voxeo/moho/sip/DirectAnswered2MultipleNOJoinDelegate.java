@@ -42,18 +42,31 @@ public class DirectAnswered2MultipleNOJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
+    Exception exception = null;
+    int exceptionCount = 0;
     for (SIPCallImpl call : candidateCalls) {
-      ((SIPOutgoingCall) call).setContinueRouting(_call1);
-      SIPHelper.remove100relSupport(call.getSipInitnalRequest());
+      try {
+        ((SIPOutgoingCall) call).setContinueRouting(_call1);
+        SIPHelper.remove100relSupport(call.getSipInitnalRequest());
 
-      if (_suppressEarlyMedia) {
-        SessionDescription mockSDP = _call1.createSendonlySDP(_call1.getRemoteSdp());
-        ((SIPOutgoingCall) call).call(mockSDP.toString().getBytes("iso8859-1"), _call1.getSipSession()
-            .getApplicationSession());
+        if (_suppressEarlyMedia) {
+          SessionDescription mockSDP = _call1.createSendonlySDP(_call1.getRemoteSdp());
+          ((SIPOutgoingCall) call).call(mockSDP.toString().getBytes("iso8859-1"), _call1.getSipSession()
+              .getApplicationSession());
+        }
+        else {
+          ((SIPOutgoingCall) call).call(null, _call1.getSipSession().getApplicationSession());
+        }
       }
-      else {
-        ((SIPOutgoingCall) call).call(null, _call1.getSipSession().getApplicationSession());
+      catch (Exception ex) {
+        exceptionCount++;
+        exception = ex;
+        LOG.error("Exception when trying call " + call, ex);
       }
+    }
+
+    if (exceptionCount == candidateCalls.size()) {
+      throw exception;
     }
   }
 

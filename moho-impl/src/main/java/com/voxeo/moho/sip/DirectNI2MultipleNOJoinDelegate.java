@@ -30,7 +30,7 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
   protected boolean call1Processed;
 
   protected Object syncLock = new Object();
-  
+
   protected boolean relayedRinging;
 
   protected DirectNI2MultipleNOJoinDelegate(JoinType type, Direction direction, SIPCallImpl call1,
@@ -49,23 +49,36 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
       call1Processed = true;
     }
 
+    Exception exception = null;
+    int exceptionCount = 0;
     for (SIPCallImpl call : candidateCalls) {
-      ((SIPOutgoingCall) call).setContinueRouting(_call1);
-      SIPHelper.remove100relSupport(call.getSipInitnalRequest());
+      try {
+        ((SIPOutgoingCall) call).setContinueRouting(_call1);
+        SIPHelper.remove100relSupport(call.getSipInitnalRequest());
 
-      if (_suppressEarlyMedia) {
-        SessionDescription mockSDP = _call1.createSendonlySDP(_call1.getRemoteSdp());
-        ((SIPOutgoingCall) call).call(mockSDP.toString().getBytes("iso8859-1"), _call1.getSipSession()
-            .getApplicationSession());
-      }
-      else {
-        if (call1Processed) {
-          ((SIPOutgoingCall) call).call(null, _call1.getSipSession().getApplicationSession());
+        if (_suppressEarlyMedia) {
+          SessionDescription mockSDP = _call1.createSendonlySDP(_call1.getRemoteSdp());
+          ((SIPOutgoingCall) call).call(mockSDP.toString().getBytes("iso8859-1"), _call1.getSipSession()
+              .getApplicationSession());
         }
         else {
-          ((SIPOutgoingCall) call).call(_call1.getRemoteSdp(), _call1.getSipSession().getApplicationSession(),
-              _call1.useReplacesHeader());
+          if (call1Processed) {
+            ((SIPOutgoingCall) call).call(null, _call1.getSipSession().getApplicationSession());
+          }
+          else {
+            ((SIPOutgoingCall) call).call(_call1.getRemoteSdp(), _call1.getSipSession().getApplicationSession(),
+                _call1.useReplacesHeader());
+          }
         }
+      }
+      catch (Exception ex) {
+        exceptionCount++;
+        exception = ex;
+        LOG.error("Exception when trying call " + call, ex);
+      }
+
+      if (exceptionCount == candidateCalls.size()) {
+        throw exception;
       }
     }
   }
@@ -77,7 +90,7 @@ public class DirectNI2MultipleNOJoinDelegate extends JoinDelegate {
       synchronized (syncLock) {
         if (SIPHelper.isProvisionalResponse(res)) {
           SIPHelper.trySendPrack(res);
-          
+
           if (!relayedRinging && res.getStatus() == SipServletResponse.SC_RINGING) {
             final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(
                 SipServletResponse.SC_RINGING);
