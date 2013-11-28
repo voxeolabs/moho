@@ -61,9 +61,26 @@ public class DirectNO2MultipleNOJoinDelegate extends JoinDelegate {
             _responseCall1 = res;
             _call1.setSIPCallState(State.ANSWERED);
 
+            Exception exception = null;
+            int exceptionCount = 0;
+
             for (SIPCallImpl candidate : candidateCalls) {
-              SIPHelper.remove100relSupport(candidate.getSipInitnalRequest());
-              ((SIPOutgoingCall) call).call(_call1.getRemoteSdp(), _call1.getSipSession().getApplicationSession());
+              try {
+                SIPHelper.remove100relSupport(candidate.getSipInitnalRequest());
+                ((SIPOutgoingCall) call).call(_call1.getRemoteSdp(), _call1.getSipSession().getApplicationSession());
+              }
+              catch (Exception ex) {
+                exceptionCount++;
+                exception = ex;
+                LOG.error("Exception when trying call " + call, ex);
+              }
+
+              if (exceptionCount == candidateCalls.size()) {
+                LOG.error("Exception when joining using delegate " + this, exception);
+                done(JoinCompleteEvent.Cause.ERROR, exception);
+                failCall(_call1, exception);
+                throw exception;
+              }
             }
           }
           else {
