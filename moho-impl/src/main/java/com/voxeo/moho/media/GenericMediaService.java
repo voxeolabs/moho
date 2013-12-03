@@ -801,7 +801,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         cause = RecordCompleteEvent.Cause.INI_TIMEOUT;
       }
       else if (q == ResourceEvent.STOPPED) {
-        if (callRecording.isNormalDisconnect()) {
+        if(callRecording.isMaxDurationStop()) {
+          cause = RecordCompleteEvent.Cause.TIMEOUT;
+        }
+        else if (callRecording.isNormalDisconnect()) {
           cause = RecordCompleteEvent.Cause.DISCONNECT;
         }
         else {
@@ -1429,6 +1432,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
     @Override
     public void run() {
       LOG.warn("Max call record duration expired, stopping.");
+      future.setMaxDurationStop(true);
       future.stop();
       future.setMaxDurationTimerFuture(null);
     }

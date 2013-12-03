@@ -27,6 +27,8 @@ public class CallRecordingImpl<T extends EventSource> implements Recording<T> {
   protected MaxCallRecordDurationTask maxDurationTask;
 
   protected SettableResultFuture<RecordCompleteEvent<T>> _future = new SettableResultFuture<RecordCompleteEvent<T>>();
+  
+  protected boolean maxDurationStop;
 
   public CallRecordingImpl(NetworkConnection nc, MediaDialect dialect) {
     super();
@@ -118,5 +120,13 @@ public class CallRecordingImpl<T extends EventSource> implements Recording<T> {
 
   public void setMaxDurationTask(MaxCallRecordDurationTask maxDurationTask) {
     this.maxDurationTask = maxDurationTask;
+  }
+
+  public void setMaxDurationStop(boolean maxDurationStop) {
+    this.maxDurationStop = maxDurationStop;
+  }
+
+  public boolean isMaxDurationStop() {
+    return maxDurationStop;
   }
 }
