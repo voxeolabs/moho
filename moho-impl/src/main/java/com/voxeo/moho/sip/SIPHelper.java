@@ -135,8 +135,26 @@ public class SIPHelper {
       }
     }
     else {
-      req = factory.createRequest(applicationSession != null ? applicationSession : factory.createApplicationSession(),
-          method, from, to);
+      SipApplicationSession createdAppSession = null;
+      try {
+        if(applicationSession == null) {
+          createdAppSession = factory.createApplicationSession();
+        }
+        req = factory.createRequest(applicationSession != null ? applicationSession : createdAppSession,
+            method, from, to);
+      }
+      catch(Exception ex) {
+        LOG.error("Exception when creating INVITE request.", ex);
+        if(createdAppSession != null) {
+          try{
+            createdAppSession.invalidate();
+          }
+          catch(Exception e) {
+            LOG.error("Exception when invalidating application session:"+ createdAppSession);
+          }
+        }
+        throw new SignalException(ex);
+      }
     }
 
     req.setRequestURI(to.getURI());
