@@ -53,6 +53,7 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.MediaService;
+import com.voxeo.moho.Mixer;
 import com.voxeo.moho.common.event.MohoInputCompleteEvent;
 import com.voxeo.moho.common.event.MohoInputDetectedEvent;
 import com.voxeo.moho.common.event.MohoOutputCompleteEvent;
@@ -83,6 +84,7 @@ import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.output.OutputCommand.BargeinType;
 import com.voxeo.moho.media.output.TextToSpeechResource;
 import com.voxeo.moho.media.record.RecordCommand;
+import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.sip.SIPCallImpl;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.NLSMLParser;
@@ -96,6 +98,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   protected MediaSession _session;
 
   protected MediaGroup _group;
+  
+  protected MediaGroup _group2;
 
   protected Player _player = null;
 
@@ -116,6 +120,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   protected GenericMediaService(final T parent, final MediaGroup group) {
     _parent = parent;
     _group = group;
+    _session = group.getMediaSession();
     _context = (ExecutionContext) ((EventSource) _parent).getApplicationContext();
     _dialect = ((ApplicationContextImpl) _context).getDialect();
   }
@@ -145,8 +150,43 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
   protected synchronized Recorder getRecorder() {
     if (_recorder == null) {
+      // For mixer, create another media group for recording, so the recorder
+      // can record the output from the media service itself.
+      if (_group2 == null && _parent instanceof Mixer) {
+        try {
+          _group2 = _session.createMediaGroup(MediaGroup.PLAYER_RECORDER_SIGNALDETECTOR_SIGNALGENERATOR, null);
+        }
+        catch (final MsControlException e1) {
+          try {
+            _group2 = _session.createMediaGroup(MediaGroup.PLAYER_RECORDER_SIGNALDETECTOR, null);
+          }
+          catch (final MsControlException e2) {
+            try {
+              _group2 = _session.createMediaGroup(MediaGroup.PLAYER, null);
+            }
+            catch (final MsControlException e3) {
+              throw new MediaException(e3);
+            }
+          }
+        }
+
+        if (_group2 != null) {
+          try {
+            JoinDelegate.bridgeJoin((Mixer) _parent, _group2);
+          }
+          catch (Exception ex) {
+            LOG.error("Exception when joining recorder media group", ex);
+          }
+        }
+      }
+
       try {
-        _recorder = _group.getRecorder();
+        if (_group2 != null) {
+          _recorder = _group2.getRecorder();
+        }
+        else {
+          _recorder = _group.getRecorder();
+        }
       }
       catch (UnsupportedException ex) {
         LOG.debug("", ex);
@@ -404,10 +444,11 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
   @Override
   public Recording<T> record(final URI recording) throws MediaException {
-    final RecordingImpl<T> retval = new RecordingImpl<T>(_group);
+    Recorder recorder = getRecorder();
+    final RecordingImpl<T> retval = new RecordingImpl<T>(_group2 != null? _group2 : _group);
     try {
-      getRecorder().addListener(new RecorderListener(retval));
-      getRecorder().record(recording, RTC.NO_RTC, Parameters.NO_PARAMETER);
+      recorder.addListener(new RecorderListener(retval));
+      recorder.record(recording, RTC.NO_RTC, Parameters.NO_PARAMETER);
       _futures.add(retval);
       return retval;
     }
@@ -418,10 +459,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
   @Override
   public Recording<T> record(final RecordCommand command) throws MediaException {
-    if (command.isDuplex()) {
-      if (!(_parent instanceof SIPCallImpl)) {
-        throw new UnsupportedOperationException("Can only do duplex record on SIP call");
-      }
+    if (command.isDuplex() && _parent instanceof SIPCallImpl) {
       NetworkConnection nc = (NetworkConnection) ((SIPCallImpl) _parent).getMediaObject();
       final CallRecordingImpl<T> retValue = new CallRecordingImpl<T>(nc, _dialect);
       try {
@@ -449,8 +487,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
       return retValue;
     }
-
-    final RecordingImpl<T> retval = new RecordingImpl<T>(_group);
+    Recorder recorder = getRecorder();
+    final RecordingImpl<T> retval = new RecordingImpl<T>(_group2 != null? _group2 : _group);
     try {
       final List<RTC> rtcs = new ArrayList<RTC>();
 
@@ -570,8 +608,8 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         _dialect.setIgnorePromptFailure(params, true);
       }
 
-      getRecorder().addListener(new RecorderListener(retval));
-      getRecorder().record(command.getRecordURI(), rtcs.toArray(new RTC[] {}), params);
+      recorder.addListener(new RecorderListener(retval));
+      recorder.record(command.getRecordURI(), rtcs.toArray(new RTC[] {}), params);
       _futures.add(retval);
       return retval;
     }
