@@ -1241,14 +1241,18 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     // TODO
     if (_joinDelegate != null) {
-      if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT || cause == CallCompleteEvent.Cause.DISCONNECT) {
-        _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
-      }
-      else if (cause == CallCompleteEvent.Cause.CANCEL) {
-        _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
-      }
-      else {
-        _joinDelegate.done(JoinCompleteEvent.Cause.ERROR, exception);
+      if(!((_joinDelegate instanceof DirectAnswered2MultipleNOJoinDelegate ||
+         _joinDelegate instanceof DirectNI2MultipleNOJoinDelegate ||
+         _joinDelegate instanceof DirectNO2MultipleNOJoinDelegate) && _joinDelegate._call1 != this)) {
+        if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT || cause == CallCompleteEvent.Cause.DISCONNECT) {
+          _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
+        }
+        else if (cause == CallCompleteEvent.Cause.CANCEL) {
+          _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
+        }
+        else {
+          _joinDelegate.done(JoinCompleteEvent.Cause.ERROR, exception);
+        }
       }
       _joinDelegate = null;
     }
