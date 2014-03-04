@@ -4,6 +4,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 
@@ -21,14 +24,26 @@ public class CallRecordingImpl<T extends EventSource> implements Recording<T> {
   protected MediaDialect _dialect;
 
   protected boolean _normalDisconnected = false;
-  
+
   protected ScheduledFuture maxDurationTimerFuture;
-  
+
   protected MaxCallRecordDurationTask maxDurationTask;
 
   protected SettableResultFuture<RecordCompleteEvent<T>> _future = new SettableResultFuture<RecordCompleteEvent<T>>();
-  
+
   protected boolean maxDurationStop;
+
+  final Lock lock = new ReentrantLock();
+
+  private Condition pauseActionResult = lock.newCondition();
+
+  private Condition resumeActionResult = lock.newCondition();
+
+  protected boolean paused = false;
+
+  protected boolean pauseResult = false;
+
+  protected boolean resumeResult = false;
 
   public CallRecordingImpl(NetworkConnection nc, MediaDialect dialect) {
     super();
@@ -90,12 +105,74 @@ public class CallRecordingImpl<T extends EventSource> implements Recording<T> {
 
   @Override
   public void pause() {
-    throw new UnsupportedOperationException("Call record doesn't support pause()");
+    lock.lock();
+    try {
+      if (!_future.isDone() && !paused) {
+        _dialect.pauseCallRecord(_nc);
+
+        while (!pauseResult && !_future.isDone()) {
+          try {
+            pauseActionResult.await(5, TimeUnit.SECONDS);
+          }
+          catch (InterruptedException e) {
+            // ignore
+          }
+        }
+
+        pauseResult = false;
+      }
+    }
+    finally {
+      lock.unlock();
+    }
+  }
+
+  protected void pauseActionDone() {
+    lock.lock();
+    pauseResult = true;
+    paused = true;
+    try {
+      pauseActionResult.signalAll();
+    }
+    finally {
+      lock.unlock();
+    }
   }
 
   @Override
   public void resume() {
-    throw new UnsupportedOperationException("Call record doesn't support resume()");
+    lock.lock();
+    try {
+      if (!_future.isDone() && paused) {
+        _dialect.resumeCallRecor(_nc);
+
+        while (!resumeResult && !_future.isDone()) {
+          try {
+            resumeActionResult.await(5, TimeUnit.SECONDS);
+          }
+          catch (InterruptedException e) {
+            // ignore
+          }
+        }
+
+        resumeResult = false;
+      }
+    }
+    finally {
+      lock.unlock();
+    }
+  }
+
+  protected void resumeActionDone() {
+    lock.lock();
+    resumeResult = true;
+    paused = false;
+    try {
+      resumeActionResult.signalAll();
+    }
+    finally {
+      lock.unlock();
+    }
   }
 
   public void normalDisconnect(boolean normal) {

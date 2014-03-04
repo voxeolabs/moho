@@ -55,8 +55,18 @@ public interface MediaDialect {
   void startCallRecord(NetworkConnection nc, URI recordURI, RTC[] rtc, Parameters optargs, CallRecordListener listener) throws MsControlException;
   
   void stopCallRecord(NetworkConnection nc);
+  
+  void pauseCallRecord(NetworkConnection nc);
+  
+  void resumeCallRecor(NetworkConnection nc);
 
   int getCallRecordDuration(ResourceEvent event);
+  
+  boolean isCallRecordCompletedEvent(ResourceEvent event);
+  
+  boolean isCallRecordPausedEvent(ResourceEvent event);
+  
+  boolean isCallRecordResumedEvent(ResourceEvent event);
   //call record related over
   
   void enableRecorderPromptCompleteEvent(Parameters params, boolean enable);

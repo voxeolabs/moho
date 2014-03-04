@@ -832,42 +832,66 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
     @Override
     public void callRecordComplete(ResourceEvent event) {
-      Qualifier q = event.getQualifier();
-      RecordCompleteEvent.Cause cause = RecordCompleteEvent.Cause.UNKNOWN;
-      String errorText = null;
-      if (q == SpeechDetectorConstants.INITIAL_TIMEOUT_EXPIRED) {
-        cause = RecordCompleteEvent.Cause.INI_TIMEOUT;
-      }
-      else if (q == ResourceEvent.STOPPED) {
-        if (callRecording.isMaxDurationStop()) {
-          cause = RecordCompleteEvent.Cause.TIMEOUT;
+      if (_dialect.isCallRecordCompletedEvent(event)) {
+        Qualifier q = event.getQualifier();
+        RecordCompleteEvent.Cause cause = RecordCompleteEvent.Cause.UNKNOWN;
+        String errorText = null;
+        if (q == SpeechDetectorConstants.INITIAL_TIMEOUT_EXPIRED) {
+          cause = RecordCompleteEvent.Cause.INI_TIMEOUT;
         }
-        else if (callRecording.isNormalDisconnect()) {
-          cause = RecordCompleteEvent.Cause.DISCONNECT;
+        else if (q == ResourceEvent.STOPPED) {
+          if (callRecording.isMaxDurationStop()) {
+            cause = RecordCompleteEvent.Cause.TIMEOUT;
+          }
+          else if (callRecording.isNormalDisconnect()) {
+            cause = RecordCompleteEvent.Cause.DISCONNECT;
+          }
+          else {
+            cause = RecordCompleteEvent.Cause.CANCEL;
+          }
         }
-        else {
+        else if (q == ResourceEvent.RTC_TRIGGERED) {
           cause = RecordCompleteEvent.Cause.CANCEL;
         }
-      }
-      else if (q == ResourceEvent.RTC_TRIGGERED) {
-        cause = RecordCompleteEvent.Cause.CANCEL;
-      }
-      else if (q == ResourceEvent.NO_QUALIFIER) {
-        if (event.getError() != ResourceEvent.NO_ERROR) {
-          cause = RecordCompleteEvent.Cause.ERROR;
-        }
+        else if (q == ResourceEvent.NO_QUALIFIER) {
+          if (event.getError() != ResourceEvent.NO_ERROR) {
+            cause = RecordCompleteEvent.Cause.ERROR;
+          }
 
-        errorText = event.getError() + ": " + event.getErrorText();
+          errorText = event.getError() + ": " + event.getErrorText();
+        }
+        final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause,
+            _dialect.getCallRecordDuration(event), errorText, callRecording);
+        _parent.dispatch(recordCompleteEvent);
+        callRecording.done(recordCompleteEvent);
+        _futures.remove(callRecording);
+        if (callRecording.getMaxDurationTimerFuture() != null) {
+          callRecording.getMaxDurationTimerFuture().cancel(true);
+          ((ApplicationContextImpl) _context).getScheduledEcutor().remove(callRecording.getMaxDurationTask());
+          ((ApplicationContextImpl) _context).getScheduledEcutor().purge();
+        }
       }
-      final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause,
-          _dialect.getCallRecordDuration(event), errorText, callRecording);
-      _parent.dispatch(recordCompleteEvent);
-      callRecording.done(recordCompleteEvent);
-      _futures.remove(callRecording);
-      if(callRecording.getMaxDurationTimerFuture() != null) {
-        callRecording.getMaxDurationTimerFuture().cancel(true);
-        ((ApplicationContextImpl) _context).getScheduledEcutor().remove(callRecording.getMaxDurationTask());
-        ((ApplicationContextImpl) _context).getScheduledEcutor().purge();
+      else if (_dialect.isCallRecordPausedEvent(event)) {
+        _parent.dispatch(new MohoRecordPausedEvent<T>(_parent));
+        callRecording.pauseActionDone();
+      }
+      else if (_dialect.isCallRecordResumedEvent(event)) {
+        if (!event.isSuccessful()) {
+          final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent,
+              RecordCompleteEvent.Cause.ERROR, _dialect.getCallRecordDuration(event), callRecording);
+          _parent.dispatch(recordCompleteEvent);
+          callRecording.done(new MediaException(event.getErrorText()));
+          _futures.remove(callRecording);
+          if (callRecording.getMaxDurationTimerFuture() != null) {
+            callRecording.getMaxDurationTimerFuture().cancel(true);
+            ((ApplicationContextImpl) _context).getScheduledEcutor().remove(callRecording.getMaxDurationTask());
+            ((ApplicationContextImpl) _context).getScheduledEcutor().purge();
+          }
+        }
+        else {
+          _parent.dispatch(new MohoRecordResumedEvent<T>(_parent));
+          callRecording.resumeActionDone();
+        }
       }
     }
   }
