@@ -144,7 +144,7 @@ public class CallRecordingImpl<T extends EventSource> implements Recording<T> {
     lock.lock();
     try {
       if (!_future.isDone() && paused) {
-        _dialect.resumeCallRecor(_nc);
+        _dialect.resumeCallRecord(_nc);
 
         while (!resumeResult && !_future.isDone()) {
           try {

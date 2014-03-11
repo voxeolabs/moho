@@ -58,7 +58,7 @@ public interface MediaDialect {
   
   void pauseCallRecord(NetworkConnection nc);
   
-  void resumeCallRecor(NetworkConnection nc);
+  void resumeCallRecord(NetworkConnection nc);
 
   int getCallRecordDuration(ResourceEvent event);
 

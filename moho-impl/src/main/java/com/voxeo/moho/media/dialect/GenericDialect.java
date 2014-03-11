@@ -107,7 +107,7 @@ public class GenericDialect implements MediaDialect {
   }
 
   @Override
-  public void resumeCallRecor(NetworkConnection nc) {
+  public void resumeCallRecord(NetworkConnection nc) {
     // TODO Auto-generated method stub
 
   }
