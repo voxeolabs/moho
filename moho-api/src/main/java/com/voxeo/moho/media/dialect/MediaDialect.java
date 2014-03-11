@@ -61,12 +61,7 @@ public interface MediaDialect {
   void resumeCallRecor(NetworkConnection nc);
 
   int getCallRecordDuration(ResourceEvent event);
-  
-  boolean isCallRecordCompletedEvent(ResourceEvent event);
-  
-  boolean isCallRecordPausedEvent(ResourceEvent event);
-  
-  boolean isCallRecordResumedEvent(ResourceEvent event);
+
   //call record related over
   
   void enableRecorderPromptCompleteEvent(Parameters params, boolean enable);

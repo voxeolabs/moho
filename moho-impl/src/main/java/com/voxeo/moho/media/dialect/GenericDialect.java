@@ -101,6 +101,18 @@ public class GenericDialect implements MediaDialect {
   }
 
   @Override
+  public void pauseCallRecord(NetworkConnection nc) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void resumeCallRecor(NetworkConnection nc) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
   public boolean isPromptCompleteEvent(RecorderEvent event) {
     return false;
   }

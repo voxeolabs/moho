@@ -6,5 +6,11 @@ public interface CallRecordListener {
 
   @SuppressWarnings("rawtypes")
   void callRecordComplete(ResourceEvent event);
+  
+  @SuppressWarnings("rawtypes")
+  void callRecordPause(ResourceEvent event);
+  
+  @SuppressWarnings("rawtypes")
+  void callRecordResume(ResourceEvent event);
 
 }
