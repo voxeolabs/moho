@@ -471,7 +471,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           _dialect.setCallRecordFileFormat(params, command.getFileFormat());
         }
         
-        _dialect.startCallRecord(nc, command.getRecordURI(), RTC.NO_RTC, params, new CallRecordListenerImpl(retValue));
+        _dialect.startCallRecord(nc, command.getRecordURI(), RTC.NO_RTC, params, new CallRecordListenerImpl(retValue, command));
         
         if(command.getMaxDuration() > 0) {
           MaxCallRecordDurationTask timerTask = new MaxCallRecordDurationTask(retValue);
@@ -823,11 +823,16 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
   }
 
   protected class CallRecordListenerImpl implements CallRecordListener {
-    private CallRecordingImpl<T> callRecording;
+    private RecordCommand command;
 
-    public CallRecordListenerImpl(CallRecordingImpl<T> callRecording) {
+    private CallRecordingImpl<T> callRecording;
+    
+    private long duration = 0;
+
+    public CallRecordListenerImpl(CallRecordingImpl<T> callRecording, RecordCommand command) {
       super();
       this.callRecording = callRecording;
+      this.command = command;
     }
 
     @Override
@@ -859,8 +864,9 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
         errorText = event.getError() + ": " + event.getErrorText();
       }
-      final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause,
-          _dialect.getCallRecordDuration(event), errorText, callRecording);
+      duration = _dialect.getCallRecordDuration(event);
+      final RecordCompleteEvent<T> recordCompleteEvent = new MohoRecordCompleteEvent<T>(_parent, cause, duration,
+          errorText, callRecording);
       _parent.dispatch(recordCompleteEvent);
       callRecording.done(recordCompleteEvent);
       _futures.remove(callRecording);
@@ -873,8 +879,17 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
     @Override
     public void callRecordPause(ResourceEvent event) {
+      duration=_dialect.getCallRecordDuration(event);
       _parent.dispatch(new MohoRecordPausedEvent<T>(_parent));
       callRecording.pauseActionDone();
+      if (callRecording.getMaxDurationTimerFuture() != null) {
+        // cancel max-duration task
+        callRecording.getMaxDurationTimerFuture().cancel(true);
+        ((ApplicationContextImpl) _context).getScheduledEcutor().remove(callRecording.getMaxDurationTask());
+        ((ApplicationContextImpl) _context).getScheduledEcutor().purge();
+        callRecording.setMaxDurationTimerFuture(null);
+        callRecording.setMaxDurationTask(null);
+      }
     }
 
     @Override
@@ -885,15 +900,19 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         _parent.dispatch(recordCompleteEvent);
         callRecording.done(new MediaException(event.getErrorText()));
         _futures.remove(callRecording);
-        if (callRecording.getMaxDurationTimerFuture() != null) {
-          callRecording.getMaxDurationTimerFuture().cancel(true);
-          ((ApplicationContextImpl) _context).getScheduledEcutor().remove(callRecording.getMaxDurationTask());
-          ((ApplicationContextImpl) _context).getScheduledEcutor().purge();
-        }
       }
       else {
         _parent.dispatch(new MohoRecordResumedEvent<T>(_parent));
         callRecording.resumeActionDone();
+        if (command.getMaxDuration() > 0) {
+          // restart max-duration task
+          long delay = command.getMaxDuration() - duration;
+          MaxCallRecordDurationTask timerTask = new MaxCallRecordDurationTask(callRecording);
+          ScheduledFuture future = ((ApplicationContextImpl) _context).getScheduledEcutor().schedule(timerTask, delay,
+              TimeUnit.MILLISECONDS);
+          callRecording.setMaxDurationTimerFuture(future);
+          callRecording.setMaxDurationTask(timerTask);
+        }
       }
     }
   }
