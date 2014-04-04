@@ -219,13 +219,15 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     catch (final Exception e) {
       LOG.warn("Exception when release mixer", e);
     }
-    try {
-      _media.release();
+    if (_media != null) {
+      try {
+        _media.release();
+      }
+      catch (final Exception e) {
+        LOG.warn("Exception when release mediaSession", e);
+      }
+      _media = null;
     }
-    catch (final Exception e) {
-      LOG.warn("Exception when release mediaSession", e);
-    }
-    _media = null;
 
     Participant[] _joineesArray = _joinees.getJoinees();
     for (Participant participant : _joineesArray) {
