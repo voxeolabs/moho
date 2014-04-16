@@ -224,6 +224,7 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
         }
         _invite = null;
       }
+      ((ExecutionContext)getApplicationContext()).removeCall(this.getId());
       throw new SignalException(e);
     }
   }
