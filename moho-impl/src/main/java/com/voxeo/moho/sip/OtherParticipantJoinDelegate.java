@@ -2,6 +2,8 @@ package com.voxeo.moho.sip;
 
 import javax.media.mscontrol.join.Joinable.Direction;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.MixerImpl;
 import com.voxeo.moho.Participant;
 import com.voxeo.moho.Participant.JoinType;
@@ -11,6 +13,8 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 
 public class OtherParticipantJoinDelegate extends JoinDelegate {
+  
+  private static final Logger LOG = Logger.getLogger(OtherParticipantJoinDelegate.class);
 
   protected Participant otherParticipant;
 
@@ -50,6 +54,12 @@ public class OtherParticipantJoinDelegate extends JoinDelegate {
   public synchronized void done(final Cause cause, Exception exception) {
     if (done) {
       return;
+    }
+    if (exception != null) {
+      LOG.error("Join complete in error cause:" + cause + " for joinDelegate" + this, exception);
+    }
+    else {
+      LOG.debug("Join complete with cause:" + cause + " for joinDelegate" + this);
     }
 
     _cause = cause;
