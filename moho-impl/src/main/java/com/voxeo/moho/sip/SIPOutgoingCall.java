@@ -199,7 +199,7 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
     call(sdp);
   }
 
-  private void createRequest() {
+  protected void createRequest() {
     try {
       _invite = SIPHelper.createSipInitnalRequest(_context.getSipFactory(), "INVITE", _from.getSipAddress(),
           _address.getSipAddress(), _headers, _appSession, _continueRoutingOrigCall!= null ? _continueRoutingOrigCall.getSipRequest() : null, this.getApplicationContext());

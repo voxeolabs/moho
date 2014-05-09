@@ -40,4 +40,6 @@ public interface RecordCompleteEvent<T extends EventSource> extends MediaComplet
    * @return
    */
   String getErrorText();
+  
+  Exception getException();
 }

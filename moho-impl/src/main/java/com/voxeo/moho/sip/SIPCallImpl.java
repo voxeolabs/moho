@@ -95,8 +95,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   private static final Logger LOG = Logger.getLogger(SIPCallImpl.class);
   
-  private static String Att_REINVITE_HEADERS = "Att_REINVITE_HEADERS";
-  private static String Att_REINVITE_ATTRIBUTES = "Att_REINVITE_ATTRIBUTES";
+  protected static String Att_REINVITE_HEADERS = "Att_REINVITE_HEADERS";
+  protected static String Att_REINVITE_ATTRIBUTES = "Att_REINVITE_ATTRIBUTES";
 
   protected SIPCall.State _cstate;
 

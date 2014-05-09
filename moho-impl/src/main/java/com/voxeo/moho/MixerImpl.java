@@ -42,6 +42,7 @@ import javax.media.mscontrol.spi.Driver;
 import javax.media.mscontrol.spi.DriverManager;
 
 import org.apache.log4j.Logger;
+import org.dom4j.Element;
 
 import com.voxeo.moho.common.event.DispatchableEventSource;
 import com.voxeo.moho.common.event.MohoActiveSpeakerEvent;
@@ -59,12 +60,21 @@ import com.voxeo.moho.media.Input;
 import com.voxeo.moho.media.Output;
 import com.voxeo.moho.media.Prompt;
 import com.voxeo.moho.media.Recording;
+import com.voxeo.moho.media.SIPRecordingImpl;
 import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.media.input.InputCommand;
 import com.voxeo.moho.media.output.OutputCommand;
 import com.voxeo.moho.media.record.RecordCommand;
+import com.voxeo.moho.media.record.SIPRecordCommand;
+import com.voxeo.moho.media.siprecord.metadata.CommunicationSession;
+import com.voxeo.moho.media.siprecord.metadata.MediaStream;
+import com.voxeo.moho.media.siprecord.metadata.MetadataUtils;
+import com.voxeo.moho.media.siprecord.metadata.ParticipantMetadata;
+import com.voxeo.moho.media.siprecord.metadata.RecordingSession;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.sip.JoinDelegate;
+import com.voxeo.moho.sip.SIPEndpoint;
+import com.voxeo.moho.sip.SipRecordingCall;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.IDGenerator;
 
@@ -89,6 +99,8 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   protected String _name;
 
   protected MediaDialect _mediaDialect;
+  
+  protected SIPRecordingImpl<Mixer> _sipRecording;
 
   protected MixerImpl(final ExecutionContext context, final MixerEndpoint address, String name,
       final Map<Object, Object> params, Parameters parameters) {
@@ -177,8 +189,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public String toString() {
-    return new StringBuilder().append(MixerImpl.class.getSimpleName()).append("[").append(_mixer).append("]")
-        .toString();
+    return String.format("%s[id=%s mediamixer=%s]", getClass().getSimpleName(), _id, _mixer);
   }
 
   public synchronized MediaService<Mixer> getMediaService(boolean create) throws MediaException, IllegalStateException {
@@ -203,6 +214,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public synchronized void disconnect() {
+    LOG.debug("Disconnecting mixer:" + this);
     ((ApplicationContextImpl) _context).removeParticipant(getId());
     if (_service != null) {
       try {
@@ -210,6 +222,15 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
       }
       catch (final Exception e) {
         LOG.warn("Exception when release media service", e);
+      }
+    }
+    
+    if (_sipRecording != null) {
+      try {
+        _sipRecording.stop();
+      }
+      catch (final Exception e) {
+        LOG.warn("Exception when stopping SIPRecording.", e);
       }
     }
 
@@ -252,6 +273,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     joinDelegates.clear();
 
     this.dispatch(new MohoMediaResourceDisconnectEvent<Mixer>(this));
+    LOG.debug("Disconnected mixer.");
   }
 
   @Override
@@ -1018,9 +1040,63 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
 
   @Override
   public Recording<Mixer> record(RecordCommand command) throws MediaException {
-    return getMediaService().record(command);
-  }
+    if (command instanceof SIPRecordCommand) {
+      
+      
+      SIPRecordCommand siprecCommand = (SIPRecordCommand) command;
+      LOG.debug(this + " starting SIPRecording, SRS:" + siprecCommand.getSiprecServer());
+      // This is SIPREC, only support prompt parameter. all the other parameters
+      // will be ignored
+      // TODO need wait output complete?
+      if (command.getPrompt() != null) {
+        getMediaService().output(command.getPrompt());
+      }
+      // create metadata
+      Participant[] participants = _joinees.getJoinees();
+      Map<String, List<Element>> extendData = siprecCommand.getParticipantExtendedMetadata();
+      String labelValue = MetadataUtils.generateLabelValue();
 
+      RecordingSession rs = new RecordingSession();
+      CommunicationSession cs = new CommunicationSession();
+      rs.assotiateCommunicationSession(cs);
+
+      cs.setExtendedDatas(siprecCommand.getExtendedDatat());
+
+      MediaStream stream = new MediaStream();
+      stream.setLabel(labelValue);
+      cs.associateMediaStream(stream);
+
+      for (Participant participant : participants) {
+        ParticipantMetadata participantMetadata = new ParticipantMetadata();
+        participantMetadata.associateSendStream(stream);
+        participantMetadata.associateReceiveStream(stream);
+        Map<URI, String> nameAors = new HashMap<URI, String>();
+        nameAors.put(participant.getAddress().getURI(), participant.getAddress().getName());
+        participantMetadata.setNameAors(nameAors);
+        if (extendData != null && extendData.get(participant.getId()) != null) {
+          participantMetadata.setExtendedDatas(extendData.get(participant.getId()));
+        }
+        cs.associateParticipant(participantMetadata);
+      }
+
+      // create sipRecordingCall and set label for SDP
+      Endpoint recServerEndpoint = getApplicationContext().createEndpoint(siprecCommand.getSiprecServer().toString());
+      Endpoint srcEndpoint = getApplicationContext().createEndpoint(siprecCommand.getSiprecSrcURI().toString());
+      SipRecordingCall recordingCall = new SipRecordingCall((ExecutionContext) getApplicationContext(),
+          (SIPEndpoint) srcEndpoint, (SIPEndpoint) recServerEndpoint);
+      recordingCall.setLabel(labelValue);
+      recordingCall.setRSMetadata(rs);
+      // create SIPRecording
+      _sipRecording = new SIPRecordingImpl<Mixer>(recordingCall, this);
+      // start record
+      _sipRecording.start();
+      return _sipRecording;
+    }
+    else {
+      return getMediaService().record(command);
+    }
+  }
+  
   @Override
   public MediaGroup getMediaGroup(boolean create) {
     MediaService<Mixer> service = this.getMediaService(create);
@@ -1087,4 +1163,7 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
     return _name;
   }
 
+  public void setSipRecording(SIPRecordingImpl<Mixer> sipRecording) {
+    this._sipRecording = sipRecording;
+  }
 }
