@@ -1041,15 +1041,17 @@ public class MixerImpl extends DispatchableEventSource implements Mixer, Partici
   @Override
   public Recording<Mixer> record(RecordCommand command) throws MediaException {
     if (command instanceof SIPRecordCommand) {
-      
-      
       SIPRecordCommand siprecCommand = (SIPRecordCommand) command;
       LOG.debug(this + " starting SIPRecording, SRS:" + siprecCommand.getSiprecServer());
       // This is SIPREC, only support prompt parameter. all the other parameters
       // will be ignored
-      // TODO need wait output complete?
       if (command.getPrompt() != null) {
-        getMediaService().output(command.getPrompt());
+        try {
+          getMediaService().output(command.getPrompt()).get();
+        }
+        catch (Exception e) {
+          LOG.error("Exception when playing prompt.", e);
+        }
       }
       // create metadata
       Participant[] participants = _joinees.getJoinees();
