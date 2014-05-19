@@ -190,6 +190,7 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
         mediaDialectClass = (Class<? extends MediaDialect>) Class.forName(mediaDialectClassName);
       }
       _dialect = mediaDialectClass.newInstance();
+      _dialect.init();
       LOG.info("Moho is creating media service with dialect (" + _dialect + ").");
     }
     catch (Exception ex) {
@@ -408,6 +409,8 @@ private int getParameterValue(String param, int defaultValue) {
     for (Service service : beans) {
       service.destroy();
     }
+    
+    _dialect.destroy();
 
 //    try {
 //      UnicastRemoteObject.unexportObject(_remoteCommunication, true);

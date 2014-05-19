@@ -11,6 +11,7 @@ import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.sdp.MediaDescription;
 import javax.sdp.SdpFactory;
 import javax.sdp.SessionDescription;
+import javax.servlet.sip.Address;
 import javax.servlet.sip.SipApplicationSession;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -126,8 +127,10 @@ public class SipRecordingCall extends SIPOutgoingCall {
         // add header
         _invite.addHeader("Require", "siprec");
         _invite.addHeader("MIME-Version", "1.0");
-        // TODO _invite.getAddressHeader("Contact").setParameter("+sip.src",
-        // "");
+        Address contact = _invite.getAddressHeader("Contact");
+        if (contact != null) {
+          contact.setParameter("+sip.src", "");
+        }
 
         if (sdp != null) {
           // modify the SDP, 1. modify sendrecv to sendonly 2. add the label
