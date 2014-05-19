@@ -96,19 +96,16 @@ public class GenericDialect implements MediaDialect {
 
   @Override
   public int getCallRecordDuration(ResourceEvent event) {
-    // TODO Auto-generated method stub
     return 0;
   }
 
   @Override
   public void pauseCallRecord(NetworkConnection nc) {
-    // TODO Auto-generated method stub
 
   }
 
   @Override
   public void resumeCallRecord(NetworkConnection nc) {
-    // TODO Auto-generated method stub
 
   }
 
@@ -167,5 +164,15 @@ public class GenericDialect implements MediaDialect {
   @Override
   public void setIgnorePromptFailure(Parameters params, boolean ignore) {
 
+  }
+
+  @Override
+  public void init() {
+    
+  }
+
+  @Override
+  public void destroy() {
+    
   }
 }
