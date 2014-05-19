@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 import javax.media.mscontrol.EventType;
@@ -108,7 +109,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
 
   protected MediaDialect _dialect;
 
-  protected List<MediaOperation<?, ? extends MediaCompleteEvent<?>>> _futures = new LinkedList<MediaOperation<?, ? extends MediaCompleteEvent<?>>>();
+  protected List<MediaOperation<?, ? extends MediaCompleteEvent<?>>> _futures = new CopyOnWriteArrayList<MediaOperation<?, ? extends MediaCompleteEvent<?>>>();
 
   protected PlayerListener playerListener = new PlayerListener();
 
