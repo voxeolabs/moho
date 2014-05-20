@@ -20,10 +20,6 @@ import com.voxeo.moho.media.InputMode;
 import com.voxeo.moho.media.input.SignalGrammar.Signal;
 
 public interface MediaDialect {
-  
-  void init();
-  
-  void destroy();
 
   void setSpeechLanguage(Parameters parameters, String value);
 
