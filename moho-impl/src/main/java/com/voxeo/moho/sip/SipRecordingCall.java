@@ -325,7 +325,7 @@ public class SipRecordingCall extends SIPOutgoingCall {
 
       MediaDescription md = ((MediaDescription) sd.getMediaDescriptions(false).get(0));
       md.removeAttribute("inactive");
-      md.removeAttribute("sendreceive");
+      md.removeAttribute("sendrecv");
       md.setAttribute("sendonly", null);
       md.setAttribute("label", _label);
       setLocalSDP(sd.toString().getBytes("iso8859-1"));
