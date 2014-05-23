@@ -47,7 +47,7 @@ public class Media2AIJoinDelegate extends JoinDelegate {
           _call1.reInviteRemote(sdp, null, null);
           return;
         }
-        catch (final IOException e) {
+        catch (final Exception e) {
           done(JoinCompleteEvent.Cause.ERROR, e);
         }
       }

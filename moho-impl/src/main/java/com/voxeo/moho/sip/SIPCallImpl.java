@@ -43,6 +43,7 @@ import javax.media.mscontrol.mixer.MediaMixer;
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.sdp.MediaDescription;
+import javax.sdp.Origin;
 import javax.sdp.SdpException;
 import javax.sdp.SdpFactory;
 import javax.sdp.SessionDescription;
@@ -88,6 +89,7 @@ import com.voxeo.moho.remote.sipbased.RemoteJoinOutgoingCall;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.ParticipantIDParser;
+import com.voxeo.moho.util.SDPUtils;
 import com.voxeo.moho.util.SessionUtils;
 
 public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEventListener<SdpPortManagerEvent>,
@@ -150,6 +152,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected boolean processingReinvite;
   
   protected boolean pendingReinvite;
+  
+  protected Origin previousOrigin;
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
@@ -463,6 +467,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         event = new MohoUnjoinCompleteEvent(local, participant, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, initiator);
       }
       SIPCallImpl.this.dispatch(event);
+      
+      if(_joinees.getJoinees().length == 0 && _network == null) {
+        _callDelegate = null;
+      }
     }
     return event;
   }
@@ -882,7 +890,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       //sent out re-INVITE when joining
       if(needReInivteRemote) {
         SipServletResponse resp = req.createResponse(SipServletResponse.SC_OK);
-        resp.setContent(getLocalSDP(), "application/sdp");
+        resp.setContent(SDPUtils.formulateSDP(this, getLocalSDP()), "application/sdp");
         resp.send();
         return;
       }
@@ -905,7 +913,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       processingReinvite = true;
     }
     else {
-      LOG.debug("The SIP message will be discarded.");
+      LOG.debug("_callDelegate is null, operation in progress, returning fake response.");
+      //req.createResponse(SipServletResponse.sc_o).send(); //TODO
     }
   }
 
@@ -964,7 +973,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
                   .getAttribute(Att_REINVITE_HEADERS),
                   (Map<String, String>) res.getRequest().getAttribute(Att_REINVITE_ATTRIBUTES));
             }
-            catch (IOException e) {
+            catch (Exception e) {
               LOG.debug("Exception when sending re-INVITE", e);
               SIPCallImpl.this.fail(e);
             }
@@ -1274,19 +1283,19 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     return _inviteResponse;
   }
 
-  protected byte[] getRemoteSdp() {
+  public byte[] getRemoteSdp() {
     return _remoteSDP;
   }
 
-  protected void setRemoteSDP(final byte[] sdp) {
+  public void setRemoteSDP(final byte[] sdp) {
     _remoteSDP = sdp;
   }
 
-  protected byte[] getLocalSDP() {
+  public byte[] getLocalSDP() {
     return _localSDP;
   }
 
-  protected void setLocalSDP(final byte[] sdp) {
+  public void setLocalSDP(final byte[] sdp) {
     _localSDP = sdp;
   }
 
@@ -2059,7 +2068,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     try {
       SipServletRequest updateReq = _invite.getSession().createRequest("UPDATE");
       if (_localSDP != null) {
-        updateReq.setContent(_localSDP, "application/sdp");
+        updateReq.setContent(SDPUtils.formulateSDP(this, _localSDP), "application/sdp");
       }
       sendingUpdate = true;
       updateReq.send();
@@ -2105,7 +2114,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     
     SipServletRequest reInvite = getSipSession().createRequest("INVITE");
     if(sdp != null) {
-      reInvite.setContent(sdp, "application/sdp");
+      reInvite.setContent(SDPUtils.formulateSDP(this, sdp), "application/sdp");
     }
     if(headers != null) {
       reInvite.setAttribute(Att_REINVITE_HEADERS, headers);
@@ -2143,5 +2152,13 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         throw new IllegalStateException(err);
       }
     }
+  }
+
+  public Origin getPreviousOrigin() {
+    return previousOrigin;
+  }
+
+  public void setPreviousOrigin(Origin previousOrigin) {
+    this.previousOrigin = previousOrigin;
   }
 }

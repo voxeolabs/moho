@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPCall.State;
+import com.voxeo.moho.util.SDPUtils;
 
 public class DirectNO2AOJoinDelegate extends JoinDelegate {
 
@@ -67,7 +68,7 @@ public class DirectNO2AOJoinDelegate extends JoinDelegate {
       if (_response != null) {
         LOG.warn("Receive UPDATE after INVITE processed, return peer remote SDP.");
         SipServletResponse resp = req.createResponse(200);
-        resp.setContent(_call2.getRemoteSdp(), "application/sdp");
+        resp.setContent(SDPUtils.formulateSDP(_call1, _call2.getRemoteSdp()), "application/sdp");
         resp.send();
       }
       else {

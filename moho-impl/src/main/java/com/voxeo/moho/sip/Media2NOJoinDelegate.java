@@ -29,6 +29,7 @@ import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
+import com.voxeo.moho.util.SDPUtils;
 
 public class Media2NOJoinDelegate extends JoinDelegate {
 
@@ -76,7 +77,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
           if (_updateRequest != null) {
             SipServletResponse updateResponse = _updateRequest.createResponse(200);
             _updateRequest = null;
-            updateResponse.setContent(event.getMediaServerSdp(), "application/sdp");
+            updateResponse.setContent(SDPUtils.formulateSDP(_call1, event.getMediaServerSdp()), "application/sdp");
             updateResponse.send();
             return;
           }

@@ -28,6 +28,7 @@ import org.apache.log4j.Logger;
 
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.sip.SIPCallImpl.HoldState;
+import com.voxeo.moho.util.SDPUtils;
 
 public class SIPCallMediaDelegate extends SIPCallDelegate {
 
@@ -145,7 +146,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
           call.setLocalSDP(sdp);
           try {
             final SipServletResponse res = _req.createResponse(SipServletResponse.SC_OK);
-            res.setContent(sdp, "application/sdp");
+            res.setContent(SDPUtils.formulateSDP(call, sdp), "application/sdp");
             res.send();
           }
           catch (final Exception e) {
@@ -197,7 +198,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
           call.setLocalSDP(sdp);
           try {
             final SipServletResponse res = _req.createResponse(SipServletResponse.SC_OK);
-            res.setContent(sdp, "application/sdp");
+            res.setContent(SDPUtils.formulateSDP(call, sdp), "application/sdp");
             res.send();
           }
           catch (final Exception e) {

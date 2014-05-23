@@ -163,8 +163,8 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
           }
         }
       }
-      catch (IOException e1) {
-        LOG.error("IOException", e1);
+      catch (Exception e1) {
+        LOG.error("Exception", e1);
         call.setMuteState(HoldState.None);
         call.fail(e1);
       }
@@ -206,7 +206,7 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
   }
 
   @Override
-  protected void mute(SIPCallImpl call) throws IOException, SdpException {
+  protected void mute(SIPCallImpl call) throws MsControlException, IOException, SdpException {
     final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
 
     Map<String, String> attributes = new HashMap<String, String>();
@@ -226,7 +226,7 @@ public class SIPCallDirectDelegate extends SIPCallDelegate {
   }
 
   @Override
-  protected void unmute(SIPCallImpl call) throws IOException, SdpException {
+  protected void unmute(SIPCallImpl call) throws MsControlException, IOException, SdpException {
     final SIPCallImpl peer = (SIPCallImpl) call.getLastPeer();
     
     Map<String, String> attributes = new HashMap<String, String>();

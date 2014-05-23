@@ -30,6 +30,7 @@ import com.voxeo.moho.OutgoingCall;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.util.SDPUtils;
 import com.voxeo.moho.util.SessionUtils;
 
 public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
@@ -147,7 +148,7 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
         createRequest();
       }
       if (sdp != null) {
-        _invite.setContent(sdp, "application/sdp");
+        _invite.setContent(SDPUtils.formulateSDP(this, sdp), "application/sdp");
       }
       setSIPCallState(SIPCall.State.INVITING);
       _invite.send();
@@ -239,7 +240,7 @@ public class SIPOutgoingCall extends SIPCallImpl implements OutgoingCall {
   public void processSDPAnswer(byte[] sdp) throws IOException {
     if (_inviteResponse != null) {
       SipServletRequest ack = _inviteResponse.createAck();
-      ack.setContent(sdp, "application/sdp");
+      ack.setContent(SDPUtils.formulateSDP(this, sdp), "application/sdp");
       ack.send();
     }
     else {

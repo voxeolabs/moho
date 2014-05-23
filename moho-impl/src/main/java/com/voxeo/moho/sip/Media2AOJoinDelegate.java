@@ -53,7 +53,7 @@ public class Media2AOJoinDelegate extends JoinDelegate {
           _call1.reInviteRemote(sdp, null, null);
           return;
         }
-        catch (final IOException e) {
+        catch (final Exception e) {
           done(Cause.ERROR, e);
         }
       }

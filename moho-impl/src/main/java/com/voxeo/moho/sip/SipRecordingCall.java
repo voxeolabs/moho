@@ -27,6 +27,7 @@ import com.voxeo.moho.media.siprecord.metadata.MediaStream;
 import com.voxeo.moho.media.siprecord.metadata.ParticipantMetadata;
 import com.voxeo.moho.media.siprecord.metadata.RecordingSession;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.util.SDPUtils;
 
 // TODO SRS failover?
 public class SipRecordingCall extends SIPOutgoingCall {
@@ -149,7 +150,7 @@ public class SipRecordingCall extends SIPOutgoingCall {
           MimeMultipart multiPart = new MimeMultipart();
 
           MimeBodyPart sdpPart = new MimeBodyPart();
-          sdpPart.setContent(sd.toString().getBytes("iso8859-1"), "application/sdp");
+          sdpPart.setContent(SDPUtils.formulateSDP(this, sd), "application/sdp");
           sdpPart.addHeader("Content-Type", "application/sdp");
           multiPart.addBodyPart(sdpPart);
 

@@ -19,6 +19,7 @@ import javax.servlet.sip.SipServletResponse;
 
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.util.SDPUtils;
 
 public class DirectAI2AOJoinDelegate extends JoinDelegate {
 
@@ -47,7 +48,7 @@ public class DirectAI2AOJoinDelegate extends JoinDelegate {
       if (_call1.equals(call)) {
         if (_response != null) {
           SipServletRequest ack = _response.createAck();
-          ack.setContent(_call2.getLocalSDP(), "application/sdp");
+          ack.setContent(SDPUtils.formulateSDP(_call2, _call2.getLocalSDP()), "application/sdp");
           ack.send();
         }
       }

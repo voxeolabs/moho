@@ -23,6 +23,7 @@ import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.media.dialect.MediaDialect;
 import com.voxeo.moho.sip.SIPCall.State;
+import com.voxeo.moho.util.SDPUtils;
 
 public class BridgeJoinDelegate extends JoinDelegate {
 
@@ -66,7 +67,7 @@ public class BridgeJoinDelegate extends JoinDelegate {
     if (call != null && call instanceof IncomingCall) {
       final SipServletResponse res = call.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
       if (call.getLocalSDP() != null) {
-        res.setContent(call.getLocalSDP(), "application/sdp");
+        res.setContent(SDPUtils.formulateSDP(call, call.getLocalSDP()), "application/sdp");
       }
       res.send();
     }

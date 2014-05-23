@@ -20,6 +20,7 @@ import javax.servlet.sip.SipServletResponse;
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
+import com.voxeo.moho.util.SDPUtils;
 
 public class Media2NIJoinDelegate extends JoinDelegate {
 
@@ -38,7 +39,7 @@ public class Media2NIJoinDelegate extends JoinDelegate {
       try {
         callProcessed = true;
         final SipServletResponse res = _call1.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
-        res.setContent(_call1.getLocalSDP(), "application/sdp");
+        res.setContent(SDPUtils.formulateSDP(_call1, _call1.getLocalSDP()), "application/sdp");
         res.send();
       }
       catch (final IOException e) {
@@ -65,10 +66,10 @@ public class Media2NIJoinDelegate extends JoinDelegate {
         _call1.setLocalSDP(sdp);
         final SipServletResponse res = _call1.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
         try {
-          res.setContent(sdp, "application/sdp");
+          res.setContent(SDPUtils.formulateSDP(_call1, sdp), "application/sdp");
           res.send();
         }
-        catch (final IOException e) {
+        catch (final Exception e) {
           done(Cause.ERROR, e);
           _call1.fail(e);
         }

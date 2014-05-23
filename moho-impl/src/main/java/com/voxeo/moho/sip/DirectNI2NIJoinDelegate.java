@@ -19,6 +19,7 @@ import javax.servlet.sip.SipServletResponse;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPCall.State;
+import com.voxeo.moho.util.SDPUtils;
 
 public class DirectNI2NIJoinDelegate extends JoinDelegate {
 
@@ -38,12 +39,12 @@ public class DirectNI2NIJoinDelegate extends JoinDelegate {
     // TODO call1 or call2 in PROCESSED state.
     final SipServletResponse res1 = _call1.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
     if (_call2.getRemoteSdp() != null) {
-      res1.setContent(_call2.getRemoteSdp(), "application/sdp");
+      res1.setContent(SDPUtils.formulateSDP(_call1, _call2.getRemoteSdp()), "application/sdp");
     }
     res1.send();
     final SipServletResponse res2 = _call2.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
     if (_call1.getRemoteSdp() != null) {
-      res2.setContent(_call1.getRemoteSdp(), "application/sdp");
+      res2.setContent(SDPUtils.formulateSDP(_call2, _call1.getRemoteSdp()), "application/sdp");
     }
     res2.send();
   }

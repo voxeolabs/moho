@@ -35,6 +35,7 @@ import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.event.CallCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.spi.ExecutionContext;
+import com.voxeo.moho.util.SDPUtils;
 
 public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
 
@@ -139,7 +140,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
         final SipServletResponse res = getSipInitnalRequest().createResponse(SipServletResponse.SC_SESSION_PROGRESS);
 
         try {
-          res.setContent(sdp, "application/sdp");
+          res.setContent(SDPUtils.formulateSDP(this, sdp), "application/sdp");
 
           try {
             res.sendReliably();
@@ -536,12 +537,12 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   public void processSDPAnswer(byte[] sdp) throws IOException {
     if (!isAnswered()) {
       SipServletResponse newRes = _invite.createResponse(SipServletResponse.SC_OK);
-      newRes.setContent(sdp, "application/sdp");
+      newRes.setContent(SDPUtils.formulateSDP(this, sdp), "application/sdp");
       newRes.send();
     }
     else if (_inviteResponse != null) {
       SipServletRequest ack = _inviteResponse.createAck();
-      ack.setContent(sdp, "application/sdp");
+      ack.setContent(SDPUtils.formulateSDP(this, sdp), "application/sdp");
       ack.send();
     }
     else {
@@ -553,13 +554,13 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   public byte[] processSDPOffer(byte[] sdp) throws IOException {
     if (!isAnswered()) {
       final SipServletResponse newRes = _invite.createResponse(SipServletResponse.SC_OK);
-      newRes.setContent(sdp, "application/sdp");
+      newRes.setContent(SDPUtils.formulateSDP(this, sdp), "application/sdp");
       newRes.send();
       return _invite.getRawContent();
     }
     else {
       _invite = getSipSession().createRequest("INVITE");
-      _invite.setContent(sdp, "application/sdp");
+      _invite.setContent(SDPUtils.formulateSDP(this, sdp), "application/sdp");
       _invite.send();
       return null;
     }

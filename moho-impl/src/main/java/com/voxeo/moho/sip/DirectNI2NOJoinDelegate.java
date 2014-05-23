@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.sip.SIPCall.State;
+import com.voxeo.moho.util.SDPUtils;
 
 public class DirectNI2NOJoinDelegate extends JoinDelegate {
   private static final Logger LOG = Logger.getLogger(DirectAI2NOJoinDelegate.class);
@@ -31,7 +32,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
 
   protected SipServletResponse _response;
 
-  protected Object _latestCall2SDP;
+  protected byte[] _latestCall2SDP;
   
   protected boolean call1Processed;
   
@@ -73,7 +74,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   protected void doUpdate(SipServletRequest req, SIPCallImpl call, Map<String, String> headers) throws Exception {
     if (_call2.equals(call)) {
       if (SIPHelper.getRawContentWOException(req) != null) {
-        _latestCall2SDP = req.getContent();
+        _latestCall2SDP = req.getRawContent();
       }
       if(_call1No100Rel) {
         SipServletResponse updateResp = req.createResponse(200);
@@ -108,7 +109,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
         }
         else {
           SipServletRequest prack = prackResponse.createPrack();
-          prack.setContent(_call1.getRemoteSdp(), "application/sdp");
+          prack.setContent(SDPUtils.formulateSDP(_call2, _call1.getRemoteSdp()), "application/sdp");
           prack.send();
         }
         _call1.destroyNetworkConnection();
@@ -154,7 +155,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
         if (SIPHelper.isSuccessResponse(res) || SIPHelper.isProvisionalResponse(res)) {
           _response = res;
           if (SIPHelper.getRawContentWOException(res) != null) {
-            _latestCall2SDP = res.getContent();
+            _latestCall2SDP = res.getRawContent();
             
             if(SIPHelper.isProvisionalResponse(res) && SIPHelper.needPrack(res)) {
               call2Processed = true;
@@ -169,12 +170,12 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
                 }
                 _waitingPrackResponse = res;
                 SipServletRequest updateCall1Req = _call1.getSipSession().createRequest("UPDATE");
-                updateCall1Req.setContent(res.getContent(), "application/sdp");
+                updateCall1Req.setContent(SDPUtils.formulateSDP(_call1, res.getRawContent()), "application/sdp");
                 updateCall1Req.send();
               }
               else {
                 SipServletRequest prack = res.createPrack();
-                prack.setContent(_call1.getRemoteSdp(), "application/sdp");
+                prack.setContent(SDPUtils.formulateSDP(_call2, _call1.getRemoteSdp()), "application/sdp");
                 prack.send();
                 relayUnreliableProvisionalResponse(res);
               }
@@ -213,7 +214,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
             }
             else {
               if(res.getStatus() == SipServletResponse.SC_OK && SIPHelper.getRawContentWOException(newRes) == null && !call1Processed) {
-                newRes.setContent(_latestCall2SDP, "application/sdp");
+                newRes.setContent(SDPUtils.formulateSDP(_call1, _latestCall2SDP), "application/sdp");
               }
               newRes.send();
             }
@@ -231,7 +232,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           try {
             final SipServletRequest ack2 = _response.createAck();
             if (call1Processed && !call2Processed) {
-              ack2.setContent(_call1.getRemoteSdp(), "application/sdp");
+              ack2.setContent(SDPUtils.formulateSDP(_call2, _call1.getRemoteSdp()), "application/sdp");
             }
             ack2.send();
             _call2.setSIPCallState(State.ANSWERED);
@@ -278,7 +279,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
         try {
           final SipServletRequest ack = _response.createAck();
           if ((call1Processed && !call2Processed) || (!call1Processed && !call2Processed && SIPHelper.getRawContentWOException(_response.getRequest()) == null)) {
-            ack.setContent(_call1.getRemoteSdp(), "application/sdp");
+            ack.setContent(SDPUtils.formulateSDP(_call2, _call1.getRemoteSdp()), "application/sdp");
           }
           ack.send();
           _call2.setSIPCallState(State.ANSWERED);

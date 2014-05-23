@@ -47,6 +47,9 @@ import com.voxeo.moho.Constants;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.common.util.Utils;
+import com.voxeo.moho.event.EventSource;
+import com.voxeo.moho.util.SDPUtils;
+import com.voxeo.moho.util.SessionUtils;
 
 public class SIPHelper {
 
@@ -219,7 +222,8 @@ public class SIPHelper {
     try {
       final byte[] content = source.getRawContent();
       if (content != null) {
-        target.setContent(content, source.getContentType());
+        EventSource eventSource = SessionUtils.getEventSource(target);
+        target.setContent(SDPUtils.formulateSDP((SIPCallImpl) eventSource, content), source.getContentType());
       }
     }
     catch (final Throwable t) {

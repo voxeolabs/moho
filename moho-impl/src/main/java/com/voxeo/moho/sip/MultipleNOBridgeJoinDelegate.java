@@ -18,6 +18,7 @@ import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.media.dialect.MediaDialect;
+import com.voxeo.moho.util.SDPUtils;
 
 // NOTE that moho application should process redirect event.
 public class MultipleNOBridgeJoinDelegate extends JoinDelegate implements Observer {
@@ -71,8 +72,8 @@ public class MultipleNOBridgeJoinDelegate extends JoinDelegate implements Observ
 
         if (_call1 instanceof SIPIncomingCall && _call1.getSIPCallState() == SIPCall.State.PROGRESSED) {
           final SipServletResponse res = _call1.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
-          if (call.getLocalSDP() != null) {
-            res.setContent(call.getLocalSDP(), "application/sdp");
+          if (_call1.getLocalSDP() != null) {
+            res.setContent(SDPUtils.formulateSDP(_call1, _call1.getLocalSDP()), "application/sdp");
           }
           waitingACK = true;
           res.send();
