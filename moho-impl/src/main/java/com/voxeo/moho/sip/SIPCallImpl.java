@@ -601,7 +601,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     JoinRequest queuedJoin = _joinQueue.poll();
 
     if (queuedJoin != null) {
-      if (queuedJoin.getPeer() != null) {
+      if (queuedJoin.getCalls() != null) {
+        this.join(queuedJoin.getJoint(), queuedJoin.getType(), queuedJoin.isForce(), queuedJoin.getDirection(),
+            queuedJoin.isDtmfPassThrough(), queuedJoin.getCalls());
+      }
+      else if (queuedJoin.getPeer() != null) {
         this.join(queuedJoin.getPeer(), queuedJoin.getType(), queuedJoin.isForce(), queuedJoin.getDirection(),
             queuedJoin.isDtmfPassThrough(), queuedJoin.getJoint());
       }
@@ -650,9 +654,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     
     return join(type, force, direction, dtmfPassThrough, calls.toArray(new Call[calls.size()]));
   }
-
+  
   @Override
   public synchronized Joint join(JoinType type, boolean force, Direction direction, boolean dtmfPassThrough,
+      Call... others) {
+    return this.join(null, type, force, direction, dtmfPassThrough, others);
+  }
+  
+  protected synchronized Joint join(SettableJointImpl joint, JoinType type, boolean force, Direction direction, boolean dtmfPassThrough,
       Call... others) {
     if (isTerminated()) {
       throw new IllegalStateException("This call is already terminated.");
@@ -677,14 +686,23 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     //wait if processing re-INVITE from remote.
     waitProcessReInvite();
     
-    // TODO support queue join request
+    if (_operationInProcess) {
+      if (joint == null) {
+        joint = new SettableJointImpl();
+      }
+      JoinRequest joinReq = new JoinRequest(others, type, direction, force, dtmfPassThrough, joint);
+      _joinQueue.add(joinReq);
+      return joint;
+    }
 
     _operationInProcess = true;
 
     try {
       ExecutionException ex = JoinDelegate.checkJoinStrategy(this, type, force);
 
-      SettableJointImpl joint = new SettableJointImpl();
+      if (joint == null) {
+        joint = new SettableJointImpl();
+      }
       if (ex == null) {
         _joinDelegate = createJoinDelegate(others, type, direction);
         _joinDelegate.setSettableJoint(joint);
@@ -1997,6 +2015,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   class JoinRequest {
     private Participant peer;
+    
+    private Call[] calls;
 
     private JoinType type;
 
@@ -2012,6 +2032,17 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         SettableJointImpl joint) {
       super();
       this.peer = peer;
+      this.direction = direction;
+      this.type = type;
+      this.dtmfPassThrough = dtmfPassThrough;
+      this.joint = joint;
+      this.force = force;
+    }
+    
+    public JoinRequest(Call[] calls, JoinType type, Direction direction, boolean force, boolean dtmfPassThrough,
+        SettableJointImpl joint) {
+      super();
+      this.calls = calls;
       this.direction = direction;
       this.type = type;
       this.dtmfPassThrough = dtmfPassThrough;
@@ -2047,6 +2078,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     public boolean isForce() {
       return force;
+    }
+
+    public Call[] getCalls() {
+      return calls;
     }
   }
 
