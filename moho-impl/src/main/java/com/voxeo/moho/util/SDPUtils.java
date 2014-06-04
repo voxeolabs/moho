@@ -2,7 +2,9 @@ package com.voxeo.moho.util;
 
 import java.io.IOException;
 
+import javax.sdp.MediaDescription;
 import javax.sdp.Origin;
+import javax.sdp.SdpException;
 import javax.sdp.SdpFactory;
 import javax.sdp.SessionDescription;
 
@@ -15,8 +17,6 @@ public class SDPUtils {
   private static final Logger LOG = Logger.getLogger(SDPUtils.class);
 
   private static SdpFactory sdpFactory;
-
-  private static String SDPUtils_PreviousOrigin_Attribute = "SDPUtils_PreviousOrigin_Attribute";
 
   public static void init(ExecutionContext context) {
     sdpFactory = context.getSdpFactory();
@@ -55,5 +55,19 @@ public class SDPUtils {
     byte[] newSDP = sd.toString().getBytes("iso8859-1");
     call.setLocalSDP(newSDP);
     return newSDP;
+  }
+
+  public static byte[] makeBlackholeSDP(byte[] sdp) throws IOException, SdpException {
+    SessionDescription sd = sdpFactory.createSessionDescription(new String((byte[]) sdp, "iso8859-1"));
+    if (sd.getConnection() != null) {
+      sd.getConnection().setAddress("0.0.0.0");
+    }
+
+    MediaDescription md = (MediaDescription) sd.getMediaDescriptions(false).get(0);
+    if (md.getConnection() != null) {
+      md.getConnection().setAddress("0.0.0.0");
+    }
+
+    return sd.toString().getBytes("iso8859-1");
   }
 }

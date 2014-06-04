@@ -228,7 +228,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   }
 
   @Override
-  protected void mute(SIPCallImpl call) throws MsControlException, IOException, SdpException {
+  protected void mute(SIPCallImpl call) throws  IOException, SdpException {
     call.getMediaService(true);
 
     Map<String, String> attributes = new HashMap<String, String>();
@@ -249,7 +249,7 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
   }
 
   @Override
-  protected void unmute(SIPCallImpl call) throws MsControlException, IOException, SdpException {
+  protected void unmute(SIPCallImpl call) throws  IOException, SdpException {
     call.getMediaService(true);
     
     Map<String, String> attributes = new HashMap<String, String>();

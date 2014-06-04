@@ -931,8 +931,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       processingReinvite = true;
     }
     else {
-      LOG.debug("_callDelegate is null, operation in progress, returning fake response.");
-      //req.createResponse(SipServletResponse.sc_o).send(); //TODO
+      LOG.debug("_callDelegate is null, operation in progress, returning blackhole SDP response.");
+      SipServletResponse resp = req.createResponse(SipServletResponse.SC_OK);
+      resp.setContent(SDPUtils.makeBlackholeSDP(SDPUtils.formulateSDP(this, getLocalSDP())), "application/sdp");
+      resp.send();
     }
   }
 
