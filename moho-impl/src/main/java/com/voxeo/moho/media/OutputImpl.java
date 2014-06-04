@@ -309,7 +309,7 @@ public class OutputImpl<T extends EventSource> implements Output<T> {
   }
 
   public void normalDisconnect(boolean normal) {
-    _normalDisconnected = true;
+    _normalDisconnected = normal;
   }
 
   public boolean isNormalDisconnect() {

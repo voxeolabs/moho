@@ -1406,10 +1406,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       _network.getSdpPortManager().addListener(this);
     }
   }
-
+  
   protected synchronized void destroyNetworkConnection() {
+    this.destroyNetworkConnection(true);
+  }
+
+  protected synchronized void destroyNetworkConnection(boolean disconnectedCall) {
     if (LOG.isDebugEnabled()) {
-      LOG.debug(this + "destroying NetworkConnection");
+      LOG.debug(this + "destroying NetworkConnection" + disconnectedCall);
     }
     if (_network != null) {
       try {
@@ -1425,7 +1429,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     if (_service != null) {
       try {
-        ((GenericMediaService) _service).release(true);
+        ((GenericMediaService) _service).release(disconnectedCall);
       }
       catch (final Throwable t) {
         LOG.warn("Exception when releasing media service", t);

@@ -200,7 +200,7 @@ public abstract class JoinDelegate {
       for (final Participant p : call.getParticipants()) {
         call.unjoin(p);
       }
-      call.destroyNetworkConnection();
+      call.destroyNetworkConnection(false);
     }
   }
 

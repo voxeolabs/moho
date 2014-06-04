@@ -112,7 +112,7 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
           prack.setContent(SDPUtils.formulateSDP(_call2, _call1.getRemoteSdp()), "application/sdp");
           prack.send();
         }
-        _call1.destroyNetworkConnection();
+        _call1.destroyNetworkConnection(false);
       }
       else {
         SIPHelper.relayResponse(resp);
