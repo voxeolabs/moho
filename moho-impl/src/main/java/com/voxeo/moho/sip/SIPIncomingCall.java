@@ -577,4 +577,10 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
     int delay = (random.nextInt(201)) * 10;
     return delay;
   }
+  
+  public boolean isEarlyMediaSupported()  {
+	  
+	  return SIPHelper.support100rel(getSipInitnalRequest());
+  }
+
 }
