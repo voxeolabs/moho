@@ -303,13 +303,16 @@ private int getParameterValue(String param, int defaultValue) {
     if (addr == null) {
       throw new IllegalArgumentException("argument is null");
     }
+    if(!addr.contains(":")){
+      throw new IllegalArgumentException("Address must be in the form of URL or <URL>. [" + addr + "] is an invalid address");
+    }
     String schema = addr.split(":")[0];
     if (schema == null || schema.trim().length() == 0) {
-      throw new IllegalArgumentException("Address must be in the form of URL or <URL>.");
+      throw new IllegalArgumentException("Address not prepended with schema. [" + addr + "]");
     }
     ProtocolDriver driver = getDriverByEndpointSechma(schema);
     if (driver == null) {
-      throw new IllegalArgumentException("No suitable driver for this address format.");
+      throw new IllegalArgumentException("No suitable driver for this address format. [" + addr  + "]");
     }
     return driver.createEndpoint(addr);
   }
