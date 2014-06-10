@@ -88,6 +88,7 @@ import com.voxeo.moho.remote.sipbased.RemoteJoinOutgoingCall;
 import com.voxeo.moho.remotejoin.RemoteParticipant;
 import com.voxeo.moho.spi.ExecutionContext;
 import com.voxeo.moho.util.ParticipantIDParser;
+import com.voxeo.moho.util.SDPUtils;
 import com.voxeo.moho.util.SessionUtils;
 
 public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEventListener<SdpPortManagerEvent>,
@@ -905,7 +906,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       processingReinvite = true;
     }
     else {
-      LOG.debug("The SIP message will be discarded.");
+      LOG.debug("_callDelegate is null, operation in progress, returning blackhole SDP response.");
+      SipServletResponse resp = req.createResponse(SipServletResponse.SC_OK);
+      resp.setContent(SDPUtils.makeBlackholeSDP(getLocalSDP() != null ? getLocalSDP() : getRemoteSdp()),
+          "application/sdp");
+      resp.send();
     }
   }
 

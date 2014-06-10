@@ -55,6 +55,7 @@ import com.voxeo.moho.spi.ProtocolDriver;
 import com.voxeo.moho.spi.SpiFramework;
 import com.voxeo.moho.common.util.InheritLogContextThreadPoolExecutor;
 import com.voxeo.moho.util.ParticipantIDParser;
+import com.voxeo.moho.util.SDPUtils;
 import com.voxeo.moho.utils.EventListener;
 import com.voxeo.moho.voicexml.VoiceXMLDriverImpl;
 import com.voxeo.servlet.xmpp.XmppFactory;
@@ -246,6 +247,8 @@ public class ApplicationContextImpl extends DispatchableEventSource implements E
       }
       LOG.debug("No remoteCommunicationAddress configuration, using the default:" + _remoteCommunicationAddress);
     }
+    
+    SDPUtils.init(this);
 
 //    try {
 //      if (getParameter("remoteCommunicationPort") != null) {
