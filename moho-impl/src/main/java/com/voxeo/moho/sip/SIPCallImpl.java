@@ -464,6 +464,10 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         event = new MohoUnjoinCompleteEvent(local, participant, UnjoinCompleteEvent.Cause.FAIL_UNJOIN, initiator);
       }
       SIPCallImpl.this.dispatch(event);
+      
+      if(_joinees.getJoinees().length == 0 && _network == null) {
+        _callDelegate = null;
+      }
     }
     return event;
   }
