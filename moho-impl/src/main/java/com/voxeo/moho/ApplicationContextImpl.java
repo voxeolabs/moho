@@ -305,9 +305,15 @@ private int getParameterValue(String param, int defaultValue) {
       throw new IllegalArgumentException("argument is null");
     }
     String schema = addr.split(":")[0];
+    //check if address include display name, ex: "name <sip:6505551234@192.168.57.6>" 
+    int laquot = schema.indexOf("<");
+    if(laquot > 0) {
+      schema = schema.substring(laquot + 1);
+    }
     if (schema == null || schema.trim().length() == 0) {
       throw new IllegalArgumentException("Address must be in the form of URL or <URL>.");
     }
+    LOG.debug("Getting driver by endpoint schema [" + schema +"]");
     ProtocolDriver driver = getDriverByEndpointSechma(schema);
     if (driver == null) {
       throw new IllegalArgumentException("No suitable driver for this address format.");
