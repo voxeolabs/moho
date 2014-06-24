@@ -120,7 +120,7 @@ public class CallProgressAnalyzer implements Observer {
    * @param signals
    */
   public void start(final Call call, final long runtime, final long timeout, final boolean autoreset, Signal... signals) {
-    call.addObserver(this);
+    /*call.addObserver(this);
     final Grammar[] grammars = new Grammar[(signals == null || signals.length == 0) ? 2 : signals.length + 2];
     grammars[0] = new EnergyGrammar(true, false, false);
     grammars[1] = new EnergyGrammar(false, true, false);
@@ -141,6 +141,71 @@ public class CallProgressAnalyzer implements Observer {
     log.info("Starting " + this + "[max_time:" + voxeo_cpa_max_time + ", final_silence:" + voxeo_cpa_final_silence
         + ", min_speech:" + voxeo_cpa_min_speech_duration + ", min_volume:" + voxeo_cpa_min_volume + ", runtime:"
         + runtime + ", timeout:" + timeout + ", autoreset:" + autoreset + ", signals=" + toString(signals) + "] on "
+        + call);
+    final Input<Call> input = call.input(cmd);
+    _status.put(call, new ProgressStatus(call, input));*/
+    start(call, runtime, timeout, autoreset, false, signals);
+  }
+  
+  /**
+   * @param call
+   * @param runtime
+   *          Maximum time duration for detection.
+   * @param timeout
+   *          Maximum time limit for first media.
+   * @param autoreset
+   *          Indicating whether detection will continue on receiving
+   *          end-of-speech event
+   * @param dtmfDetect
+   *          Indicating whether dtmf detection should be enabled during CPA. 
+   *          If enabled, CPA will be terminated upon detection of dtmf input
+   * @param signals
+   */
+  public void start(final Call call, final long runtime, final long timeout, final boolean autoreset, boolean dtmfDetect, Signal... signals) {
+    call.addObserver(this);
+    final Grammar[] grammars = new Grammar[(signals == null || signals.length == 0) ? (dtmfDetect?3:2) : (signals.length + (dtmfDetect?3:2))];
+    grammars[0] = new EnergyGrammar(true, false, false);
+    grammars[1] = new EnergyGrammar(false, true, false);
+    if (signals != null && signals.length > 0) {
+      for (int i = 0; i < signals.length; i++) {
+        grammars[i + 2] = new SignalGrammar(signals[i], false);
+      }
+    }
+    if(dtmfDetect) {//terminate CPA when dtmf input detected
+      Grammar dtmfGrammar = new Grammar("application/srgs+xml", "<?xml version=\"1.0\"?> <grammar mode=\"dtmf\" xml:lang=\"en-US\">" + 
+                                          "<rule>" + 
+                                             "<one-of>" + 
+                                               "<item> 0 </item>" +
+                                               "<item> 1 </item>" +
+                                               "<item> 2 </item>" +
+                                               "<item> 3 </item>" +
+                                               "<item> 4 </item>" +
+                                               "<item> 5 </item>" +
+                                               "<item> 6 </item>" +
+                                               "<item> 7 </item>" +
+                                               "<item> 8 </item>" +
+                                               "<item> 9 </item>" +
+                                               "<item> # </item>" +
+                                               "<item> * </item>" +
+                                             "</one-of>" +
+                                          "</rule>" +
+                                        "</grammar>"); 
+      grammars[grammars.length - 1] = dtmfGrammar;
+    }
+    
+    final InputCommand cmd = new InputCommand(grammars);
+  
+    if (runtime > 0) {
+      cmd.setMaxTimeout(runtime);
+    }
+    if (timeout > 0) {
+      cmd.setInitialTimeout(timeout);
+    }
+    cmd.setAutoRest(autoreset);
+    cmd.setEnergyParameters(voxeo_cpa_final_silence, null, null, voxeo_cpa_min_speech_duration, voxeo_cpa_min_volume);
+    log.info("Starting " + this + "[max_time:" + voxeo_cpa_max_time + ", final_silence:" + voxeo_cpa_final_silence
+        + ", min_speech:" + voxeo_cpa_min_speech_duration + ", min_volume:" + voxeo_cpa_min_volume + ", runtime:"
+        + runtime + ", timeout:" + timeout + ", autoreset:" + autoreset + ", dtmfDetect:" + dtmfDetect + ", signals=" + toString(signals) + "] on "
         + call);
     final Input<Call> input = call.input(cmd);
     _status.put(call, new ProgressStatus(call, input));
