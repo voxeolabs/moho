@@ -3,7 +3,7 @@
   <parent>
     <artifactId>moho-sample-parent</artifactId>
     <groupId>com.voxeo.moho</groupId>
-    <version>1.2.5-SNAPSHOT</version>
+    <version>1.2.5</version>
     <relativePath>..</relativePath>
   </parent>
   <artifactId>XmppPresence</artifactId>
@@ -13,7 +13,7 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-presence</artifactId>
-      <version>1.2.5-SNAPSHOT</version>
+      <version>1.2.5</version>
     </dependency>
   </dependencies>
 </project>
