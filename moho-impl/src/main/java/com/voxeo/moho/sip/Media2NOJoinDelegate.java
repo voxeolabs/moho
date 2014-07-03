@@ -14,10 +14,10 @@ package com.voxeo.moho.sip;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
-import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -41,6 +41,8 @@ public class Media2NOJoinDelegate extends JoinDelegate {
   protected SipServletResponse _earlyMediaResponse;
 
   protected SipServletRequest _updateRequest;
+  
+  protected boolean earlyMediaJoined;
 
   protected Media2NOJoinDelegate(final SIPOutgoingCall call) {
     _call1 = call;
@@ -145,6 +147,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
               if (_call1.getMediaObject() instanceof Joinable
                   && _call1.getJoiningPeer().getParticipant().getMediaObject() instanceof Joinable) {
                 JoinDelegate.bridgeJoin(_call1, _call1.getJoiningPeer().getParticipant(), Direction.DUPLEX);
+                earlyMediaJoined = true;
               }
               // direct join peer is not null and peer is a not-answerd incoming
               // call, accept with early media. and join two networkconnection
@@ -236,5 +239,17 @@ public class Media2NOJoinDelegate extends JoinDelegate {
       throw e;
     }
   }
-
+  
+  @Override
+  public synchronized void done(Cause cause, Exception exception) {
+    if (earlyMediaJoined) {
+      try {
+        JoinDelegate.bridgeUnjoin(_call1, _call1.getJoiningPeer().getParticipant());
+      }
+      catch (MsControlException e) {
+        LOG.warn("Exception when unjoining early media.", e);
+      }
+    }
+    super.done(cause, exception);
+  }
 }
