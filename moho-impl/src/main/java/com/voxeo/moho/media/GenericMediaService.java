@@ -576,16 +576,10 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
         }
       }
 
-      if (command.getInitialTimeout() > 0 || command.getFinalTimeout() > 0) {
-        // params.put(Recorder.SPEECH_DETECTION_MODE,
-        // Recorder.DETECT_ALL_OCCURRENCES);
-        if (command.getInitialTimeout() > 0) {
-          params.put(SpeechDetectorConstants.INITIAL_TIMEOUT, command.getInitialTimeout());
-        }
-        if (command.getFinalTimeout() > 0) {
-          params.put(Recorder.SILENCE_TERMINATION_ON, Boolean.TRUE);
-          params.put(SpeechDetectorConstants.FINAL_TIMEOUT, command.getFinalTimeout());
-        }
+      params.put(SpeechDetectorConstants.INITIAL_TIMEOUT, command.getInitialTimeout());
+      if (command.getFinalTimeout() > 0) {
+        params.put(Recorder.SILENCE_TERMINATION_ON, Boolean.TRUE);
+        params.put(SpeechDetectorConstants.FINAL_TIMEOUT, command.getFinalTimeout());
       }
 
       if (command.getVideoCODEC() != null) {
