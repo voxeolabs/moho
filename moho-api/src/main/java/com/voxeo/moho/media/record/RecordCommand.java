@@ -145,9 +145,9 @@ public class RecordCommand {
   /**
    * Controls how long the recognizer should wait after the end of the prompt
    * for the caller to speak before sending a Recorder event (COMPLETED,
-   * INITIAL_TIMEOUT_EXPIRED, null, NO_ERROR).
+   * INITIAL_TIMEOUT_EXPIRED, null, NO_ERROR). default value is 7000ms. -1 means no timeout.
    */
-  protected long _initialTimeout;
+  protected long _initialTimeout = 7000;
 
   /**
    * Controls the length of a period of silence after callers have spoken to
