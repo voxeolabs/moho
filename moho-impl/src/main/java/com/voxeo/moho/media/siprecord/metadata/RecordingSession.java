@@ -193,6 +193,155 @@ public class RecordingSession {
 
     return document.asXML();
   }
+  
+  public String generateMetadataSnapshot_Draft15() {
+    Document document = DocumentHelper.createDocument();
+    Namespace namespace = DocumentHelper.createNamespace("", "urn:ietf:params:xml:ns:recording:1");
+
+    Element rootElement = DocumentHelper.createElement(DocumentHelper.createQName("recording", namespace));
+    document.setRootElement(rootElement);
+
+    Element dataMode = DocumentHelper.createElement(DocumentHelper.createQName("dataMode", namespace));
+    dataMode.add(DocumentHelper.createText("complete"));
+    rootElement.add(dataMode);
+
+    // communication session
+    for (Entry<CommunicationSession, Association> entry : communicationSessions.entrySet()) {
+      CommunicationSession communicationSession = entry.getKey();
+
+      Element sessionElement = DocumentHelper.createElement(DocumentHelper.createQName("session", namespace));
+      sessionElement.addAttribute("session_id", communicationSession.getId());
+
+      if (communicationSession.getExtendedDatas() != null) {
+        for (Element extendData : communicationSession.getExtendedDatas()) {
+          sessionElement.add(extendData);
+        }
+      }
+
+      rootElement.add(sessionElement);
+
+      Element sessionrecordingassocElement = DocumentHelper.createElement(DocumentHelper.createQName(
+          "sessionrecordingassoc", namespace));
+      sessionrecordingassocElement.addAttribute("session_id", communicationSession.getId());
+
+      Element associateTime = DocumentHelper.createElement(DocumentHelper.createQName("associate-time", namespace));
+      associateTime.add(DocumentHelper.createText(dateFormat.format(entry.getValue().getAssotiateTimestamp())));
+      sessionrecordingassocElement.add(associateTime);
+
+      if (entry.getValue().getDisassotiateTimestamp() != null) {
+        Element disassociateTime = DocumentHelper.createElement(DocumentHelper.createQName("disassociate-time",
+            namespace));
+        disassociateTime.add(DocumentHelper.createText(dateFormat.format(entry.getValue().getDisassotiateTimestamp())));
+        sessionrecordingassocElement.add(disassociateTime);
+      }
+      rootElement.add(sessionrecordingassocElement);
+
+      // participants
+      for (Entry<ParticipantMetadata, Association> participantEntry : communicationSession.getParticipants().entrySet()) {
+        ParticipantMetadata participant = participantEntry.getKey();
+
+        Element participantElement = DocumentHelper.createElement(DocumentHelper.createQName("participant", namespace));
+        participantElement.addAttribute("participant_id", participant.getId());
+
+        // name aor list
+        for (Entry<URI, String> nameAorEntry : participant.getNameAors().entrySet()) {
+          Element nameIDElement = DocumentHelper.createElement(DocumentHelper.createQName("nameID", namespace));
+          nameIDElement.addAttribute("aor", nameAorEntry.getKey().toString());
+
+          Element nameElement = DocumentHelper.createElement(DocumentHelper.createQName("name", namespace));
+          nameElement.addText(nameAorEntry.getValue());
+
+          nameIDElement.add(nameElement);
+
+          participantElement.add(nameIDElement);
+        }
+
+        // extensiondata
+        if (participant.getExtendedDatas() != null) {
+          for (Element extendData : participant.getExtendedDatas()) {
+            participantElement.add(extendData);
+          }
+        }
+
+        rootElement.add(participantElement);
+
+        Element participantsessionassocElement = DocumentHelper.createElement(DocumentHelper.createQName(
+            "participantsessionassoc", namespace));
+        participantsessionassocElement.addAttribute("participant_id", participant.getId());
+        participantsessionassocElement.addAttribute("session_id", communicationSession.getId());
+
+        // association time
+        Element participantAssociateTime = DocumentHelper.createElement(DocumentHelper.createQName("associate-time",
+            namespace));
+        participantAssociateTime.add(DocumentHelper.createText(dateFormat.format(participantEntry.getValue()
+            .getAssotiateTimestamp())));
+        participantsessionassocElement.add(participantAssociateTime);
+
+        if (participantEntry.getValue().getDisassotiateTimestamp() != null) {
+          Element disassociateTime = DocumentHelper.createElement(DocumentHelper.createQName("disassociate-time",
+              namespace));
+          disassociateTime.add(DocumentHelper.createText(dateFormat.format(participantEntry.getValue()
+              .getDisassotiateTimestamp())));
+          participantsessionassocElement.add(disassociateTime);
+        }
+        
+        rootElement.add(participantsessionassocElement);
+
+        Element participantstreamassocElement = DocumentHelper.createElement(DocumentHelper.createQName(
+            "participantstreamassoc", namespace));
+        participantstreamassocElement.addAttribute("participant_id", participant.getId());
+        // send/receive stream
+        for (Entry<MediaStream, Association> sendStreamEntry : participant.getSendStreams().entrySet()) {
+          Element sendStreamElement = DocumentHelper.createElement(DocumentHelper.createQName("send", namespace));
+          sendStreamElement.addText(sendStreamEntry.getKey().getId());
+
+          participantstreamassocElement.add(sendStreamElement);
+        }
+
+        for (Entry<MediaStream, Association> recvStreamEntry : participant.getReceiveStreams().entrySet()) {
+          Element recvStreamElement = DocumentHelper.createElement(DocumentHelper.createQName("recv", namespace));
+          recvStreamElement.addText(recvStreamEntry.getKey().getId());
+
+          participantstreamassocElement.add(recvStreamElement);
+        }
+        rootElement.add(participantstreamassocElement);
+        // // association time
+        // Element streamAssociateTime =
+        // DocumentHelper.createElement(DocumentHelper.createQName("associate-time",
+        // namespace));
+        // streamAssociateTime.add(DocumentHelper.createText(dateFormat.format(streamEntry.getValue()
+        // .getAssotiateTimestamp())));
+        // participantstreamassocElement.add(streamAssociateTime);
+        //
+        // if (streamEntry.getValue().getDisassotiateTimestamp() != null) {
+        // Element disassociateTime =
+        // DocumentHelper.createElement(DocumentHelper.createQName("disassociate-time",
+        // namespace));
+        // disassociateTime.add(DocumentHelper.createText(dateFormat.format(streamEntry.getValue()
+        // .getDisassotiateTimestamp())));
+        // participantstreamassocElement.add(disassociateTime);
+        // }
+      }
+
+      // streams
+      for (Entry<MediaStream, Association> streamEntry : communicationSession.getMediaStreams().entrySet()) {
+        MediaStream mediaStream = streamEntry.getKey();
+
+        Element streamElement = DocumentHelper.createElement(DocumentHelper.createQName("stream", namespace));
+        streamElement.addAttribute("stream_id", mediaStream.getId());
+        streamElement.addAttribute("session_id", communicationSession.getId());
+
+        Element labelElement = DocumentHelper.createElement(DocumentHelper.createQName("label", namespace));
+        labelElement.addText(mediaStream.getLabel());
+
+        streamElement.add(labelElement);
+
+        rootElement.add(streamElement);
+      }
+    }
+
+    return document.asXML();
+  }
 
   public static void main(String[] args) throws Exception {
     RecordingSession rs = new RecordingSession();
@@ -273,7 +422,7 @@ public class RecordingSession {
 
     
     // System.out.print(DocumentHelper.createElement("test").asXML());
-    System.out.println(rs.generateMetadataSnapshot());
+    System.out.println(rs.generateMetadataSnapshot_Draft15());
     char a = 9;
     System.out.println(a);
   }
