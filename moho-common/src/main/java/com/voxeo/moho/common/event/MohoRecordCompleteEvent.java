@@ -42,7 +42,7 @@ public class MohoRecordCompleteEvent<T extends EventSource> extends MohoMediaCom
       Recording<T> mediaOperation) {
     this(source, cause, duration, mediaOperation);
     _exception = exception;
-    _errorText = exception.getMessage();
+    _errorText = exception != null ? exception.getMessage() : null;
   }
 
   @Override
