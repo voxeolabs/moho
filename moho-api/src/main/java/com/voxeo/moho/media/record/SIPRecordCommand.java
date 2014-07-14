@@ -18,9 +18,9 @@ import com.voxeo.moho.sip.SIPEndpoint;
 public class SIPRecordCommand extends RecordCommand {
 
   // URI of SRS
-  private SipURI _siprecServer;
+  private SipURI _srs;
 
-  private SipURI _srcURI;
+  private SipURI _src;
 
   // TODO should use W3C dom?
   // the key of the map is ID of moho call, value is the XML element application
@@ -33,25 +33,25 @@ public class SIPRecordCommand extends RecordCommand {
     super(recorduri);
   }
 
-  public SIPRecordCommand(SIPEndpoint siprecServer, SIPEndpoint srcURI, List<Element> extendedDatat,
+  public SIPRecordCommand(SIPEndpoint siprecSRS, SIPEndpoint siprecSRC) {
+    this(siprecSRS, siprecSRC, null, null);
+  }
+
+  public SIPRecordCommand(SIPEndpoint siprecSRS, SIPEndpoint siprecSRC, List<Element> extendedDatat,
       Map<String, List<Element>> participantExtendedMetadata) {
     super(null);
-    _siprecServer = siprecServer.getSipURI();
-    _srcURI = srcURI.getSipURI();
+    _srs = siprecSRS.getSipURI();
+    _src = siprecSRC.getSipURI();
     _extendedDatat = extendedDatat;
     _participantExtendedMetadata = participantExtendedMetadata;
   }
 
   public SipURI getSiprecServer() {
-    return _siprecServer;
+    return _srs;
   }
 
   public SipURI getSiprecSrcURI() {
-    return _srcURI;
-  }
-
-  public void set_srcURI(SipURI _srcURI) {
-    this._srcURI = _srcURI;
+    return _src;
   }
 
   public Map<String, List<Element>> getParticipantExtendedMetadata() {

@@ -155,7 +155,7 @@ public class SipRecordingCall extends SIPOutgoingCall {
           multiPart.addBodyPart(sdpPart);
 
           MimeBodyPart metadataPart = new MimeBodyPart();
-          metadataPart.setContent(rsMetadata.generateMetadataSnapshot().getBytes("iso8859-1"),
+          metadataPart.setContent(rsMetadata.generateMetadataSnapshot_Draft15().getBytes("iso8859-1"),
               "application/rs-metadata+xml");
           metadataPart.addHeader("Content-Type", "application/rs-metadata+xml");
           metadataPart.addHeader("Content-Disposition", "recording-session");
@@ -226,7 +226,7 @@ public class SipRecordingCall extends SIPOutgoingCall {
           SipServletRequest byeReq = _signal.createRequest("BYE");
           SIPHelper.addHeaders(byeReq, headers);
           // add metadata
-          byeReq.setContent(rsMetadata.generateMetadataSnapshot().getBytes("iso8859-1"), "application/rs-metadata+xml");
+          byeReq.setContent(rsMetadata.generateMetadataSnapshot_Draft15().getBytes("iso8859-1"), "application/rs-metadata+xml");
           byeReq.addHeader("Content-Disposition", "recording-session");
           byeReq.send();
         }
