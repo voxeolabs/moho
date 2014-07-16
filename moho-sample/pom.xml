@@ -33,6 +33,7 @@
     <module>SamplePresenceNotify</module>
     <module>XmppPresence</module>
     <module>SampleJoinStrategy</module>
+    <module>MixerSIPRecord</module>
   </modules>
 
   <scm>

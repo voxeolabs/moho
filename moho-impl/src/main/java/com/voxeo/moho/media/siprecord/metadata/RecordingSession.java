@@ -214,6 +214,7 @@ public class RecordingSession {
 
       if (communicationSession.getExtendedDatas() != null) {
         for (Element extendData : communicationSession.getExtendedDatas()) {
+          extendData.detach();
           sessionElement.add(extendData);
         }
       }
@@ -259,6 +260,7 @@ public class RecordingSession {
         // extensiondata
         if (participant.getExtendedDatas() != null) {
           for (Element extendData : participant.getExtendedDatas()) {
+            extendData.detach();
             participantElement.add(extendData);
           }
         }
