@@ -13,7 +13,7 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-presence</artifactId>
-      <version>trunk-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>
