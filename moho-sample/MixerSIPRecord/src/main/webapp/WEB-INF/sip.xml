@@ -9,7 +9,10 @@
       <param-name>ApplicationClass</param-name>
       <param-value>com.voxeo.moho.sample.MixerSIPRecord</param-value>
     </init-param>
-
+    <init-param>
+      <param-name>srsAddress</param-name>
+      <param-value>sip:srs@127.0.0.1:6061</param-value>
+    </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
   <servlet-selection>
