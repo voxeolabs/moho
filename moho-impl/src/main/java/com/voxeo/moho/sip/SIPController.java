@@ -62,9 +62,6 @@ public class SIPController extends SipServlet {
       if (driver.getFactoryPropertyInfo() != null) {
         for (final PropertyInfo info : driver.getFactoryPropertyInfo()) {
           String value = getInitParameter(info.name);
-          if (value == null) {
-            value = info.defaultValue;
-          }
           if (value != null) {
             LOG.info("Moho using property for msFactory:" + info.name + ":" + value);
             p.setProperty(info.name, value);
