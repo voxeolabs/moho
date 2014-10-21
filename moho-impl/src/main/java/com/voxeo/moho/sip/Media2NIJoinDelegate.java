@@ -39,7 +39,6 @@ public class Media2NIJoinDelegate extends JoinDelegate {
       try {
         callProcessed = true;
         final SipServletResponse res = _call1.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
-        res.setContent(SDPUtils.formulateSDP(_call1, _call1.getLocalSDP()), "application/sdp");
         res.send();
       }
       catch (final IOException e) {
