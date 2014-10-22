@@ -21,12 +21,15 @@ import java.util.concurrent.TimeoutException;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.signals.SignalDetector;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.InputCompleteEvent;
 
 public class InputImpl<T extends EventSource> implements Input<T> {
-
+  private static final Logger LOG = Logger.getLogger(InputImpl.class);
+  
   protected MediaGroup _group;
 
   protected SettableResultFuture<InputCompleteEvent<T>> _future = new SettableResultFuture<InputCompleteEvent<T>>();
@@ -47,13 +50,16 @@ public class InputImpl<T extends EventSource> implements Input<T> {
       _group.triggerAction(SignalDetector.STOP);
 
       try {
-        _future.get();
+        _future.get(10, TimeUnit.SECONDS);
       }
       catch (InterruptedException e) {
         // ignore
       }
       catch (ExecutionException e) {
         // ignore
+      }
+      catch (TimeoutException e) {
+        LOG.error("Timeout when waiting input complete for MediaGroup " + _group, e);
       }
     }
   }

@@ -1379,12 +1379,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           catch (Exception e) {
             LOG.warn("Exception when stopping record.", e);
           }
-          try {
-            recording.get(10, TimeUnit.SECONDS);
-          }
-          catch (Exception e) {
-            LOG.warn("Exception when waiting record complete event.", e);
-          }
+
         }
       }
       else if (future instanceof InputImpl) {
@@ -1397,12 +1392,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           catch (Exception e) {
             LOG.warn("Exception when stopping input.", e);
           }
-          try {
-            input.get(10, TimeUnit.SECONDS);
-          }
-          catch (Exception e) {
-            LOG.warn("Exception when waiting input complete event.", e);
-          }
+
         }
       }
       else if (future instanceof CallRecordingImpl) {
@@ -1415,12 +1405,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           catch (Exception e) {
             LOG.warn("Exception when stopping call record.", e);
           }
-          try {
-            recording.get(10, TimeUnit.SECONDS);
-          }
-          catch (Exception e) {
-            LOG.warn("Exception when waiting call record complete event.", e);
-          }
+
         }
       }
       else {
@@ -1439,12 +1424,7 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
           catch (Exception e) {
             LOG.warn("Exception when stopping output.", e);
           }
-          try {
-            output.get(10, TimeUnit.SECONDS);
-          }
-          catch (Exception e) {
-            LOG.warn("Exception when waiting output complete event.", e);
-          }
+ 
         }
       }
     }
