@@ -10,6 +10,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.media.mscontrol.networkconnection.NetworkConnection;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.EventSource;
@@ -18,6 +20,7 @@ import com.voxeo.moho.media.GenericMediaService.MaxCallRecordDurationTask;
 import com.voxeo.moho.media.dialect.MediaDialect;
 
 public class CallRecordingImpl<T extends EventSource> implements Recording<T> {
+  private static final Logger LOG = Logger.getLogger(CallRecordingImpl.class);
 
   protected NetworkConnection _nc;
 
@@ -65,13 +68,16 @@ public class CallRecordingImpl<T extends EventSource> implements Recording<T> {
       _dialect.stopCallRecord(_nc);
 
       try {
-        _future.get();
+        _future.get(10, TimeUnit.SECONDS);
       }
       catch (InterruptedException e) {
         // ignore
       }
       catch (ExecutionException e) {
         // ignore
+      }
+      catch (TimeoutException e) {
+        LOG.error("Timeout when waiting call record complete for NetworkConnection " + _nc, e);
       }
     }
 

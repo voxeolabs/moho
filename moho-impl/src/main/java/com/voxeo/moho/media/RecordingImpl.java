@@ -24,12 +24,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Recorder;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.MediaException;
 import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.RecordCompleteEvent;
 
 public class RecordingImpl<T extends EventSource> implements Recording<T> {
+  private static final Logger LOG = Logger.getLogger(RecordingImpl.class);
 
   protected MediaGroup _group;
 
@@ -139,13 +142,16 @@ public class RecordingImpl<T extends EventSource> implements Recording<T> {
       _group.triggerAction(Recorder.STOP);
 
       try {
-        _future.get();
+        _future.get(10, TimeUnit.SECONDS);
       }
       catch (InterruptedException e) {
         // ignore
       }
       catch (ExecutionException e) {
         // ignore
+      }
+      catch (TimeoutException e) {
+        LOG.error("Timeout when waiting record complete for MediaGroup " + _group, e);
       }
     }
   }

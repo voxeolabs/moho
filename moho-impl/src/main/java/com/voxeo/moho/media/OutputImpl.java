@@ -25,11 +25,14 @@ import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Player;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.common.util.SettableResultFuture;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.OutputCompleteEvent;
 
 public class OutputImpl<T extends EventSource> implements Output<T> {
+  private static final Logger LOG = Logger.getLogger(OutputImpl.class);
 
   protected MediaGroup _group;
 
@@ -267,13 +270,16 @@ public class OutputImpl<T extends EventSource> implements Output<T> {
     if (!_future.isDone()) {
       _group.triggerAction(Player.STOP);
       try {
-        _future.get();
+        _future.get(10, TimeUnit.SECONDS);
       }
       catch (InterruptedException e) {
         // ignore
       }
       catch (ExecutionException e) {
         // ignore
+      }
+      catch (TimeoutException e) {
+        LOG.error("Timeout when waiting output complete for MediaGroup " + _group, e);
       }
     }
   }
