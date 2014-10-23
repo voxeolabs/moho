@@ -148,6 +148,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
           }
           catch (Rel100Exception ex) {
             LOG.debug("Can't send reliably.");
+            //TODO should send it unreliably?
             res.send();
           }
           

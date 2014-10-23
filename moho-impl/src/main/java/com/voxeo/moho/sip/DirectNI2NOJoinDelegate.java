@@ -309,7 +309,10 @@ public class DirectNI2NOJoinDelegate extends JoinDelegate {
   private void relayUnreliableProvisionalResponse(SipServletResponse res) throws IOException {
     final SipServletResponse newRes = _call1.getSipInitnalRequest().createResponse(res.getStatus(),
         res.getReasonPhrase());
-    SIPHelper.copyContent(res, newRes);
+    final byte[] content = res.getRawContent();
+    if (content != null) {
+      newRes.setContent(content, res.getContentType());
+    }
     newRes.send();
   }
 }
