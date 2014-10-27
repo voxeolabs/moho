@@ -106,6 +106,13 @@ public interface AcceptableEvent {
       public int getCode() {
         return SipServletResponse.SC_SERVER_INTERNAL_ERROR;
       }
+    },
+    
+    SERVICE_UNAVAILABLE {
+      @Override
+      public int getCode() {
+        return SipServletResponse.SC_SERVICE_UNAVAILABLE;
+      }
     };
 
     public abstract int getCode();
