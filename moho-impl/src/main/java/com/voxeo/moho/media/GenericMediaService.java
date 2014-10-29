@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -1003,7 +1004,13 @@ public class GenericMediaService<T extends EventSource> implements MediaService<
       };
       // avoid deadlock with 309 trigger
       if (_context != null) {
-        _context.getExecutor().execute(runable);
+        try {
+          _context.getExecutor().execute(runable);
+        }
+        catch(Exception ex) {
+          LOG.warn("Exception when processing PlayerEvent using executor, processing it in current thread. " + e, ex);
+          runable.run();
+        }
       }
       else {
         runable.run();
