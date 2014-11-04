@@ -872,7 +872,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     if (SIPHelper.isInvite(res)) {
       _inviteResponse = res;
-      if (SIPHelper.isSuccessResponse(res)) {
+      if (SIPHelper.isSuccessResponse(res) || SIPHelper.needPrack(res)) {
         final byte[] content = SIPHelper.getRawContentWOException(res);
         if (content != null) {
           setRemoteSDP(content);

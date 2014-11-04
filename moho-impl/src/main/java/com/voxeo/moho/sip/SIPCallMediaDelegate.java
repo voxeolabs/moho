@@ -179,11 +179,14 @@ public class SIPCallMediaDelegate extends SIPCallDelegate {
 
           SessionDescription sessionDescription = null;
           try {
-            String remoteSdp = new String(call.getRemoteSdp(), "iso8859-1");
-            // TODO improve the parse.
-            if (remoteSdp.indexOf("sendonly") > 0) {
-              sessionDescription = createRecvonlySDP(call, sdp);
-              sdp = sessionDescription.toString().getBytes("iso8859-1");
+            byte[] requestSDP = SIPHelper.getRawContentWOException(_req);
+            if(requestSDP !=null) {
+              String remoteSdp = new String(requestSDP, "iso8859-1");
+              // TODO improve the parse.
+              if (remoteSdp.indexOf("sendonly") > 0) {
+                sessionDescription = createRecvonlySDP(call, sdp);
+                sdp = sessionDescription.toString().getBytes("iso8859-1");
+              }
             }
           }
           catch (UnsupportedEncodingException e1) {
