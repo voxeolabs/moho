@@ -64,6 +64,7 @@ import com.voxeo.moho.event.UnjoinCompleteEvent;
 import com.voxeo.moho.remote.MohoRemoteException;
 import com.voxeo.moho.remote.impl.event.MohoHangupEventImpl;
 import com.voxeo.rayo.client.XmppException;
+import com.voxeo.rayo.client.xmpp.stanza.Error.Condition;
 import com.voxeo.rayo.client.xmpp.stanza.IQ;
 import com.voxeo.rayo.client.xmpp.stanza.Presence;
 
@@ -321,7 +322,12 @@ public abstract class CallImpl extends MediaServiceSupport<Call> implements Call
 
       IQ iq = _mohoRemote.getRayoClient().command(command, this.getId());
 
-      if (iq.isError()) {
+      if (iq == null) {
+          cleanUp();
+          com.voxeo.rayo.client.xmpp.stanza.Error error = 
+        		  new com.voxeo.rayo.client.xmpp.stanza.Error(Condition.remote_server_timeout);
+          throw new SignalException(error.getCondition() + error.getText());
+      } else if (iq.isError()) {
         cleanUp();
         com.voxeo.rayo.client.xmpp.stanza.Error error = iq.getError();
         throw new SignalException(error.getCondition() + error.getText());
