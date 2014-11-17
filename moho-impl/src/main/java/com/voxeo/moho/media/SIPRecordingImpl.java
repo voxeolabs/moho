@@ -4,12 +4,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.media.mscontrol.MsControlException;
 import javax.media.mscontrol.join.Joinable.Direction;
 
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.MixerImpl;
-import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.State;
 import com.voxeo.moho.common.event.MohoRecordCompleteEvent;
@@ -19,6 +19,7 @@ import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.Observer;
 import com.voxeo.moho.event.RecordCompleteEvent;
+import com.voxeo.moho.sip.JoinDelegate;
 import com.voxeo.moho.sip.SipRecordingCall;
 
 public class SIPRecordingImpl<T extends EventSource> implements Recording<T>, Observer {
@@ -55,7 +56,8 @@ public class SIPRecordingImpl<T extends EventSource> implements Recording<T>, Ob
       }
 
       LOG.debug("SIPRecording joining siprecording call to mixer.");
-      _sipRecordingCall.join(_mixer, JoinType.BRIDGE_SHARED, Direction.DUPLEX);
+      JoinDelegate.bridgeJoin(_mixer, _sipRecordingCall, Direction.DUPLEX);
+      //_sipRecordingCall.join(_mixer, JoinType.BRIDGE_SHARED, Direction.DUPLEX);
       startTimestamp = System.currentTimeMillis();
       LOG.debug("SIPRecording started.");
     }
@@ -68,6 +70,11 @@ public class SIPRecordingImpl<T extends EventSource> implements Recording<T>, Ob
       LOG.error("Exception when starting SIPRecording.", e);
       exception = e;
       throw new SignalException(e.getCause());
+    }
+    catch (MsControlException e) {
+      LOG.error("Exception when starting SIPRecording.", e);
+      exception = e;
+      throw new SignalException(e);
     }
     finally {
       if (exception != null) {
