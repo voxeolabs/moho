@@ -1224,19 +1224,15 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     destroyNetworkConnection();
 
-    Participant[] _joineesArray = _joinees.getJoinees();
-    for (final Participant participant : _joineesArray) {
-      UnjoinCompleteEvent.Cause unjoinCause = UnjoinCompleteEvent.Cause.ERROR;
-      if (cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) {
-        unjoinCause = UnjoinCompleteEvent.Cause.DISCONNECT;
-      }
+    final Participant[] _joineesArray = _joinees.getJoinees();
+    
+    _context.getExecutor().execute(new InheritLogContextRunnable() {
+      @Override
+      public void run() {
+        for (final Participant participant : _joineesArray) {
+          _joinees.remove(participant);
 
-      dispatch(new MohoUnjoinCompleteEvent(this, participant, unjoinCause, exception, true));
-
-      if (participant instanceof ParticipantContainer) {
-        _context.getExecutor().execute(new InheritLogContextRunnable() {
-          @Override
-          public void run() {
+          if (participant instanceof ParticipantContainer) {
             try {
               ((ParticipantContainer) participant).doUnjoin(SIPCallImpl.this, false);
             }
@@ -1244,50 +1240,55 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
               LOG.error("Exception when unjoining participant" + participant, e);
             }
           }
-        });
-      }
-    }
-    _joinees.clear();
+          
+          UnjoinCompleteEvent.Cause unjoinCause = UnjoinCompleteEvent.Cause.ERROR;
+          if (cause == CallCompleteEvent.Cause.DISCONNECT || cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT) {
+            unjoinCause = UnjoinCompleteEvent.Cause.DISCONNECT;
+          }
+          dispatch(new MohoUnjoinCompleteEvent(SIPCallImpl.this, participant, unjoinCause, exception, true));
+        }
 
-    synchronized (_peers) {
-      for (final Call peer : _peers) {
-        try {
-          _context.getExecutor().execute(new InheritLogContextRunnable() {
+        synchronized (_peers) {
+          for (final Call peer : _peers) {
+            try {
+              _context.getExecutor().execute(new InheritLogContextRunnable() {
 
-            @Override
-            public void run() {
-              peer.disconnect();
+                @Override
+                public void run() {
+                  peer.disconnect();
+                }
+              });
+
             }
-          });
+            catch (final Throwable t) {
+              LOG.warn("Exception when disconnecting peer:" + peer, t);
+            }
+          }
+          _peers.clear();
+        }
 
+        // TODO
+        if (_joinDelegate != null) {
+          if(!((_joinDelegate instanceof DirectAnswered2MultipleNOJoinDelegate ||
+             _joinDelegate instanceof DirectNI2MultipleNOJoinDelegate ||
+             _joinDelegate instanceof DirectNO2MultipleNOJoinDelegate) && _joinDelegate._call1 != SIPCallImpl.this)) {
+            if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT || cause == CallCompleteEvent.Cause.DISCONNECT) {
+              _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
+            }
+            else if (cause == CallCompleteEvent.Cause.CANCEL) {
+              _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
+            }
+            else {
+              _joinDelegate.done(JoinCompleteEvent.Cause.ERROR, exception);
+            }
+          }
+          _joinDelegate = null;
         }
-        catch (final Throwable t) {
-          LOG.warn("Exception when disconnecting peer:" + peer, t);
-        }
+
+        SIPCallImpl.this.dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, cause, exception, headers));
+        _callDelegate = null;
       }
-      _peers.clear();
-    }
-
-    // TODO
-    if (_joinDelegate != null) {
-      if(!((_joinDelegate instanceof DirectAnswered2MultipleNOJoinDelegate ||
-         _joinDelegate instanceof DirectNI2MultipleNOJoinDelegate ||
-         _joinDelegate instanceof DirectNO2MultipleNOJoinDelegate) && _joinDelegate._call1 != this)) {
-        if (cause == CallCompleteEvent.Cause.NEAR_END_DISCONNECT || cause == CallCompleteEvent.Cause.DISCONNECT) {
-          _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
-        }
-        else if (cause == CallCompleteEvent.Cause.CANCEL) {
-          _joinDelegate.done(JoinCompleteEvent.Cause.DISCONNECTED, exception);
-        }
-        else {
-          _joinDelegate.done(JoinCompleteEvent.Cause.ERROR, exception);
-        }
-      }
-      _joinDelegate = null;
-    }
-
-    this.dispatch(new MohoCallCompleteEvent(this, cause, exception, headers));
-    _callDelegate = null;
+    });
   }
 
   @Override
