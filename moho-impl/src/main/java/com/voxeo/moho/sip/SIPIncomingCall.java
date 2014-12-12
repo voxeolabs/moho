@@ -147,8 +147,10 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
             reliableEarlyMedia = true;
           }
           catch (Rel100Exception ex) {
-            LOG.debug("Can't send reliably.");
-            //TODO should send it unreliably?
+            LOG.debug("Can't send response reliably.");;
+            if(getPreviousOrigin() != null) {
+              getPreviousOrigin().setSessionVersion(getPreviousOrigin().getSessionVersion() -1);
+             }
             res.send();
           }
           
@@ -223,8 +225,11 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   protected synchronized void doInviteWithEarlyMedia(final Map<String, String> headers) throws MediaException,
       SignalException {
     if(!SIPHelper.support100rel(getSipInitnalRequest())) {
-      LOG.error("Request doesn't support 100rel, can't acceptWithEarlyMedia.");
-      throw new SignalException("Request doesn't support 100rel, can't acceptWithEarlyMedia." + this);
+      if(!SIPHelper.isContainSDP(getSipInitnalRequest())) {
+        LOG.error("Request doesn't support 100rel and doesn't contain SDP, can't acceptWithEarlyMedia. " + this);
+        throw new SignalException("Request doesn't support 100rel and doesn't contain SDP, can't acceptWithEarlyMedia. " + this);
+      }
+      LOG.warn("Request doesn't support 100rel, will acceptWithEarlyMedia with unreliable response.");
     }
     
     if (_cstate == SIPCall.State.INVITING || _cstate == SIPCall.State.RINGING) {
