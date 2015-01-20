@@ -3,7 +3,7 @@
   <parent>
     <artifactId>moho-parent</artifactId>
     <groupId>com.voxeo.moho</groupId>
-    <version>1.3.7-SNAPSHOT</version>
+    <version>1.3.7</version>
     <relativePath>..</relativePath>
   </parent>
   <artifactId>moho-reg</artifactId>
@@ -12,7 +12,7 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-api</artifactId>
-      <version>1.3.7-SNAPSHOT</version>
+      <version>1.3.7</version>
     </dependency>
     <dependency>
       <groupId>com.voxeo.moho</groupId>
@@ -46,7 +46,7 @@
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-impl</artifactId>
-      <version>1.3.7-SNAPSHOT</version>
+      <version>1.3.7</version>
     </dependency>
   </dependencies>
 </project>
