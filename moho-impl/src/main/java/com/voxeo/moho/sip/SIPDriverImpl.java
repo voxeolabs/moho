@@ -445,6 +445,7 @@ public class SIPDriverImpl implements SIPDriver {
     final EventSource source = SessionUtils.getEventSource(res);
     if (source != null) {
       if (source instanceof SIPCall) {
+        source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
         final int status = res.getStatus();
         if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
           source.dispatch(new SIPEarlyMediaEventImpl((SIPCall) source, res));
@@ -459,7 +460,6 @@ public class SIPDriverImpl implements SIPDriver {
               LOG.warn("", e);
             }
           }
-          source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
         }
       }
       else {
