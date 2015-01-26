@@ -24,7 +24,9 @@ import javax.servlet.sip.SipServletResponse;
 
 import org.apache.log4j.Logger;
 
+import com.voxeo.moho.Call;
 import com.voxeo.moho.Constants;
+import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.JoinCompleteEvent;
@@ -209,6 +211,21 @@ public class Media2NOJoinDelegate extends JoinDelegate {
         }
         else {
           SIPHelper.trySendPrack(res);
+        }
+
+	 // relay provisioning response for bridge join
+        if (_call1.getJoiningPeer() != null && _call1.getJoiningPeer().getParticipant() instanceof SIPIncomingCall) {
+          SIPIncomingCall incomingCall = (SIPIncomingCall) _call1.getJoiningPeer().getParticipant();
+          if (incomingCall.getCallState() != Call.State.CONNECTED) {
+            try{
+              SipServletResponse newResp = incomingCall.getSipInitnalRequest().createResponse(res.getStatus());
+              SIPHelper.copyPandXHeaders(res, newResp);
+              newResp.send();
+            }
+            catch(Exception ex) {
+              LOG.warn("Exception when relaying provisioning response.", ex);
+            }
+          }
         }
       }
       else if (SIPHelper.isSuccessResponse(res)) {
