@@ -31,6 +31,7 @@ import javax.servlet.sip.URI;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Call;
+import com.voxeo.moho.Configuration;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.Framework;
 import com.voxeo.moho.IncomingCall;
@@ -447,7 +448,7 @@ public class SIPDriverImpl implements SIPDriver {
       if (source instanceof SIPCall) {
         source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
         final int status = res.getStatus();
-        if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
+        if (SIPHelper.getRawContentWOException(res) != null && (SIPHelper.needPrack(res) || Configuration.isEarlyMediaWithout100rel())) {
           source.dispatch(new SIPEarlyMediaEventImpl((SIPCall) source, res));
         }
         else if (status != SipServletResponse.SC_TRYING) {

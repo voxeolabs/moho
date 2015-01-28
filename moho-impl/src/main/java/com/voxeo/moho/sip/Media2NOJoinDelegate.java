@@ -17,7 +17,6 @@ import java.util.Map;
 import javax.media.mscontrol.join.Joinable;
 import javax.media.mscontrol.join.Joinable.Direction;
 import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
-import javax.servlet.sip.Rel100Exception;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
@@ -25,8 +24,8 @@ import javax.servlet.sip.SipServletResponse;
 import org.apache.log4j.Logger;
 
 import com.voxeo.moho.Call;
+import com.voxeo.moho.Configuration;
 import com.voxeo.moho.Constants;
-import com.voxeo.moho.IncomingCall;
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.SignalException;
 import com.voxeo.moho.event.JoinCompleteEvent;
@@ -194,7 +193,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
       if (SIPHelper.isProvisionalResponse(res)) {
         _call1.setSIPCallState(SIPCall.State.ANSWERING);
 
-        if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
+        if (SIPHelper.getRawContentWOException(res) != null && (SIPHelper.needPrack(res) || Configuration.isEarlyMediaWithout100rel())) {
           if (_earlyMediaResponse != null) {
             return;
           }

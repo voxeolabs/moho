@@ -147,7 +147,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
             reliableEarlyMedia = true;
           }
           catch (Rel100Exception ex) {
-            LOG.debug("Can't send response reliably.");;
+            LOG.debug(this + " can't send response reliably.");
             if(getPreviousOrigin() != null) {
               getPreviousOrigin().setSessionVersion(getPreviousOrigin().getSessionVersion() -1);
              }
@@ -155,7 +155,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
           }
           
           if (!reliableEarlyMedia) {
-            setSIPCallState(oldStateBeforeEarlyMedia);
+            setSIPCallState(SIPCall.State.RINGING);
             notifyAll();
           }
         }
@@ -171,7 +171,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
           setSIPCallState(SIPCall.State.PROGRESSED);
         }
         else {
-          setSIPCallState(oldStateBeforeEarlyMedia);
+          setSIPCallState(SIPCall.State.RINGING);
         }
         notifyAll();
       }
@@ -251,7 +251,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
         }
       }
       if (acceptEarlyMediaException != null
-          || (_cstate != SIPCall.State.PROGRESSED && _cstate != oldStateBeforeEarlyMedia)) {
+          || (_cstate != SIPCall.State.PROGRESSED && _cstate != SIPCall.State.RINGING)) {
         if (acceptEarlyMediaException != null) {
           if (acceptEarlyMediaException instanceof SignalException) {
             throw (SignalException) acceptEarlyMediaException;
