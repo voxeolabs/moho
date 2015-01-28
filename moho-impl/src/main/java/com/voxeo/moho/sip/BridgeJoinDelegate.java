@@ -42,6 +42,14 @@ public class BridgeJoinDelegate extends JoinDelegate {
     _call1.setJoiningPeer(new JoinData(_call2, _direction, _joinType));
     _call2.setJoiningPeer(new JoinData(_call1, _direction, _joinType));
 
+    if (_call2.getMediaObject() == null) {
+      if(_call2 instanceof SIPOutgoingCall){
+        ((SIPOutgoingCall)_call2).setContinueRouting(_call1);
+      }
+      _call2.join(Direction.DUPLEX);
+      return;
+    }
+    
     if (_call1.getMediaObject() == null) {
       if(_call1 instanceof SIPOutgoingCall){
         ((SIPOutgoingCall)_call1).setContinueRouting(_call2);
@@ -50,13 +58,7 @@ public class BridgeJoinDelegate extends JoinDelegate {
       return;
 
     }
-    if (_call2.getMediaObject() == null) {
-      if(_call2 instanceof SIPOutgoingCall){
-        ((SIPOutgoingCall)_call2).setContinueRouting(_call1);
-      }
-      _call2.join(Direction.DUPLEX);
-      return;
-    }
+
     SIPCallImpl call = null;
     if (_call1.getSIPCallState() == State.PROGRESSED) {
       call = _call1;
