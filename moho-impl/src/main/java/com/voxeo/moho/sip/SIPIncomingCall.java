@@ -273,7 +273,7 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
       setRemoteSDP(content);
     }
 
-    if (_joinDelegate != null) {
+    if (_joinDelegate != null  && _cstate != SIPCall.State.PROGRESSING) {
       try {
         _joinDelegate.doPrack(req, this, null);
       }
