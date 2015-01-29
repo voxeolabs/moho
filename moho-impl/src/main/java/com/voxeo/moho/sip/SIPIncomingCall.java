@@ -378,6 +378,11 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
   @Override
   public synchronized void acceptWithEarlyMedia(final Map<String, String> headers) throws SignalException,
       MediaException {
+    if(_acceptedWithEarlyMedia) {
+      LOG.debug(this + " already accepted early media.");
+      return;
+    }
+   
     checkState();
 
     _accepted = true;
