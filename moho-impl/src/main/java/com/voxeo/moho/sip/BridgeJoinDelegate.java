@@ -60,10 +60,10 @@ public class BridgeJoinDelegate extends JoinDelegate {
     }
 
     SIPCallImpl call = null;
-    if (_call1.getSIPCallState() == State.PROGRESSED) {
+    if (_call1.getSIPCallState() == State.PROGRESSED || _call1.getSIPCallState() == State.RINGING) {
       call = _call1;
     }
-    else if (_call2.getSIPCallState() == State.PROGRESSED) {
+    else if (_call2.getSIPCallState() == State.PROGRESSED || _call2.getSIPCallState() == State.RINGING) {
       call = _call2;
     }
     if (call != null && call instanceof IncomingCall) {
