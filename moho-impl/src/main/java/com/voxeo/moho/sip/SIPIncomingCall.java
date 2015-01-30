@@ -380,6 +380,15 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
       MediaException {
     if(_acceptedWithEarlyMedia) {
       LOG.debug(this + " already accepted early media.");
+      // wait until the acceptWithEarlyMedia finish.
+     while (!this.isTerminated() && _cstate == SIPCall.State.PROGRESSING) {
+        try {
+          wait(20000);
+        }
+        catch (final InterruptedException e) {
+          // ignore
+        }
+      }
       return;
     }
    
