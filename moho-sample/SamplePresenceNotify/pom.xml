@@ -8,14 +8,14 @@
   <parent>
     <artifactId>moho-sample-parent</artifactId>
     <groupId>com.voxeo.moho</groupId>
-    <version>1.3.8-SNAPSHOT</version>
+    <version>1.3.8</version>
     <relativePath>..</relativePath>
   </parent>
   <dependencies>
     <dependency>
       <groupId>com.voxeo.moho</groupId>
       <artifactId>moho-presence</artifactId>
-      <version>1.3.8-SNAPSHOT</version>
+      <version>1.3.8</version>
     </dependency>
   </dependencies>
 </project>
