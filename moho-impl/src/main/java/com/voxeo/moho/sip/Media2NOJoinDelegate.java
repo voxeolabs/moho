@@ -136,7 +136,9 @@ public class Media2NOJoinDelegate extends JoinDelegate {
                   SIPIncomingCall incomingCall = (SIPIncomingCall) _call1.getJoiningPeer().getParticipant();
                   if (incomingCall.getSIPCallState() == SIPCall.State.INVITING
                       || incomingCall.getSIPCallState() == SIPCall.State.RINGING) {
-                    ((SIPIncomingCall) _call1.getJoiningPeer().getParticipant()).answer();
+                    if(((SIPIncomingCall) _call1.getJoiningPeer().getParticipant()).isEarlyMediaSupported() || Configuration.isEarlyMediaWithout100rel()) {
+                      ((SIPIncomingCall) _call1.getJoiningPeer().getParticipant()).acceptWithEarlyMedia();
+                    }
                   }
                 }
                 else {
@@ -147,6 +149,8 @@ public class Media2NOJoinDelegate extends JoinDelegate {
               if (_call1.getMediaObject() instanceof Joinable
                   && _call1.getJoiningPeer().getParticipant().getMediaObject() instanceof Joinable) {
                 JoinDelegate.bridgeJoin(_call1, _call1.getJoiningPeer().getParticipant(), Direction.DUPLEX);
+                _call1.getJoiningPeer().setRealJoined(_call1.getJoiningPeer().getParticipant());
+                ((SIPCallImpl)_call1.getJoiningPeer().getParticipant()).getJoiningPeer().setRealJoined(_call1);	
               }
               // direct join peer is not null and peer is a not-answerd incoming
               // call, accept with early media. and join two networkconnection
@@ -212,17 +216,19 @@ public class Media2NOJoinDelegate extends JoinDelegate {
           SIPHelper.trySendPrack(res);
         }
 
-	 // relay provisioning response for bridge join
+	      // relay provisioning response for bridge join
         if (_call1.getJoiningPeer() != null && _call1.getJoiningPeer().getParticipant() instanceof SIPIncomingCall) {
           SIPIncomingCall incomingCall = (SIPIncomingCall) _call1.getJoiningPeer().getParticipant();
-          if (incomingCall.getCallState() != Call.State.CONNECTED) {
-            try{
-              SipServletResponse newResp = incomingCall.getSipInitnalRequest().createResponse(res.getStatus());
-              SIPHelper.copyPandXHeaders(res, newResp);
-              newResp.send();
-            }
-            catch(Exception ex) {
-              LOG.warn("Exception when relaying provisioning response.", ex);
+          if ((SIPHelper.getRawContentWOException(res) != null && !incomingCall.isAcceptedWithEarlyMedia()) || SIPHelper.getRawContentWOException(res) == null) {
+            if (incomingCall.getCallState() != Call.State.CONNECTED) {
+              try {
+                SipServletResponse newResp = incomingCall.getSipInitnalRequest().createResponse(res.getStatus());
+                SIPHelper.copyPandXHeaders(res, newResp);
+                newResp.send();
+              }
+              catch (Exception ex) {
+                LOG.warn("Exception when relaying provisioning response.", ex);
+              }
             }
           }
         }

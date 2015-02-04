@@ -39,8 +39,12 @@ public class BridgeJoinDelegate extends JoinDelegate {
   @Override
   public void doJoin() throws Exception {
     super.doJoin();
-    _call1.setJoiningPeer(new JoinData(_call2, _direction, _joinType));
-    _call2.setJoiningPeer(new JoinData(_call1, _direction, _joinType));
+    if(_call1.getJoiningPeer() == null) {
+      _call1.setJoiningPeer(new JoinData(_call2, _direction, _joinType));
+    }
+    if(_call2.getJoiningPeer() == null) {
+      _call2.setJoiningPeer(new JoinData(_call1, _direction, _joinType));
+    }
 
     if (_call2.getMediaObject() == null) {
       if(_call2 instanceof SIPOutgoingCall){

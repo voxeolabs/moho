@@ -351,7 +351,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   @Override
   public Direction getDirection(Participant participant) {
     Direction direction = _joinees.getDirection(participant);
-    if(direction == null && getJoiningPeer() != null && participant == getJoiningPeer().getParticipant()) {
+    if(direction == null && getJoiningPeer() != null && participant == getJoiningPeer().getParticipant() && getJoiningPeer().getRealJoined() != null) {
       return Direction.DUPLEX;
     }
     return direction;
