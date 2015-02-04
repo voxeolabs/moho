@@ -550,7 +550,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (delegate != _joinDelegate) {
       return;
     }
-    setJoiningPeer(null);
+    if(delegate instanceof BridgeJoinDelegate) {
+      setJoiningPeer(null);
+    }
     if (_joinDelegate.getPeer() != null) {
       if (JoinType.isBridge(_joinDelegate.getJoinType())) {
         _callDelegate = new SIPCallBridgeDelegate();
