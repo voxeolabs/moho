@@ -217,9 +217,8 @@ public class Media2NOJoinDelegate extends JoinDelegate {
         }
 
 	      // relay provisioning response for bridge join
-        if (_call1.getJoiningPeer() != null && _call1.getJoiningPeer().getParticipant() instanceof SIPIncomingCall) {
+        if (SIPHelper.getRawContentWOException(res) == null && _call1.getJoiningPeer() != null && _call1.getJoiningPeer().getParticipant() instanceof SIPIncomingCall) {
           SIPIncomingCall incomingCall = (SIPIncomingCall) _call1.getJoiningPeer().getParticipant();
-          if ((SIPHelper.getRawContentWOException(res) != null && !incomingCall.isAcceptedWithEarlyMedia()) || SIPHelper.getRawContentWOException(res) == null) {
             if (incomingCall.getCallState() != Call.State.CONNECTED) {
               try {
                 SipServletResponse newResp = incomingCall.getSipInitnalRequest().createResponse(res.getStatus());
@@ -230,7 +229,6 @@ public class Media2NOJoinDelegate extends JoinDelegate {
                 LOG.warn("Exception when relaying provisioning response.", ex);
               }
             }
-          }
         }
       }
       else if (SIPHelper.isSuccessResponse(res)) {
