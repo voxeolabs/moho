@@ -72,7 +72,9 @@ public class BridgeJoinDelegate extends JoinDelegate {
     }
     if (call != null && call instanceof IncomingCall) {
       final SipServletResponse res = call.getSipInitnalRequest().createResponse(SipServletResponse.SC_OK);
-      
+      if(call.getSIPCallState() == State.RINGING) {
+        res.setContent(SDPUtils.formulateSDP(call, call.getLocalSDP(), false), "application/sdp");
+      }
       res.send();
     }
     else {

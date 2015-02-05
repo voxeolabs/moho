@@ -21,8 +21,12 @@ public class SDPUtils {
   public static void init(ExecutionContext context) {
     sdpFactory = context.getSdpFactory();
   }
-
+  
   public static byte[] formulateSDP(SIPCallImpl call, Object sdp) throws IOException {
+     return formulateSDP(call, sdp, true);
+  }
+
+  public static byte[] formulateSDP(SIPCallImpl call, Object sdp, boolean increaseVersion) throws IOException {
 
     SessionDescription sd = null;
     if (sdp instanceof byte[]) {
@@ -41,7 +45,10 @@ public class SDPUtils {
     try {
       Origin previousOrigin = call.getPreviousOrigin();
       if (previousOrigin != null) {
-        previousOrigin.setSessionVersion(previousOrigin.getSessionVersion() + 1);
+        if(increaseVersion) {
+          previousOrigin.setSessionVersion(previousOrigin.getSessionVersion() + 1);
+        }
+        
         sd.setOrigin(previousOrigin);
       }
       else {

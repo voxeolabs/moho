@@ -148,9 +148,6 @@ public class SIPIncomingCall extends SIPCallImpl implements IncomingCall {
           }
           catch (Rel100Exception ex) {
             LOG.debug(this + " can't send response reliably.");
-            if(getPreviousOrigin() != null) {
-              getPreviousOrigin().setSessionVersion(getPreviousOrigin().getSessionVersion() -1);
-             }
             res.send();
           }
           
