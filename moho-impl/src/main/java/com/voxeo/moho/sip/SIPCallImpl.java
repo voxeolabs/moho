@@ -753,7 +753,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (_operationInProcess) {
       // this is used for the case that receive 183 from not-answered outgoing
       // call
-      if (other instanceof SIPCallImpl) {
+      if (other instanceof SIPCallImpl && getJoiningPeer() == null) {
         this.setJoiningPeer(new JoinData(other, direction, type));
       }
 
