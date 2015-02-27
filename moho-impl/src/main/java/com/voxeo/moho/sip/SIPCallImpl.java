@@ -24,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -60,6 +61,7 @@ import com.voxeo.moho.ApplicationContextImpl;
 import com.voxeo.moho.Call;
 import com.voxeo.moho.CallImpl;
 import com.voxeo.moho.CallableEndpoint;
+import com.voxeo.moho.Configuration;
 import com.voxeo.moho.Endpoint;
 import com.voxeo.moho.JoinData;
 import com.voxeo.moho.JoineeData;
@@ -80,6 +82,8 @@ import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.common.util.InheritLogContextRunnable;
 import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.event.CallCompleteEvent;
+import com.voxeo.moho.event.Event;
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
@@ -154,6 +158,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected boolean pendingReinvite;
   
   protected Origin previousOrigin;
+  
+  protected boolean processingNon100relEarlyMedia;
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
@@ -1012,6 +1018,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       }
       _inviteResponse = res;
       if (SIPHelper.isSuccessResponse(res)) {
+        //For early media w/o 100rel case, we should wait until the early media response is processed.
+        while(isProcessingNon100relEarlyMedia() && !isTerminated()) {
+          LOG.debug("processing non100rel early media, delaying 200OK.");
+          wait(2000);
+        }
         final byte[] content = SIPHelper.getRawContentWOException(res);
         if (content != null) {
           setRemoteSDP(content);
@@ -2208,5 +2219,24 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   public void setPreviousOrigin(Origin previousOrigin) {
     this.previousOrigin = previousOrigin;
+  }
+  
+  public boolean isProcessingNon100relEarlyMedia() {
+    return processingNon100relEarlyMedia;
+  }
+
+  public void setProcessingNon100relEarlyMedia(boolean processingNon100relEarlyMedia) {
+    this.processingNon100relEarlyMedia = processingNon100relEarlyMedia;
+  }
+
+  @Override
+  public <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event) {
+    if(Configuration.isEarlyMediaWithout100rel() && event instanceof SIPEarlyMediaEvent) {
+      if(!SIPHelper.needPrack(((SIPEarlyMediaEvent)event).getSipResponse())) {
+        LOG.debug("Start process non100rel early media.");
+        processingNon100relEarlyMedia = true;
+      }
+    }
+    return super.dispatch(event);
   }
 }

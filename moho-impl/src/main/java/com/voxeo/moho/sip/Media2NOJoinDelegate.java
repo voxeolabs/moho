@@ -161,6 +161,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
           }
 
           _call1.setSIPCallState(SIPCall.State.PROGRESSED);
+          _call1.setProcessingNon100relEarlyMedia(false);
           _call1.notify();
 
           if (_earlyMediaResponse != null) {
