@@ -160,6 +160,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected Origin previousOrigin;
   
   protected boolean processingNon100relEarlyMedia;
+  
+  protected boolean dispatchedNon100relEarlyMedia;
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
@@ -2228,6 +2230,14 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   public void setProcessingNon100relEarlyMedia(boolean processingNon100relEarlyMedia) {
     this.processingNon100relEarlyMedia = processingNon100relEarlyMedia;
   }
+  
+  public boolean isDispatchedNon100relEarlyMedia() {
+    return dispatchedNon100relEarlyMedia;
+  }
+
+  public void setDispatchedNon100relEarlyMedia(boolean dispatchedNon100relEarlyMedia) {
+    this.dispatchedNon100relEarlyMedia = dispatchedNon100relEarlyMedia;
+  }
 
   @Override
   public <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event) {
@@ -2235,6 +2245,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       if(!SIPHelper.needPrack(((SIPEarlyMediaEvent)event).getSipResponse())) {
         LOG.debug("Start process non100rel early media.");
         processingNon100relEarlyMedia = true;
+        dispatchedNon100relEarlyMedia = true;
       }
     }
     return super.dispatch(event);
