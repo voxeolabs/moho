@@ -1131,8 +1131,6 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       LOG.debug(this + " is disconnecting.");
     }
 
-    terminate(cause, exception, null);
-
     try {
       if (isNoAnswered(old)) {
         try {
@@ -1199,6 +1197,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
       }
     }
+    terminate(cause, exception, null);
   }
 
   protected void disconnect(final boolean failed, final CallCompleteEvent.Cause cause, final Exception exception,
