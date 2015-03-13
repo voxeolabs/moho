@@ -446,12 +446,13 @@ public class SIPDriverImpl implements SIPDriver {
     final EventSource source = SessionUtils.getEventSource(res);
     if (source != null) {
       if (source instanceof SIPCall) {
-        source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
         final int status = res.getStatus();
         if (SIPHelper.getRawContentWOException(res) != null && (SIPHelper.needPrack(res) || (Configuration.isEarlyMediaWithout100rel()) && !((SIPCallImpl)source).isDispatchedNon100relEarlyMedia())) {
+          source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
           source.dispatch(new SIPEarlyMediaEventImpl((SIPCall) source, res));
         }
         else if (status != SipServletResponse.SC_TRYING) {
+          source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
           if (source instanceof SIPCallImpl) {
             final SIPCallImpl call = (SIPCallImpl) source;
             try {
