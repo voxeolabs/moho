@@ -1127,6 +1127,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
   protected void doDisconnect(final boolean failed, final CallCompleteEvent.Cause cause, final Exception exception,
       Map<String, String> headers, SIPCall.State old) {
+    doDisconnect(failed, cause, exception, headers, old, false);
+  }
+
+  protected void doDisconnect(final boolean failed, final CallCompleteEvent.Cause cause, final Exception exception,
+      Map<String, String> headers, SIPCall.State old, boolean expired) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(this + " is disconnecting.");
     }
@@ -1197,11 +1202,16 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         }
       }
     }
-    terminate(cause, exception, null);
+    terminate(cause, exception, null, expired);
   }
 
   protected void disconnect(final boolean failed, final CallCompleteEvent.Cause cause, final Exception exception,
       final Map<String, String> headers) {
+    disconnect(failed, cause, exception, headers, false);
+  }
+	  
+  protected void disconnect(final boolean failed, final CallCompleteEvent.Cause cause, final Exception exception,
+      final Map<String, String> headers, boolean expired) {
     final SIPCall.State old = getSIPCallState();
 
     synchronized (this) {
@@ -1222,11 +1232,16 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       notifyAll();
     }
 
-    doDisconnect(failed, cause, exception, headers, old);
+    doDisconnect(failed, cause, exception, headers, old, expired);
   }
 
   protected void terminate(final CallCompleteEvent.Cause cause, final Exception exception,
       final Map<String, String> headers) {
+    terminate(cause, exception, headers, false);
+  }
+
+  protected void terminate(final CallCompleteEvent.Cause cause, final Exception exception,
+      final Map<String, String> headers, final boolean expired) {
     if (LOG.isDebugEnabled()) {
       LOG.debug(this + " is terminating.");
     }
@@ -1269,6 +1284,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
         synchronized (_peers) {
           for (final Call peer : _peers) {
             try {
+              // TROPO-7099
+              if (expired
+                  && ((SIPCall) peer).getSipSession().getApplicationSession().equals(_signal.getApplicationSession())) {
+                continue;
+              }
               _context.getExecutor().execute(new InheritLogContextRunnable() {
 
                 @Override

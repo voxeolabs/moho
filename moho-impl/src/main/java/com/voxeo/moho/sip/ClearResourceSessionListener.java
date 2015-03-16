@@ -21,7 +21,7 @@ public class ClearResourceSessionListener implements SipSessionListener {
     final EventSource source = SessionUtils.getEventSource(sipsessionevent.getSession());
 
     if (source != null && source instanceof SIPCallImpl) {
-      ((SIPCallImpl) source).disconnect(true, MohoCallCompleteEvent.Cause.ERROR, null, null);
+      ((SIPCallImpl) source).disconnect(true, MohoCallCompleteEvent.Cause.ERROR, null, null, true);
     }
   }
 
