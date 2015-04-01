@@ -2263,7 +2263,9 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if(Configuration.isEarlyMediaWithout100rel() && event instanceof SIPEarlyMediaEvent) {
       if(!SIPHelper.needPrack(((SIPEarlyMediaEvent)event).getSipResponse())) {
         LOG.debug("Start process non100rel early media.");
-        processingNon100relEarlyMedia = true;
+	if(getJoinDelegate() != null && getJoinDelegate() instanceof Media2NOJoinDelegate) { 
+          processingNon100relEarlyMedia = true;
+	}
         dispatchedNon100relEarlyMedia = true;
       }
     }
