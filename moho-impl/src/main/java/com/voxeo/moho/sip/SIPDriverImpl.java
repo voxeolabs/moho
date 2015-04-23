@@ -14,6 +14,7 @@
 package com.voxeo.moho.sip;
 
 import java.io.IOException;
+import java.util.ListIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,6 +62,8 @@ import com.voxeo.moho.util.SessionUtils;
 public class SIPDriverImpl implements SIPDriver {
 
   private static final Logger LOG = Logger.getLogger(SIPDriverImpl.class);
+  
+  private static final Pattern SIP_CAUSE_ERROR = Pattern.compile("cause\\s*=\\s*[456][\\d]{2}");
 
   protected Framework _app = null;
 
@@ -446,8 +449,31 @@ public class SIPDriverImpl implements SIPDriver {
     if (source != null) {
       if (source instanceof SIPCall) {
         final int status = res.getStatus();
-        if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
+        
+        if(status == SipServletResponse.SC_TRYING) {
+          return;
+        }
+        ListIterator<String> reasons = res.getHeaders("Reason");
+        boolean isNetworkEarlyMedia = false;
+        while (reasons.hasNext()) {
+          String reason = reasons.next();
+          if (reason.trim().startsWith("Q.850")) {
+            isNetworkEarlyMedia = true;
+            break;
+          }
+          else if (reason.trim().startsWith("SIP") && (SIP_CAUSE_ERROR.matcher(reason).find())) {
+            isNetworkEarlyMedia = true;
+            break;
+          }
+        }
+        
+        source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
+        
+        if (!((SIPCallImpl)source).isDispatchedEarlyMedia() && SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
           source.dispatch(new SIPEarlyMediaEventImpl((SIPCall) source, res));
+        }
+        else if(isNetworkEarlyMedia) {
+          source.dispatch(new SIPErrorRingEventImpl((SIPCall) source, res));
         }
         else if (status != SipServletResponse.SC_TRYING) {
           if (source instanceof SIPCallImpl) {
@@ -459,7 +485,6 @@ public class SIPDriverImpl implements SIPDriver {
               LOG.warn("", e);
             }
           }
-          source.dispatch(new SIPRingEventImpl((SIPCall) source, res));
         }
       }
       else {

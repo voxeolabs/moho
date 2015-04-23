@@ -18,11 +18,15 @@ import javax.media.mscontrol.networkconnection.SdpPortManagerEvent;
 import javax.servlet.sip.SipServletMessage;
 import javax.servlet.sip.SipServletResponse;
 
+import org.apache.log4j.Logger;
+
 import com.voxeo.moho.NegotiateException;
 import com.voxeo.moho.Participant.JoinType;
 import com.voxeo.moho.event.JoinCompleteEvent;
+import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 
 public class Media2AIJoinDelegate extends JoinDelegate {
+  private static final Logger LOG = Logger.getLogger(Media2AIJoinDelegate.class);
 
   protected boolean processedAnswer = false;
 
@@ -32,6 +36,11 @@ public class Media2AIJoinDelegate extends JoinDelegate {
 
   @Override
   public void doJoin() throws Exception {
+    if(_call1.getMediaObject() != null) {
+      LOG.debug(_call1 + " already joined to media.");
+      done(Cause.JOINED, null);
+      return;
+    }
     super.doJoin();
     _call1.processSDPOffer((SipServletMessage) null);
   }

@@ -38,6 +38,11 @@ public class Media2AOJoinDelegate extends JoinDelegate {
 
   @Override
   public void doJoin() throws Exception {
+    if(_call1.getMediaObject() != null) {
+      LOG.debug(_call1 + " already joined to media.");
+      done(Cause.JOINED, null);
+      return;
+    }
     super.doJoin();
     _call1.processSDPOffer((SipServletMessage) null);
   }

@@ -30,11 +30,13 @@ import com.voxeo.moho.common.event.AutowiredEventListener;
 import com.voxeo.moho.common.event.AutowiredEventTarget;
 import com.voxeo.moho.common.event.EventDispatcher;
 import com.voxeo.moho.common.event.MohoEarlyMediaEvent;
+import com.voxeo.moho.common.event.MohoErrorRingEvent;
 import com.voxeo.moho.common.util.InheritLogContextRunnable;
 import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.event.AcceptableEvent;
 import com.voxeo.moho.event.CallEvent;
 import com.voxeo.moho.event.EarlyMediaEvent;
+import com.voxeo.moho.event.ErrorRingEvent;
 import com.voxeo.moho.event.Event;
 import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.Observer;
@@ -306,7 +308,16 @@ public abstract class CallImpl implements Call {
               }
             }
           }
-
+          else if (event instanceof ErrorRingEvent) {
+            if (!((MohoErrorRingEvent) event).isProcessed() && !((MohoErrorRingEvent) event).isAsync()) {
+              try {
+                ((MohoErrorRingEvent) event).reject(null);
+              }
+              catch (final SignalException e) {
+                LOG.warn(e);
+              }
+            }
+          }
           else if (event instanceof AcceptableEvent) {
             if (!((AcceptableEvent) event).isAccepted() && !((AcceptableEvent) event).isRejected()
                 && !((AcceptableEvent) event).isAsync()) {

@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -76,6 +77,8 @@ import com.voxeo.moho.common.event.MohoUnjoinCompleteEvent;
 import com.voxeo.moho.common.util.InheritLogContextRunnable;
 import com.voxeo.moho.common.util.Utils;
 import com.voxeo.moho.event.CallCompleteEvent;
+import com.voxeo.moho.event.Event;
+import com.voxeo.moho.event.EventSource;
 import com.voxeo.moho.event.JoinCompleteEvent;
 import com.voxeo.moho.event.JoinCompleteEvent.Cause;
 import com.voxeo.moho.event.UnjoinCompleteEvent;
@@ -138,6 +141,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected Lock _joinQueueLock = new ReentrantLock();
 
   protected SipServletResponse _inviteResponse;
+  
+  protected boolean dispatchedEarlyMedia;
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
@@ -1965,5 +1970,21 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     md.setAttribute("sendonly", null);
 
     return sd;
+  }
+  
+  public boolean isDispatchedEarlyMedia() {
+    return dispatchedEarlyMedia;
+  }
+
+  public void setDispatchedEarlyMedia(boolean dispatchedNon100relEarlyMedia) {
+    this.dispatchedEarlyMedia = dispatchedNon100relEarlyMedia;
+  }
+  
+  @Override
+  public <S extends EventSource, T extends Event<S>> Future<T> dispatch(T event) {
+    if (event instanceof SIPEarlyMediaEvent) {
+      dispatchedEarlyMedia = true;
+    }
+    return super.dispatch(event);
   }
 }

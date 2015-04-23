@@ -43,7 +43,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
   protected SipServletRequest _updateRequest;
   
   protected boolean earlyMediaJoined;
-
+  
   protected Media2NOJoinDelegate(final SIPOutgoingCall call) {
     _call1 = call;
   }
@@ -129,32 +129,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
           // accept early media
           if (_earlyMediaResponse.getAttribute(Constants.Attribute_AcceptEarlyMedia) != null
               && _call1.getJoiningPeer() != null) {
-            try {
-              // bridge join peer is not null
-              if (_call1.getJoiningPeer().getParticipant().getMediaObject() == null) {
-                if (_call1.getJoiningPeer().getParticipant() instanceof SIPIncomingCall) {
-                  SIPIncomingCall incomingCall = (SIPIncomingCall) _call1.getJoiningPeer().getParticipant();
-                  if (incomingCall.getSIPCallState() == SIPCall.State.INVITING
-                      || incomingCall.getSIPCallState() == SIPCall.State.RINGING) {
-                    ((SIPIncomingCall) _call1.getJoiningPeer().getParticipant()).answer();
-                  }
-                }
-                else {
-                  ((SIPOutgoingCall) _call1.getJoiningPeer().getParticipant()).join().get();
-                }
-              }
-
-              if (_call1.getMediaObject() instanceof Joinable
-                  && _call1.getJoiningPeer().getParticipant().getMediaObject() instanceof Joinable) {
-                JoinDelegate.bridgeJoin(_call1, _call1.getJoiningPeer().getParticipant(), Direction.DUPLEX);
-                earlyMediaJoined = true;
-              }
-              // direct join peer is not null and peer is a not-answerd incoming
-              // call, accept with early media. and join two networkconnection
-            }
-            catch (final Exception e) {
-              throw new SignalException(e);
-            }
+            bridgeMedia();
           }
 
           _call1.setSIPCallState(SIPCall.State.PROGRESSED);
@@ -194,6 +169,11 @@ public class Media2NOJoinDelegate extends JoinDelegate {
       if (SIPHelper.isProvisionalResponse(res)) {
         _call1.setSIPCallState(SIPCall.State.ANSWERING);
 
+        if (res.getAttribute(Constants.Attribute_BridgeEarlyMedia) != null && _call1.getMediaObject() != null
+            && _call1.getJoiningPeer() != null) {
+          bridgeMedia();
+        }
+        
         if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
           if (_earlyMediaResponse != null) {
             return;
@@ -251,5 +231,38 @@ public class Media2NOJoinDelegate extends JoinDelegate {
       }
     }
     super.done(cause, exception);
+  }
+  
+  private void bridgeMedia() {
+    if (earlyMediaJoined) {
+      LOG.debug("Already bridged earlymedia.");
+      return;
+    }
+    try {
+      // bridge join peer is not null
+      if (_call1.getJoiningPeer().getParticipant().getMediaObject() == null) {
+        if (_call1.getJoiningPeer().getParticipant() instanceof SIPIncomingCall) {
+          SIPIncomingCall incomingCall = (SIPIncomingCall) _call1.getJoiningPeer().getParticipant();
+          if (incomingCall.getSIPCallState() == SIPCall.State.INVITING
+              || incomingCall.getSIPCallState() == SIPCall.State.RINGING) {
+            ((SIPIncomingCall) _call1.getJoiningPeer().getParticipant()).answer();
+          }
+        }
+        else {
+          ((SIPOutgoingCall) _call1.getJoiningPeer().getParticipant()).join().get();
+        }
+      }
+
+      if (_call1.getMediaObject() instanceof Joinable
+          && _call1.getJoiningPeer().getParticipant().getMediaObject() instanceof Joinable) {
+        JoinDelegate.bridgeJoin(_call1, _call1.getJoiningPeer().getParticipant(), Direction.DUPLEX);
+        earlyMediaJoined = true;
+      }
+      // direct join peer is not null and peer is a not-answerd incoming
+      // call, accept with early media. and join two networkconnection
+    }
+    catch (final Exception e) {
+      throw new SignalException(e);
+    }
   }
 }
