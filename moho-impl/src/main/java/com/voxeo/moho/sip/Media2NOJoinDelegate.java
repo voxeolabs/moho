@@ -176,6 +176,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
         
         if (SIPHelper.getRawContentWOException(res) != null && SIPHelper.needPrack(res)) {
           if (_earlyMediaResponse != null) {
+            SIPHelper.trySendPrack(res);
             return;
           }
 
