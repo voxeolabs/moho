@@ -169,7 +169,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
       if (SIPHelper.isProvisionalResponse(res)) {
         _call1.setSIPCallState(SIPCall.State.ANSWERING);
 
-        if (res.getAttribute(Constants.Attribute_BridgeEarlyMedia) != null && _call1.getMediaObject() != null
+        if (res.getAttribute(Constants.Attribute_BridgeEarlyMedia) != null && processedAnswer
             && _call1.getJoiningPeer() != null) {
           bridgeMedia();
         }
