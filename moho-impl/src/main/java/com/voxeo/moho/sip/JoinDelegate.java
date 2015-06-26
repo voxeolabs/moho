@@ -292,7 +292,11 @@ public abstract class JoinDelegate {
           if (parts.length > 0) {
             for (Participant participant : parts) {
               unjoint = part.unjoin(participant);
-              unjoint.get();
+            }
+            
+            // wait until the unjoin done
+            while (part.getParticipants().length > 0) {
+              part.wait(2000);
             }
           }
         }
@@ -333,13 +337,23 @@ public abstract class JoinDelegate {
           if (parts.length > 0) {
             for (Participant participant : parts) {
               unjoint = part.unjoin(participant);
-              unjoint.get();
+            }
+            
+            // wait until the unjoin done
+            while (part.getParticipants().length > 0) {
+              part.wait(2000);
             }
           }
           if (otherParts.length > 0) {
             for (Participant participant : otherParts) {
               unjoint = other.unjoin(participant);
-              unjoint.get();
+            }
+            
+            // wait until the unjoin done
+            while (other.getParticipants().length > 0) {
+              synchronized(other) {
+                other.wait(2000);
+              }
             }
           }
         }

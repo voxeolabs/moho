@@ -1325,6 +1325,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
         SIPCallImpl.this.dispatch(new MohoCallCompleteEvent(SIPCallImpl.this, cause, exception, headers));
         _callDelegate = null;
+        _bridgeJoiningPeer = null;
       }
     });
   }
