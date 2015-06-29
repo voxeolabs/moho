@@ -735,6 +735,11 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     }
     else {
       try {
+        if (processingReinvite && _callDelegate != null) {
+          _callDelegate.handleSdpEvent(this, event);
+          return;
+        }
+
         if (_joinDelegate != null) {
           _joinDelegate.doSdpEvent(event);
         }
@@ -804,6 +809,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if(processingReinvite && _callDelegate != null) {
       _callDelegate.handleAck(this, req);
       processingReinvite = false;
+      return;
     }
     
     if (_joinDelegate != null) {
