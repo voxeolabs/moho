@@ -143,6 +143,8 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
   protected SipServletResponse _inviteResponse;
   
   protected boolean dispatchedEarlyMedia;
+  
+  protected boolean processingReinvite;
 
   protected SIPCallImpl(final ExecutionContext context, final SipServletRequest req) {
     super(context);
@@ -798,6 +800,12 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
     if (content != null) {
       setRemoteSDP(content);
     }
+    
+    if(processingReinvite && _callDelegate != null) {
+      _callDelegate.handleAck(this, req);
+      processingReinvite = false;
+    }
+    
     if (_joinDelegate != null) {
       _joinDelegate.doAck(req, this);
     }
@@ -822,6 +830,13 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(this + "Processing re-INVITE.");
+    }
+    
+    //
+    if (_callDelegate != null && this.getMediaObject() != null) {
+      _callDelegate.handleReinvite(this, req, headers);
+      processingReinvite = true;
+      return;
     }
 
     while (_joinDelegate != null && this.getSIPCallState() == SIPCall.State.ANSWERED) {
