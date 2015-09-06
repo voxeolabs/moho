@@ -1538,7 +1538,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       throw new MediaException("NetworkConnection is NULL");
     }
     try {
-      final byte[] remoteSdp = msg.getRawContent();
+      final byte[] remoteSdp = SIPHelper.getRawContentWOException(msg);
       if (remoteSdp != null) {
         _network.getSdpPortManager().processSdpAnswer(remoteSdp);
       }

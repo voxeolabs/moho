@@ -210,7 +210,10 @@ public class SIPHelper {
 
   public static byte[] getRawContentWOException(final SipServletMessage msg) {
     try {
-      return msg.getRawContent();
+      if (msg.getContentType() != null && msg.getContentType().toLowerCase().indexOf("application/sdp") >= 0) {
+        return msg.getRawContent();
+      }
+      return null;
     }
     catch (final IOException e) {
       LOG.warn("", e);
