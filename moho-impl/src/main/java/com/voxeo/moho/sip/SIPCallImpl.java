@@ -1511,7 +1511,7 @@ public abstract class SIPCallImpl extends CallImpl implements SIPCall, MediaEven
       if (_network == null) {
         createNetworkConnection();
       }
-      final byte[] sdpOffer = msg == null ? null : msg.getRawContent();
+      final byte[] sdpOffer = msg == null ? null : SIPHelper.getRawContentWOException(msg);
       if (sdpOffer == null) {
         _network.getSdpPortManager().generateSdpOffer();
       }
