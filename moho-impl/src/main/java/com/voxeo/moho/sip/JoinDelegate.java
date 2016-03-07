@@ -768,11 +768,14 @@ public abstract class JoinDelegate {
       return false;
     }
     final Joinable[] joinees = direction == null ? joinable.getJoinees() : joinable.getJoinees(direction);
-    for (Joinable j : joinees) {
-      if (j.equals(joinee)) {
-        return true;
+    if(joinees != null) {
+      for (Joinable j : joinees) {
+        if (j.equals(joinee)) {
+          return true;
+        }
       }
     }
+
     return false;
   }
 

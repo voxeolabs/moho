@@ -227,7 +227,7 @@ public class Media2NOJoinDelegate extends JoinDelegate {
       try {
         JoinDelegate.bridgeUnjoin(_call1, _call1.getJoiningPeer().getParticipant());
       }
-      catch (MsControlException e) {
+      catch (Exception e) {
         LOG.warn("Exception when unjoining early media.", e);
       }
     }
