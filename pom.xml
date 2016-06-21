@@ -210,19 +210,7 @@
     <module>moho-artifacts</module>
   </modules>
 
-	<pluginRepositories>
-		<!-- pluginRepository>
-			<id>codehouse-s-repo</id>
-			<name>CodeHouse Snapshot Repo</name>
-			<url>https://nexus.codehaus.org/content/groups/snapshots-group</url>
-		</pluginRepository> -->
-		<pluginRepository>
-			<id>public.maven.voxeolabs.net</id>
-			<name>Voxeo Labs</name>
-			<url>http://maven.voxeolabs.net:8081/nexus/content/groups/public/</url>
-		</pluginRepository>
-	</pluginRepositories>
-
+	
   <distributionManagement>
     <repository>
       <id>maven.voxeolabs.net</id>
